@@ -273,7 +273,22 @@ test "phase4 bitmap diff gate keeps manifest-backed source inventory explicit" {
     try expectMarker(manifest_source, "\"owner\": \"Shared Subsystems Pod\"");
     try expectMarker(manifest_source, "\"rollback_owner\": \"Shared Subsystems Pod\"");
     try expectMarker(manifest_source, "\"threshold_posture\": \"threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks\"");
-    try expectMarker(bitmap_diff_source, "phase4 bitmap diff gate keeps exact 81-bit find_nth_bit window boundary explicit");
+    try std.testing.expectEqual(@as(usize, 8), std.mem.count(u8, bitmap_diff_source, "\ntest \""));
+    try expectMarker(bitmap_diff_source, "test \"phase4 bitmap diff gate keeps exact range and prefix rollback checks explicit\" {");
+    try expectMarker(bitmap_diff_source, "test \"phase4 bitmap diff gate keeps zero-length range and prefix no-op checks explicit\" {");
+    try expectMarker(bitmap_diff_source, "test \"phase4 bitmap diff gate keeps rounded zero-prefix checkpoints explicit\" {");
+    try expectMarker(bitmap_diff_source, "test \"phase4 bitmap diff gate keeps copy-tail and zero-length copy invariants explicit\" {");
+    try expectMarker(bitmap_diff_source, "test \"phase4 bitmap diff gate keeps exact find_nth_bit and out-of-bounds rejection explicit\" {");
+    try expectMarker(bitmap_diff_source, "test \"phase4 bitmap diff gate keeps exact 81-bit find_nth_bit window boundary explicit\" {");
+    try expectMarker(bitmap_diff_source, "test \"phase4 bitmap diff gate keeps manifest-backed source inventory explicit\" {");
+    try expectMarker(bitmap_diff_source, "test \"phase4 bitmap diff gate keeps checksum-pinned threshold replay checkpoints explicit\" {");
+    try expectMarker(bitmap_diff_source, "try bitmap.copyClearTail(&source, 97);");
+    try expectMarker(bitmap_diff_source, "try zero_length_copy.copyClearTail(&source, 0);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(usize, 80), try bitmap.findNthBit(80));");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectError(error.EmptyThresholdReplayBatch, runThresholdReplay(0));");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(usize, 88), single.final_weight);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(usize, 94), repeated.final_weight);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expect(single.checksum != repeated.checksum);");
     try expectManifestContainsGitBlobSha(manifest_source, "live_gate_blob_sha", bitmap_diff_source);
     try expectManifestContainsGitBlobSha(manifest_source, "gate_evidence_blob_sha", gate_evidence_source);
 }
