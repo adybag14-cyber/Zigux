@@ -19,6 +19,7 @@ BINDING_HEADER_FAMILY_PATH = Path("zigux/bindings/header_family.zig")
 UAPI_VERSION_PATH = Path("zigux/uapi/version.zig")
 UAPI_DEV_T_PATH = Path("zigux/uapi/dev_t.zig")
 DEV_T_HEADER_PATH = Path("include/zigux/dev_t.h")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -44,11 +45,14 @@ REQUIRED_MARKERS = {
         "PHASE3_LAYOUT_REPLAY_PATH=zigux/tests/phase3_export_uapi_layout.zig",
         "PHASE3_EXPORT_SHIM_BUILD_PATH=zigux/tests/phase3_export_shim_build.zig",
         "PHASE3_C_HEADER_SMOKE_PATH=zigux/tests/phase3_export_uapi_c_header_smoke.c",
+        "PHASE3_C_HEADER_SMOKE_WORKFLOW_ROUTE=.github/workflows/zigux-bootstrap.yml",
+        "PHASE3_C_HEADER_SMOKE_WORKFLOW_GATE=.github/workflows/zigux-bootstrap.yml -> Run current Phase 3 export/UAPI C header smoke",
         "PHASE3_EXPORT_UAPI_GAP=broader curated UAPI families and wider export-shim coverage remain open after the landed starter packet",
         "Do not use this lane to claim broader Phase 3 completion.",
     ),
     VALIDATOR_PATH: (
         '"""Validate the current bounded Phase 3 export/UAPI survey packet."""',
+        'WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")',
         'CATALOG_SELFTEST_CHECK_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
         'print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
         'print("PHASE3_EXPORT_UAPI_SURVEY=pass")',
@@ -95,6 +99,10 @@ REQUIRED_MARKERS = {
         "#define ZIGUX_DEV_T_FIELDS_ABI_VERSION 1u",
         "struct zigux_dev_t_fields {",
         "static inline int zigux_dev_t_fields_range_is_valid(",
+    ),
+    WORKFLOW_PATH: (
+        "- name: Run current Phase 3 export/UAPI C header smoke",
+        "run: python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
     ),
     MANIFEST_PATH: (
         '"Documentation/zigux/phase3-export-uapi-boundary-survey.md"',
@@ -237,6 +245,11 @@ def run_self_test() -> int:
                 "expected catalog-selftest guard marker removal to fail validation",
             ),
             (
+                SURVEY_PATH,
+                "PHASE3_C_HEADER_SMOKE_WORKFLOW_GATE=.github/workflows/zigux-bootstrap.yml -> Run current Phase 3 export/UAPI C header smoke",
+                "expected export/UAPI workflow gate marker removal to fail validation",
+            ),
+            (
                 EXPORT_SHIM_PATH,
                 "pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {",
                 "expected export shim boundary-header marker removal to fail validation",
@@ -245,6 +258,11 @@ def run_self_test() -> int:
                 LINUX_HEADER_PATH,
                 "static inline struct zigux_export_status zigux_uapi_validate_dev_t_range(",
                 "expected linux header dev_t range marker removal to fail validation",
+            ),
+            (
+                WORKFLOW_PATH,
+                "- name: Run current Phase 3 export/UAPI C header smoke",
+                "expected workflow phase3 export/UAPI C smoke step removal to fail validation",
             ),
             (
                 BINDING_HEADER_FAMILY_PATH,
