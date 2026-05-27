@@ -1,0 +1,8 @@
+available subcommands in '/usr/libexec/perf-core'
+-------------------------------------------------
+ annotate bench
+
+subcommands available from elsewhere on your $PATH
+--------------------------------------------------
+ report
+
