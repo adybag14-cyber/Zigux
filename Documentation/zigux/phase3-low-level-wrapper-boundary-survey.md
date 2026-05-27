@@ -14,6 +14,7 @@ This note records the current roadmap-versus-repo reality for the bounded Phase 
 - `zigux/helpers/atomic.zig`
 - `zigux/helpers/barrier.zig`
 - `zigux/helpers/mmio.zig`
+- `zigux/helpers/layout_assert.zig`
 - `zigux/helpers/unsafe_policy.zig`
 - `zigux/unsafe/narrow.zig`
 - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
@@ -49,6 +50,8 @@ That live barrier helper surface, dedicated survey validator, and focused replay
 
 Those roadmap-approved wrapper leafs now sit beside one directly readable unsafe-policy companion through `zigux/helpers/unsafe_policy.zig`, the shared narrow-unsafe decoder through `zigux/unsafe/narrow.zig`, the dedicated survey validator through `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, and one focused low-level-wrapper replay shard through `zigux/tests/phase3_low_level_wrappers.zig`.
 
+Current `master` also keeps `zigux/helpers/layout_assert.zig` directly readable, and the focused replay plus the dedicated shared build companion now keep `layout_assert.assertMmioRangeLayout()` explicit as helper-local MMIO layout evidence instead of leaving that shape check implicit behind the shared ABI packet.
+
 Current `master` also keeps the shared narrow-unsafe decoder's direct interop-policy and byte-entry raw-pointer bridge helpers explicit through `pointerAtInteropPolicyBytes()`, `pointerAtInteropPolicy()`, `constPointerAtInteropPolicyBytes()`, `constPointerAtInteropPolicy()`, `sliceAtInteropPolicyBytes()`, `sliceAtInteropPolicy()`, `constSliceAtInteropPolicyBytes()`, `constSliceAtInteropPolicy()`, `writeValueAtInteropPolicyBytes()`, and `writeValueAtInteropPolicy()` in `zigux/unsafe/narrow.zig`, so the low-level-wrapper reminder should treat those access-boundary entry points as current helper-local evidence rather than as missing follow-through.
 
 Current `master` also keeps the shared narrow-unsafe decoder's raw-pointer bridge exchange relays explicit through `exchangeValueAtInteropPolicyBytes()`, `exchangeValueAtInteropPolicy()`, and `exchangeValueAtByte()` in `zigux/unsafe/narrow.zig`, and the focused replay now keeps those exchange handoffs reviewable beside the existing pointer, slice, and direct value relays rather than leaving the narrower mutation path implicit.
@@ -67,4 +70,4 @@ Current `master` now separately exposes the adjacent shared Phase 3 validator en
 
 ## Scope
 
-This note is limited to roadmap-versus-repo-reality accounting for the low-level wrapper family. It records the directly readable atomic helper shard, the barrier helper companion, the MMIO helper companion, the directly coupled unsafe-policy companion, the shared narrow-unsafe decoder plus interop-policy raw-pointer bridge entry points, the dedicated survey validator, the focused replay shard, the dedicated shared build companion, the returned shared Makefile replay gates, the shared tests-root reminder, the workflow-backed low-level-wrapper replay route, the whole-record MMIO interop-policy predicates and helper entry points, and the direct replay commands; records the separately readable adjacent catalog-selftest guard as cross-packet support; and keeps the next bounded implementation step explicit. It does not fold the separately readable shared validator, shared ABI checker, shared ABI catalog helper, or export/UAPI layout packet into low-level-wrapper completion.
+This note is limited to roadmap-versus-repo-reality accounting for the low-level wrapper family. It records the directly readable atomic helper shard, the barrier helper companion, the MMIO helper companion, the directly readable layout-assert helper companion, the directly coupled unsafe-policy companion, the shared narrow-unsafe decoder plus interop-policy raw-pointer bridge entry points, the dedicated survey validator, the focused replay shard, the dedicated shared build companion, the returned shared Makefile replay gates, the shared tests-root reminder, the workflow-backed low-level-wrapper replay route, the whole-record MMIO interop-policy predicates and helper entry points, and the direct replay commands; records the separately readable adjacent catalog-selftest guard as cross-packet support; and keeps the next bounded implementation step explicit. It does not fold the separately readable shared validator, shared ABI checker, shared ABI catalog helper, or export/UAPI layout packet into low-level-wrapper completion.
