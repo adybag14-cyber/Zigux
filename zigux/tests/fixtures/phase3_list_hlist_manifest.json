@@ -17,15 +17,18 @@
     "zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c",
     "zigux/tests/fixtures/phase3_list_hlist/expected.json",
     "zigux/tests/fixtures/phase3_list_hlist_manifest.json",
-    "scripts/zigux/check-phase3-list-hlist.py"
+    "scripts/zigux/check-phase3-list-hlist.py",
+    "zigux/Makefile"
   ],
   "replay_routes": [
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py",
     "zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
+    "make -C zigux phase3-list-hlist-starter-packet",
     "python3 scripts/zigux/check-phase3-list-hlist.py --self-test",
     "python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc",
-    "zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig"
+    "zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
+    "make -C zigux phase3-list-hlist-dump"
   ],
   "repo_reality_gaps": []
 }
