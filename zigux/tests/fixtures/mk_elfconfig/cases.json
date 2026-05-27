@@ -1,0 +1,27 @@
+[
+  {
+    "name": "elf32",
+    "input": "elf32.hex",
+    "expected": "elf32_expected.json"
+  },
+  {
+    "name": "elf64",
+    "input": "elf64.hex",
+    "expected": "elf64_expected.json"
+  },
+  {
+    "name": "invalid_class",
+    "input": "invalid_class.hex",
+    "expected": "invalid_class_expected.json"
+  },
+  {
+    "name": "not_elf",
+    "input": "not_elf.hex",
+    "expected": "not_elf_expected.json"
+  },
+  {
+    "name": "truncated",
+    "input": "truncated.hex",
+    "expected": "truncated_expected.json"
+  }
+]
