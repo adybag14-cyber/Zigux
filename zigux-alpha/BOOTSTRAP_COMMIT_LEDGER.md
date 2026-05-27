@@ -195,7 +195,12 @@ This ledger turns the roadmap into the first product commit train.
   - `Documentation/zigux/phase12-release-closure-checklist.md`
   - `Documentation/zigux/phase12-release-coordination-matrix.md`
   - `Documentation/zigux/phase14-release-boundary-survey.md`
+- For the active Phase 5 non-runtime sample tranche, treat the landed closure note as the ledger-side handoff instead of inventing synthetic later-train commit entries:
+  - `Documentation/zigux/phase5-closure.md`
+  - `Documentation/zigux/phase5-sample-lane-sequencing.md`
+  - `Documentation/zigux/phase5-sample-review-guide.md`
 - Practical rule:
   - use this ledger when the question is which reviewed bootstrap tranche changes landed through the bounded early train
   - use the docs-root PMO packet when the question is which release-planning surfaces currently govern later-phase release work on `master`
-- This keeps the ledger truthful about the early train while making the live release packet explicit for later scheduled PMO runs.
+  - use the Phase 5 closure note plus its two shared reminder companions when the question is which active non-runtime sample tranche evidence currently governs the bounded Phase 5 lane on `master`
+- This keeps the ledger truthful about the early train while making the live release packet explicit for later scheduled PMO runs and the active Phase 5 closure packet explicit for sample-lane runs.
