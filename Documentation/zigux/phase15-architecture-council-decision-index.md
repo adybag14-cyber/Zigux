@@ -9,7 +9,9 @@ This note records the bounded Phase 15 index for Architecture Council decision r
 - `PHASE15_SLICE=decision-record-inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-27`
-- role: keep a single reviewable inventory of Architecture Council decisions, explicit zero-decision posture, and future record-link rules beside the freeze-map governance packet, the review-process owner note, and the decision-record template without implying approval where none exists
+- `PHASE15_PACKET_VALIDATION_GATE=python3 scripts/zigux/check-phase15-architecture-council-decision-index.py`
+- `PHASE15_PACKET_ROLLBACK_OWNER=Architecture Council`
+- role: keep a single reviewable inventory of Architecture Council decisions, explicit zero-decision posture, future record-link rules, and the dedicated decision-index manifest/checker pair beside the freeze-map governance packet, the review-process owner note, and the decision-record template without implying approval where none exists
 
 ## Why this slice exists
 
@@ -17,7 +19,7 @@ The Phase 15 governance packet already carries the freeze map, the review-proces
 
 What it did not have was one bounded owner note that answers the simple product question, "which Architecture Council decisions are actually recorded on current `master`?"
 
-This index closes that gap without widening Phase 15 into implementation work. It keeps decision inventory, zero-decision posture, and future record-link rules explicit so later reminder surfaces do not have to infer them indirectly from the freeze map, the review-process note, or the parity scorecard.
+This index closes that gap without widening Phase 15 into implementation work. It keeps decision inventory, zero-decision posture, future record-link rules, and the dedicated decision-index manifest/checker pair explicit so later reminder surfaces do not have to infer them indirectly from the freeze map, the review-process note, or the parity scorecard.
 
 ## Current decision inventory
 
@@ -52,6 +54,8 @@ Use one flat entry per landed Architecture Council decision record:
 - `Documentation/zigux/phase15-freeze-map-governance.md`
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
+- `zigux/tests/phase15_architecture_council_decision_index_manifest.json`
+- `scripts/zigux/check-phase15-architecture-council-decision-index.py`
 
 ## Non-goals
 
@@ -64,4 +68,4 @@ This note does not claim:
 
 ## Next bounded step
 
-Keep this note parked unless the first reviewable Architecture Council decision record lands, a freeze-map anchor changes status bucket, or the review-process owner note and decision-record template drift enough that the inventory or zero-decision wording needs a truthfulness refresh.
+Keep this note parked unless the first reviewable Architecture Council decision record lands, a freeze-map anchor changes status bucket, the dedicated decision-index manifest/checker pair drifts away from this note, or the review-process owner note and decision-record template drift enough that the inventory or zero-decision wording needs a truthfulness refresh.
