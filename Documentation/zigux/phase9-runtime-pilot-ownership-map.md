@@ -50,6 +50,8 @@ These files are the direct atomic64 runtime pilot packet and should stay atomic6
 
 - `samples/zigux/runtime_atomic64.zig`
 - `samples/zigux/runtime_atomic64_loader.zig`
+- `zigux/tests/runtime_atomic64_manifest.json`
+- `zigux/tests/runtime_atomic64_survey.zig`
 - `zigux/tests/runtime_atomic64_diff.zig`
 - `zigux/tests/runtime_atomic64_module.zig`
 - bounded `phase9-runtime-atomic64-tests`
