@@ -142,6 +142,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const phase5_trace_events_string_formatting_companion_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase5_trace_events_string_formatting_companion_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const phase5_bytestream_fifo_sample_selfcheck_tests = b.addTest(.{
         .name = "phase5-bytestream-fifo-sample-selfcheck-tests",
@@ -343,6 +348,20 @@ pub fn build(b: *std.Build) void {
         &run_phase5_trace_events_string_formatting_companion_tests.step,
     );
 
+    const phase5_trace_events_string_formatting_companion_survey_tests = b.addTest(.{
+        .name = "phase5-trace-events-string-formatting-companion-survey-tests",
+        .root_module = phase5_trace_events_string_formatting_companion_survey_module,
+    });
+    const run_phase5_trace_events_string_formatting_companion_survey_tests =
+        b.addRunArtifact(phase5_trace_events_string_formatting_companion_survey_tests);
+    const phase5_trace_events_string_formatting_companion_survey_step = b.step(
+        "phase5-trace-events-string-formatting-companion-survey",
+        "Run the Phase 5 trace-events string-formatting companion survey guard",
+    );
+    phase5_trace_events_string_formatting_companion_survey_step.dependOn(
+        &run_phase5_trace_events_string_formatting_companion_survey_tests.step,
+    );
+
     const phase5_trace_events_callback_focus_companion_tests = b.addTest(.{
         .name = "phase5-trace-events-callback-focus-companion-tests",
         .root_module = trace_events_callback_focus_contract_module,
@@ -377,5 +396,6 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase5_trace_events_sample_tests.step);
     test_step.dependOn(&run_phase5_trace_events_sample_survey_tests.step);
     test_step.dependOn(&run_phase5_trace_events_string_formatting_companion_tests.step);
+    test_step.dependOn(&run_phase5_trace_events_string_formatting_companion_survey_tests.step);
     test_step.dependOn(&run_phase5_trace_events_callback_focus_companion_tests.step);
 }
