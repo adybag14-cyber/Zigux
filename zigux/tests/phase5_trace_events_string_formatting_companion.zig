@@ -1,50 +1,71 @@
 const std = @import("std");
-const companion = @import("trace_events_string_formatting_sample");
+const trace_events_string_formatting_sample = @import("trace_events_string_formatting_sample");
 
-test "phase 5 trace-events string-formatting companion keeps the selected-string and formatting anchor reviewable" {
-    const descriptor = companion.TraceEventsStringFormattingSample.descriptor();
+const Sample = trace_events_string_formatting_sample.TraceEventsStringFormattingSample;
+const SampleFocus = trace_events_string_formatting_sample.SampleFocus;
 
-    try std.testing.expectEqualStrings("trace_events_string_formatting_sample", descriptor.name);
-    try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", descriptor.anchor);
-    try std.testing.expect(!descriptor.requires_runtime_substrate);
-    try std.testing.expect(descriptor.provides_selfcheck);
-}
-
-test "phase 5 trace-events string-formatting companion keeps modulo string replay and exact-fit boundaries explicit" {
-    var sample = companion.TraceEventsStringFormattingSample{};
-    try sample.init();
-
-    const cycle = try sample.runStringFormattingCycleReplay();
-    const expected_focus = [_]companion.SampleFocus{
+test "phase 5 focused replay keeps the trace-events string-formatting reference pattern aligned" {
+    const contract = Sample.referencePattern();
+    const expected_focus = [_]SampleFocus{
         .string_selection,
         .formatted_message,
         .bounded_destination_discipline,
         .non_allocating_runtime_safe,
     };
 
-    try std.testing.expectEqual(companion.SampleStage.initialized, cycle.stage_before_replay);
-    try std.testing.expectEqual(companion.SampleStage.initialized, cycle.stage_after_replay);
-    try std.testing.expectEqualSlices(companion.SampleFocus, &expected_focus, cycle.checked_focus);
-    try std.testing.expectEqualStrings("Gandalf", cycle.cases[2].selected_string);
-    try std.testing.expectEqualStrings(
-        "One ring to rule them all",
-        cycle.cases[4].selected_string,
-    );
+    try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", contract.anchor);
+    try std.testing.expect(contract.preserves_initialized_stage);
+    try std.testing.expectEqual(@as(usize, 0), contract.replay_runs_after_cycle);
+    try std.testing.expectEqualSlices(SampleFocus, &expected_focus, contract.review_focus);
 
-    var exact_selected_destination: [14]u8 = undefined;
-    const exact_selected_message = try sample.formatSelectedIterationMessageInto(
-        2,
-        &exact_selected_destination,
-    );
-    try std.testing.expectEqualStrings("Gandalf iter=2", exact_selected_message);
+    for (contract.cases, 0..) |current, index| {
+        try std.testing.expectEqual(@as(i32, @intCast(index)), current.iteration_count);
+        try std.testing.expectEqualStrings(contract.cases[index].selected_string, current.selected_string);
+        try std.testing.expectEqualStrings(contract.cases[index].formatted_message, current.formatted_message);
+        try std.testing.expectEqualStrings(
+            contract.cases[index].selected_iteration_message,
+            current.selected_iteration_message,
+        );
+    }
+}
 
-    var exact_wrapped_selected_destination: [32]u8 = undefined;
-    const exact_wrapped_selected_message = try sample.formatSelectedIterationMessageInto(
+test "phase 5 focused replay keeps exact-fit formatting boundaries executable" {
+    const contract = Sample.referencePattern();
+
+    var sample = Sample{};
+    try sample.init();
+
+    var iteration_storage: [16]u8 = undefined;
+    try std.testing.expectError(
+        error.NoSpaceLeft,
+        sample.formatIterationMessageInto(12, iteration_storage[0 .. contract.exact_iteration_fit_len - 1]),
+    );
+    const exact_iteration = try sample.formatIterationMessageInto(
+        12,
+        iteration_storage[0..contract.exact_iteration_fit_len],
+    );
+    try std.testing.expectEqualStrings("iter=12", exact_iteration);
+
+    var selected_storage: [40]u8 = undefined;
+    try std.testing.expectError(
+        error.NoSpaceLeft,
+        sample.formatSelectedIterationMessageInto(3, selected_storage[0 .. contract.exact_selected_fit_len - 1]),
+    );
+    const exact_selected = try sample.formatSelectedIterationMessageInto(
+        3,
+        selected_storage[0..contract.exact_selected_fit_len],
+    );
+    try std.testing.expectEqualStrings("Frodo iter=3", exact_selected);
+
+    try std.testing.expectError(
+        error.NoSpaceLeft,
+        sample.formatSelectedIterationMessageInto(9, selected_storage[0 .. contract.exact_wrapped_selected_fit_len - 1]),
+    );
+    const exact_wrapped = try sample.formatSelectedIterationMessageInto(
         9,
-        &exact_wrapped_selected_destination,
+        selected_storage[0..contract.exact_wrapped_selected_fit_len],
     );
-    try std.testing.expectEqualStrings(
-        "One ring to rule them all iter=9",
-        exact_wrapped_selected_message,
-    );
+    try std.testing.expectEqualStrings("One ring to rule them all iter=9", exact_wrapped);
+    try std.testing.expectEqual(trace_events_string_formatting_sample.SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(contract.replay_runs_after_cycle, sample.replay_runs);
 }
