@@ -82,6 +82,8 @@ CASE_FIXTURES = (
 
 EXPECTED_PROCESS_OUTPUT_PACKET = (
     "abbreviated_version_expected.json",
+    "version_before_short_help_expected.json",
+    "version_before_long_help_expected.json",
     "ambiguous_long_option_expected.json",
     "invalid_option_expected.json",
     "missing_long_dump_types_argument_expected.json",
@@ -350,6 +352,16 @@ def expected_process_output_payloads() -> dict[str, dict[str, object]]:
         "abbreviated_version_expected.json": {
             "stdout": "",
             "stderr": "genksyms version 2.5.60\n",
+            "exit_code": 0,
+        },
+        "version_before_short_help_expected.json": {
+            "stdout": "",
+            "stderr": "genksyms version 2.5.60\n" + HELP_USAGE,
+            "exit_code": 0,
+        },
+        "version_before_long_help_expected.json": {
+            "stdout": "",
+            "stderr": "genksyms version 2.5.60\n" + HELP_USAGE,
             "exit_code": 0,
         },
         "ambiguous_long_option_expected.json": {
