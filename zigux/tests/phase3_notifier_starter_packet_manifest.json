@@ -5,6 +5,7 @@
   "status": "notifier_binding_starter_present",
   "scope": "notifier priority, list backlink, and hlist prev-link ABI replay",
   "packet_files": [
+    "Documentation/zigux/phase3-notifier-slice.md",
     "zigux/bindings/notifier_abi.zig",
     "zigux/tests/phase3_notifier_starter_packet.zig",
     "zigux/tests/phase3_notifier_starter_packet_build.zig",
