@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import tempfile
 from pathlib import Path
@@ -9,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE = "zigux/Makefile"
+TOOLCHAIN_POLICY = "scripts/zigux/zig-toolchain-policy.json"
 GENKSYMS_DUAL_IMPLEMENTATION_SURVEY = "Documentation/zigux/phase2-genksyms-dual-implementation-survey.md"
 FIXDEP_DUAL_IMPLEMENTATION_SURVEY = "Documentation/zigux/phase2-fixdep-dual-implementation-survey.md"
 GENKSYMS_VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
@@ -151,6 +153,17 @@ ARCHIVE_SUPPORT_ALTERNATIVES = (
     ARCHIVE_PARTS_MANIFEST_PATH,
 )
 
+DEFAULT_REQUIRED_MAKE_ROUTES = (
+    "phase2-toolchain",
+    "phase2-tools",
+    "phase2-kconfig",
+    "phase2-cross",
+    "phase2-genksyms",
+    "phase2-fixdep",
+    "phase2-validate",
+)
+PHASE2_AGGREGATE_ROUTE = "phase2"
+
 REQUIRED_PATHS = (
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase2-closure.md",
@@ -191,7 +204,7 @@ REQUIRED_PATHS = (
     GENKSYMS_VERSION_SIDE_EFFECT_TEST,
     GENKSYMS_VERSION_SIDE_EFFECT_AMBIGUOUS_TEST,
     "scripts/zigux/fixdep.zig",
-    "scripts/zigux/zig-toolchain-policy.json",
+    TOOLCHAIN_POLICY,
     "scripts/zigux/artifact_diff.py",
     "third_party/README.md",
     "zigux/tests/README.md",
@@ -224,7 +237,7 @@ REQUIRED_PATHS = (
     MAKEFILE,
 )
 
-REQUIRED_WORKFLOW_LINES = (
+STATIC_REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
@@ -253,7 +266,6 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
     "run: python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
-    "run: make -C zigux phase2-toolchain",
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "run: python3 scripts/zigux/check-kconfig-bridge.py",
     "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
@@ -281,21 +293,12 @@ REQUIRED_WORKFLOW_LINES = (
     "run: zig test scripts/zigux/genksyms.zig",
     "run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
-    "run: make -C zigux phase2-genksyms",
-    "run: make -C zigux phase2-fixdep",
-    "run: make -C zigux phase2-tools",
-    "run: make -C zigux phase2-kconfig",
-    "run: make -C zigux phase2-cross",
-    "run: make -C zigux phase2-validate",
     "run: python3 scripts/zigux/validate-phase2.py",
 )
 
 DISALLOWED_WORKFLOW_LINES: tuple[str, ...] = ()
 
-REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2"
-REQUIRED_PHASE2_PHONY_TARGETS = set(REQUIRED_PHASE2_PHONY_LINE.split(":", 1)[1].strip().split())
-
-REQUIRED_MAKEFILE_LINES = (
+STATIC_REQUIRED_MAKEFILE_LINES = (
     "phase2-toolchain:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing",
@@ -332,8 +335,6 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
-    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
-    "phase2: phase2-validate",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
@@ -352,6 +353,61 @@ def write_text(root: Path, rel: str, content: str) -> None:
     path = root / rel
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
+
+def read_json_dict(path: Path) -> dict:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise SystemExit(f"required file missing: {path}") from exc
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid json in required file: {path}: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise SystemExit(f"invalid json shape in required file: {path}")
+    return payload
+
+
+def load_required_make_routes(root: Path) -> tuple[str, ...]:
+    payload = read_json_dict(root / TOOLCHAIN_POLICY)
+    upgrade_policy = payload.get("upgrade_policy")
+    if not isinstance(upgrade_policy, dict):
+        raise SystemExit(f"invalid upgrade_policy in required file: {root / TOOLCHAIN_POLICY}")
+    routes = upgrade_policy.get("required_make_routes")
+    if not isinstance(routes, list) or not routes:
+        raise SystemExit(f"invalid required_make_routes in required file: {root / TOOLCHAIN_POLICY}")
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for route in routes:
+        if not isinstance(route, str) or not route.strip():
+            raise SystemExit(f"invalid required_make_routes entry in required file: {root / TOOLCHAIN_POLICY}")
+        normalized_route = route.strip()
+        if normalized_route in seen:
+            raise SystemExit(
+                f"duplicate required_make_routes entry in required file: {root / TOOLCHAIN_POLICY}: {normalized_route}"
+            )
+        normalized.append(normalized_route)
+        seen.add(normalized_route)
+    return tuple(normalized)
+
+
+def expected_workflow_route_lines(required_make_routes: tuple[str, ...]) -> tuple[str, ...]:
+    return tuple(f"run: make -C zigux {route}" for route in (*required_make_routes, PHASE2_AGGREGATE_ROUTE))
+
+
+def expected_makefile_dynamic_lines(required_make_routes: tuple[str, ...]) -> tuple[str, ...]:
+    return (
+        f"phase2-validate: {' '.join(required_make_routes)}",
+        f"{PHASE2_AGGREGATE_ROUTE}: phase2-validate",
+    )
+
+
+def required_phase2_phony_targets(required_make_routes: tuple[str, ...]) -> set[str]:
+    return set((*required_make_routes, PHASE2_AGGREGATE_ROUTE))
+
+
+def required_phase2_phony_line(required_make_routes: tuple[str, ...]) -> str:
+    return ".PHONY: " + " ".join((*required_make_routes, PHASE2_AGGREGATE_ROUTE))
 
 
 def count_exact_lines(text: str, marker: str) -> int:
@@ -396,11 +452,14 @@ def collect_archive_support_issues(root: Path) -> list[tuple[str, str]]:
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
+    required_make_routes = load_required_make_routes(root)
+    workflow_route_lines = expected_workflow_route_lines(required_make_routes)
+    dynamic_makefile_lines = expected_makefile_dynamic_lines(required_make_routes)
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(root, WORKFLOW)
     makefile_text = read_text(root, MAKEFILE)
 
-    for marker in REQUIRED_WORKFLOW_LINES:
+    for marker in (*STATIC_REQUIRED_WORKFLOW_LINES, *workflow_route_lines):
         count = count_exact_lines(workflow_text, marker)
         if count == 0:
             issues.append(("MISSING_WORKFLOW_LINE", marker))
@@ -412,10 +471,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if count != 0:
             issues.append(("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count={count}"))
 
-    if not REQUIRED_PHASE2_PHONY_TARGETS.issubset(phony_targets_present(makefile_text)):
-        issues.append(("MISSING_MAKEFILE_LINE", REQUIRED_PHASE2_PHONY_LINE))
+    if not required_phase2_phony_targets(required_make_routes).issubset(phony_targets_present(makefile_text)):
+        issues.append(("MISSING_MAKEFILE_LINE", required_phase2_phony_line(required_make_routes)))
 
-    for marker in REQUIRED_MAKEFILE_LINES:
+    for marker in (*STATIC_REQUIRED_MAKEFILE_LINES, *dynamic_makefile_lines):
         count = count_exact_lines(makefile_text, marker)
         if count == 0:
             issues.append(("MISSING_MAKEFILE_LINE", marker))
@@ -453,13 +512,28 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
     return 1
 
 
-def build_self_test_root(root: Path) -> None:
+def policy_payload(required_make_routes: tuple[str, ...]) -> str:
+    payload = {
+        "phase": "Phase 2",
+        "channel": "0.17.0-dev.87+9b177a7d2",
+        "minimum_version": "0.17.0-dev.87+9b177a7d2",
+        "archive_sha256": {"x86_64-linux": "3" * 64},
+        "upgrade_policy": {
+            "channel_minimum_lockstep": True,
+            "archive_target_scope": ["x86_64-linux"],
+            "required_make_routes": list(required_make_routes),
+        },
+    }
+    return json.dumps(payload, indent=2) + "\n"
+
+
+def build_self_test_root(root: Path, required_make_routes: tuple[str, ...] = DEFAULT_REQUIRED_MAKE_ROUTES) -> None:
     for child in root.iterdir():
         if child.is_dir():
             shutil.rmtree(child)
         else:
             child.unlink()
-    write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES)) + "\n")
+    write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *STATIC_REQUIRED_WORKFLOW_LINES, *expected_workflow_route_lines(required_make_routes))) + "\n")
     write_text(
         root,
         MAKEFILE,
@@ -470,14 +544,16 @@ def build_self_test_root(root: Path) -> None:
                 "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
                 "ZIGUX_ROOT := ..",
                 "",
-                REQUIRED_PHASE2_PHONY_LINE,
-                *REQUIRED_MAKEFILE_LINES,
+                required_phase2_phony_line(required_make_routes),
+                *STATIC_REQUIRED_MAKEFILE_LINES,
+                *expected_makefile_dynamic_lines(required_make_routes),
             )
         ) + "\n",
     )
     for rel in REQUIRED_PATHS:
-        if rel != MAKEFILE:
+        if rel != MAKEFILE and rel != TOOLCHAIN_POLICY:
             write_text(root, rel, "present\n")
+    write_text(root, TOOLCHAIN_POLICY, policy_payload(required_make_routes))
     write_text(
         root,
         KCONFIG_BRIDGE_VALIDATOR_PATH,
@@ -495,25 +571,32 @@ def expect_required_file_abort(root: Path, rel: str) -> None:
     try:
         collect_issues(root)
     except SystemExit as exc:
-        assert f"required file missing: {root / rel}" in str(exc)
+        assert f"{root / rel}" in str(exc)
     else:
         raise AssertionError(f"missing file did not abort: {rel}")
 
 
 def run_self_test() -> int:
+    required_workflow_route_lines = expected_workflow_route_lines(DEFAULT_REQUIRED_MAKE_ROUTES)
+    required_dynamic_makefile_lines = expected_makefile_dynamic_lines(DEFAULT_REQUIRED_MAKE_ROUTES)
     expected_case_count = (
         1
-        + len(REQUIRED_WORKFLOW_LINES)
-        + len(REQUIRED_WORKFLOW_LINES)
+        + len(STATIC_REQUIRED_WORKFLOW_LINES)
+        + len(STATIC_REQUIRED_WORKFLOW_LINES)
+        + len(required_workflow_route_lines)
+        + len(required_workflow_route_lines)
         + len(DISALLOWED_WORKFLOW_LINES)
         + 1
-        + len(REQUIRED_MAKEFILE_LINES)
-        + len(REQUIRED_MAKEFILE_LINES)
-        + len([rel for rel in REQUIRED_PATHS[:-1] if rel != KCONFIG_BRIDGE_VALIDATOR_PATH])
+        + len(STATIC_REQUIRED_MAKEFILE_LINES)
+        + len(STATIC_REQUIRED_MAKEFILE_LINES)
+        + len(required_dynamic_makefile_lines)
+        + len(required_dynamic_makefile_lines)
+        + len([rel for rel in REQUIRED_PATHS[:-1] if rel not in {KCONFIG_BRIDGE_VALIDATOR_PATH, TOOLCHAIN_POLICY}])
         + len(KCONFIG_CONFDATA_REPLAY_MARKERS)
         + len(KCONFIG_CONFDATA_REPLAY_MARKERS)
-        + 3
+        + 4
         + 2
+        + 5
     )
     checks = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_validate_") as tmp_dir:
@@ -523,13 +606,25 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks += 1
 
-        for marker in REQUIRED_WORKFLOW_LINES:
+        for marker in STATIC_REQUIRED_WORKFLOW_LINES:
             build_self_test_root(root)
             write_text(root, WORKFLOW, replace_exact_line(read_text(root, WORKFLOW), marker, "run: python3 scripts/zigux/other.py"))
             expect_issue(root, ("MISSING_WORKFLOW_LINE", marker))
             checks += 1
 
-        for marker in REQUIRED_WORKFLOW_LINES:
+        for marker in STATIC_REQUIRED_WORKFLOW_LINES:
+            build_self_test_root(root)
+            write_text(root, WORKFLOW, duplicate_exact_line(read_text(root, WORKFLOW), marker))
+            expect_issue(root, ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2"))
+            checks += 1
+
+        for marker in required_workflow_route_lines:
+            build_self_test_root(root)
+            write_text(root, WORKFLOW, replace_exact_line(read_text(root, WORKFLOW), marker, "run: make -C zigux phase2-other"))
+            expect_issue(root, ("MISSING_WORKFLOW_LINE", marker))
+            checks += 1
+
+        for marker in required_workflow_route_lines:
             build_self_test_root(root)
             write_text(root, WORKFLOW, duplicate_exact_line(read_text(root, WORKFLOW), marker))
             expect_issue(root, ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2"))
@@ -542,24 +637,36 @@ def run_self_test() -> int:
             checks += 1
 
         build_self_test_root(root)
-        write_text(root, MAKEFILE, replace_exact_line(read_text(root, MAKEFILE), REQUIRED_PHASE2_PHONY_LINE, "# removed"))
-        expect_issue(root, ("MISSING_MAKEFILE_LINE", REQUIRED_PHASE2_PHONY_LINE))
+        write_text(root, MAKEFILE, replace_exact_line(read_text(root, MAKEFILE), required_phase2_phony_line(DEFAULT_REQUIRED_MAKE_ROUTES), "# removed"))
+        expect_issue(root, ("MISSING_MAKEFILE_LINE", required_phase2_phony_line(DEFAULT_REQUIRED_MAKE_ROUTES)))
         checks += 1
 
-        for marker in REQUIRED_MAKEFILE_LINES:
+        for marker in STATIC_REQUIRED_MAKEFILE_LINES:
             build_self_test_root(root)
             write_text(root, MAKEFILE, replace_exact_line(read_text(root, MAKEFILE), marker, "# removed"))
             expect_issue(root, ("MISSING_MAKEFILE_LINE", marker))
             checks += 1
 
-        for marker in REQUIRED_MAKEFILE_LINES:
+        for marker in STATIC_REQUIRED_MAKEFILE_LINES:
+            build_self_test_root(root)
+            write_text(root, MAKEFILE, duplicate_exact_line(read_text(root, MAKEFILE), marker))
+            expect_issue(root, ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2"))
+            checks += 1
+
+        for marker in required_dynamic_makefile_lines:
+            build_self_test_root(root)
+            write_text(root, MAKEFILE, replace_exact_line(read_text(root, MAKEFILE), marker, "# removed"))
+            expect_issue(root, ("MISSING_MAKEFILE_LINE", marker))
+            checks += 1
+
+        for marker in required_dynamic_makefile_lines:
             build_self_test_root(root)
             write_text(root, MAKEFILE, duplicate_exact_line(read_text(root, MAKEFILE), marker))
             expect_issue(root, ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2"))
             checks += 1
 
         for rel in REQUIRED_PATHS[:-1]:
-            if rel == KCONFIG_BRIDGE_VALIDATOR_PATH:
+            if rel in {KCONFIG_BRIDGE_VALIDATOR_PATH, TOOLCHAIN_POLICY}:
                 continue
             build_self_test_root(root)
             (root / rel).unlink()
@@ -586,7 +693,7 @@ def run_self_test() -> int:
             expect_issue(root, ("DUPLICATE_KCONFIG_CONFDATA_REPLAY_MARKER", f"{marker}:count=2"))
             checks += 1
 
-        for rel in (WORKFLOW, MAKEFILE, KCONFIG_BRIDGE_VALIDATOR_PATH):
+        for rel in (WORKFLOW, MAKEFILE, KCONFIG_BRIDGE_VALIDATOR_PATH, TOOLCHAIN_POLICY):
             build_self_test_root(root)
             (root / rel).unlink()
             expect_required_file_abort(root, rel)
@@ -605,6 +712,80 @@ def run_self_test() -> int:
             ("MISSING_REQUIRED_ARCHIVE_SUPPORT", " or ".join(ARCHIVE_SUPPORT_ALTERNATIVES)),
         )
         checks += 1
+
+        build_self_test_root(root)
+        write_text(root, TOOLCHAIN_POLICY, "{broken\n")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid json in required file" in str(exc)
+            checks += 1
+        else:
+            raise AssertionError("invalid policy json did not abort")
+
+        build_self_test_root(root)
+        write_text(root, TOOLCHAIN_POLICY, json.dumps({"phase": "Phase 2"}, indent=2) + "\n")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid upgrade_policy" in str(exc)
+            checks += 1
+        else:
+            raise AssertionError("missing upgrade_policy did not abort")
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            TOOLCHAIN_POLICY,
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "upgrade_policy": {"required_make_routes": []},
+                },
+                indent=2,
+            ) + "\n",
+        )
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid required_make_routes" in str(exc)
+            checks += 1
+        else:
+            raise AssertionError("empty required_make_routes did not abort")
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            TOOLCHAIN_POLICY,
+            policy_payload(DEFAULT_REQUIRED_MAKE_ROUTES[:-1] + ("phase2-cross",)),
+        )
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "duplicate required_make_routes entry" in str(exc)
+            checks += 1
+        else:
+            raise AssertionError("duplicate required_make_routes did not abort")
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            TOOLCHAIN_POLICY,
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "upgrade_policy": {"required_make_routes": ["phase2-toolchain", "  "]},
+                },
+                indent=2,
+            ) + "\n",
+        )
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid required_make_routes entry" in str(exc)
+            checks += 1
+        else:
+            raise AssertionError("blank required_make_routes entry did not abort")
 
     assert checks == expected_case_count
     print("PHASE2_VALIDATION_SELF_TEST=pass")
@@ -626,7 +807,7 @@ def main() -> int:
         return emit_issues(issues)
 
     print("PHASE2_VALIDATION=pass")
-    print(f"PHASE2_VALIDATION_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
+    print(f"PHASE2_VALIDATION_WORKFLOW_LINE_COUNT={len(STATIC_REQUIRED_WORKFLOW_LINES) + len(expected_workflow_route_lines(load_required_make_routes(args.root.resolve())))}")
     print(f"PHASE2_VALIDATION_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS) + 1}")
     return 0
 
