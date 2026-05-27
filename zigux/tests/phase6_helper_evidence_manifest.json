@@ -9,6 +9,7 @@
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
+    "Documentation/zigux/phase6-runtime-task-poll-event-loop-gap-survey.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -21,7 +22,9 @@
     "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
     "scripts/zigux/check-phase6-perf-threshold-markers.py",
     "scripts/zigux/check-phase6-hexdump-packet.py",
-    "scripts/zigux/check-phase6-hexdump-route.py"
+    "scripts/zigux/check-phase6-hexdump-route.py",
+    "scripts/zigux/check-phase6-runtime-task-poll-event-loop-gap-survey.py",
+    "scripts/zigux/check-phase6-runtime-task-poll-event-loop-shared-packet.py"
   ],
   "public_tree_backed_shared_companions": [],
   "roadmap_anchors": [
@@ -328,6 +331,7 @@
     "python3 scripts/zigux/check-phase6-perf-threshold-markers.py",
     "python3 scripts/zigux/check-phase6-hexdump-packet.py",
     "python3 scripts/zigux/check-phase6-hexdump-route.py",
+    "python3 scripts/zigux/check-phase6-runtime-task-poll-event-loop-shared-packet.py",
     "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-hexdump-review",
     "zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
