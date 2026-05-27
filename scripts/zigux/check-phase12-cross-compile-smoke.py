@@ -112,7 +112,7 @@ def run_self_test() -> int:
                 )
 
         write_fixture(root)
-        (root / NOTE_PATH).writeText("broken\n", encoding="utf-8")
+        (root / NOTE_PATH).write_text("broken\n", encoding="utf-8")
         try:
             check(root)
         except CheckFailure as exc:
