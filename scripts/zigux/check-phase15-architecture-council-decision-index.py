@@ -11,14 +11,20 @@ REVIEW_PROCESS_PATH = Path("Documentation/zigux/phase15-architecture-council-rev
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
 SHARED_GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase15.py")
+MANIFEST_PATH = Path("zigux/tests/phase15_architecture_council_decision_index_manifest.json")
 
+EXPECTED_MANIFEST_CHECKER = "scripts/zigux/check-phase15-architecture-council-decision-index.py"
 EXPECTED_DECISION_INDEX_MARKERS = (
     "PHASE15_STATUS=architecture_council_decision_index_landed",
     "PHASE15_LANE_KEY=P15-L09",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
+    "`PHASE15_PACKET_VALIDATION_GATE=python3 scripts/zigux/check-phase15-architecture-council-decision-index.py`",
+    "`PHASE15_PACKET_ROLLBACK_OWNER=Architecture Council`",
     "approved status-bucket changes recorded on current `master`: none",
     "stay-in-C closeout decision records recorded on current `master`: none",
     "no freeze-map anchor has an Architecture Council approval for a status change on current `master`",
+    "`zigux/tests/phase15_architecture_council_decision_index_manifest.json`",
+    "`scripts/zigux/check-phase15-architecture-council-decision-index.py`",
     "`Documentation/zigux/phase15-architecture-council-review-process.md`",
     "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
     "`Documentation/zigux/phase15-freeze-map-governance.md`",
@@ -48,6 +54,10 @@ def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _read_manifest(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
     for rel in (
@@ -56,6 +66,7 @@ def collect_failures(root: Path) -> list[str]:
         HANDOFF_NOTE_PATH,
         SHARED_GAP_NOTE_PATH,
         VALIDATOR_PATH,
+        MANIFEST_PATH,
     ):
         if not (root / rel).exists():
             failures.append(f"missing_required_path:{rel}")
@@ -67,6 +78,7 @@ def collect_failures(root: Path) -> list[str]:
     handoff_note = _read_text(root / HANDOFF_NOTE_PATH)
     shared_gap_note = _read_text(root / SHARED_GAP_NOTE_PATH)
     validator = _read_text(root / VALIDATOR_PATH)
+    manifest = _read_manifest(root / MANIFEST_PATH)
 
     for marker in EXPECTED_DECISION_INDEX_MARKERS:
         if marker not in decision_index:
@@ -86,6 +98,11 @@ def collect_failures(root: Path) -> list[str]:
     if EXPECTED_VALIDATOR_MARKER not in validator:
         failures.append("missing_validator_direct_packet_marker")
 
+    if manifest.get("decision_index_note") != str(DECISION_INDEX_PATH):
+        failures.append("manifest_decision_index_note")
+    if manifest.get("checker") != EXPECTED_MANIFEST_CHECKER:
+        failures.append(f"manifest_checker:{manifest.get('checker')!r}")
+
     return failures
 
 
@@ -102,6 +119,8 @@ def _sample_decision_index() -> str:
 - `PHASE15_STATUS=architecture_council_decision_index_landed`
 - `PHASE15_LANE_KEY=P15-L09`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
+- `PHASE15_PACKET_VALIDATION_GATE=python3 scripts/zigux/check-phase15-architecture-council-decision-index.py`
+- `PHASE15_PACKET_ROLLBACK_OWNER=Architecture Council`
 
 ## Current decision inventory
 
@@ -113,6 +132,11 @@ def _sample_decision_index() -> str:
 
 - every future Architecture Council decision record must route back through `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, and `Documentation/zigux/phase15-parity-scorecard.md`
 - `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay outside this index until the freeze map changes
+
+## Related owner notes
+
+- `zigux/tests/phase15_architecture_council_decision_index_manifest.json`
+- `scripts/zigux/check-phase15-architecture-council-decision-index.py`
 """
 
 
@@ -133,10 +157,6 @@ Current `master` already carries the freeze map, the freeze-map governance note,
 ## Current handed-off packet on current master
 
 - `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-architecture-council-decision-index.md`
-
-## Next bounded future targets
-
-1. keep the landed `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, and `Documentation/zigux/phase15-architecture-council-decision-index.md` companions aligned with the shared-summary gap note before any freeze-map status change discussion
 """
 
 
@@ -145,40 +165,33 @@ def _sample_shared_gap_note() -> str:
 
 ## Materialized Phase 15 governance assets
 
-- `Documentation/zigux/phase15-architecture-council-review-process.md`
-- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 - `Documentation/zigux/phase15-architecture-council-decision-index.md`
-
-## Current shared-summary watchpoints
-
-- `Documentation/zigux/phase15-architecture-council-review-process.md`
-- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
-- `Documentation/zigux/phase15-architecture-council-decision-index.md`
-
-## Next bounded step
-
-Keep this note parked unless a fresh reread shows one of the broad Phase 15 reminder surfaces drifting away from the materialized governance packet above, the Architecture Council review-process owner note, the decision-record template, or the Architecture Council decision index.
 """
 
 
 def _sample_validator() -> str:
-    payload = {
-        "direct_packet_paths": [
-            "Documentation/zigux/freeze-map.md",
-            "Documentation/zigux/phase15-architecture-council-review-process.md",
-            "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
-            "Documentation/zigux/phase15-architecture-council-decision-index.md",
-        ]
-    }
-    return (
-        "EXPECTED_DIRECT_PACKET_PATHS = [\n"
-        '    "Documentation/zigux/freeze-map.md",\n'
-        '    "Documentation/zigux/phase15-architecture-council-review-process.md",\n'
-        '    "Documentation/zigux/phase15-architecture-council-decision-record-template.md",\n'
-        '    "Documentation/zigux/phase15-architecture-council-decision-index.md",\n'
-        "]\n"
-        f"MANIFEST_PREVIEW = {json.dumps(payload, indent=2)}\n"
-    )
+    return """EXPECTED_DIRECT_PACKET_PATHS = [
+    "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+    "Documentation/zigux/phase15-architecture-council-decision-index.md",
+]
+"""
+
+
+def _sample_manifest() -> str:
+    return json.dumps(
+        {
+            "lane_key": "P15-L09",
+            "phase": "Phase 15",
+            "surveyed_commit": "current-master-readback-2026-05-27",
+            "surveyed_commit_mode": "dated_master_readback",
+            "decision_index_note": "Documentation/zigux/phase15-architecture-council-decision-index.md",
+            "checker": "scripts/zigux/check-phase15-architecture-council-decision-index.py",
+            "focused_replay": "zigux/tests/phase15_architecture_council_decision_index.zig",
+        },
+        indent=2,
+    ) + "\n"
 
 
 def _write_baseline(root: Path) -> None:
@@ -187,6 +200,7 @@ def _write_baseline(root: Path) -> None:
     _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
     _write(root / SHARED_GAP_NOTE_PATH, _sample_shared_gap_note())
     _write(root / VALIDATOR_PATH, _sample_validator())
+    _write(root / MANIFEST_PATH, _sample_manifest())
 
 
 def run_self_test() -> int:
@@ -207,6 +221,7 @@ def run_self_test() -> int:
             (HANDOFF_NOTE_PATH, "the Architecture Council decision index, ", ["missing_handoff_marker:the Architecture Council decision index"], False),
             (SHARED_GAP_NOTE_PATH, "`Documentation/zigux/phase15-architecture-council-decision-index.md`", ["missing_shared_gap_marker:`Documentation/zigux/phase15-architecture-council-decision-index.md`"], True),
             (VALIDATOR_PATH, '"Documentation/zigux/phase15-architecture-council-decision-index.md"', ["missing_validator_direct_packet_marker"], True),
+            (MANIFEST_PATH, '"checker": "scripts/zigux/check-phase15-architecture-council-decision-index.py"', ["manifest_checker:'scripts/zigux/check-phase15-decision-index-alignment.py'"], False),
         )
 
         for rel, marker, expected, replace_all in cases:
@@ -214,7 +229,12 @@ def run_self_test() -> int:
             _write_baseline(case_root)
             text = _read_text(case_root / rel)
             count = text.count(marker) if replace_all else 1
-            _write(case_root / rel, text.replace(marker, "", count))
+            replacement = (
+                '"checker": "scripts/zigux/check-phase15-decision-index-alignment.py"'
+                if rel == MANIFEST_PATH
+                else ""
+            )
+            _write(case_root / rel, text.replace(marker, replacement, count))
             failures = collect_failures(case_root)
             if failures != expected:
                 raise AssertionError(f"unexpected failures for {rel}: {failures}")
