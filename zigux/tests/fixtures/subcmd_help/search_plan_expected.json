@@ -1,0 +1,29 @@
+{
+  "entries": [
+    {
+      "path": "",
+      "disposition": "skip_empty"
+    },
+    {
+      "path": "/usr/libexec/perf-core",
+      "disposition": "skip_exec_path"
+    },
+    {
+      "path": "/bin",
+      "disposition": "scan"
+    },
+    {
+      "path": "",
+      "disposition": "skip_empty"
+    },
+    {
+      "path": "/usr/bin",
+      "disposition": "scan"
+    },
+    {
+      "path": "",
+      "disposition": "skip_empty"
+    }
+  ],
+  "scannable_count": 2
+}
