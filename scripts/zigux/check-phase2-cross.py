@@ -211,6 +211,12 @@ def build_self_test_root(root: Path) -> None:
                         "validation_mode": "route_contract_only",
                         "route": ROUTE,
                     },
+                    {
+                        "target": "riscv64-linux",
+                        "review_status": "route contract only",
+                        "validation_mode": "route_contract_only",
+                        "route": ROUTE,
+                    },
                 ],
             },
             indent=2,
