@@ -95,7 +95,7 @@ def build_self_test_root(root: Path) -> None:
 
 
 def run_self_test() -> int:
-    expected_case_count = 1 + len(REQUIRED_SOURCE_MARKERS) + len(REQUIRED_CASE_MARKERS) + 1
+    expected_case_count = 1 + len(REQUIRED_SOURCE_MARKERS) + len(REQUIRED_CASE_MARKERS) + 2
     checks = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_three_target_alignment_") as tmp_dir:
         root = Path(tmp_dir)
@@ -124,6 +124,15 @@ def run_self_test() -> int:
         assert (
             "DUPLICATE_SOURCE_MARKER",
             f"{REQUIRED_SOURCE_MARKERS[0]}:count=2",
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CHECKER)
+        path.write_text(path.read_text(encoding="utf-8") + REQUIRED_CASE_MARKERS[0] + "\n", encoding="utf-8")
+        assert (
+            "DUPLICATE_CASE_MARKER",
+            f"{REQUIRED_CASE_MARKERS[0]}:count=2",
         ) in collect_issues(root)
         checks += 1
 
