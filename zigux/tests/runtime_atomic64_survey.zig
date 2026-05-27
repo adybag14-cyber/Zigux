@@ -58,6 +58,17 @@ const manifest_markers = [_][]const u8{
     "\"validation_entrypoint\": \"zig test zigux/tests/runtime_atomic64_survey.zig\"",
     "\"descriptor_and_anchor\"",
     "\"diff_threshold_replay_determinism\"",
+    "\"Keep `kernel/workqueue.c` framed as a study-only freeze-map anchor; this packet stays review-only beside that boundary and is not runtime-substrate delivery evidence.\"",
+    "\"freeze_map_study_boundary_governance_record\"",
+    "\"workqueue-facing runtime-substrate delivery claims\"",
+};
+
+const survey_note_markers = [_][]const u8{
+    "`Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in the study-only bucket, so this packet stays review-only beside that workqueue-facing boundary instead of claiming scheduler or workqueue delivery.",
+    "Any future freeze-map status change for this family must route through `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-freeze-map-governance.md` instead of being inferred from the landed atomic64 notes, starter packet, direct loader companion, or visible shared-loader reminder packet.",
+    "owner: the direct atomic64 starter packet owned by `P9-L16`, with this survey carrying the same Phase 9 freeze-boundary review record for `P9-L16`",
+    "status bucket: review-only direct starter packet plus the visible direct loader companion, visible cross-family parity witness, and visible shared-loader reminder packet beside the study-only `kernel/workqueue.c` boundary",
+    "reopen rule: any attempt to treat this packet as runtime-substrate delivery or to move `kernel/workqueue.c` out of study-only posture must reopen through `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, and `Documentation/zigux/phase15-architecture-council-decision-record-template.md` with fresh reviewable evidence",
 };
 
 const ownership_markers = [_][]const u8{
@@ -109,6 +120,12 @@ fn validateAtomic64Packet(root: anytype) !void {
     defer std.testing.allocator.free(diff_file);
     const manifest_file = try readRepoFileAlloc(root, "zigux/tests/runtime_atomic64_manifest.json", 64 * 1024);
     defer std.testing.allocator.free(manifest_file);
+    const survey_note_file = try readRepoFileAlloc(
+        root,
+        "Documentation/zigux/phase9-runtime-atomic64-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(survey_note_file);
     const ownership_map_file = try readRepoFileAlloc(
         root,
         "Documentation/zigux/phase9-runtime-pilot-ownership-map.md",
@@ -121,38 +138,46 @@ fn validateAtomic64Packet(root: anytype) !void {
     inline for (module_markers) |marker| try expectContains(module_file, marker);
     inline for (diff_markers) |marker| try expectContains(diff_file, marker);
     inline for (manifest_markers) |marker| try expectContains(manifest_file, marker);
+    inline for (survey_note_markers) |marker| try expectContains(survey_note_file, marker);
     inline for (ownership_markers) |marker| try expectContains(ownership_map_file, marker);
 }
 
-test \"phase9 runtime atomic64 survey gate matches the bounded atomic64 runtime packet\" {
+test "phase9 runtime atomic64 survey gate matches the bounded atomic64 runtime packet" {
     try validateAtomic64Packet(std.fs.cwd());
 }
 
-test \"phase9 runtime atomic64 survey self-test fixtures stay aligned\" {
+test "phase9 runtime atomic64 survey self-test fixtures stay aligned" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    const sample_text = try std.mem.join(std.testing.allocator, \"\\n\", &sample_markers);
+    const sample_text = try std.mem.join(std.testing.allocator, "\n", &sample_markers);
     defer std.testing.allocator.free(sample_text);
-    const loader_text = try std.mem.join(std.testing.allocator, \"\\n\", &loader_markers);
+    const loader_text = try std.mem.join(std.testing.allocator, "\n", &loader_markers);
     defer std.testing.allocator.free(loader_text);
-    const module_text = try std.mem.join(std.testing.allocator, \"\\n\", &module_markers);
+    const module_text = try std.mem.join(std.testing.allocator, "\n", &module_markers);
     defer std.testing.allocator.free(module_text);
-    const diff_text = try std.mem.join(std.testing.allocator, \"\\n\", &diff_markers);
+    const diff_text = try std.mem.join(std.testing.allocator, "\n", &diff_markers);
     defer std.testing.allocator.free(diff_text);
-    const manifest_text = try std.mem.join(std.testing.allocator, \"\\n\", &manifest_markers);
+    const manifest_text = try std.mem.join(std.testing.allocator, "\n", &manifest_markers);
     defer std.testing.allocator.free(manifest_text);
-    const ownership_text = try std.mem.join(std.testing.allocator, \"\\n\", &ownership_markers);
+    const survey_note_text = try std.mem.join(std.testing.allocator, "\n", &survey_note_markers);
+    defer std.testing.allocator.free(survey_note_text);
+    const ownership_text = try std.mem.join(std.testing.allocator, "\n", &ownership_markers);
     defer std.testing.allocator.free(ownership_text);
 
-    try writeFixtureFile(tmp.dir, \"samples/zigux/runtime_atomic64.zig\", sample_text);
-    try writeFixtureFile(tmp.dir, \"samples/zigux/runtime_atomic64_loader.zig\", loader_text);
-    try writeFixtureFile(tmp.dir, \"zigux/tests/runtime_atomic64_module.zig\", module_text);
-    try writeFixtureFile(tmp.dir, \"zigux/tests/runtime_atomic64_diff.zig\", diff_text);
-    try writeFixtureFile(tmp.dir, \"zigux/tests/runtime_atomic64_manifest.json\", manifest_text);
+    try writeFixtureFile(tmp.dir, "samples/zigux/runtime_atomic64.zig", sample_text);
+    try writeFixtureFile(tmp.dir, "samples/zigux/runtime_atomic64_loader.zig", loader_text);
+    try writeFixtureFile(tmp.dir, "zigux/tests/runtime_atomic64_module.zig", module_text);
+    try writeFixtureFile(tmp.dir, "zigux/tests/runtime_atomic64_diff.zig", diff_text);
+    try writeFixtureFile(tmp.dir, "zigux/tests/runtime_atomic64_manifest.json", manifest_text);
     try writeFixtureFile(
         tmp.dir,
-        \"Documentation/zigux/phase9-runtime-pilot-ownership-map.md\",
+        "Documentation/zigux/phase9-runtime-atomic64-survey.md",
+        survey_note_text,
+    );
+    try writeFixtureFile(
+        tmp.dir,
+        "Documentation/zigux/phase9-runtime-pilot-ownership-map.md",
         ownership_text,
     );
 
