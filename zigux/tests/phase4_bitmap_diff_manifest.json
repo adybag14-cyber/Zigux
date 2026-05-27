@@ -4,7 +4,7 @@
   "roadmap_target_path": "zigux/tests/bitmap_diff.zig",
   "roadmap_bitmap_diff_present": true,
   "live_gate_path": "zigux/tests/bitmap_diff.zig",
-  "live_gate_blob_sha": "3acfd7cc1fb871d695e9289bc0712de38abc7fad",
+  "live_gate_blob_sha": "d70dfb78d481e902d61c9cbb07a763f831424024",
   "helper_replay_path": "zigux/tests/phase4_bitmap_live_helper_replay.zig",
   "helper_replay_blob_sha": "375f7f5ac9dfecee48500cf52a4edbcd7cd02e2f",
   "owner": "Shared Subsystems Pod",
