@@ -397,6 +397,7 @@ def scaffold_manifest(packet: str, lane_scope: str, *, parity: bool) -> dict[str
                         "zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
                         "make -C zigux phase6-hexdump-perf-matrix-test",
                         "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+                        "make -C zigux phase6-hexdump-perf",
                         "make -C zigux phase6-perf",
                     ],
                 },
