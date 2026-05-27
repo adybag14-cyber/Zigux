@@ -45,7 +45,8 @@
     "missing_reference_argument_expected.json",
     "too_many_reference_files_expected.json",
     "unsupported_long_option_expected.json",
-    "unexpected_long_help_argument_expected.json"
+    "unexpected_long_help_argument_expected.json",
+    "abbreviated_unexpected_long_help_argument_expected.json"
   ],
   "helper_local_anchors": [
     "genksyms bridge treats pure version requests as version command",
