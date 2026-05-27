@@ -11,12 +11,14 @@ CATALOG_PATH = Path("scripts/zigux/phase9_catalog.py")
 README_PATH = Path("scripts/zigux/README.md")
 OWNERSHIP_MAP_PATH = Path("Documentation/zigux/phase9-runtime-pilot-ownership-map.md")
 MANIFEST_PATH = Path("zigux/tests/runtime_pilot_manifest.json")
+VALIDATOR_PATH = Path("scripts/zigux/validate-phase9.py")
 
 REQUIRED_FILES = (
     CATALOG_PATH,
     README_PATH,
     OWNERSHIP_MAP_PATH,
     MANIFEST_PATH,
+    VALIDATOR_PATH,
 )
 
 CATALOG_MARKERS = (
@@ -25,7 +27,9 @@ CATALOG_MARKERS = (
     'MANIFEST_PATH = Path("zigux/tests/runtime_pilot_manifest.json")',
     'OWNERSHIP_MAP_PATH = Path("Documentation/zigux/phase9-runtime-pilot-ownership-map.md")',
     '"scripts/zigux/check-phase9-catalog-selftest.py"',
+    '"scripts/zigux/validate-phase9.py"',
     '"python3 scripts/zigux/phase9_catalog.py --pretty"',
+    '"python3 scripts/zigux/validate-phase9.py"',
     'print("PHASE9_CATALOG_SELF_TEST=pass")',
 )
 
@@ -33,6 +37,7 @@ OWNERSHIP_MAP_MARKERS = (
     "PHASE9_RUNTIME_PILOT_MANIFEST=zigux/tests/runtime_pilot_manifest.json",
     "PHASE9_RUNTIME_PILOT_CATALOG=scripts/zigux/phase9_catalog.py",
     "PHASE9_RUNTIME_PILOT_CATALOG_SELFTEST=scripts/zigux/check-phase9-catalog-selftest.py",
+    "PHASE9_RUNTIME_PILOT_VALIDATOR=scripts/zigux/validate-phase9.py",
     "PHASE9_RUNTIME_PILOT_SCRIPTS_ROOT=scripts/zigux/README.md",
     "PHASE9_RUNTIME_PILOT_SHARED_NOTE=Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
     "PHASE9_RUNTIME_PILOT_SHARED_BUILD=zigux/tests/phase9_build.zig",
@@ -56,7 +61,16 @@ MANIFEST_MARKERS = (
     '"lane_key": "P9-L11"',
     '"ownership_map_path": "Documentation/zigux/phase9-runtime-pilot-ownership-map.md"',
     '"scripts/zigux/phase9_catalog.py"',
+    '"scripts/zigux/validate-phase9.py"',
     '"zigux/tests/runtime_pilot_manifest.json"',
+)
+
+VALIDATOR_MARKERS = (
+    "EXPECTED_PACKET_FILES = (",
+    '"scripts/zigux/validate-phase9.py",',
+    "EXPECTED_REPLAY_ROUTES = (",
+    '"python3 scripts/zigux/validate-phase9.py",',
+    "PHASE9_VALIDATE_SELF_TEST=pass",
 )
 
 
@@ -80,6 +94,7 @@ def validate_repo(repo_root: Path) -> list[str]:
         OWNERSHIP_MAP_PATH: OWNERSHIP_MAP_MARKERS,
         README_PATH: README_MARKERS,
         MANIFEST_PATH: MANIFEST_MARKERS,
+        VALIDATOR_PATH: VALIDATOR_MARKERS,
     }
     for relative_path, markers in marker_map.items():
         path = repo_root / relative_path
@@ -97,6 +112,7 @@ def _populate_repo(root: Path) -> None:
     _write(root / OWNERSHIP_MAP_PATH, "\n".join(OWNERSHIP_MAP_MARKERS) + "\n")
     _write(root / README_PATH, "\n".join(README_MARKERS) + "\n")
     _write(root / MANIFEST_PATH, "\n".join(MANIFEST_MARKERS) + "\n")
+    _write(root / VALIDATOR_PATH, "\n".join(VALIDATOR_MARKERS) + "\n")
 
 
 def _expect_issue(root: Path, expected: str, message: str) -> int:
@@ -143,6 +159,12 @@ def run_self_test() -> int:
                 '"ownership_map_path": "Documentation/zigux/phase9-runtime-pilot-ownership-map.md"',
                 'missing zigux/tests/runtime_pilot_manifest.json marker: "ownership_map_path": "Documentation/zigux/phase9-runtime-pilot-ownership-map.md"',
                 "expected missing manifest ownership-map marker was not reported",
+            ),
+            (
+                VALIDATOR_PATH,
+                '"python3 scripts/zigux/validate-phase9.py",',
+                'missing scripts/zigux/validate-phase9.py marker: "python3 scripts/zigux/validate-phase9.py",',
+                "expected missing validator replay marker was not reported",
             ),
         )
 
