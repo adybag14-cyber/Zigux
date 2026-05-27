@@ -47,7 +47,8 @@
     "preexisting_virtio_ring_doc_present": true,
     "preexisting_ring_verify_present": true,
     "preexisting_ring_publish_readiness_present": true,
-    "preexisting_ring_registration_summary_present": true
+    "preexisting_ring_registration_summary_present": true,
+    "preexisting_ring_used_buffer_poll_present": true
   },
   "gaps": [
     {
@@ -103,8 +104,8 @@
       "id": "phase10-used-buffer-polling-helper",
       "status": "starter_landed",
       "kind": "queue_wrapper",
-      "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The used-buffer polling helper is directly readable again through the restored queue-local ring helper."
+      "zigux_destination": "drivers/virtio/virtio_ring_used_buffer_poll.zig",
+      "why_now": "The used-buffer polling helper is directly readable again through the dedicated queue-local used-buffer-poll wrapper, which keeps newly used chains and settled-state reviewable without widening into transport-backed interrupt delivery."
     },
     {
       "id": "phase10-callback-enable-helper",
