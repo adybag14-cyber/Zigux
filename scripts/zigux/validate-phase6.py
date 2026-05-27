@@ -113,10 +113,7 @@ EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
 EXPECTED_SHARED_PERF_WRAPPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
 EXPECTED_SHARED_PUBLIC_COMPANIONS = []
-EXPECTED_BASE64_DIRECT_GAPS = [
-    "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
-    "zigux/tests/phase6_base64_c_casegen.zig",
-]
+EXPECTED_BASE64_DIRECT_GAPS: list[str] = []
 EXPECTED_EVIDENCE_CURRENT_GAPS = EXPECTED_BASE64_DIRECT_GAPS
 EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = []
 EXPECTED_SHARED_REPLAY_INVENTORY = [
@@ -191,13 +188,13 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `python3 scripts/zigux/check-phase6-checksum-c-parity.py`",
     "- `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`",
     "- `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`",
-    "A follow-up authenticated current-master readback on 2026-05-22 directly recovered `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py` again, so the still-missing generator-side gap is now narrower: only `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig` remain outside the directly readable helper-local packet.",
+    "A targeted authenticated current-master reread on 2026-05-27 also directly recovered `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig`, so the Phase 6 base64 packet no longer carries a known direct-readback generator gap.",
 ]
 
 REQUIRED_PARITY_CATALOG_SNIPPETS = [
     "- direct helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`",
-    "- remaining direct-readback gaps after the authenticated 2026-05-22 recovery: `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig`",
-    "- current posture: direct helper readback is restored for the helper, focused replay, perf replay, fixture surface, dedicated corpus checker, direct C parity runner, direct C parity harness, direct C parity checker, and slice note. A follow-up authenticated current-master readback on 2026-05-22 directly recovered `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`, while `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig` still remain outside shipped evidence",
+    "- helper-evidence row: `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `scripts/zigux/check-phase6-base64-corpus-determinism.py`, `scripts/zigux/check-phase6-base64-c-parity.py`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, and `zigux/tests/phase6_helper_parity_manifest.json`",
+    "- current posture: direct helper readback is restored for the helper, focused replay, perf replay, fixture surface, dedicated corpus checker, direct C parity runner, direct C parity harness, direct C parity vectors companion, direct C parity casegen companion, direct C parity checker, and slice note. A targeted authenticated current-master reread on 2026-05-27 directly recovered `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig`, so the base64 row no longer carries a known generator-side direct-readback gap.",
     "- current posture: direct helper readback is restored for the helper, focused replay, fixture-owned perf packet, direct C parity runner, direct C parity harness, direct C parity checker, and slice note, so the checksum row now ships the same external parity review hook as the other portability-sensitive Phase 6 helpers without reopening hexdump work",
     "scripts/zigux/check-phase6-perf-threshold-markers.py",
     "Treat this file as the broader parity companion for the current helper-evidence packet rather than as a substitute for the directly readable shared packet in `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`, `scripts/zigux/validate-phase6.py`, `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`, `scripts/zigux/check-phase6-perf-threshold-markers.py`, `scripts/zigux/check-phase6-hexdump-packet.py`, `scripts/zigux/check-phase6-hexdump-route.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `Documentation/zigux/phase6-perf-gate-survey.md`.",
@@ -208,6 +205,7 @@ REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS = [
     "Documentation/zigux/phase6-helper-parity-catalog.md",
     "scripts/zigux/check-phase6-base64-c-parity.py",
     "scripts/zigux/check-phase6-checksum-c-parity.py",
+    "A targeted authenticated current-master reread on 2026-05-27 also directly recovered zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig and zigux/tests/phase6_base64_c_casegen.zig, so the base64 helper row no longer carries a known generator-side direct-readback gap.",
 ]
 
 REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
