@@ -5,7 +5,7 @@ This note records the current bounded Phase 8 file-path and handle bridge helper
 ## Status
 - `PHASE8_STATUS=active_helper_slice`
 - `PHASE8_SLICE=file-path-handle-bridge`
-- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-26
+- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-27
 - roadmap anchor: `tools/lib/bpf/libbpf.c`
 - intended Zigux destination family: `tools/lib/bpf/zigux_segments/`
 - scope: helper-local pathname shaping, fdinfo map-info parsing, reused-map compatibility planning, and deferred bridge-boundary truthfulness only
@@ -16,6 +16,8 @@ Current `master` keeps the dedicated helper packet reviewable through `tools/lib
 That landed helper packet keeps bounded `"/proc/%d/fdinfo/%d"` pathname shaping through `validateProcFdinfoRoot()`, `buildProcFdinfoPath()`, and `buildCurrentProcessFdinfoPath()`, `parseFdinfoLine()` field splitting, `applyFdinfoMapInfoLine()` numeric field decoding, `parseFdinfoMapInfo()` compact fdinfo summary parsing, `summarizeFdinfoMapInfo()` completion reporting, `summarizeReusedMapName()` retained-name summaries, and `resolveReusedMapName()` plus errno-shaped wrappers explicit without claiming no direct procfs reads, no live bpffs opens, and no `bpf_obj_get()` reopen flow.
 
 The helper packet also now keeps helper-only `mapReuseObservationFromFdinfo()` handoff, `summarizeMapReuseCompatibility()` and `isMapReuseCompatible()` reviewable, while `resolveReusePinnedMapAttempt()` stays explicit as planning-only `resolveReusePinnedMapAttempt()` gating and `planTokenPreparation()` stays explicit as planning-only `planTokenPreparation()` gating.
+
+The focused helper proof now also keeps terminated-prefix and truncated-fixed-width retained-name dispositions explicit, along with incomplete-fdinfo reuse planning that must fail closed before any reopen or token step.
 
 Those planning-only helpers remain bounded: no live bpffs opens, no descriptor replacement, transfer, or close ownership semantics, no token materialization, and no direct file-open bridge-heavy behavior.
 
