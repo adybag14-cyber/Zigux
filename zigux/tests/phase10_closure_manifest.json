@@ -75,6 +75,7 @@
         "drivers/virtio/virtio_ring_publish_readiness.zig",
         "drivers/virtio/virtio_ring_registration_summary.zig",
         "drivers/virtio/virtio_input_queue_callback_preflight.zig",
+        "drivers/virtio/virtio_input_registration_preflight.zig",
         "drivers/virtio/virtio_input_teardown_preflight.zig",
         "drivers/virtio/virtio_input_teardown_observation.zig",
         "drivers/virtio/virtio_input_verify.zig",
