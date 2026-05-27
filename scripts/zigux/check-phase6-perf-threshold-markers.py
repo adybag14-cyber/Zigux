@@ -104,20 +104,23 @@ EXPECTED_CHECKSUM_CASES = [
     {"label": "64B", "iterations": 200000, "max_slowdown_pct": 150},
     {"label": "1501B", "iterations": 12000, "max_slowdown_pct": 150},
 ]
+EXPECTED_CHECKSUM_PAYLOAD_LABELS = ["64B", "1501B"]
 EXPECTED_CHECKSUM_IPV4_CASES = [
     {"label": "IPV4_20B", "iterations": 600000, "max_slowdown_pct": 100},
     {"label": "IPV4_20B_UPDATED", "iterations": 600000, "max_slowdown_pct": 100},
     {"label": "IPV4_24B", "iterations": 500000, "max_slowdown_pct": 100},
     {"label": "IPV4_60B", "iterations": 250000, "max_slowdown_pct": 100},
 ]
+EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS = ["IPV4_20B", "IPV4_20B_UPDATED", "IPV4_24B", "IPV4_60B"]
 EXPECTED_HEXDUMP_CASES = [
     {"label": "16B-plain-g1", "reps": 40000, "max_slowdown_pct": 175},
     {"label": "32B-ascii-g2", "reps": 10000, "max_slowdown_pct": 550},
     {"label": "16B-ascii-g4", "reps": 20000, "max_slowdown_pct": 550},
     {"label": "16B-ascii-g8", "reps": 20000, "max_slowdown_pct": 600},
 ]
+EXPECTED_HEXDUMP_LABELS = ["16B-plain-g1", "32B-ascii-g2", "16B-ascii-g4", "16B-ascii-g8"]
 
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 23
 
 
 class ValidationError(RuntimeError):
@@ -224,7 +227,13 @@ def validate_bsearch_perf(perf: dict[str, object], label: str, *, bound_field: s
 
 def validate_checksum_perf(perf: dict[str, object], label: str) -> None:
     require_equal(perf.get("cases"), EXPECTED_CHECKSUM_CASES, f"{label} cases")
+    require_equal(perf.get("payload_case_labels"), EXPECTED_CHECKSUM_PAYLOAD_LABELS, f"{label} payload_case_labels")
     require_equal(perf.get("ipv4_fast_path_cases"), EXPECTED_CHECKSUM_IPV4_CASES, f"{label} ipv4_fast_path_cases")
+    require_equal(
+        perf.get("ipv4_fast_path_case_labels"),
+        EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS,
+        f"{label} ipv4_fast_path_case_labels",
+    )
     require_routes(
         perf.get("linux_style_rerun_routes"),
         label,
@@ -239,6 +248,7 @@ def validate_checksum_perf(perf: dict[str, object], label: str) -> None:
 
 def validate_hexdump_perf(perf: dict[str, object], label: str) -> None:
     require_equal(perf.get("cases"), EXPECTED_HEXDUMP_CASES, f"{label} cases")
+    require_equal(perf.get("case_labels"), EXPECTED_HEXDUMP_LABELS, f"{label} case_labels")
     require_routes(
         perf.get("linux_style_rerun_routes"),
         label,
@@ -366,7 +376,9 @@ def scaffold_manifest(packet: str, lane_scope: str, *, parity: bool) -> dict[str
                 "key": "checksum",
                 "current_perf_evidence": {
                     "cases": EXPECTED_CHECKSUM_CASES,
+                    "payload_case_labels": EXPECTED_CHECKSUM_PAYLOAD_LABELS,
                     "ipv4_fast_path_cases": EXPECTED_CHECKSUM_IPV4_CASES,
+                    "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS,
                     "linux_style_rerun_routes": [
                         "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
                         "make -C zigux phase6-checksum-perf",
@@ -378,13 +390,13 @@ def scaffold_manifest(packet: str, lane_scope: str, *, parity: bool) -> dict[str
                 "key": "hexdump",
                 "current_perf_evidence": {
                     "cases": EXPECTED_HEXDUMP_CASES,
+                    "case_labels": EXPECTED_HEXDUMP_LABELS,
                     "linux_style_rerun_routes": [
                         "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
                         "make -C zigux phase6-hexdump-review",
                         "zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
                         "make -C zigux phase6-hexdump-perf-matrix-test",
                         "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
-                        "make -C zigux phase6-hexdump-perf",
                         "make -C zigux phase6-perf",
                     ],
                 },
@@ -557,6 +569,24 @@ def run_self_test() -> None:
                 '"1501B"',
                 '"1500B"',
                 "helper-parity checksum cases drifted",
+            ),
+            (
+                EVIDENCE_MANIFEST_PATH,
+                '"payload_case_labels": [\n          "64B",\n          "1501B"\n        ]',
+                '"payload_case_labels": ["64B"]',
+                "helper-evidence checksum payload_case_labels drifted",
+            ),
+            (
+                PARITY_MANIFEST_PATH,
+                '"ipv4_fast_path_case_labels": [\n          "IPV4_20B",\n          "IPV4_20B_UPDATED",\n          "IPV4_24B",\n          "IPV4_60B"\n        ]',
+                '"ipv4_fast_path_case_labels": ["IPV4_20B", "IPV4_24B", "IPV4_60B"]',
+                "helper-parity checksum ipv4_fast_path_case_labels drifted",
+            ),
+            (
+                EVIDENCE_MANIFEST_PATH,
+                '"case_labels": [\n          "16B-plain-g1",\n          "32B-ascii-g2",\n          "16B-ascii-g4",\n          "16B-ascii-g8"\n        ]',
+                '"case_labels": ["16B-plain-g1", "16B-ascii-g4", "16B-ascii-g8"]',
+                "helper-evidence hexdump case_labels drifted",
             ),
         ]
 
