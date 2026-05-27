@@ -36,6 +36,10 @@ test "phase10 virtio ring queue build keeps the focused queue packet explicit" {
     );
     try expectContains(
         build_file,
+        ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_callback_enable.zig\"),",
+    );
+    try expectContains(
+        build_file,
         ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_registration_summary.zig\"),",
     );
     try expectContains(
@@ -77,6 +81,7 @@ test "phase10 virtio ring queue build keeps the focused queue packet explicit" {
     try expectContains(build_file, ".name = \"phase10-virtio-ring-verify-tests\",");
     try expectContains(build_file, ".name = \"phase10-virtio-ring-publish-readiness-tests\",");
     try expectContains(build_file, ".name = \"phase10-virtio-ring-notification-data-wrapper-tests\",");
+    try expectContains(build_file, ".name = \"phase10-virtio-ring-callback-enable-tests\",");
     try expectContains(build_file, ".name = \"phase10-virtio-ring-registration-summary-tests\",");
     try expectContains(build_file, ".name = \"phase10-virtio-ring-notification-data-readiness-tests\",");
     try expectContains(build_file, ".name = \"phase10-virtio-ring-registration-replay-tests\",");
@@ -101,6 +106,10 @@ test "phase10 virtio ring queue build keeps the focused queue packet explicit" {
     );
     try expectContains(
         build_file,
+        "phase10_virtio_ring_queue_tests.dependOn(\n        &run_phase10_virtio_ring_callback_enable_tests.step,\n    );",
+    );
+    try expectContains(
+        build_file,
         "phase10_virtio_ring_queue_tests.dependOn(\n        &run_phase10_virtio_ring_registration_replay_tests.step,\n    );",
     );
     try expectContains(
@@ -118,6 +127,10 @@ test "phase10 virtio ring queue build keeps the focused queue packet explicit" {
     try expectContains(
         build_file,
         "test_step.dependOn(&run_phase10_virtio_ring_notification_data_wrapper_tests.step);",
+    );
+    try expectContains(
+        build_file,
+        "test_step.dependOn(&run_phase10_virtio_ring_callback_enable_tests.step);",
     );
     try expectContains(
         build_file,
@@ -152,7 +165,7 @@ test "phase10 virtio ring queue build stays below unrelated transport and input 
     try expectNotContains(build_file, "phase10_virtio_input");
 }
 
-test "phase10 virtio ring queue build survey stays explicit in the shared ring reminder packet" {
+test "phase10 virtio ring queue build survey keeps callback-enable coverage explicit in the queue packet" {
     const allocator = std.testing.allocator;
 
     const survey_note = try readRepoRelative(
@@ -167,20 +180,22 @@ test "phase10 virtio ring queue build survey stays explicit in the shared ring r
     );
     defer allocator.free(packet_checker);
 
+    const callback_wrapper = try readRepoRelative(
+        allocator,
+        "drivers/virtio/virtio_ring_callback_enable.zig",
+    );
+    defer allocator.free(callback_wrapper);
+
     try expectContains(
         survey_note,
-        "`zigux/tests/phase10_virtio_ring_queue_build_survey.zig` now gives the ring lane one focused queue-build survey replay",
+        "`drivers/virtio/virtio_ring_callback_enable.zig` keeps callback-ready, pending-used, and broken-queue recovery state explicit inside the same queue-handling packet.",
     );
     try expectContains(
         packet_checker,
-        "\"zigux/tests/phase10_virtio_ring_queue_build_survey.zig\": [",
+        "\"phase10-callback-enable-helper\"",
     );
     try expectContains(
-        packet_checker,
-        "phase10_virtio_ring_queue_build_survey.zig",
-    );
-    try expectContains(
-        packet_checker,
-        "phase10-virtio-ring-queue-build-survey-tests",
+        callback_wrapper,
+        "test \"phase10 virtio ring callback-enable wrapper keeps recovery debt explicit after a broken queue is cleared\" {",
     );
 }
