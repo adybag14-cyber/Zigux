@@ -2,6 +2,7 @@ const std = @import("std");
 const testing = std.testing;
 
 const notifier_abi = @import("notifier_abi");
+const notifier_view = @import("notifier_view");
 
 test "notifier starter packet keeps result bytes explicit" {
     try testing.expectEqual(@as(u32, 0), @intFromEnum(notifier_abi.NotifierResult.done));
@@ -18,52 +19,90 @@ test "notifier starter packet keeps layout anchors explicit" {
     try testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @sizeOf(notifier_abi.HListNode));
 }
 
+test "notifier starter packet keeps an empty chain reviewable" {
+    const view = notifier_view.NotifierView.init(null);
+
+    try testing.expect(view.isEmpty());
+    try testing.expectEqual(@as(usize, 0), view.len());
+    try testing.expectEqual(@as(?*const notifier_view.NotifierBlock, null), view.first());
+    try testing.expectEqual(@as(?*const notifier_view.NotifierBlock, null), view.last());
+    try testing.expect(view.hasNonincreasingPriority());
+    try testing.expect(view.allCallbacksPresent());
+}
+
 test "notifier starter packet keeps nonincreasing priority chains accepted" {
-    const third = notifier_abi.NotifierBlock{
-        .notifier_call = 0,
+    const tail = notifier_view.NotifierBlock{
+        .notifier_call = 0x3000,
+        .next = 0,
+        .priority = 2,
+    };
+    const middle = notifier_view.NotifierBlock{
+        .notifier_call = 0x2000,
+        .next = @intFromPtr(&tail),
+        .priority = 4,
+    };
+    const head = notifier_view.NotifierBlock{
+        .notifier_call = 0x1000,
+        .next = @intFromPtr(&middle),
+        .priority = 4,
+    };
+
+    const view = notifier_view.NotifierView.init(&head);
+    try testing.expect(!view.isEmpty());
+    try testing.expectEqual(@as(usize, 3), view.len());
+    try testing.expectEqual(@as(?*const notifier_view.NotifierBlock, &head), view.first());
+    try testing.expectEqual(@as(?*const notifier_view.NotifierBlock, &tail), view.last());
+    try testing.expect(view.hasNonincreasingPriority());
+    try testing.expect(view.allCallbacksPresent());
+    try testing.expectEqual(@as(?usize, null), view.firstNullCallbackIndex());
+    try testing.expectEqual(@as(?notifier_view.PriorityIncrease, null), view.firstPriorityIncrease());
+}
+
+test "notifier starter packet reports the first null callback witness" {
+    const tail = notifier_view.NotifierBlock{
+        .notifier_call = 0x3000,
         .next = 0,
         .priority = 1,
     };
-    const second = notifier_abi.NotifierBlock{
+    const middle = notifier_view.NotifierBlock{
         .notifier_call = 0,
-        .next = @intFromPtr(&third),
-        .priority = 4,
+        .next = @intFromPtr(&tail),
+        .priority = 2,
     };
-    const first = notifier_abi.NotifierBlock{
-        .notifier_call = 0,
-        .next = @intFromPtr(&second),
-        .priority = 4,
+    const head = notifier_view.NotifierBlock{
+        .notifier_call = 0x1000,
+        .next = @intFromPtr(&middle),
+        .priority = 3,
     };
 
-    try testing.expect(notifier_abi.chainHasNonincreasingPriority(&first));
-    try testing.expect(notifier_abi.firstChainPriorityIncrease(&first) == null);
+    const view = notifier_view.NotifierView.init(&head);
+    try testing.expect(!view.allCallbacksPresent());
+    try testing.expectEqual(@as(?usize, 1), view.firstNullCallbackIndex());
 }
 
 test "notifier starter packet reports the first priority increase" {
-    const third = notifier_abi.NotifierBlock{
-        .notifier_call = 0,
+    const tail = notifier_view.NotifierBlock{
+        .notifier_call = 0x3000,
         .next = 0,
-        .priority = 7,
+        .priority = 8,
     };
-    const second = notifier_abi.NotifierBlock{
-        .notifier_call = 0,
-        .next = @intFromPtr(&third),
+    const middle = notifier_view.NotifierBlock{
+        .notifier_call = 0x2000,
+        .next = @intFromPtr(&tail),
         .priority = 2,
     };
-    const first = notifier_abi.NotifierBlock{
-        .notifier_call = 0,
-        .next = @intFromPtr(&second),
-        .priority = 5,
+    const head = notifier_view.NotifierBlock{
+        .notifier_call = 0x1000,
+        .next = @intFromPtr(&middle),
+        .priority = 4,
     };
 
-    try testing.expect(!notifier_abi.chainHasNonincreasingPriority(&first));
-    const increase = notifier_abi.firstChainPriorityIncrease(&first) orelse {
-        return error.TestUnexpectedResult;
-    };
+    const increase = notifier_view.NotifierView.init(&head).firstPriorityIncrease().?;
+    try testing.expect(!notifier_view.NotifierView.init(&head).hasNonincreasingPriority());
     try testing.expectEqual(@as(usize, 1), increase.previous_index);
     try testing.expectEqual(@as(usize, 2), increase.current_index);
     try testing.expectEqual(@as(i32, 2), increase.previous_priority);
-    try testing.expectEqual(@as(i32, 7), increase.current_priority);
+    try testing.expectEqual(@as(i32, 8), increase.current_priority);
 }
 
 test "notifier starter packet keeps list backlink drift explicit" {
