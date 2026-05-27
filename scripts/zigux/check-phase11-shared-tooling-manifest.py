@@ -110,6 +110,17 @@ REQUIRED_VALIDATE_FIXTURE_MARKERS = (
     '"command": ["python", "scripts/zigux/check-phase11-shared-tooling-manifest.py"]',
 )
 
+EXPECTED_VALIDATE_FIXTURE_ENTRIES = (
+    (
+        "phase11-shared-tooling-manifest-self-test",
+        ["python", "scripts/zigux/check-phase11-shared-tooling-manifest.py", "--self-test"],
+    ),
+    (
+        "phase11-shared-tooling-manifest",
+        ["python", "scripts/zigux/check-phase11-shared-tooling-manifest.py"],
+    ),
+)
+
 
 class CheckError(RuntimeError):
     pass
@@ -165,10 +176,37 @@ def require_existing_paths(root: Path, paths: list[str], label: str) -> None:
             raise CheckError(f"missing path from {label}: {path}")
 
 
+def require_validate_fixture_entries(fixture: dict[str, object]) -> None:
+    exact_checks = fixture.get("exact_checks")
+    if not isinstance(exact_checks, list):
+        raise CheckError("expected list for exact_checks")
+
+    positions: list[int] = []
+    for expected_name, expected_command in EXPECTED_VALIDATE_FIXTURE_ENTRIES:
+        matching_positions = []
+        same_name_count = 0
+        for index, entry in enumerate(exact_checks):
+            if not isinstance(entry, dict):
+                raise CheckError("expected object entries in exact_checks")
+            name = entry.get("name")
+            command = entry.get("command")
+            if name == expected_name:
+                same_name_count += 1
+                if command == expected_command:
+                    matching_positions.append(index)
+        if same_name_count != 1 or len(matching_positions) != 1:
+            raise CheckError(f"validate fixture entry mismatch for {expected_name}")
+        positions.append(matching_positions[0])
+
+    if positions != sorted(positions):
+        raise CheckError("validate fixture tooling-manifest entries are out of order")
+
+
 def run_check(root: Path) -> None:
     manifest = read_json(root, MANIFEST_PATH)
     survey_text = read_text(root, SURVEY_PATH)
     validator_text = read_text(root, VALIDATOR_PATH)
+    validate_fixture = read_json(root, VALIDATE_FIXTURE_PATH)
     validate_fixture_text = read_text(root, VALIDATE_FIXTURE_PATH)
 
     for key in ("lane_key", "phase", "status", "scope"):
@@ -204,6 +242,7 @@ def run_check(root: Path) -> None:
     forbid_text_markers("phase11-codegen-manifest-tooling-gap-survey.md", survey_text, FORBIDDEN_SURVEY_MARKERS)
     require_text_markers("validate-phase11.py", validator_text, REQUIRED_VALIDATOR_MARKERS)
     require_text_markers("phase11_validate_checks.json", validate_fixture_text, REQUIRED_VALIDATE_FIXTURE_MARKERS)
+    require_validate_fixture_entries(validate_fixture)
 
 
 def write(path: Path, text: str) -> None:
@@ -322,6 +361,35 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(missing_fixture_entry, 'missing marker in phase11_validate_checks.json: "name": "phase11-shared-tooling-manifest-self-test"')
+        case_count += 1
+
+        wrong_fixture_command = tmpdir / "wrong_fixture_command"
+        shutil.copytree(fixture, wrong_fixture_command, dirs_exist_ok=True)
+        payload = read_json(wrong_fixture_command, VALIDATE_FIXTURE_PATH)
+        payload["exact_checks"][0]["command"] = ["python", "scripts/zigux/check-phase11-shared-tooling-manifest.py"]
+        write(wrong_fixture_command / VALIDATE_FIXTURE_PATH, json.dumps(payload, indent=2) + "\n")
+        expect_failure(wrong_fixture_command, "validate fixture entry mismatch for phase11-shared-tooling-manifest-self-test")
+        case_count += 1
+
+        duplicate_fixture_entry = tmpdir / "duplicate_fixture_entry"
+        shutil.copytree(fixture, duplicate_fixture_entry, dirs_exist_ok=True)
+        payload = read_json(duplicate_fixture_entry, VALIDATE_FIXTURE_PATH)
+        payload["exact_checks"].append(
+            {
+                "name": "phase11-shared-tooling-manifest",
+                "command": ["python", "scripts/zigux/check-phase11-shared-tooling-manifest.py"],
+            }
+        )
+        write(duplicate_fixture_entry / VALIDATE_FIXTURE_PATH, json.dumps(payload, indent=2) + "\n")
+        expect_failure(duplicate_fixture_entry, "validate fixture entry mismatch for phase11-shared-tooling-manifest")
+        case_count += 1
+
+        out_of_order_fixture_entries = tmpdir / "out_of_order_fixture_entries"
+        shutil.copytree(fixture, out_of_order_fixture_entries, dirs_exist_ok=True)
+        payload = read_json(out_of_order_fixture_entries, VALIDATE_FIXTURE_PATH)
+        payload["exact_checks"] = list(reversed(payload["exact_checks"]))
+        write(out_of_order_fixture_entries / VALIDATE_FIXTURE_PATH, json.dumps(payload, indent=2) + "\n")
+        expect_failure(out_of_order_fixture_entries, "validate fixture tooling-manifest entries are out of order")
         case_count += 1
 
         stale_gap_claim = tmpdir / "stale_gap_claim"
