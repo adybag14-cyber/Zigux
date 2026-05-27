@@ -21,6 +21,12 @@ test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local co
     const build_file = try readRepoRelative(allocator, "zigux/tests/phase10_build.zig");
     defer allocator.free(build_file);
 
+    const apply_observation_replay = try readRepoRelative(
+        allocator,
+        "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig",
+    );
+    defer allocator.free(apply_observation_replay);
+
     try expectContains(survey_note, "PHASE10_STATUS=parked");
     try expectContains(survey_note, "lane key: `P10-L11`");
     try expectContains(survey_note, "drivers/virtio/virtio_mmio.zig");
@@ -54,6 +60,22 @@ test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local co
     try expectContains(build_file, "\"phase10-virtio-mmio-survey-tests\"");
     try expectContains(build_file, "run_phase10_virtio_mmio_tests.step");
     try expectContains(build_file, "run_phase10_virtio_mmio_survey_tests.step");
+    try expectContains(
+        apply_observation_replay,
+        "test \"phase10 virtio mmio apply-observation replay clears stale plans across config restaging\" {",
+    );
+    try expectContains(
+        apply_observation_replay,
+        "apply_observation.summarizeConfigWriteApplyObservation(&device),",
+    );
+    try expectContains(
+        apply_observation_replay,
+        "try std.testing.expectEqual(@as(u4, 0b0001), refreshed.changed_byte_mask);",
+    );
+    try expectContains(
+        apply_observation_replay,
+        "try std.testing.expectEqual(@as(u3, 1), apply_observation.changedByteCount(refreshed));",
+    );
 
     const replay_build_file = try readRepoRelative(
         allocator,
