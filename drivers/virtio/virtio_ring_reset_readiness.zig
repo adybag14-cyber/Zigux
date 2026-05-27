@@ -24,6 +24,24 @@ pub fn queueHasResetDebt(summary: QueueResetReadinessSummary) bool {
         summary.pending_used_chain_count != 0;
 }
 
+fn advanceUsedIndexNearWrap(ring: *virtio_ring.VirtioRingLab, queue_index: u16) !void {
+    for (0..8191) |_| {
+        for (0..8) |_| {
+            try ring.publishDescriptorChain(queue_index);
+        }
+        _ = try ring.prepareKick(queue_index);
+        try ring.recordUsedChains(queue_index, 8);
+        _ = try ring.pollUsedBuffers(queue_index);
+    }
+
+    for (0..7) |_| {
+        try ring.publishDescriptorChain(queue_index);
+    }
+    _ = try ring.prepareKick(queue_index);
+    try ring.recordUsedChains(queue_index, 7);
+    _ = try ring.pollUsedBuffers(queue_index);
+}
+
 test "phase10 virtio ring reset-readiness wrapper keeps empty queues resettable" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(0, 8, .split, true, false);
@@ -89,6 +107,40 @@ test "phase10 virtio ring reset-readiness wrapper exposes used-poll debt before 
     try std.testing.expectEqual(@as(u16, 1), poll.newly_used_chain_count);
 
     summary = try summarizeResetReadiness(&ring, 2);
+    try std.testing.expect(summary.blocker == null);
+    try std.testing.expect(queueCanReset(summary));
+    try std.testing.expect(!queueNeedsUsedPoll(summary));
+    try std.testing.expect(!queueHasResetDebt(summary));
+}
+
+test "phase10 virtio ring reset-readiness wrapper keeps used-poll debt explicit across used-index rollover" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(6, 8, .split, true, false);
+    try advanceUsedIndexNearWrap(&ring, 6);
+
+    try ring.publishDescriptorChain(6);
+    _ = try ring.prepareKick(6);
+    try ring.recordUsedChains(6, 1);
+
+    var summary = try summarizeResetReadiness(&ring, 6);
+    try std.testing.expectEqual(@as(u16, 0), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, std.math.maxInt(u16)), summary.last_polled_used_idx);
+    try std.testing.expectEqualStrings("unpolled_used_chains", @tagName(summary.blocker.?));
+    try std.testing.expectEqual(@as(u16, 1), summary.pending_used_chain_count);
+    try std.testing.expect(!queueCanReset(summary));
+    try std.testing.expect(queueNeedsUsedPoll(summary));
+    try std.testing.expect(queueHasResetDebt(summary));
+
+    const poll = try ring.pollUsedBuffers(6);
+    try std.testing.expectEqual(@as(u16, 0), poll.last_used_idx);
+    try std.testing.expectEqual(@as(u16, std.math.maxInt(u16)), poll.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), poll.newly_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), poll.outstanding_chain_count);
+    try std.testing.expect(poll.has_newly_used_chains);
+
+    summary = try summarizeResetReadiness(&ring, 6);
+    try std.testing.expectEqual(@as(u16, 0), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), summary.last_polled_used_idx);
     try std.testing.expect(summary.blocker == null);
     try std.testing.expect(queueCanReset(summary));
     try std.testing.expect(!queueNeedsUsedPoll(summary));
