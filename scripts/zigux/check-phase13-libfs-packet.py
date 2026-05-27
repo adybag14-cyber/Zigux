@@ -289,7 +289,7 @@ def run_self_test() -> int:
         assert_only(validate(root), expected, "survey_missing_markers_failed")
         case_count += 1
 
-        seed_fixtureTree(root)
+        seed_fixture_tree(root)
         write_text(
             root / HELPER_PATH,
             "\n".join(marker for marker in HELPER_MARKERS if marker != "pub fn planSimpleOffsetRemove(") + "\n",
