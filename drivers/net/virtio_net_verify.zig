@@ -62,7 +62,7 @@ pub fn summarizeRecoveryPipeline(request: RecoveryPipelineRequest) !RecoveryPipe
         request.control_queue_restored,
         request.requires_control_queue_restore,
         refill.replay_ready,
-        recycle.wakes_transmit_queue or !request.transmit_queue_was_stopped,
+        recycle.reaches_wake_threshold or !request.transmit_queue_was_stopped,
     );
     const probe_replayed_for_resume =
         request.probe_snapshot_replayed or !request.requires_probe_snapshot_replay;
@@ -200,6 +200,34 @@ test "virtio net recovery pipeline returns receive ownership before stopped tran
     try std.testing.expectEqual(throughput.ThroughputParityStatus.needs_transmit_recycle, summary.throughput.status);
     try std.testing.expect(summary.recovery_owns_any_submission);
     try std.testing.expect(!summary.can_return_driver_ownership);
+}
+
+test "virtio net recovery pipeline counts preexisting free transmit descriptors toward stopped queue readiness" {
+    const summary = try summarizeRecoveryPipeline(.{
+        .reset_generation = 12,
+        .receive_queue_pairs_before_reset = 2,
+        .receive_queue_pairs_after_restore = 2,
+        .receive_buffers_before_reset = 256,
+        .receive_buffers_after_restore = 256,
+        .descriptors_posted_after_restore = 256,
+        .control_queue_restored = true,
+        .in_flight_transmit_descriptors = 0,
+        .free_transmit_descriptors_before_recycle = 2,
+        .completed_transmit_descriptors = 0,
+        .transmit_queue_was_stopped = true,
+        .wake_threshold = 2,
+        .probe_snapshot_replayed = true,
+    });
+
+    try std.testing.expect(summary.refill.replay_ready);
+    try std.testing.expect(summary.recycle.reaches_wake_threshold);
+    try std.testing.expect(!summary.recycle.wakes_transmit_queue);
+    try std.testing.expectEqual(throughput.ThroughputParityStatus.parity_gate_ready, summary.throughput.status);
+    try std.testing.expect(summary.throughput.transmit_recycle_ready);
+    try std.testing.expectEqual(post_reset.PostResetReplayBlocker.none, summary.replay.blocker);
+    try std.testing.expectEqual(queue_resume.QueueResumeBlocker.none, summary.queue_resume_summary.blocker);
+    try std.testing.expect(summary.can_return_driver_ownership);
+    try std.testing.expect(driverOwnsBothSubmissions(summary));
 }
 
 test "virtio net recovery pipeline stays probe-gated until the final replay checkpoint lands" {
