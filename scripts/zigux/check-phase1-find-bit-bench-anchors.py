@@ -22,6 +22,8 @@ REQUIRED_TEST_MARKERS = {
     "tail_mask_shared_test": 'test "tail mask ignores shared bits beyond nbits" {',
     "tail_word_set_skip_test": 'test "tail-word next set scans skip earlier in-range matches before clamping" {',
     "tail_word_zero_shared_skip_test": 'test "tail-word next zero and shared scans skip earlier in-range matches before clamping" {',
+    "clump8_tail_reach_test": 'test "clump8 scans keep tail bytes reachable from partial final words" {',
+    "clump8_tail_mask_test": 'test "clump8 scans mask tail bits beyond nbits" {',
     "clump8_untouched_test": 'test "clump8 zero-bit and past-end windows leave the caller byte untouched" {',
     "clump8_no_read_test": 'test "clump8 past-end scans return without reading bitmap words" {',
     "clump8_skip_forward_test": 'test "clump8 scans skip earlier aligned bytes once the offset moves forward" {',
@@ -29,6 +31,7 @@ REQUIRED_TEST_MARKERS = {
     "get_value8_last_aligned_test": 'test "getValue8 reads the last aligned byte of a word without folding in the next word" {',
     "underscore_andnot_alias_test": 'test "low-level underscore aliases mirror the primary find helpers, including andnot" {',
     "linux_andnot_alias_test": 'test "Linux-style aliases mirror the primary find helpers, including andnot" {',
+    "last_bit_exact_word_boundary_test": 'test "find last bit ignores storage beyond an exact word boundary" {',
     "last_bit_tail_test": 'test "find last bit clamps tail words to nbits" {',
     "last_bit_empty_test": 'test "find last bit returns nbits when no set bits remain" {',
 }
@@ -39,12 +42,16 @@ REQUIRED_SOURCE_COUNT_MARKERS = {
     "find_next_andnot_boundary": ("findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary)", 2),
     "find_next_or_boundary": ("findNextOrBit(&or_lhs, &or_rhs, nbits, boundary)", 2),
     "find_next_zero_boundary": ("findNextZeroBit(&zero_map, nbits, boundary)", 1),
+    "find_last_nbits_bitmap": ('try std.testing.expectEqual(@as(usize, nbits), findLastBit(&bitmap, nbits));', 2),
+    "find_first_clump8_tail_word": ('try std.testing.expectEqual(@as(usize, bits_per_long), findFirstClump8(&clump, &bitmap, nbits));', 2),
+    "find_first_clump8_tail_value": ('try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);', 2),
 }
 
 REQUIRED_SOURCE_EXACT_MARKERS = {
     "find_first_andnot_low_level_alias": "try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), _find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));",
-    "find_last_empty_bitmap": "try std.testing.expectEqual(@as(usize, nbits), findLastBit(&bitmap, nbits));",
     "find_first_andnot_gap": "findFirstAndNotBit(&andnot_lhs, &andnot_rhs, bits_per_long * 3)",
+    "find_last_exact_word_boundary_first": "try std.testing.expectEqual(@as(usize, boundary), findLastBit(&bitmap, nbits));",
+    "find_last_exact_word_boundary_clear": "bitmap[0] = 0;",
     "find_last_tail_single_word": "try std.testing.expectEqual(@as(usize, 4), findLastBit(&single_word, single_word_nbits));",
     "find_last_zero_sized": "findLastBit(&populated, 0)",
     "find_last_empty_zero": "findLastBit(&empty, 0)",
@@ -207,6 +214,14 @@ def build_sample_source(
         "    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextAndNotBit(&tail_andnot_lhs, &tail_andnot_rhs, nbits, bits_per_long + 2));",
         "    try std.testing.expectEqual(@as(usize, nbits), findNextAndNotBit(&tail_andnot_lhs, &tail_andnot_rhs, nbits, bits_per_long + 5));",
         "}",
+        'test "clump8 scans keep tail bytes reachable from partial final words" {',
+        "    try std.testing.expectEqual(@as(usize, bits_per_long), findFirstClump8(&clump, &bitmap, nbits));",
+        "    try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);",
+        "}",
+        'test "clump8 scans mask tail bits beyond nbits" {',
+        "    try std.testing.expectEqual(@as(usize, bits_per_long), findFirstClump8(&clump, &bitmap, nbits));",
+        "    try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);",
+        "}",
         'test "clump8 zero-bit and past-end windows leave the caller byte untouched" {',
         "    _ = findFirstClump8(&clump, &populated, 0);",
         "    _ = findNextClump8(&clump, &populated, 8, 12);",
@@ -239,6 +254,11 @@ def build_sample_source(
         'test "Linux-style aliases mirror the primary find helpers, including andnot" {',
         "    try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));",
         "    try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));",
+        "}",
+        'test "find last bit ignores storage beyond an exact word boundary" {',
+        "    try std.testing.expectEqual(@as(usize, boundary), findLastBit(&bitmap, nbits));",
+        "    bitmap[0] = 0;",
+        "    try std.testing.expectEqual(@as(usize, nbits), findLastBit(&bitmap, nbits));",
         "}",
         'test "find last bit clamps tail words to nbits" {',
         "    try std.testing.expectEqual(@as(usize, 4), findLastBit(&single_word, single_word_nbits));",
@@ -328,7 +348,7 @@ def run_self_test() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate that the live find_bit helper still carries the current bench-adjacent edge anchors, including the landed andnot, clump-forward-skip, byte-boundary clump isolation, and tail-word next-skip paths."
+        description="Validate that the live find_bit helper still carries the current bench-adjacent edge anchors, including the landed andnot, tail-clump, byte-boundary clump isolation, exact-word-boundary last-bit, and tail-word next-skip paths."
     )
     parser.add_argument("--self-test", action="store_true", help="Run self-test cases only.")
     args = parser.parse_args()
