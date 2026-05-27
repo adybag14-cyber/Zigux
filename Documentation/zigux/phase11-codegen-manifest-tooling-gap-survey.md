@@ -44,10 +44,12 @@ Current shared Phase 11 tooling evidence on `master` now centers on the returned
 - `scripts/zigux/validate-phase11.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`
+- `zigux/tests/fixtures/phase11_validate_checks.json`
 - `zigux/Makefile`
 - `make -C zigux phase11-validate`
 
 That shared packet is stronger than the older replay-only story: `scripts/zigux/validate-phase11.py` exists, `make -C zigux phase11-validate` is the live shared route, and the new aggregate manifest records the shared checker stack and proof fan-out without pretending it replaces the narrower HVC continuity inventory.
+`scripts/zigux/check-phase11-shared-tooling-manifest.py` is already wired into `scripts/zigux/validate-phase11.py`, and `zigux/tests/fixtures/phase11_validate_checks.json` records both the shared tooling-manifest self-test and live validator entries.
 
 ## Live Gap Versus The Roadmap
 
@@ -74,6 +76,6 @@ Keep the next deterministic-tooling step narrow:
 
 The next bounded follow-through can stay smaller:
 
-- wire `scripts/zigux/check-phase11-shared-tooling-manifest.py` into the shared `phase11-validate` route only after current-head rereads confirm the surrounding Phase 11 packet did not drift again
+- reread the broader shared reminder summaries against `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`, `scripts/zigux/validate-phase11.py`, and `zigux/tests/fixtures/phase11_validate_checks.json` before widening any shared Phase 11 aggregate wording
 - keep the aggregate manifest limited to shared tooling surfaces and explicitly allowed proof-backed build shards
-- update broader reminder summaries only after that checker-backed surface has been reread together with the current shared Phase 11 packet
+- update broader reminder summaries only after that reread confirms the shared validator packet still matches current-head repo reality
