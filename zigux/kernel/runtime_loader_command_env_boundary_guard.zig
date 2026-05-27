@@ -308,3 +308,76 @@ test "shared runtime loader surface rejects publication and depmod bleed-through
         try expectLacks(runtime_loader_source, marker);
     }
 }
+
+test "shared runtime loader surface keeps Phase 8 poll ownership in the perf-buffer helper" {
+    const perf_buffer_poll_source = try readRepoFile(
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+    );
+    defer std.testing.allocator.free(perf_buffer_poll_source);
+
+    const phase8_poll_owner_markers = [_][]const u8{
+        "pub const WaitClass",
+        "pub const PollOutcome",
+        "pub const PollExecutionResult",
+        "pub fn classifyObservedWaitResult",
+        "pub fn classifyWaitClass",
+        "pub fn summarizePollExecutionResultFromWaitResult",
+    };
+    const loader_absence_markers = [_][]const u8{
+        "WaitClass",
+        "PollOutcome",
+        "PollExecutionResult",
+        "classifyObservedWaitResult",
+        "classifyWaitClass",
+        "summarizePollExecutionResultFromWaitResult",
+    };
+
+    inline for (phase8_poll_owner_markers) |marker| {
+        try expectContains(perf_buffer_poll_source, marker);
+    }
+    inline for (loader_absence_markers) |marker| {
+        try expectLacks(runtime_loader_source, marker);
+        try expectLacks(runtime_loader_contract_source, marker);
+    }
+}
+
+test "shared runtime loader surface rejects task, poll, and event-loop field bleed-through" {
+    const forbidden_field_decls = [_][]const u8{
+        "task_queue:",
+        "task_state:",
+        "wait_class:",
+        "poll_timeout_ms:",
+        "poll_outcome:",
+        "poll_summary:",
+        "poll_execution:",
+        "ready_events:",
+        "event_loop:",
+        "scheduler_state:",
+    };
+
+    inline for (forbidden_field_decls) |marker| {
+        try expectLacks(runtime_loader_source, marker);
+        try expectLacks(runtime_loader_contract_source, marker);
+    }
+}
+
+test "shared runtime loader surface rejects scheduler and event-loop substrate markers" {
+    const forbidden_markers = [_][]const u8{
+        "task_struct",
+        "wait_queue",
+        "event loop",
+        "event_loop",
+        "epoll",
+        "io_uring",
+        "schedule_timeout",
+        "wake_up_process",
+        "task_work",
+        "runqueue",
+    };
+
+    inline for (forbidden_markers) |marker| {
+        try expectLacks(runtime_loader_source, marker);
+        try expectLacks(runtime_loader_contract_source, marker);
+    }
+}
