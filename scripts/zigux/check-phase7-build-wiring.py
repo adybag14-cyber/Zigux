@@ -223,7 +223,7 @@ MAKEFILE_REQUIRED_LINES = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
 ]
 
-MAKEFILE_FORBIDDEN_LINES = [
+FORBIDDEN_MAKEFILE_MARKERS = [
     "phase7-test:",
     "phase7:",
 ]
@@ -313,7 +313,7 @@ def validate(root: Path) -> None:
     require_snippets(root / CATALOG_PATH, CATALOG_REQUIRED_SNIPPETS)
     require_snippets(root / VALIDATOR_PATH, VALIDATOR_REQUIRED_SNIPPETS)
     require_exact_lines(root / MAKEFILE_PATH, MAKEFILE_REQUIRED_LINES)
-    require_absent_lines(root / MAKEFILE_PATH, MAKEFILE_FORBIDDEN_LINES)
+    require_absent_lines(root / MAKEFILE_PATH, FORBIDDEN_MAKEFILE_MARKERS)
     require_snippets(root / BUILD_PATH, BUILD_REQUIRED_SNIPPETS)
     require_snippets(root / RBTREE_PATH, RBTREE_REQUIRED_SNIPPETS)
 
