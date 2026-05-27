@@ -24,6 +24,7 @@ This survey records the current Phase 3 export-shim and starter UAPI boundary ag
 - `PHASE3_LAYOUT_REPLAY_PATH=zigux/tests/phase3_export_uapi_layout.zig`
 - `PHASE3_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig`
 - `PHASE3_C_HEADER_SMOKE_PATH=zigux/tests/phase3_export_uapi_c_header_smoke.c`
+- `PHASE3_C_HEADER_SMOKE_WORKFLOW_ROUTE=.github/workflows/zigux-bootstrap.yml`
 - `PHASE3_DEV_T_STARTER_PACKET_CHECK=scripts/zigux/check-phase3-dev-t-starter-packet.py`
 
 ## Roadmap Alignment
@@ -35,7 +36,7 @@ The landed boundary is still narrow and reviewable:
 - `zigux/kernel/export_shim.zig` exposes boundary-header, version, and `dev_t` validation relays instead of widening into a larger runtime surface.
 - `include/zigux/abi.h` and `include/linux/zigux.h` hold the public C-facing header contract and the Linux-facing UAPI aliases for the same starter packet.
 - `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, `zigux/bindings/version.zig`, `zigux/bindings/dev_t.zig`, and `zigux/bindings/header_family.zig` provide the curated Zig-side view of that same boundary.
-- `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_export_shim_build.zig`, and `zigux/tests/phase3_export_uapi_c_header_smoke.c` keep the packet replayable from both Zig and C-facing entry points.
+- `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_export_shim_build.zig`, and `zigux/tests/phase3_export_uapi_c_header_smoke.c` keep the packet replayable from both Zig and C-facing entry points, while `.github/workflows/zigux-bootstrap.yml` now runs the direct C smoke route as its own Phase 3 bootstrap step.
 
 ## Current Boundary Gap
 
@@ -55,6 +56,7 @@ Current `master` does not yet turn this lane into:
 - `PHASE3_LAYOUT_SHARED_GATE=zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig`
 - `PHASE3_LAYOUT_DEDICATED_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
 - `PHASE3_C_HEADER_SMOKE_GATE=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py`
+- `PHASE3_C_HEADER_SMOKE_WORKFLOW_GATE=.github/workflows/zigux-bootstrap.yml -> Run current Phase 3 export/UAPI C header smoke`
 - `PHASE3_SHARED_VALIDATE_SELFTEST_PATH=scripts/zigux/validate_phase3_selftest.py`
 - `PHASE3_SHARED_CHECK_RUNNER_PATH=scripts/zigux/run-phase3-checks.py`
 - `PHASE3_SHARED_VALIDATE_MAKE_ROUTE=make -C zigux phase3-validate`
