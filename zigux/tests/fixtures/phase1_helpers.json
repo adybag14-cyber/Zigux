@@ -103,6 +103,39 @@
       "value": 65536,
       "rest": " rest"
     },
+    "signed_k": {
+      "value": 18446744073709549568,
+      "rest": " tail"
+    },
+    "saturated_positive_signed": {
+      "value": 9223372036854775807,
+      "rest": ""
+    },
+    "option_debug": true,
+    "option_empty_leading": true,
+    "option_empty_double_comma": true,
+    "option_empty_trailing": false,
+    "option_absent": false,
+    "first_arg": {
+      "param": "console",
+      "value": "ttyS0,115200",
+      "remaining": "root=\"/dev/sda1 quiet\" panic=-1"
+    },
+    "second_arg": {
+      "param": "root",
+      "value": "/dev/sda1 quiet",
+      "remaining": "panic=-1"
+    },
+    "quoted_arg": {
+      "param": "mode",
+      "value": "fast path",
+      "remaining": "tail"
+    },
+    "unterminated_arg": {
+      "param": "mode",
+      "value": "fast boot",
+      "remaining": ""
+    },
     "hex_m": {
       "value": 33554432,
       "rest": ""
