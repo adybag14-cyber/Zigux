@@ -40,6 +40,17 @@ pub fn build(b: *std.Build) void {
     });
     virtio_ring_reset_readiness_module.addImport("virtio_ring", virtio_ring_module);
 
+    const phase10_virtio_ring_publish_readiness_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_ring_publish_readiness.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase10_virtio_ring_publish_readiness_module.addImport("virtio_ring", virtio_ring_module);
+    phase10_virtio_ring_publish_readiness_module.addImport(
+        "virtio_ring_publish_readiness",
+        virtio_ring_publish_readiness_module,
+    );
+
     const phase10_virtio_ring_notification_data_readiness_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_ring_notification_data_readiness.zig"),
         .target = target,
@@ -110,6 +121,14 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase10_virtio_ring_publish_readiness_tests = b.addRunArtifact(
         phase10_virtio_ring_publish_readiness_tests,
+    );
+
+    const phase10_virtio_ring_publish_readiness_replay_tests = b.addTest(.{
+        .name = "phase10-virtio-ring-publish-readiness-replay-tests",
+        .root_module = phase10_virtio_ring_publish_readiness_module,
+    });
+    const run_phase10_virtio_ring_publish_readiness_replay_tests = b.addRunArtifact(
+        phase10_virtio_ring_publish_readiness_replay_tests,
     );
 
     const phase10_virtio_ring_notification_data_readiness_tests = b.addTest(.{
@@ -198,6 +217,7 @@ pub fn build(b: *std.Build) void {
     );
     phase10_virtio_ring_queue_tests.dependOn(&run_phase10_virtio_ring_verify_tests.step);
     phase10_virtio_ring_queue_tests.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);
+    phase10_virtio_ring_queue_tests.dependOn(&run_phase10_virtio_ring_publish_readiness_replay_tests.step);
     phase10_virtio_ring_queue_tests.dependOn(
         &run_phase10_virtio_ring_notification_data_readiness_tests.step,
     );
@@ -233,6 +253,7 @@ pub fn build(b: *std.Build) void {
     );
     test_step.dependOn(&run_phase10_virtio_ring_verify_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);
+    test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_replay_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_notification_data_readiness_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_registration_replay_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_notification_data_wrapper_tests.step);
