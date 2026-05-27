@@ -15,6 +15,8 @@ GUIDE_PATH = "Documentation/zigux/phase10-phase11-phase13-validator-first-review
 
 REQUIRED_ROUTE_MARKERS = [
     "python3 scripts/zigux/check-phase10-bootstrap-route.py --self-test",
+    "python3 scripts/zigux/check-phase10-docs-readme-shared-packet.py --self-test",
+    "python3 scripts/zigux/check-phase10-docs-readme-shared-packet.py",
     "python3 scripts/zigux/check-phase10-core-packet.py",
     "python3 scripts/zigux/check-phase10-closure-manifest-counts.py",
     "python3 scripts/zigux/validate-phase10.py",
@@ -25,6 +27,7 @@ REQUIRED_ROUTE_MARKERS = [
 ]
 
 REQUIRED_SURFACE_MARKERS = [
+    "Documentation/zigux/README.md",
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "scripts/zigux/README.md",
@@ -121,6 +124,22 @@ def run_self_test() -> int:
         guide = root / GUIDE_PATH
         original = read_text(guide)
         cases = 0
+
+        guide.write_text(
+            original.replace(
+                "python3 scripts/zigux/check-phase10-docs-readme-shared-packet.py",
+                "python3 scripts/zigux/check-phase10-docs-readme-shared-packet-missing.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_contains(
+            validate(root)[1],
+            "route:python3 scripts/zigux/check-phase10-docs-readme-shared-packet.py",
+            "phase10-review-guide-self-test",
+        )
+        cases += 1
+        write_fixture(root)
 
         guide.write_text(
             original.replace(
