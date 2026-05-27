@@ -100,30 +100,12 @@ test "phase10 virtio ring queue build keeps the focused queue packet explicit" {
         build_file,
         "phase10_virtio_ring_queue_tests.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);",
     );
-    try expectContains(
-        build_file,
-        "phase10_virtio_ring_queue_tests.dependOn(\n        &run_phase10_virtio_ring_notification_data_wrapper_tests.step,\n    );",
-    );
-    try expectContains(
-        build_file,
-        "phase10_virtio_ring_queue_tests.dependOn(\n        &run_phase10_virtio_ring_callback_enable_tests.step,\n    );",
-    );
-    try expectContains(
-        build_file,
-        "phase10_virtio_ring_queue_tests.dependOn(\n        &run_phase10_virtio_ring_registration_replay_tests.step,\n    );",
-    );
-    try expectContains(
-        build_file,
-        "phase10_virtio_ring_queue_tests.dependOn(\n        &run_phase10_virtio_ring_registration_summary_tests.step,\n    );",
-    );
-    try expectContains(
-        build_file,
-        "phase10_virtio_ring_queue_tests.dependOn(\n        &run_phase10_virtio_ring_reset_readiness_tests.step,\n    );",
-    );
-    try expectContains(
-        build_file,
-        "phase10_virtio_ring_queue_tests.dependOn(\n        &run_phase10_virtio_ring_queue_build_survey_tests.step,\n    );",
-    );
+    try expectContains(build_file, "&run_phase10_virtio_ring_notification_data_wrapper_tests.step");
+    try expectContains(build_file, "&run_phase10_virtio_ring_callback_enable_tests.step");
+    try expectContains(build_file, "&run_phase10_virtio_ring_registration_replay_tests.step");
+    try expectContains(build_file, "&run_phase10_virtio_ring_registration_summary_tests.step");
+    try expectContains(build_file, "&run_phase10_virtio_ring_reset_readiness_tests.step");
+    try expectContains(build_file, "&run_phase10_virtio_ring_queue_build_survey_tests.step");
     try expectContains(
         build_file,
         "test_step.dependOn(&run_phase10_virtio_ring_notification_data_wrapper_tests.step);",
@@ -202,4 +184,33 @@ test "phase10 virtio ring queue build survey keeps callback-enable coverage expl
         manifest,
         "\"zigux_destination\": \"drivers/virtio/virtio_ring_callback_enable.zig\"",
     );
+}
+
+test "phase10 virtio ring queue build survey keeps the shared phase10 build gate aligned with queue-handling coverage" {
+    const allocator = std.testing.allocator;
+
+    const shared_build = try readRepoRelative(
+        allocator,
+        "zigux/tests/phase10_build.zig",
+    );
+    defer allocator.free(shared_build);
+
+    try expectContains(shared_build, "\"phase10-virtio-ring-registration-replay-tests\"");
+    try expectContains(shared_build, "run_phase10_virtio_ring_registration_replay_tests.step");
+    try expectContains(shared_build, "\"phase10-virtio-ring-notification-data-wrapper-tests\"");
+    try expectContains(shared_build, "run_phase10_virtio_ring_notification_data_wrapper_tests.step");
+    try expectContains(shared_build, "\"phase10-virtio-ring-registration-summary-tests\"");
+    try expectContains(shared_build, "run_phase10_virtio_ring_registration_summary_tests.step");
+    try expectContains(shared_build, "\"phase10-virtio-ring-used-buffer-poll-tests\"");
+    try expectContains(shared_build, "run_phase10_virtio_ring_used_buffer_poll_tests.step");
+    try expectContains(shared_build, "\"phase10-virtio-ring-reset-readiness-tests\"");
+    try expectContains(shared_build, "run_phase10_virtio_ring_reset_readiness_tests.step");
+    try expectContains(shared_build, "\"phase10-virtio-ring-queue-build-survey-tests\"");
+    try expectContains(shared_build, "run_phase10_virtio_ring_queue_build_survey_tests.step");
+    try expectContains(shared_build, "test_step.dependOn(&run_phase10_virtio_ring_registration_replay_tests.step);");
+    try expectContains(shared_build, "test_step.dependOn(&run_phase10_virtio_ring_notification_data_wrapper_tests.step);");
+    try expectContains(shared_build, "test_step.dependOn(&run_phase10_virtio_ring_registration_summary_tests.step);");
+    try expectContains(shared_build, "test_step.dependOn(&run_phase10_virtio_ring_used_buffer_poll_tests.step);");
+    try expectContains(shared_build, "test_step.dependOn(&run_phase10_virtio_ring_reset_readiness_tests.step);");
+    try expectContains(shared_build, "test_step.dependOn(&run_phase10_virtio_ring_queue_build_survey_tests.step);");
 }
