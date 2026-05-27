@@ -91,10 +91,10 @@ pub const blocked_boundaries = [_]BridgeBoundary{
     },
     .{
         .id = "poll_cookie_and_sync_waithead_rollover",
-        .summary = "Keep poll-cookie sequencing, polled grace-period completion, synchronize_rcu wait-head rollover, and completion cleanup handoff in C.",
+        .summary = "Keep poll-cookie sequencing, polled grace-period completion, synchronize_rcu wait-head rollover, and completion cleanup handoff in C as one public wait-state boundary.",
         .anchor_symbols = &.{ "rcu_poll_gp_seq_start_unlocked", "rcu_poll_gp_seq_end_unlocked", "rcu_sr_normal_gp_init", "rcu_sr_normal_gp_cleanup_work" },
-        .rationale = "Poll-cookie visibility still shares gp_seq_polled snapshots, root-node grace-period sequencing, synchronize_rcu wait-head rollover, and the later workqueue cleanup plus completion handoff inside the live Tree RCU state machine rather than a narrow bridge seam.",
-        .coupling = .concurrency_coupled,
+        .rationale = "Poll-cookie visibility still shares gp_seq_polled snapshots, root-node grace-period sequencing, synchronize_rcu wait-head rollover, and the later workqueue cleanup plus completion handoff inside the live Tree RCU public wait-state machine rather than a narrow bridge seam.",
+        .coupling = .public_wait_surface,
     },
     .{
         .id = "public_wait_and_callback_barrier",
@@ -120,6 +120,16 @@ pub fn concurrencyCoupledBoundaryCount() usize {
     var count: usize = 0;
     for (blocked_boundaries) |boundary| {
         if (boundary.coupling == .concurrency_coupled) {
+            count += 1;
+        }
+    }
+    return count;
+}
+
+pub fn publicWaitSurfaceBoundaryCount() usize {
+    var count: usize = 0;
+    for (blocked_boundaries) |boundary| {
+        if (boundary.coupling == .public_wait_surface) {
             count += 1;
         }
     }
@@ -157,7 +167,8 @@ test "tree bridge boundary map stays review-only" {
     try std.testing.expectEqualStrings("scripts/zigux/check-phase14-rcu-compile-route.py", review_packet[7]);
     try std.testing.expectEqualStrings("scripts/zigux/check-phase14-rcu-rollback-guardrail.py", review_packet[8]);
     try std.testing.expectEqual(@as(usize, 11), blockedBoundaryCount());
-    try std.testing.expectEqual(@as(usize, 10), concurrencyCoupledBoundaryCount());
+    try std.testing.expectEqual(@as(usize, 9), concurrencyCoupledBoundaryCount());
+    try std.testing.expectEqual(@as(usize, 2), publicWaitSurfaceBoundaryCount());
 
     const grace_period_publication = findBoundaryById("grace_period_sequence_publication").?;
     try std.testing.expectEqualStrings("grace_period_sequence_publication", grace_period_publication.id);
@@ -212,11 +223,11 @@ test "tree bridge boundary map stays review-only" {
     try std.testing.expectEqualStrings("rcu_poll_gp_seq_end_unlocked", poll_cookie.anchor_symbols[1]);
     try std.testing.expectEqualStrings("rcu_sr_normal_gp_init", poll_cookie.anchor_symbols[2]);
     try std.testing.expectEqualStrings("rcu_sr_normal_gp_cleanup_work", poll_cookie.anchor_symbols[3]);
-    try std.testing.expect(contains(poll_cookie.summary, "poll-cookie"));
-    try std.testing.expect(contains(poll_cookie.summary, "wait-head"));
+    try std.testing.expect(contains(poll_cookie.summary, "public wait-state boundary"));
     try std.testing.expect(contains(poll_cookie.summary, "completion cleanup"));
     try std.testing.expect(contains(poll_cookie.rationale, "gp_seq_polled"));
-    try std.testing.expect(contains(poll_cookie.rationale, "workqueue cleanup"));
+    try std.testing.expect(contains(poll_cookie.rationale, "public wait-state machine"));
+    try std.testing.expectEqual(BoundaryCoupling.public_wait_surface, poll_cookie.coupling);
 
     const public_wait = findBoundaryById("public_wait_and_callback_barrier").?;
     try std.testing.expect(contains(public_wait.summary, "polling-cookie visibility"));
