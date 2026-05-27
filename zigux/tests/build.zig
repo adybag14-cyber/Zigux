@@ -716,6 +716,20 @@ fn addPhase3AbiDump(
     return b.addRunArtifact(exe);
 }
 
+fn addPhase4RuntimeAtomic64DiffSurvey(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    return addSurveyTest(
+        b,
+        "phase4-runtime-atomic64-diff-survey",
+        "phase4_runtime_atomic64_diff_survey.zig",
+        target,
+        optimize,
+    );
+}
+
 fn addPhase7ArgvSplitSurvey(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -804,6 +818,11 @@ pub fn build(b: *std.Build) void {
     const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);
     const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
+    const phase4_runtime_atomic64_diff_survey = addPhase4RuntimeAtomic64DiffSurvey(
+        b,
+        target,
+        optimize,
+    );
     const phase7_argv_split_survey = addPhase7ArgvSplitSurvey(b, target, optimize);
     const phase10_virtio_core_survey = addSurveyTest(
         b,
@@ -944,6 +963,12 @@ pub fn build(b: *std.Build) void {
     );
     phase3_dump_step.dependOn(&phase3_abi_dump.step);
 
+    const phase4_step = b.step(
+        "phase4-runtime-atomic64-diff-survey",
+        "Run the Phase 4 runtime atomic64 diff survey anchor from the shared tests root",
+    );
+    phase4_step.dependOn(&phase4_runtime_atomic64_diff_survey.step);
+
     const phase7_step = b.step(
         "phase7-argv-split-survey",
         "Run the Phase 7 argv_split survey anchor from the shared tests root",
@@ -993,6 +1018,7 @@ pub fn build(b: *std.Build) void {
     );
     smoke_step.dependOn(&phase1_host_tools_smoke.step);
     smoke_step.dependOn(phase3_test_step);
+    smoke_step.dependOn(&phase4_runtime_atomic64_diff_survey.step);
     smoke_step.dependOn(&phase7_argv_split_survey.step);
     smoke_step.dependOn(&phase10_virtio_core_survey.step);
     smoke_step.dependOn(&phase10_virtio_ring_survey.step);
@@ -1007,6 +1033,7 @@ pub fn build(b: *std.Build) void {
     );
     test_step.dependOn(&phase1_host_tools_smoke.step);
     test_step.dependOn(phase3_test_step);
+    test_step.dependOn(&phase4_runtime_atomic64_diff_survey.step);
     test_step.dependOn(&phase7_argv_split_survey.step);
     test_step.dependOn(&phase10_virtio_core_survey.step);
     test_step.dependOn(&phase10_virtio_ring_survey.step);
