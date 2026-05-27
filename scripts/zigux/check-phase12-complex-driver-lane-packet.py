@@ -67,13 +67,13 @@ README_MARKERS = (
     "## Phase 12",
     "- Phase 12 flow - the current scripts-root complex-driver reminder should keep the shared release packet reviewable through the build-only checker, the readiness-note checker, the dedicated anti-overlap checker, the validator entrypoint, the returned `phase12-validate` / `phase12-smoke` / `phase12-test` / `phase12` wrapper split, and the split-helper `virtio_net` evidence packet while keeping the rollback-evidence `virtio_scsi` survey family, the published-but-unwired NVMe foothold, and the parked libbpf packet distinct",
     "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while current `zigux/Makefile` now exposes `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, so keep `make -C zigux phase12-validate` explicit as shipped wrapper evidence on current `master`.",
-    "`scripts/zigux/check-phase12-libbpf-snapshot.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
+    "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
     "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, and `scripts/zigux/README.md` remain the current reminder-surface companions for that shared Phase 12 packet",
     "`drivers/net/virtio_net_queue_resume.zig`, `drivers/net/virtio_net_receive_refill_replay.zig`, `drivers/net/virtio_net_transmit_recycle.zig`, `drivers/net/virtio_net_post_reset_replay.zig`, `drivers/net/virtio_net_throughput_parity.zig`",
     "`drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, and `zigux/tests/phase12_virtio_net_syntax_lab.zig` stay absent on current `master`",
     "`zigux/tests/phase12_virtio_scsi_survey_build.zig`",
     "`Documentation/zigux/phase12-nvme-pci-reopen-governance.md`",
-    "`zigux/tests/phase12_nvme_pci_manifest.json` keep the rollback-evidence `virtio_scsi` packet and the published-but-unwired NVMe foothold explicit without widening this shared scripts-root reminder into driver-local queueing, transport, or DMA claims",
+    "`zigux/tests/phase12_nvme_pci_manifest.json` keeps the published-but-unwired NVMe foothold explicit without widening this shared scripts-root reminder into driver-local queueing, transport, or DMA claims",
 )
 
 WORKFLOW_MARKERS = (
@@ -300,7 +300,7 @@ def run_self_test() -> int:
 
         write_fixture(root)
         survey_build_marker = "`Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_virtio_scsi_survey_build.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py`"
-        (root / NOTE_PATH).write_text(
+        (root / NOTE_PATH).writeText(
             read_text(root, NOTE_PATH).replace(
                 survey_build_marker,
                 survey_build_marker.replace(
