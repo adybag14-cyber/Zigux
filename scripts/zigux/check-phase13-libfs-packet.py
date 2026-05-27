@@ -15,10 +15,10 @@ REPLAY_PATH = "zigux/tests/phase13_libfs.zig"
 REVIEWABILITY_PATH = "zigux/tests/phase13_libfs_reviewability.zig"
 
 FIXTURE_LANE = "P13-L01"
-FIXTURE_COMMIT = "master-readback-2026-05-25"
-EXPECTED_GAP_COUNT = 13
-EXPECTED_STARTER_COUNT = 10
-EXPECTED_BLOCKED_COUNT = 3
+FIXTURE_COMMIT = "master-readback-2026-05-27"
+EXPECTED_GAP_COUNT = 15
+EXPECTED_STARTER_COUNT = 11
+EXPECTED_BLOCKED_COUNT = 4
 
 EXPECTED_GAPS = {
     "phase13-libfs-helper-starter": "starter_landed",
@@ -31,23 +31,33 @@ EXPECTED_GAPS = {
     "phase13-libfs-addressability-helper": "starter_landed",
     "phase13-libfs-reviewability-gate": "starter_landed",
     "phase13-libfs-survey-note": "starter_landed",
-    "phase13-build-gate": "missing_on_current_master",
+    "phase13-libfs-dcache-cursor-precondition-planner": "starter_landed",
+    "phase13-build-gate": "blocked_on_shared_build_surface",
     "phase13-libfs-live-dcache-mutation": "blocked_on_dcache_state",
     "phase13-libfs-live-inode-state": "blocked_on_inode_state",
+    "phase13-libfs-live-cursor-traversal": "blocked_on_dcache_state",
 }
 
 SURVEY_STATIC_MARKERS = [
     "`PHASE13_SLICE=libfs-helper-filesystem-boundary-survey`",
     "`fs/libfs.zig`",
+    "`fs/libfs_dcache_cursor.zig`",
     "`zigux/tests/phase13_libfs.zig`",
     "`zigux/tests/phase13_libfs_reviewability.zig`",
+    "`zigux/tests/phase13_libfs_dcache_cursor.zig`",
     "`zigux/tests/phase13_libfs_manifest.json`",
+    "`zigux/tests/phase13_libfs_dcache_cursor_manifest.json`",
+    "`Documentation/zigux/phase13-libfs-dcache-cursor-planner.md`",
+    "`scripts/zigux/check-phase13-libfs-packet.py`",
+    "`scripts/zigux/check-phase13-libfs-dcache-cursor-packet.py`",
     "simple_offset_add()",
     "simple_offset_remove()",
     "simple_transaction_get()",
     "simple_transaction_set()",
+    "simple_transaction_release()",
     "generic_check_addressable()",
-    "offset-based rename and rename-exchange planners",
+    "offset-based rename plus rename-exchange planning",
+    "`dcache_dir_open()` and `dcache_readdir()` cursor preconditions reviewable",
     "shared `zigux/tests/phase13_build.zig` route",
 ]
 
@@ -91,7 +101,7 @@ def survey_markers(expected_commit: str, expected_lane: str) -> list[str]:
     return [
         expected_commit,
         *SURVEY_STATIC_MARKERS,
-        f"helper-local governance for this packet is tracked under `{expected_lane}`",
+        f"helper-local governance for this family remains tracked under `{expected_lane}`",
     ]
 
 
@@ -225,7 +235,7 @@ def run_self_test() -> int:
         write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         assert_only(
             validate(root),
-            ['survey:missing_marker:helper-local governance for this packet is tracked under `P13-Y01`', 'replay:missing_marker:"lane_key": "P13-Y01"'],
+            ['survey:missing_marker:helper-local governance for this family remains tracked under `P13-Y01`', 'replay:missing_marker:"lane_key": "P13-Y01"'],
             "manifest_lane_alignment_failed",
         )
         case_count += 1
@@ -248,9 +258,9 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "manifest:gaps_count_mismatch:12",
-                "manifest:gap_status_mismatch:phase13-libfs-live-inode-state:None",
-                "manifest:blocked_count_mismatch:2",
+                "manifest:gaps_count_mismatch:14",
+                "manifest:gap_status_mismatch:phase13-libfs-live-cursor-traversal:None",
+                "manifest:blocked_count_mismatch:3",
             ],
             "manifest_gap_count_failed",
         )
@@ -266,8 +276,8 @@ def run_self_test() -> int:
             validate(root),
             [
                 "manifest:gap_status_mismatch:phase13-build-gate:starter_landed",
-                "manifest:starter_count_mismatch:11",
-                "manifest:blocked_count_mismatch:2",
+                "manifest:starter_count_mismatch:12",
+                "manifest:blocked_count_mismatch:3",
             ],
             "manifest_build_gate_status_failed",
         )
