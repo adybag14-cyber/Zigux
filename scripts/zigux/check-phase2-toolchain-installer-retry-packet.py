@@ -10,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 INSTALLER = ROOT / "scripts" / "zigux" / "install-zig.py"
+VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 
@@ -34,6 +35,14 @@ INSTALLER_MARKERS = (
     "def verify_archive_sha256(path: Path, expected_sha256: str) -> str:",
     "print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=verified')",
     "print('ZIG_INSTALL_SELF_TEST=pass')",
+)
+
+VALIDATOR_MARKERS = (
+    '"scripts/zigux/check-phase2-toolchain-installer-retry-packet.py",',
+    '"run: python3 scripts/zigux/check-phase2-toolchain-installer-retry-packet.py --self-test",',
+    '"run: python3 scripts/zigux/check-phase2-toolchain-installer-retry-packet.py",',
+    '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-installer-retry-packet.py --self-test",',
+    '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-installer-retry-packet.py",',
 )
 
 WORKFLOW_LINES = (
@@ -79,6 +88,7 @@ MAKEFILE_ORDER = (
 EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + len(INSTALLER_MARKERS)
+    + len(VALIDATOR_MARKERS)
     + len(WORKFLOW_LINES)
     + len(WORKFLOW_LINES)
     + len(MAKEFILE_LINES)
@@ -158,6 +168,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if marker not in installer_text:
             issues.append(("MISSING_INSTALLER_MARKER", marker))
 
+    validator_text = read_text(resolve_path(root, VALIDATOR))
+    for marker in VALIDATOR_MARKERS:
+        if marker not in validator_text:
+            issues.append(("MISSING_VALIDATOR_MARKER", marker))
+
     workflow_text = read_text(resolve_path(root, WORKFLOW))
     for marker in WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
@@ -191,6 +206,7 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 
 def build_current_like_root(root: Path) -> None:
     write_text(resolve_path(root, INSTALLER), "\n".join(INSTALLER_MARKERS) + "\n")
+    write_text(resolve_path(root, VALIDATOR), "\n".join(VALIDATOR_MARKERS) + "\n")
     write_text(
         resolve_path(root, WORKFLOW),
         "\n".join(
@@ -231,6 +247,16 @@ def run_self_test() -> int:
                 encoding="utf-8",
             )
             assert ("MISSING_INSTALLER_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in VALIDATOR_MARKERS:
+            build_current_like_root(root)
+            validator_path = resolve_path(root, VALIDATOR)
+            validator_path.write_text(
+                replace_once(validator_path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert ("MISSING_VALIDATOR_MARKER", marker) in collect_issues(root)
             checks_run += 1
 
         for marker in WORKFLOW_LINES:
@@ -317,6 +343,7 @@ def main() -> int:
 
     print("PHASE2_TOOLCHAIN_INSTALLER_RETRY_PACKET=pass")
     print(f"PHASE2_TOOLCHAIN_INSTALLER_RETRY_PACKET_INSTALLER_MARKER_COUNT={len(INSTALLER_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_INSTALLER_RETRY_PACKET_VALIDATOR_MARKER_COUNT={len(VALIDATOR_MARKERS)}")
     print(f"PHASE2_TOOLCHAIN_INSTALLER_RETRY_PACKET_WORKFLOW_LINE_COUNT={len(WORKFLOW_LINES)}")
     print(f"PHASE2_TOOLCHAIN_INSTALLER_RETRY_PACKET_MAKEFILE_LINE_COUNT={len(MAKEFILE_LINES)}")
     return 0
