@@ -6,11 +6,14 @@ from __future__ import annotations
 import argparse
 import ast
 import shutil
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
 
-DEFAULT_ROOT = Path("/workspace/current-like")
+SELF_PATH = Path(__file__).resolve()
+DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 TARGET_PATH = Path("scripts/zigux/validate-phase11.py")
 
 
@@ -139,6 +142,27 @@ def run_self_test() -> int:
         if manifest_count != 2:
             raise AssertionError(f"unexpected manifest count: {manifest_count}")
 
+        default_root_cli = tempdir / "default_root_cli"
+        build_fixture(default_root_cli, include_drift=False)
+        write(default_root_cli / "scripts/zigux/check-phase11-validate-manifest-roster.py", read_text(SELF_PATH))
+        completed = subprocess.run(
+            [sys.executable, str(default_root_cli / "scripts/zigux/check-phase11-validate-manifest-roster.py")],
+            cwd=default_root_cli,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if completed.returncode != 0:
+            raise AssertionError(
+                "default-root CLI invocation failed: "
+                f"stdout={completed.stdout!r} stderr={completed.stderr!r}"
+            )
+        if "PHASE11_VALIDATE_MANIFEST_ROSTER=pass" not in completed.stdout:
+            raise AssertionError(
+                "default-root CLI invocation did not report pass: "
+                f"stdout={completed.stdout!r} stderr={completed.stderr!r}"
+            )
+
         missing = tempdir / "missing"
         build_fixture(missing, include_drift=True)
         expect_failure(
@@ -176,7 +200,7 @@ def run_self_test() -> int:
         expect_failure(wrong_manifest_type, "MANIFEST_EXPECTATIONS must be a dict")
 
         print("PHASE11_VALIDATE_MANIFEST_ROSTER_SELF_TEST=pass")
-        print("PHASE11_VALIDATE_MANIFEST_ROSTER_SELF_TEST_CASE_COUNT=7")
+        print("PHASE11_VALIDATE_MANIFEST_ROSTER_SELF_TEST_CASE_COUNT=8")
         print(f"PHASE11_VALIDATE_MANIFEST_ROSTER_FIXTURE_REQUIRED_PATH_COUNT={required_path_count}")
         return 0
     finally:
