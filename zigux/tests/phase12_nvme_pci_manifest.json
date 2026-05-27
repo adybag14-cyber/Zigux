@@ -30,20 +30,20 @@
     },
     "queueing_correctness": {
       "required_by_roadmap": true,
-      "status": "starter_verifier_direct_test_manifest_and_survey_gate_present_shared_direct_replay_present",
-      "current_surface": "The bounded starter, verifier shard, dedicated survey gate, fallback map, slice note, survey note, and dedicated direct-build route are all present on current master, and `zigux/tests/phase12_build.zig` now wires the bounded NVMe direct replay beside the shipped virtio_net packet while the verifier shard and survey gate remain packet-local and below live queue execution.",
-      "blocked_by": "The survey gate still carries the packet-local truthfulness checks, the verifier shard and helper-wrapper proofs still stay on the dedicated direct-build route, and transport-backed queue execution remains outside the current packet."
+      "status": "starter_verifier_direct_test_manifest_and_survey_gate_present_shared_build_absent",
+      "current_surface": "The bounded starter, verifier shard, dedicated survey gate, fallback map, slice note, survey note, and dedicated direct-build routes are all present on current master, while `zigux/tests/phase12_build.zig` still stays scoped to the shared virtio_net packet and does not yet wire the NVMe direct replay.",
+      "blocked_by": "The survey gate still carries the packet-local truthfulness checks, the verifier shard and helper-wrapper proofs still stay on the dedicated direct-build route, and the shared Phase 12 build remains scoped to the virtio_net packet while transport-backed queue execution remains outside the current packet."
     },
     "throughput_and_recovery_parity": {
       "required_by_roadmap": true,
-      "status": "recovery_budget_summary_shared_direct_replay_present_throughput_gate_missing",
-      "current_surface": "The current starter records reset freeze state, remembered admin depth, recovery reservation replay debt, preflight, and apply summaries, PRP span pressure, PRP metadata budgeting, stale PRP metadata ownership with descriptor-rebuild governance, dropped-backlog retirement conditions, rollback-gate blockers, and frozen queue-restore host-DMA budgeting through the driver-local helper, verifier, direct replay, shared smoke-first direct replay route, and survey gate, without a landed throughput benchmark or transport-backed reset replay.",
+      "status": "recovery_budget_summary_dedicated_direct_replay_present_throughput_gate_missing",
+      "current_surface": "The current starter records reset freeze state, remembered admin depth, recovery reservation replay debt, preflight, and apply summaries, PRP span pressure, PRP metadata budgeting, stale PRP metadata ownership with descriptor-rebuild governance, dropped-backlog retirement conditions, rollback-gate blockers, and frozen queue-restore host-DMA budgeting through the driver-local helper, verifier, dedicated direct replay, and survey gate, without a landed throughput benchmark or transport-backed reset replay.",
       "blocked_by": "No throughput benchmark and no transport-backed reset replay are landed yet."
     },
     "segmented_rollout": {
       "required_by_roadmap": true,
-      "status": "driver_local_slice_note_manifest_survey_note_and_survey_gate_present_shared_direct_replay_present",
-      "current_surface": "The fallback map, reopen-governance note, dedicated slice note, manifest anchor, survey note, survey gate, dedicated direct-build route, and the shared Phase 12 direct replay route keep the current NVMe packet explicit as a bounded driver-local starter below live transport execution.",
+      "status": "driver_local_slice_note_manifest_survey_note_and_survey_gate_present_shared_build_absent",
+      "current_surface": "The fallback map, reopen-governance note, dedicated slice note, manifest anchor, survey note, survey gate, and dedicated direct-build route keep the current NVMe packet explicit as a bounded driver-local starter below live transport execution, while the shared Phase 12 build still stays focused on the virtio_net packet.",
       "blocked_by": "The survey gate still carries the packet-local truthfulness checks, the verifier shard and helper-wrapper proofs still stay on the dedicated direct-build route, and transport-backed queue execution remains outside the current packet."
     }
   },
@@ -53,35 +53,35 @@
       "status": "landed_on_master",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
-      "why_now": "The fallback map remains part of the bounded evidence packet for the driver-local NVMe survey surface while the direct replay still stays reviewable beside the shared smoke-first route."
+      "why_now": "The fallback map remains part of the bounded evidence packet for the driver-local NVMe survey surface while the dedicated direct replay still stays reviewable beside the shared Phase 12 support bundle."
     },
     {
       "id": "phase12-nvme-reopen-governance",
       "status": "landed_on_master",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-reopen-governance.md",
-      "why_now": "The owner-map note remains present on current master and still needs to stay aligned with the bounded NVMe packet, its dedicated verifier route, and the new shared direct replay exposure."
+      "why_now": "The owner-map note remains present on current master and still needs to stay aligned with the bounded NVMe packet, its dedicated verifier route, and its dedicated survey gate."
     },
     {
       "id": "phase12-nvme-direct-replay",
-      "status": "landed_on_master_shared_build_present_dedicated_build_present",
+      "status": "landed_on_master_shared_build_absent_dedicated_build_present",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci.zig",
-      "why_now": "The dedicated direct replay remains the current review surface and is now also reachable through the shared Phase 12 smoke and test routes."
+      "why_now": "The dedicated direct replay remains the current review surface and is intentionally not wired through the shared Phase 12 build route."
     },
     {
       "id": "phase12-nvme-manifest-anchor",
       "status": "landed_on_master",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci_manifest.json",
-      "why_now": "The manifest remains the live machine-readable owner anchor for the bounded NVMe packet and now keeps the shared-direct-replay truth explicit without promoting runtime execution claims."
+      "why_now": "The manifest remains the live machine-readable owner anchor for the bounded NVMe packet and now keeps the dedicated-route versus shared-build split explicit without promoting runtime execution claims."
     },
     {
       "id": "phase12-nvme-shared-build-route",
-      "status": "shared_build_present_direct_replay_only_survey_gate_standalone",
+      "status": "shared_build_absent_direct_replay_and_survey_standalone",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_build.zig",
-      "why_now": "The shared Phase 12 build route now carries the bounded NVMe direct replay, while the dedicated survey gate and verifier-backed route still stay driver-local."
+      "why_now": "The shared Phase 12 build route still stays scoped to the virtio_net packet, while the dedicated survey gate and dedicated direct route remain driver-local."
     },
     {
       "id": "phase12-nvme-slice-note",
@@ -92,10 +92,10 @@
     },
     {
       "id": "phase12-nvme-survey-note",
-      "status": "survey_present_shared_direct_replay_dedicated_verify_and_survey_retained",
+      "status": "survey_present_dedicated_verify_and_survey_retained_shared_build_absent",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-survey.md",
-      "why_now": "The survey note is present on current master and records that the direct replay now participates in the shared smoke-first route while the dedicated verifier path and packet-local survey gate remain below live transport execution."
+      "why_now": "The survey note is present on current master and records that the direct replay stays on a dedicated route while the verifier path and packet-local survey gate remain below live transport execution."
     },
     {
       "id": "phase12-nvme-survey-gate",
