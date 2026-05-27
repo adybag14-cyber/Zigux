@@ -236,7 +236,6 @@ def run_self_test() -> None:
         make_fixture_tree(base)
         payload = json.loads((base / MANIFEST_PATH).read_text(encoding="utf-8"))
         payload["repo_reality_gaps"] = []
-        (base / MANIFEST_PATH).writeText = None
         (base / MANIFEST_PATH).write_text(
             json.dumps(payload, indent=2) + "\n", encoding="utf-8"
         )
