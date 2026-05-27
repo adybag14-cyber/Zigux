@@ -9,6 +9,8 @@
     "zigux/tests/phase11_gpio_wdt_verify_helper_build.zig",
     "zigux/tests/phase11_gpio_wdt_preflight_review.zig",
     "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_registration_intent_review.zig",
+    "zigux/tests/phase11_gpio_wdt_registration_intent_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig",
     "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig",
@@ -30,7 +32,7 @@
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The bounded gpio watchdog starter keeps descriptor choice, timeout-property ordering, drvdata ownership, reboot glue, registration intent, teardown, and remove handoff reviewable without claiming live platform or watchdog-core execution."
+      "why_now": "The bounded gpio watchdog starter keeps descriptor choice, timeout-property ordering, drvdata ownership, registration intent, reboot glue, teardown, and remove handoff reviewable without claiming live platform or watchdog-core execution."
     },
     {
       "id": "phase11-gpio-wdt-verify-helper",
@@ -45,6 +47,13 @@
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt_preflight_review.zig",
       "why_now": "The focused preflight review keeps descriptor, timeout-property, and drvdata ordering explicit before any live registration or shutdown claim."
+    },
+    {
+      "id": "phase11-gpio-wdt-registration-intent-proof",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_gpio_wdt_registration_intent_review.zig",
+      "why_now": "The dedicated registration-intent proof keeps timeout setup, nowayout application, stop-on-reboot ordering, and pre-registration start posture explicit before the first register-device request."
     },
     {
       "id": "phase11-gpio-wdt-register-device-glue-proof",
