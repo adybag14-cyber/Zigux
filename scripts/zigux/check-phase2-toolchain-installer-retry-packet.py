@@ -61,12 +61,7 @@ WORKFLOW_ORDER = (
     WORKFLOW_LINES[4],
 )
 
-WORKFLOW_MARKERS = (
-    "retry_delay_seconds(",
-    "copy_url_to_file_with_curl(",
-    "copy_url_to_file(",
-    "verify_archive_sha256(",
-)
+WORKFLOW_MARKERS: tuple[str, ...] = ()
 
 MAKEFILE_LINES = (
     "phase2-toolchain:",
