@@ -16,11 +16,13 @@ BUILD_PATH = Path("zigux/tests/phase13_devres_scatterlist_build.zig")
 REQUIRED_MARKERS = {
     HELPER_PATH: [
         ".provides_scatterlist_lifetime_planning = true",
+        ".provides_scatterlist_table_teardown_planning = true",
         ".touches_live_dma = false",
         ".touches_live_scatterlist = false",
         "pub fn planManagedScatterlistMap",
         "pub fn scatterlistReleaseMatches",
         "pub fn planManagedScatterlistUnmap",
+        "pub fn planManagedScatterlistTableTeardown",
     ],
     NOTE_PATH: [
         "pure scatterlist lifetime planning surface",
@@ -29,6 +31,9 @@ REQUIRED_MARKERS = {
         "retains detach-time unmap ownership on success",
         "failed mapping frees the release record",
         "warn-on-release-miss outcome",
+        "helper-first `sg_table` free eligibility stays reviewable",
+        "requires unmap-before-free planning",
+        "warn rather than claiming live `sg_table` lifecycle mutation",
         "dma_map_sgtable()",
         "sg_table",
         "zig build test --build-file zigux/tests/phase13_devres_scatterlist_build.zig",
@@ -36,25 +41,32 @@ REQUIRED_MARKERS = {
     SLICE_PATH: [
         "helper-first scatterlist planner beside the existing `lib/devres.zig` and `lib/devres_dma_coherent.zig` packet",
         "focused replay: `zigux/tests/phase13_devres_scatterlist.zig`",
+        "provides_scatterlist_table_teardown_planning = true",
+        "`planManagedScatterlistTableTeardown()` models helper-first `sg_table` teardown readiness",
         "no live `dma_map_sgtable()` or `dma_unmap_sgtable()` execution",
         "no `struct scatterlist`, `sg_table`, or `sg_*` iteration helpers",
+        "no live `sg_free_table()` lifecycle mutation or `sg_alloc_table()` ownership claims",
     ],
     MANIFEST_PATH: [
         "\"packet\": \"phase13-devres-scatterlist-planner\"",
         "\"status\": \"starter_landed\"",
         "\"scatterlist_lifetime_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"",
+        "\"scatterlist_table_teardown_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"",
         "\"slice_note_owner\": \"Documentation/zigux/phase13-devres-scatterlist-slice.md\"",
         "\"build_shard_owner\": \"zigux/tests/phase13_devres_scatterlist_build.zig\"",
         "\"validation_guard\": \"scripts/zigux/check-phase13-devres-scatterlist-planner.py\"",
+        "planManagedScatterlistTableTeardown",
+        "helper-first `sg_table` free eligibility stays reviewable",
         "\"id\": \"phase13-devres-live-scatterlist-ownership\"",
         "\"id\": \"phase13-devres-live-sg-table-lifecycle\"",
         "\"id\": \"phase13-devres-generic-dma-map-family\"",
     ],
     REPLAY_PATH: [
         "phase13 devres descriptor records helper-first scatterlist planning",
-        "phase13 devres scatterlist planner manifest records the dedicated helper-first packet",
-        "phase13 devres scatterlist planner note keeps the helper-first scatterlist slice bounded",
-        "phase13 devres scatterlist slice and build shard stay packet-local",
+        "phase13 devres scatterlist table teardown becomes free-ready once mapped entries drain",
+        "phase13 devres scatterlist table teardown requires unmap before free when mapped entries remain",
+        "phase13 devres scatterlist table teardown warns when the release record is missing",
+        "phase13 devres scatterlist table teardown warns on overmapped release drift",
         "phase13 devres scatterlist planner checker stays packet-local",
     ],
     BUILD_PATH: [
@@ -161,16 +173,16 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_MARKERS[MANIFEST_PATH]
-                if marker != "\"build_shard_owner\": \"zigux/tests/phase13_devres_scatterlist_build.zig\""
+                if marker != "\"scatterlist_table_teardown_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\""
             )
             + "\n",
         )
         assert_only(
             validate(root),
             [
-                "zigux/tests/phase13_devres_scatterlist_planner_manifest.json:missing_marker:\"build_shard_owner\": \"zigux/tests/phase13_devres_scatterlist_build.zig\""
+                "zigux/tests/phase13_devres_scatterlist_planner_manifest.json:missing_marker:\"scatterlist_table_teardown_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\""
             ],
-            "missing_build_owner_failed",
+            "missing_table_owner_failed",
         )
         case_count += 1
 
@@ -180,14 +192,14 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_MARKERS[REPLAY_PATH]
-                if marker != "phase13 devres scatterlist slice and build shard stay packet-local"
+                if marker != "phase13 devres scatterlist table teardown warns on overmapped release drift"
             )
             + "\n",
         )
         assert_only(
             validate(root),
             [
-                "zigux/tests/phase13_devres_scatterlist.zig:missing_marker:phase13 devres scatterlist slice and build shard stay packet-local"
+                "zigux/tests/phase13_devres_scatterlist.zig:missing_marker:phase13 devres scatterlist table teardown warns on overmapped release drift"
             ],
             "missing_replay_case_failed",
         )
