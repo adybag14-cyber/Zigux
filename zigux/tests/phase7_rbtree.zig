@@ -386,3 +386,106 @@ test "phase 7 rbtree companion replays reverse traversal aliases and detached nu
     try std.testing.expect(rbtree.prev(&detached) == null);
     try std.testing.expect(rbtree.rb_prev(&detached) == null);
 }
+
+test "phase 7 rbtree companion preserves red-black invariants across cached churn" {
+    const Entry = struct {
+        key: i32,
+        node: rbtree.Node = rbtree.Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    const entryKey = struct {
+        fn read(node: *const rbtree.Node) i32 {
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            return entry.key;
+        }
+    }.read;
+
+    const nodeColor = struct {
+        fn read(node: ?*const rbtree.Node) rbtree.Color {
+            return if (node) |current| current.color else .black;
+        }
+    }.read;
+
+    const expectBlackHeight = struct {
+        fn check(node: ?*const rbtree.Node, lower: ?i32, upper: ?i32) !usize {
+            const current = node orelse return 1;
+            const key = entryKey(current);
+            if (lower) |value| try std.testing.expect(key > value);
+            if (upper) |value| try std.testing.expect(key < value);
+            if (current.left) |left| try std.testing.expectEqual(@as(?*rbtree.Node, @constCast(current)), left.parent);
+            if (current.right) |right| try std.testing.expectEqual(@as(?*rbtree.Node, @constCast(current)), right.parent);
+            if (current.color == .red) {
+                try std.testing.expectEqual(rbtree.Color.black, nodeColor(current.left));
+                try std.testing.expectEqual(rbtree.Color.black, nodeColor(current.right));
+            }
+            const left_height = try check(current.left, lower, key);
+            const right_height = try check(current.right, key, upper);
+            try std.testing.expectEqual(left_height, right_height);
+            return left_height + @as(usize, @intFromBool(current.color == .black));
+        }
+    }.check;
+
+    const expectCachedState = struct {
+        fn check(root: *const rbtree.RootCached, expected_leftmost: ?i32) !void {
+            try std.testing.expectEqual(rbtree.first(&root.root), rbtree.firstCached(root));
+            if (root.root.node) |node| {
+                try std.testing.expectEqual(rbtree.Color.black, node.color);
+                _ = try expectBlackHeight(node, null, null);
+            } else {
+                try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.firstCached(root));
+            }
+            if (expected_leftmost) |key| {
+                const leftmost = rbtree.firstCached(root) orelse return error.TestUnexpectedResult;
+                try std.testing.expectEqual(key, entryKey(leftmost));
+            } else {
+                try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.firstCached(root));
+            }
+        }
+    }.check;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 5 },
+        .{ .key = 20 },
+        .{ .key = 15 },
+        .{ .key = 25 },
+        .{ .key = 1 },
+        .{ .key = 7 },
+        .{ .key = 17 },
+    };
+    var replacement = Entry{ .key = 5 };
+    var new_leftmost = Entry{ .key = 0 };
+    var root = rbtree.RootCached.init();
+
+    for (&entries) |*entry| {
+        _ = rbtree.addCached(&entry.node, &root, less);
+    }
+
+    try expectCachedState(&root, 1);
+
+    const promoted = rbtree.eraseCached(&entries[5].node, &root) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(i32, 5), entryKey(promoted));
+    try expectCachedState(&root, 5);
+
+    rbtree.replaceNodeCached(&entries[1].node, &replacement.node, &root);
+    try std.testing.expectEqual(@as(?*rbtree.Node, &replacement.node), rbtree.firstCached(&root));
+    try expectCachedState(&root, 5);
+
+    try std.testing.expect(rbtree.eraseCached(&entries[2].node, &root) == null);
+    try expectCachedState(&root, 5);
+
+    rbtree.eraseInitCached(&replacement.node, &root);
+    try std.testing.expect(rbtree.emptyNode(&replacement.node));
+    try expectCachedState(&root, 7);
+
+    _ = rbtree.addCached(&new_leftmost.node, &root, less);
+    try expectCachedState(&root, 0);
+}
