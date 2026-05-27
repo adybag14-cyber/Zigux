@@ -11,10 +11,10 @@ current Zigux Phase 11 packet.
   through `P11-L10`
 - reviewed against live `master`
 - scope: keep the current bcm2835 watchdog compile, PM-base gating, poweroff
-  ownership, verify-helper packet, and reminder packet honest without widening
-  into live platform registration, PM-base execution, watchdog-core
-  registration, shared poweroff-handler installation, remove-time callback
-  release, or hardware-backed validation
+  ownership, verify-helper packet, manifest-backed closure, and reminder packet
+  honest without widening into live platform registration, PM-base execution,
+  watchdog-core registration, shared poweroff-handler installation, remove-time
+  callback release, or hardware-backed validation
 
 ## Current Repo Reality
 
@@ -23,6 +23,7 @@ The current bcm2835 matrix packet on `master` is:
 - `drivers/watchdog/bcm2835_wdt.zig`
 - `drivers/watchdog/bcm2835_wdt_verify.zig`
 - `zigux/tests/phase11_bcm2835_wdt.zig`
+- `zigux/tests/phase11_bcm2835_wdt_manifest.json`
 - `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-platform-validation-plan.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
@@ -30,12 +31,11 @@ The current bcm2835 matrix packet on `master` is:
 - `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig`
 
 The older wider replay and reminder surfaces
-`zigux/tests/phase11_bcm2835_wdt_manifest.json`,
-`Documentation/zigux/phase11-bcm2835-wdt-slice.md`, and
+`Documentation/zigux/phase11-bcm2835-wdt-slice.md` and
 `Documentation/zigux/phase11-bcm2835-wdt-teardown-note.md` are not part of the
 current `master` packet, so this matrix keeps the lane grounded on the returned
-driver, verify helper, focused tests-root replay, dedicated reminder-packet
-survey, and directly coupled docs surface only.
+driver, verify helper, manifest, focused tests-root replay, dedicated
+reminder-packet survey, and directly coupled docs surface only.
 
 ## Current Matrix
 
@@ -45,6 +45,7 @@ packet below:
 - `drivers/watchdog/bcm2835_wdt.zig`
 - `drivers/watchdog/bcm2835_wdt_verify.zig`
 - `zigux/tests/phase11_bcm2835_wdt.zig`
+- `zigux/tests/phase11_bcm2835_wdt_manifest.json`
 - `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-platform-validation-plan.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
@@ -58,8 +59,8 @@ poweroff-ownership, and stop-snapshot surfaces.
 
 The current reminder packet keeps the returned driver packet truthful by
 recording that the bcm2835 lane now has a bounded compile replay, a coupled
-verify helper, and a current matrix without pretending that the older manifest,
-slice, or teardown-note surfaces have returned.
+verify helper, a returned manifest-backed closure, and a current matrix without
+pretending that the older slice or teardown-note surfaces have returned.
 
 ## Compile And Failure-Mode Review Surface
 
@@ -69,7 +70,11 @@ slice, or teardown-note surfaces have returned.
 - verify-helper anchor: `drivers/watchdog/bcm2835_wdt_verify.zig` keeps the
   timeout gate, ready handoff, conflict handoff, blocked PM-base handoff,
   stop snapshot, and poweroff snapshot expectations fail-closed beside the live
-  driver without claiming broader manifest or teardown-note coverage.
+  driver without claiming broader slice or teardown-note coverage.
+- manifest anchor: `zigux/tests/phase11_bcm2835_wdt_manifest.json` keeps the
+  archival packet identity, current scheduled continuity lane, returned packet
+  surfaces, and still-blocked teardown follow-through machine-readable beside
+  the same driver-local boundary.
 - timeout window: the direct replay keeps `min_timeout_sec`,
   `max_timeout_sec`, `restart_priority`, and `restart_timeout_ticks` explicit
   together with the `TimeoutTooSmall` and `TimeoutTooLarge` boundaries.
@@ -92,8 +97,8 @@ slice, or teardown-note surfaces have returned.
   `full_reset_armed_after_stop` boundary explicit without claiming live reboot
   execution.
 - reminder posture: this matrix records only the current driver, verify helper,
-  focused replay, reminder-packet survey, and directly coupled
-  validation-governance note and does not treat absent wider replay, manifest,
+  manifest-backed closure, focused replay, reminder-packet survey, and directly
+  coupled validation-governance note and does not treat absent wider replay,
   slice, or teardown-note files as current-head evidence.
 
 ## Review Guardrails
@@ -101,17 +106,18 @@ slice, or teardown-note surfaces have returned.
 - Treat this matrix as current-head truthfulness only, not as proof of live
   platform behavior or hardware-backed validation.
 - Keep compile, teardown, and failure-mode parity bounded to the current
-  driver, verify helper, focused replay, and directly coupled reminder packet
-  until a later repo change restores a teardown note or wider replay bundle.
+  driver, verify helper, manifest, focused replay, and directly coupled
+  reminder packet until a later repo change restores a teardown note or wider
+  replay bundle.
 - Do not use this note to claim live platform registration, PM-base execution,
   watchdog-core registration, `pm_power_off` installation, remove-time callback
   release, reboot-backed teardown execution, or hardware-validated parity.
-- If a future repo change restores any wider bcm2835 manifest, slice, or
-  teardown-note file, refresh this matrix together with the reopened companion
-  surface in one bounded pass.
+- If a future repo change restores any wider bcm2835 slice or teardown-note
+  file, refresh this matrix together with the reopened companion surface in one
+  bounded pass.
 
 ## Next Blocked Step
 
-The next honest bcm2835-only follow-up is still one equally small
-manifest-backed closure, teardown-note, or validation-truthfulness repair,
-rather than new runtime behavior.
+The next honest bcm2835-only follow-up is still the teardown-note return or
+another equally small validation-truthfulness repair, rather than new runtime
+behavior.
