@@ -92,6 +92,13 @@ coverage alone:
   shared replay
 - the current packet should not imply that shared `watchdog_info` replay or
   manifest-backed cross-driver coverage has already returned
+- the shared reminder surfaces outside this note stack still lag the roadmap:
+  `scripts/zigux/README.md` and `zigux/tests/README.md` currently skip Phase 11
+  between their Phase 10 and Phase 12 packets even though
+  `Documentation/zigux/phase11-uapi-header-parity-survey.md`,
+  `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`,
+  `scripts/zigux/validate-phase11.py`, `zigux/Makefile`, and
+  `make -C zigux phase11-validate` are directly readable on current `master`
 
 This note therefore stays useful only if it records that the surviving machine
 checks are the returned four-note checker packet, the adjacent HVC proof packet,
@@ -111,8 +118,12 @@ only if one of these changes on current `master`:
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `scripts/zigux/check-phase11-focused-direct-build-replays.py`
 - `scripts/zigux/validate-phase11.py`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
 - the retired shared replay anchors listed above rematerialize
 
 Until then, treat the missing shared manifest, survey source, and build route as
-the real header-parity gap rather than inventing a checker-local closure that
-the current repo state does not support.
+the real header-parity gap, and treat the missing Phase 11 reminder entries in
+`scripts/zigux/README.md` and `zigux/tests/README.md` as the adjacent roadmap-
+truthfulness gap rather than inventing a checker-local closure that the current
+repo state does not support.
