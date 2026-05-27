@@ -353,6 +353,19 @@ def append_github_path(path: Path) -> None:
         fh.write(str(path.resolve()) + '\n')
 
 
+def stage_archive(local_archive: Path | None, tarball_url: str, archive_path: Path) -> str:
+    if local_archive is not None:
+        if not local_archive.exists():
+            raise SystemExit(f'local Zig archive not found: {local_archive}')
+        if not local_archive.is_file():
+            raise SystemExit(f'local Zig archive is not a regular file: {local_archive}')
+        archive_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(local_archive, archive_path)
+        return 'local_archive'
+    copy_url_to_file(tarball_url, archive_path)
+    return 'download'
+
+
 def run_self_test() -> int:
     assert normalize_os('Linux') == 'linux'
     assert normalize_os('Darwin') == 'macos'
@@ -664,6 +677,34 @@ def run_self_test() -> int:
         else:
             raise AssertionError('expected missing zig binary layout to fail')
 
+    with tempfile.TemporaryDirectory(prefix='zigux_install_zig_archive_stage_') as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        local_archive = tmp_root / 'local.tar.xz'
+        local_archive.write_bytes(b'local-zig-archive')
+        staged_archive = tmp_root / 'staged.tar.xz'
+        source = stage_archive(local_archive, 'https://example.invalid/archive.tar.xz', staged_archive)
+        assert source == 'local_archive'
+        assert staged_archive.read_bytes() == b'local-zig-archive'
+        try:
+            stage_archive(tmp_root / 'missing.tar.xz', 'https://example.invalid/archive.tar.xz', staged_archive)
+        except SystemExit as exc:
+            assert 'local Zig archive not found' in str(exc)
+        else:
+            raise AssertionError('expected missing local archive to fail')
+
+    original_stage_copy = globals()['copy_url_to_file']
+    try:
+        download_calls: list[tuple[str, Path]] = []
+        globals()['copy_url_to_file'] = lambda url, path, **kwargs: (download_calls.append((url, path)), path.write_bytes(b'downloaded'))
+        with tempfile.TemporaryDirectory(prefix='zigux_install_zig_download_stage_') as tmp_dir:
+            staged_archive = Path(tmp_dir) / 'downloaded.tar.xz'
+            source = stage_archive(None, 'https://example.invalid/archive.tar.xz', staged_archive)
+            assert source == 'download'
+            assert download_calls == [('https://example.invalid/archive.tar.xz', staged_archive)]
+            assert staged_archive.read_bytes() == b'downloaded'
+    finally:
+        globals()['copy_url_to_file'] = original_stage_copy
+
     try:
         normalize_os('plan9')
     except SystemExit:
@@ -693,7 +734,7 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown target')
 
     print('ZIG_INSTALL_SELF_TEST=pass')
-    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=39')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=44')
     return 0
 
 
@@ -703,6 +744,8 @@ def main() -> int:
     parser.add_argument('--dest', default='.zig-toolchain', help='Install root directory')
     parser.add_argument('--system', help='Override detected OS key (linux, macos, windows)')
     parser.add_argument('--arch', help='Override detected architecture key (x86_64, aarch64, x86)')
+    parser.add_argument('--archive', help='Use a local Zig archive instead of downloading from the resolved URL.')
+    parser.add_argument('--archive-target', help='Archive target key from scripts/zigux/zig-toolchain-policy.json when using --archive.')
     parser.add_argument('--resolve-only', action='store_true', help='Resolve and print the chosen archive without downloading')
     parser.add_argument('--self-test', action='store_true', help='Run built-in target-resolution coverage without downloading')
     args = parser.parse_args()
@@ -720,10 +763,19 @@ def main() -> int:
     expected_archive_sha256 = None
     if channel == policy_channel:
         expected_archive_sha256 = load_policy_archive_sha256(TOOLCHAIN_POLICY, target_key)
+    archive_target_key = args.archive_target or target_key
+    if args.archive is not None and channel == policy_channel and archive_target_key != target_key:
+        expected_archive_sha256 = load_policy_archive_sha256(TOOLCHAIN_POLICY, archive_target_key)
+    if args.archive is not None and channel == policy_channel and expected_archive_sha256 is None:
+        raise SystemExit(
+            f'no pinned archive sha256 for target {archive_target_key} in {TOOLCHAIN_POLICY}'
+        )
 
     print(f'ZIG_INSTALL_CHANNEL={channel}')
     print(f'ZIG_INSTALL_VERSION={version}')
     print(f'ZIG_INSTALL_TARGET={target_key}')
+    if args.archive_target is not None:
+        print(f'ZIG_INSTALL_ARCHIVE_TARGET={archive_target_key}')
     print(f'ZIG_INSTALL_URL={tarball_url}')
     if expected_archive_sha256 is not None:
         print(f'ZIG_INSTALL_EXPECTED_ARCHIVE_SHA256={expected_archive_sha256}')
@@ -733,12 +785,13 @@ def main() -> int:
 
     install_root = Path(args.dest)
     install_root.mkdir(parents=True, exist_ok=True)
+    local_archive = Path(args.archive).expanduser() if args.archive is not None else None
 
     with tempfile.TemporaryDirectory(prefix='zigux_install_zig_') as tmpdir_str:
         tmpdir = Path(tmpdir_str)
-        archive_name = tarball_url.rsplit('/', 1)[-1]
+        archive_name = local_archive.name if local_archive is not None else tarball_url.rsplit('/', 1)[-1]
         archive_path = tmpdir / archive_name
-        copy_url_to_file(tarball_url, archive_path)
+        archive_source = stage_archive(local_archive, tarball_url, archive_path)
         if expected_archive_sha256 is not None:
             actual_archive_sha256 = verify_archive_sha256(archive_path, expected_archive_sha256)
             print(f'ZIG_INSTALL_ARCHIVE_SHA256={actual_archive_sha256}')
@@ -746,6 +799,7 @@ def main() -> int:
         else:
             print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=unverified')
 
+        print(f'ZIG_INSTALL_SOURCE={archive_source}')
         extracted_root = extract_archive(archive_path, tmpdir / 'extract')
         final_root = install_root / extracted_root.name
         if final_root.exists():
