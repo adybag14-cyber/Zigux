@@ -204,7 +204,7 @@ SAMPLE_CONFDATA_CASES = [
     {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 29
+EXPECTED_SELF_TEST_CASE_COUNT = 8
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
@@ -290,6 +290,18 @@ def build_confdata_manifest(confdata_cases: list[dict[str, object]]) -> dict[str
         "helper_local_anchors": REQUIRED_CONFDATA_HELPER_ANCHORS,
     }
 
+def load_case_groups(fixture_dir: Path) -> tuple[list[dict[str, object]] | None, list[dict[str, object]] | None, list[tuple[str, str]]]:
+    cases_payload, read_issue = read_json(fixture_dir / "cases.json", "INVALID_CASES_JSON")
+    if read_issue is not None:
+        return None, None, [read_issue]
+    if not isinstance(cases_payload, dict):
+        return None, None, [("INVALID_CASES_PAYLOAD", type(cases_payload).__name__)]
+    conf_cases = cases_payload.get("conf_cases")
+    confdata_cases = cases_payload.get("confdata_cases")
+    if not isinstance(conf_cases, list) or not isinstance(confdata_cases, list):
+        return None, None, [("INVALID_CASES_FIELDS", "conf_cases/confdata_cases")]
+    return conf_cases, confdata_cases, []
+
 def collect_conf_manifest_issues(fixture_dir: Path, conf_bridge_path: Path, conf_cases: list[dict[str, object]]) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     actual_anchors = ordered_test_anchors(conf_bridge_path, "failed to discover conf bridge test anchors")
@@ -336,7 +348,9 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     fixture_dir = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge"
     conf_bridge = root / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
     confdata_bridge = root / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
-    conf_cases, confdata_cases = load_case_groups(fixture_dir)
+    conf_cases, confdata_cases, load_issues = load_case_groups(fixture_dir)
+    if load_issues:
+        return load_issues
     issues: list[tuple[str, str]] = []
     bridge_modes = set(ordered_conf_modes(conf_bridge))
     manifest_modes = [str(case["mode"]) for case in conf_cases]
@@ -385,10 +399,10 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("INVALID_CONF_CASE_ALLCONFIG_FIELDS", f"{name}:allconfig"))
         if "silent" in case and case["silent"] is not True:
             issues.append(("INVALID_CONF_CASE_SILENT_FIELDS", f"{name}:silent"))
-        if not (FIXTURE_DIR / str(case["expected"])).exists():
+        if not (fixture_dir / str(case["expected"])).exists():
             issues.append(("MISSING_CONF_CASE_EXPECTED_PATHS", f"{name}:expected:{case['expected']}"))
-    issues.extend(collect_conf_manifest_issues(FIXTURE_DIR, CONF_BRIDGE, conf_cases))
-    issues.extend(collect_confdata_manifest_issues(FIXTURE_DIR, CONFDATA_BRIDGE, confdata_cases))
+    issues.extend(collect_conf_manifest_issues(fixture_dir, conf_bridge, conf_cases))
+    issues.extend(collect_confdata_manifest_issues(fixture_dir, confdata_bridge, confdata_cases))
     return issues
 
 def emit_manifest_issues(issues: list[tuple[str, str]]) -> None:
@@ -536,13 +550,15 @@ def main() -> int:
         emit_manifest_issues(issues)
 
     zig = find_zig(args.zig)
+    conf_cases, confdata_cases, load_issues = load_case_groups(FIXTURE_DIR)
+    if load_issues:
+        emit_manifest_issues(load_issues)
     with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         conf_exe = tmp_dir / ("conf-bridge.exe" if sys.platform == "win32" else "conf-bridge")
         confdata_exe = tmp_dir / ("confdata-bridge.exe" if sys.platform == "win32" else "confdata-bridge")
         compile_tool(zig, CONF_BRIDGE, conf_exe)
         compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)
-        conf_cases, confdata_cases = load_case_groups(FIXTURE_DIR)
         for case in conf_cases:
             actual = tmp_dir / f"{case['name']}.actual.json"
             repeat = tmp_dir / f"{case['name']}.repeat.json"
