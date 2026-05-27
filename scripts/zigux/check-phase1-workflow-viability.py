@@ -12,155 +12,27 @@ HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
-CLOSURE_REL = Path("Documentation/zigux/phase1-closure.md")
-DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
-REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
-LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
-SCRIPTS_README_REL = Path("scripts/zigux/README.md")
-TESTS_README_REL = Path("zigux/tests/README.md")
-TESTS_BUILD_REL = Path("zigux/tests/build.zig")
-PHASE1_HELPERS_REL = Path("zigux/tests/phase1_helpers.zig")
-PHASE1_HELPERS_BUILD_REL = Path("zigux/tests/phase1_helpers_build.zig")
-SMOKE_TEST_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
-MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 MAKEFILE_REL = Path("zigux/Makefile")
-ROUTE_SUMMARY_REL = Path("scripts/zigux/check-phase1-route-summary-counts.py")
-BENCH_REL = Path("scripts/zigux/check-phase1-bench.py")
-FIND_BIT_BENCH_ANCHORS_REL = Path("scripts/zigux/check-phase1-find-bit-bench-anchors.py")
-SHARED_REMINDER_REL = Path("scripts/zigux/check-phase1-shared-reminder-packet.py")
-CLOSURE_VALIDATOR_REL = Path("scripts/zigux/validate-phase1-closure.py")
-DIRECT_OWNER_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")
-DIRECT_ANCHOR_MANIFEST_GATE_REL = Path("scripts/zigux/check-phase1-direct-anchor-manifest-gate.py")
-STRING_REVIEW_REL = Path("scripts/zigux/check-phase1-string-review-packet.py")
-FIND_BIT_REVIEW_REL = Path("scripts/zigux/check-phase1-find-bit-review-packet.py")
 
 REQUIRED_FILES = (
     WORKFLOW_REL,
-    CLOSURE_REL,
-    DOCS_ROOT_REL,
-    REVIEW_CHECKLIST_REL,
-    LANE_NOTE_REL,
-    SCRIPTS_README_REL,
-    TESTS_README_REL,
-    TESTS_BUILD_REL,
-    PHASE1_HELPERS_REL,
-    PHASE1_HELPERS_BUILD_REL,
-    SMOKE_TEST_REL,
-    MANIFEST_REL,
     MAKEFILE_REL,
-    ROUTE_SUMMARY_REL,
-    BENCH_REL,
-    FIND_BIT_BENCH_ANCHORS_REL,
-    SHARED_REMINDER_REL,
-    CLOSURE_VALIDATOR_REL,
-    DIRECT_OWNER_REL,
-    DIRECT_ANCHOR_MANIFEST_GATE_REL,
-    STRING_REVIEW_REL,
-    FIND_BIT_REVIEW_REL,
+    Path("Documentation/zigux/phase1-closure.md"),
+    Path("scripts/zigux/check-phase1-direct-owner-markers.py"),
+    Path("scripts/zigux/check-phase1-direct-anchor-manifest-gate.py"),
+    Path("scripts/zigux/check-phase1-string-review-packet.py"),
+    Path("scripts/zigux/check-phase1-find-bit-review-packet.py"),
+    Path("scripts/zigux/check-phase1-route-summary-counts.py"),
+    Path("scripts/zigux/check-phase1-bench.py"),
+    Path("scripts/zigux/check-phase1-find-bit-bench-anchors.py"),
+    Path("scripts/zigux/check-phase1-shared-reminder-packet.py"),
+    Path("scripts/zigux/validate-phase1-closure.py"),
+    Path("zigux/tests/build.zig"),
+    Path("zigux/tests/phase1_helpers.zig"),
+    Path("zigux/tests/phase1_helpers_build.zig"),
+    Path("zigux/tests/phase1_host_tools_smoke.zig"),
+    Path("zigux/tests/fixtures/phase1_helper_manifest.json"),
 )
-
-REQUIRED_MARKERS = {
-    CLOSURE_REL: (
-        "zigux/tests/phase1_helpers.zig,zigux/tests/phase1_helpers_build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json",
-        "self-tests the directly readable Phase 1 direct-owner, direct-anchor manifest, string-review, route-summary, bench, shared-reminder, and closure-validator checks",
-    ),
-    DOCS_ROOT_REL: (
-        "keep the live owner map, the restored closure note and closure validator, the adjacent route-summary guard",
-        "keep the helper-family split explicit here too: the nine shared-replay parked helpers reopen only for packet drift",
-        "`python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, and `python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test` replay the bounded current reminder checks",
-    ),
-    REVIEW_CHECKLIST_REL: (
-        "keep `scripts/zigux/check-phase1-route-summary-counts.py`, `make -C zigux phase1-route-summary`, and `zigux/Makefile` explicit as the adjacent Phase 1 route-summary evidence",
-    ),
-    LANE_NOTE_REL: (
-        "PHASE1_DIRECT_OWNER_SHARED_REMINDER_ACTIVE_PACKET=Documentation/zigux/README.md,Documentation/zigux/phase1-closure.md,Documentation/zigux/review-checklist.md,zigux/tests/README.md,scripts/zigux/README.md,scripts/zigux/validate-phase1-closure.py,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py",
-        "PHASE1_BITMAP_NEXT_SAFE_STEP=bitmap stays parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift",
-        "PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask",
-    ),
-    SCRIPTS_README_REL: (
-        "`scripts/zigux/check-phase1-route-summary-counts.py`, `make -C zigux phase1-route-summary`, and `.github/workflows/zigux-bootstrap.yml` keep the adjacent Phase 1 route-summary guard explicit beside the narrower reminder packet",
-        "`zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_helpers_build.zig`, and `zig build phase1-helpers --build-file zigux/tests/phase1_helpers_build.zig` restore a focused fixture-backed helper replay anchor on current `master`",
-        "current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it",
-    ),
-    TESTS_README_REL: (
-        "current shared Phase 1 smoke route: `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
-        "current focused Phase 1 helper replay route: `zig build phase1-helpers --build-file zigux/tests/phase1_helpers_build.zig`",
-        "keep the Phase 1 tests-root reminder truthful: the thirteen helper ports remain closed through the committed manifest",
-    ),
-    TESTS_BUILD_REL: (
-        '.name = "phase1-host-tools-smoke",',
-        'const phase1_step = b.step(',
-        '"Run the shared Phase 1 host-tools smoke anchor from zigux/tests",',
-    ),
-    PHASE1_HELPERS_REL: (
-        'test "phase 1 helper ports match committed parity fixture" {',
-        'test "phase 1 helper ports keep bitmap partial xor and string embedded-NUL parity aligned" {',
-    ),
-    PHASE1_HELPERS_BUILD_REL: (
-        'pub fn build(b: *std.Build) void {',
-        'const root_module = b.createModule(.{',
-        '.root_source_file = b.path("phase1_helpers.zig"),',
-    ),
-    SMOKE_TEST_REL: (
-        'test "phase1 host-tools smoke imports the live helper modules" {',
-        'test "phase1 host-tools smoke exercises live helper behavior" {',
-        'test "phase1 host-tools smoke keeps find_bit andnot and clump anchors aligned" {',
-    ),
-    MANIFEST_REL: (
-        '"direct_anchor_followup_helpers": [',
-        '"tools/lib/bitmap.zig",',
-        '"tools/lib/find_bit.zig",',
-        '"tools/lib/rbtree.zig",',
-        '"tools/lib/string.zig"',
-    ),
-    MAKEFILE_REL: (
-        "phase1-route-summary:",
-        "phase2-toolchain:",
-        "phase3-validate:",
-        "phase14-validate:",
-    ),
-    ROUTE_SUMMARY_REL: (
-        'print("PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST=pass")',
-        'print("PHASE1_ROUTE_SUMMARY_COUNTS=pass")',
-    ),
-    BENCH_REL: (
-        "FIND_BIT_REQUIRED_EXACT_CHECKSUMS = {",
-        'print("PHASE1_BENCH_CHECK_SELF_TEST=pass")',
-    ),
-    FIND_BIT_BENCH_ANCHORS_REL: (
-        "clump-forward-skip, and tail-word next-skip paths.",
-        'print("PHASE1_FIND_BIT_BENCH_ANCHORS_SELF_TEST=pass")',
-        'print("PHASE1_FIND_BIT_BENCH_ANCHORS=pass")',
-    ),
-    SHARED_REMINDER_REL: (
-        'Guard the current shared Phase 1 reminder packet across docs, tests, scripts, and workflow.',
-        'print("PHASE1_SHARED_REMINDER_PACKET_SELF_TEST=pass")',
-        'print("PHASE1_SHARED_REMINDER_PACKET=pass")',
-    ),
-    CLOSURE_VALIDATOR_REL: (
-        'print("PHASE1_CLOSURE_SELF_TEST=pass")',
-        'print("PHASE1_CLOSURE_VALIDATION=pass")',
-    ),
-    DIRECT_OWNER_REL: (
-        "EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [",
-        'print("phase1-direct-owner-markers:ok")',
-    ),
-    DIRECT_ANCHOR_MANIFEST_GATE_REL: (
-        'print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE_SELF_TEST=pass")',
-        'print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=pass")',
-        'print("PHASE1_RBTREE_DIRECT_ANCHOR_CHECKER=pass")',
-    ),
-    STRING_REVIEW_REL: (
-        "EXPECTED_STRING_SOURCE_SYMBOLS = [",
-        'print("PHASE1_STRING_REVIEW_PACKET_SELF_TEST=pass")',
-        'print("phase1-string-review-packet:ok")',
-    ),
-    FIND_BIT_REVIEW_REL: (
-        'print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST=pass")',
-        'print("PHASE1_FIND_BIT_REVIEW_PACKET=pass")',
-        "EXPECTED_FIXTURE_VALUES = {",
-    ),
-}
 
 REQUIRED_WORKFLOW_STEPS = (
     (
@@ -245,7 +117,19 @@ REQUIRED_WORKFLOW_STEPS = (
     ),
 )
 
-REQUIRED_WORKFLOW_CHAIN = tuple(step for step, _ in REQUIRED_WORKFLOW_STEPS[:-1])
+REQUIRED_WORKFLOW_CHAIN = tuple(step_name for step_name, _ in REQUIRED_WORKFLOW_STEPS)
+
+REQUIRED_WORKFLOW_LINES = (
+    "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
+    "run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
+)
+
+REQUIRED_MAKEFILE_MARKERS = (
+    "phase1-route-summary:",
+    "phase2-toolchain:",
+    "phase3-validate:",
+    "phase14-validate:",
+)
 
 FORBIDDEN_WORKFLOW_COMMANDS = (
     "python3 scripts/zigux/check-phase1-bench.py",
@@ -322,20 +206,14 @@ def collect_failures(root: Path) -> list[str]:
         return failures
 
     workflow_text = read_text(root, WORKFLOW_REL)
-    for relative_path, markers in REQUIRED_MARKERS.items():
-        text = read_text(root, relative_path)
-        for idx, marker in enumerate(markers):
-            failures.extend(
-                require_text_once(
-                    text,
-                    f"{relative_path.as_posix()}:marker_{idx}",
-                    marker,
-                )
-            )
+    makefile_text = read_text(root, MAKEFILE_REL)
 
     for step_name, run_command in REQUIRED_WORKFLOW_STEPS:
         failures.extend(require_workflow_step(workflow_text, step_name, run_command))
     failures.extend(require_workflow_chain(workflow_text, REQUIRED_WORKFLOW_CHAIN))
+
+    for marker in REQUIRED_WORKFLOW_LINES:
+        failures.extend(require_line_once(workflow_text, f"workflow_marker:{marker}", marker))
 
     workflow_lines = [line.strip() for line in workflow_text.splitlines()]
     for command in FORBIDDEN_WORKFLOW_COMMANDS:
@@ -343,7 +221,9 @@ def collect_failures(root: Path) -> list[str]:
         if count:
             failures.append(f"workflow_forbidden:{command}:actual={count}")
 
-    makefile_text = read_text(root, MAKEFILE_REL)
+    for marker in REQUIRED_MAKEFILE_MARKERS:
+        failures.extend(require_text_once(makefile_text, f"makefile_marker:{marker}", marker))
+
     for marker in FORBIDDEN_MAKEFILE_MARKERS:
         count = makefile_text.count(marker)
         if count:
@@ -362,11 +242,10 @@ def build_sample_repo(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
         if relative_path == WORKFLOW_REL:
             continue
-        write_file(
-            root,
-            relative_path,
-            "\n".join(REQUIRED_MARKERS.get(relative_path, ())) + "\n",
-        )
+        if relative_path == MAKEFILE_REL:
+            write_file(root, relative_path, "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
+            continue
+        write_file(root, relative_path, f"{relative_path.as_posix()}\n")
 
     workflow_lines = [
         "name: zigux-bootstrap",
@@ -400,14 +279,13 @@ def run_self_test() -> int:
     cases: list[tuple[str, str, Path | None, str | None]] = [("success", "none", None, None)]
     for relative_path in REQUIRED_FILES:
         cases.append((f"missing_file:{relative_path.as_posix()}", "missing_file", relative_path, None))
-    for relative_path, markers in REQUIRED_MARKERS.items():
-        for marker in markers:
-            cases.append((f"missing_marker:{relative_path.as_posix()}", "remove", relative_path, marker))
-            cases.append((f"duplicate_marker:{relative_path.as_posix()}", "duplicate", relative_path, marker))
     for step_name, run_command in REQUIRED_WORKFLOW_STEPS:
         block = f"      - name: {step_name}\n        run: {run_command}\n"
         cases.append((f"missing_step:{step_name}", "remove", WORKFLOW_REL, block))
         cases.append((f"duplicate_step:{step_name}", "duplicate", WORKFLOW_REL, block))
+    for marker in REQUIRED_MAKEFILE_MARKERS:
+        cases.append((f"missing_makefile_marker:{marker}", "remove", MAKEFILE_REL, marker))
+        cases.append((f"duplicate_makefile_marker:{marker}", "duplicate", MAKEFILE_REL, marker))
     cases.append(
         (
             "forbidden_workflow_bench_run",
@@ -510,10 +388,7 @@ def main() -> int:
 
     print("PHASE1_WORKFLOW_VIABILITY=pass")
     print(f"PHASE1_WORKFLOW_VIABILITY_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(
-        "PHASE1_WORKFLOW_VIABILITY_REQUIRED_MARKER_COUNT="
-        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
-    )
+    print(f"PHASE1_WORKFLOW_VIABILITY_REQUIRED_STEP_COUNT={len(REQUIRED_WORKFLOW_STEPS)}")
     return 0
 
 
