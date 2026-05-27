@@ -20,6 +20,8 @@ REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase10-closure-evidence.md",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase10-shared-freeze-boundary.py",
@@ -28,12 +30,14 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase10-mmio-packet.py",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    "scripts/zigux/README.md",
     "zigux/Makefile",
     "zigux/tests/phase10_closure_manifest.json",
     "zigux/tests/phase10_virtio_core_manifest.json",
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
+    "zigux/tests/README.md",
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
 ]
 
@@ -68,6 +72,8 @@ CLOSURE_DOC_MARKERS = [
     "scripts/zigux/validate-phase10.py",
     "scripts/zigux/validate-phase10-closure.py",
     "zigux/tests/phase10_closure_manifest.json",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
     "Documentation/zigux/phase10-virtio-core-survey.md",
     "zigux/tests/phase10_virtio_core.zig",
     "zigux/tests/phase10_virtio_core_manifest.json",
@@ -75,6 +81,8 @@ CLOSURE_DOC_MARKERS = [
     "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
     "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`",
     "shared reminder-surface drift",
     "manifest-backed survey provenance for the core packet now stays explicit through `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`",
@@ -217,6 +225,10 @@ def write_fixture(root: Path) -> None:
         write_text(root / rel_path, "\n".join(markers) + "\n")
 
     write_text(root / "scripts/zigux/validate-phase10-closure.py", "fixture\n")
+    write_text(root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md", "fixture\n")
+    write_text(root / "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md", "fixture\n")
+    write_text(root / "scripts/zigux/README.md", "fixture\n")
+    write_text(root / "zigux/tests/README.md", "fixture\n")
     write_text(root / ".github/workflows/zigux-bootstrap.yml", "name: zigux-bootstrap\n")
     for rel_path in [
         "zigux/tests/phase10_virtio_core_manifest.json",
@@ -324,6 +336,7 @@ def run_self_test() -> int:
         cases += 1
         write_fixture(root)
 
+        (root / "scripts/zigux/check-phase10-ring-packet.py").writeText = None
         (root / "scripts/zigux/check-phase10-ring-packet.py").write_text(
             "#!/usr/bin/env python3\nraise SystemExit(1)\n",
             encoding="utf-8",
@@ -353,6 +366,24 @@ def run_self_test() -> int:
         (root / "Documentation/zigux/README.md").unlink()
         missing = collect_missing_files(root)
         expect_contains(missing, "Documentation/zigux/README.md", "phase10-closure-self-test")
+        cases += 1
+        write_fixture(root)
+
+        (root / "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md").unlink()
+        missing = collect_missing_files(root)
+        expect_contains(missing, "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md", "phase10-closure-self-test")
+        cases += 1
+        write_fixture(root)
+
+        (root / "scripts/zigux/README.md").unlink()
+        missing = collect_missing_files(root)
+        expect_contains(missing, "scripts/zigux/README.md", "phase10-closure-self-test")
+        cases += 1
+        write_fixture(root)
+
+        (root / "zigux/tests/README.md").unlink()
+        missing = collect_missing_files(root)
+        expect_contains(missing, "zigux/tests/README.md", "phase10-closure-self-test")
         cases += 1
         write_fixture(root)
 
