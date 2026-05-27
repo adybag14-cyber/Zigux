@@ -372,6 +372,19 @@ fn duplicateOptionalArgv(
     return owned;
 }
 
+fn prependExecNameToOptionalArgv(
+    allocator: std.mem.Allocator,
+    config: Config,
+    argv: []const ?[]const u8,
+) ![]const ?[]const u8 {
+    var prefixed = try allocator.alloc(?[]const u8, argv.len + 1);
+    prefixed[0] = config.exec_name;
+    for (argv, 0..) |arg, index| {
+        prefixed[index + 1] = arg;
+    }
+    return prefixed;
+}
+
 pub fn collectExeclArgs(
     allocator: std.mem.Allocator,
     cmd: []const u8,
@@ -398,6 +411,66 @@ pub fn collectExeclArgs(
     }
 
     return error.MissingNullTerminator;
+}
+
+pub fn buildDeferredExecvCall(
+    allocator: std.mem.Allocator,
+    config: Config,
+    argv: []const []const u8,
+) !DeferredExecCall {
+    const prepared = try prepareExecCmd(allocator, config, argv);
+    defer allocator.free(prepared);
+
+    return .{
+        .argv = try duplicateOptionalArgv(allocator, prepared),
+    };
+}
+
+pub fn buildDeferredExeclCall(
+    allocator: std.mem.Allocator,
+    config: Config,
+    cmd: []const u8,
+    argv_tail: []const ?[]const u8,
+) !DeferredExecCall {
+    const collected = try collectExeclArgs(allocator, cmd, argv_tail);
+    defer allocator.free(collected);
+
+    const prepared = try prependExecNameToOptionalArgv(allocator, config, collected);
+    defer allocator.free(prepared);
+
+    return .{
+        .argv = try duplicateOptionalArgv(allocator, prepared),
+    };
+}
+
+test "EnvMap owns inserted keys so later caller mutations cannot corrupt lookups" {
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var key = [_]u8{ 'P', 'A', 'T', 'H' };
+    var value = [_]u8{ '/', 'b', 'i', 'n' };
+
+    try env.set(key[0..], value[0..]);
+    key[0] = 'M';
+    value[0] = '.';
+
+    try std.testing.expectEqualStrings("/bin", env.get("PATH").?);
+}
+
+test "buildSearchPath rewrites relative entries against the working directory" {
+    const rendered = try buildSearchPath(
+        std.testing.allocator,
+        "/repo",
+        "tools/bin",
+        "scripts",
+        "/usr/bin",
+    );
+    defer std.testing.allocator.free(rendered);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        rendered,
+    );
 }
 
 test "buildSearchPath normalizes relative exec roots and preserves an empty PATH tail" {
@@ -452,6 +525,78 @@ test "setupPathWithPwd prefers PWD when identities match for relative argv paths
     try std.testing.expectEqualStrings(rendered, env.get("PATH").?);
 }
 
+test "setupPathWithPwd falls back to cwd when logical PWD identity is unavailable" {
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin");
+
+    const rendered = try setupPathWithPwd(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        "/logical/repo",
+        .{ .device = 1, .inode = 7 },
+        null,
+    );
+    defer std.testing.allocator.free(rendered);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        rendered,
+    );
+}
+
+test "setupPathWithPwd ignores an explicitly empty logical PWD even when identity matches" {
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin");
+
+    const rendered = try setupPathWithPwd(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        "",
+        .{ .device = 1, .inode = 7 },
+        .{ .device = 1, .inode = 7 },
+    );
+    defer std.testing.allocator.free(rendered);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        rendered,
+    );
+}
+
 test "collectExeclArgs preserves the MAX_ARGS overflow rule from execl_cmd" {
     var argv_tail: [max_execl_slots - 1]?[]const u8 = undefined;
     for (argv_tail[0 .. argv_tail.len - 1], 0..) |*slot, index| {
@@ -462,6 +607,19 @@ test "collectExeclArgs preserves the MAX_ARGS overflow rule from execl_cmd" {
     try std.testing.expectError(
         error.TooManyArguments,
         collectExeclArgs(std.testing.allocator, "perf", &argv_tail),
+    );
+}
+
+test "collectExeclArgs rejects a null terminator that lands in MAX_ARGS" {
+    var argv_tail: [max_execl_slots - 1]?[]const u8 = undefined;
+    for (argv_tail[0 .. argv_tail.len - 1]) |*slot| {
+        slot.* = "--bounded";
+    }
+    argv_tail[argv_tail.len - 1] = null;
+
+    try std.testing.expectError(
+        error.TooManyArguments,
+        collectExeclArgs(std.testing.allocator, "record", &argv_tail),
     );
 }
 
@@ -482,4 +640,28 @@ test "collectExeclArgs duplicates the deferred argv payload up to the null termi
     try std.testing.expectEqualStrings("annotate", deferred.argv[1].?);
     try std.testing.expectEqualStrings("--stdio", deferred.argv[2].?);
     try std.testing.expectEqual(@as(?[]u8, null), deferred.argv[3]);
+}
+
+test "buildDeferredExeclCall keeps the execl handoff pure and launch-free" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try buildDeferredExeclCall(
+        std.testing.allocator,
+        config,
+        "record",
+        &.{ "-a", "--stdio", null },
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 5), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
+    try std.testing.expectEqualStrings("--stdio", deferred.argv[3].?);
+    try std.testing.expectEqual(@as(?[]u8, null), deferred.argv[4]);
 }
