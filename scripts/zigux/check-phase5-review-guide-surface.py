@@ -135,6 +135,7 @@ MARKERS = {
         "Keep the returned runtime bitmap reminder packet separate too: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_cold_stage_guard.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` are current direct sample-root evidence for the separate Phase 9 runtime bitmap family, not extra Phase 5 sample proof.",
         "Keep `samples/zigux/kretprobe_example_instance_budget_contract.zig` and `zigux/tests/phase5_kretprobe_example_instance_budget_contract.zig` explicit too as the current direct sample-root companion and focused replay for the bounded kretprobe instance-budget packet, so the shared lane note reflects that shipped reviewability surface already on `master`.",
         "there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample on current `master`",
+        "Keep `phase5-kobject-example-sample-selfcheck` explicit too as the named shared `zigux/tests/phase5_build.zig` step that reruns the sample-owned `zig test samples/zigux/kobject_example.zig` self-check, so contributor guidance does not leave that owner-side rerun handle buried in the build wiring alone.",
     ),
     SAMPLE_ROOT_PATH: (
         "Current `master` keeps the roadmap-backed `kobject` packet split explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract_survey.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are the current direct reminder or replay surfaces, while `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed owner-plus-companion evidence until a fresh authenticated reread returns that owner-side trio directly again.",
@@ -267,7 +268,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 47
+    expected_case_count = 48
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -508,6 +509,11 @@ def run_self_test() -> int:
         seed(mutated)
         write_text(mutated, LANE_SEQUENCING_PATH, placeholder(LANE_SEQUENCING_PATH).replace(MARKERS[LANE_SEQUENCING_PATH][2], ""))
         expect_exact("missing lane sequencing kobject attr marker", collect_failures(mutated), [f"{LANE_SEQUENCING_PATH}:missing_text:{MARKERS[LANE_SEQUENCING_PATH][2]}"])
+        checks_run += 1
+        mutated = root / "missing_lane_sequencing_kobject_selfcheck_marker"
+        seed(mutated)
+        write_text(mutated, LANE_SEQUENCING_PATH, placeholder(LANE_SEQUENCING_PATH).replace(MARKERS[LANE_SEQUENCING_PATH][8], ""))
+        expect_exact("missing lane sequencing kobject selfcheck marker", collect_failures(mutated), [f"{LANE_SEQUENCING_PATH}:missing_text:{MARKERS[LANE_SEQUENCING_PATH][8]}"])
         checks_run += 1
     if checks_run != expected_case_count:
         raise AssertionError(f"expected {expected_case_count} self-test cases, ran {checks_run}")
