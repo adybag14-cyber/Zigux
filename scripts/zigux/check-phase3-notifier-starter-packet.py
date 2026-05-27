@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 
 
+DOC_PATH = Path("Documentation/zigux/phase3-notifier-slice.md")
 NOTIFIER_BINDING_PATH = Path("zigux/bindings/notifier_abi.zig")
 TEST_PATH = Path("zigux/tests/phase3_notifier_starter_packet.zig")
 BUILD_PATH = Path("zigux/tests/phase3_notifier_starter_packet_build.zig")
@@ -24,6 +25,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 REQUIRED_PACKET_FILES = (
+    "Documentation/zigux/phase3-notifier-slice.md",
     "zigux/bindings/notifier_abi.zig",
     "zigux/tests/phase3_notifier_starter_packet.zig",
     "zigux/tests/phase3_notifier_starter_packet_build.zig",
@@ -42,6 +44,14 @@ REQUIRED_REPO_REALITY_GAPS = (
 )
 
 REQUIRED_MARKERS = {
+    DOC_PATH: (
+        "# Phase 3 notifier Slice",
+        "- `Documentation/zigux/phase3-notifier-slice.md`",
+        "- `zigux/bindings/notifier_abi.zig`",
+        "- `zigux/tests/phase3_notifier_starter_packet.zig`",
+        "This packet stays intentionally small:",
+        "The landed packet only closes the bounded notifier ABI replay slice.",
+    ),
     NOTIFIER_BINDING_PATH: (
         "pub const NotifierResult = enum(u32) {",
         "pub const NotifierBlock = extern struct {",
@@ -66,24 +76,7 @@ REQUIRED_MARKERS = {
         'root_module.addImport("notifier_abi", notifier_abi);',
         '"phase3-notifier-starter-packet-test"',
     ),
-    MANIFEST_PATH: (
-        '"slug": "phase3-notifier-starter-packet"',
-        '"status": "notifier_binding_starter_present"',
-        '"python3 scripts/zigux/check-phase3-notifier-starter-packet.py --self-test"',
-        '"Documentation/zigux/phase3-abi-h-boundary-next-step.md"',
-    ),
 }
-
-SAMPLE_FILES = {path: "\n".join(markers) + "\n" for path, markers in REQUIRED_MARKERS.items()}
-SAMPLE_FILES[MANIFEST_PATH] = json.dumps(
-    {
-        **EXPECTED_MANIFEST_FIELDS,
-        "packet_files": list(REQUIRED_PACKET_FILES),
-        "replay_routes": list(REQUIRED_REPLAY_ROUTES),
-        "repo_reality_gaps": list(REQUIRED_REPO_REALITY_GAPS),
-    },
-    indent=2,
-) + "\n"
 
 
 def _read(path: Path) -> str:
@@ -202,7 +195,23 @@ def validate_repo(repo_root: Path) -> list[str]:
 
 
 def _populate_repo(root: Path) -> None:
-    for relative_path, text in SAMPLE_FILES.items():
+    samples = {
+        DOC_PATH: "\n".join(REQUIRED_MARKERS[DOC_PATH]) + "\n",
+        NOTIFIER_BINDING_PATH: "\n".join(REQUIRED_MARKERS[NOTIFIER_BINDING_PATH]) + "\n",
+        TEST_PATH: "\n".join(REQUIRED_MARKERS[TEST_PATH]) + "\n",
+        BUILD_PATH: "\n".join(REQUIRED_MARKERS[BUILD_PATH]) + "\n",
+        MANIFEST_PATH: json.dumps(
+            {
+                **EXPECTED_MANIFEST_FIELDS,
+                "packet_files": list(REQUIRED_PACKET_FILES),
+                "replay_routes": list(REQUIRED_REPLAY_ROUTES),
+                "repo_reality_gaps": list(REQUIRED_REPO_REALITY_GAPS),
+            },
+            indent=2,
+        )
+        + "\n",
+    }
+    for relative_path, text in samples.items():
         _write(root / relative_path, text)
 
 
@@ -218,6 +227,7 @@ def run_self_test() -> int:
             return 1
 
         removal_cases = (
+            (DOC_PATH, "# Phase 3 notifier Slice"),
             (NOTIFIER_BINDING_PATH, "pub const NotifierResult = enum(u32) {"),
             (TEST_PATH, 'test "notifier starter packet reports the first priority increase" {'),
             (BUILD_PATH, '"phase3-notifier-starter-packet-test"'),
@@ -249,7 +259,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_NOTIFIER_STARTER_PACKET_SELF_TEST=pass")
-    print("PHASE3_NOTIFIER_STARTER_PACKET_SELF_TEST_CASES=4")
+    print("PHASE3_NOTIFIER_STARTER_PACKET_SELF_TEST_CASES=5")
     return 0
 
 
@@ -276,6 +286,7 @@ def main() -> int:
             print(issue)
         return 1
 
+    print(f"validated {args.repo_root / DOC_PATH}")
     print(f"validated {args.repo_root / TEST_PATH}")
     print(f"validated {args.repo_root / BUILD_PATH}")
     return 0
