@@ -18,6 +18,7 @@
     "scripts/zigux/README.md",
     "scripts/zigux/phase9_catalog.py",
     "scripts/zigux/check-phase9-catalog-selftest.py",
+    "scripts/zigux/check-phase9-runtime-loader-shared-packet.py",
     "scripts/zigux/check-phase9-atomic64-runtime-packet.py",
     "scripts/zigux/check-phase9-review-checklist-phase-boundaries.py",
     "scripts/zigux/check-phase9-freeze-map-study-boundaries.py",
@@ -65,6 +66,8 @@
     "python3 scripts/zigux/check-phase9-catalog-selftest.py --self-test",
     "python3 scripts/zigux/check-phase9-catalog-selftest.py",
     "python3 scripts/zigux/phase9_catalog.py --pretty",
+    "python3 scripts/zigux/check-phase9-runtime-loader-shared-packet.py --self-test",
+    "python3 scripts/zigux/check-phase9-runtime-loader-shared-packet.py",
     "python3 scripts/zigux/check-phase9-atomic64-runtime-packet.py --self-test",
     "python3 scripts/zigux/check-phase9-atomic64-runtime-packet.py",
     "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test",
@@ -83,5 +86,5 @@
     "no dedicated shared validate-phase9.py rerun path on current master",
     "blocked publication and install-root vocabulary remains historical rather than direct shipped proof"
   ],
-  "next_safe_step": "tighten one stale shared reminder surface at a time when it undercounts the atomic64, returned kretprobe, or shared loader packet, and keep the shared manifest aligned without widening runtime behavior claims"
+  "next_safe_step": "keep the dedicated runtime-loader shared checker aligned with the manifest and the existing loader packet without widening runtime behavior claims or pretending blocked publication surfaces returned"
 }
