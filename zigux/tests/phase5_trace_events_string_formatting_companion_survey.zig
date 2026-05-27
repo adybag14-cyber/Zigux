@@ -4,55 +4,62 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase 5 trace-events string-formatting survey keeps the companion markers explicit" {
+test "phase 5 trace-events string-formatting survey keeps the sample-owned checks explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const companion = try std.Io.Dir.cwd().readFileAlloc(
+    const sample = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "samples/zigux/trace_events_string_formatting_sample.zig",
         std.testing.allocator,
-        .limited(16 * 1024),
+        .limited(32 * 1024),
     );
-    defer std.testing.allocator.free(companion);
+    defer std.testing.allocator.free(sample);
 
     const required_markers = [_][]const u8{
         "pub const SampleFocus = enum {",
-        "string_selection,",
-        "formatted_message,",
-        "bounded_destination_discipline,",
-        "non_allocating_runtime_safe,",
-        "\"iter={d}\"",
+        ".string_selection,",
+        ".formatted_message,",
+        ".bounded_destination_discipline,",
+        ".non_allocating_runtime_safe,",
+        "return std.fmt.bufPrint(destination, \"iter={d}\", .{iteration_count});",
         "\"{s} iter={d}\"",
-        "runStringFormattingCycleReplay",
-        "One ring to rule them all",
+        "phase 5 trace-events formatting companion keeps the selected-string cue reviewable",
+        "phase 5 trace-events formatting companion keeps the modulo-selected string cycle reviewable",
+        "phase 5 trace-events formatting companion keeps lifecycle boundaries explicit",
+        "phase 5 trace-events formatting companion keeps bounded destination failures explicit",
+        "phase 5 trace-events formatting companion keeps selected-string exact-fit boundaries explicit",
+        "phase 5 trace-events formatting companion keeps wrapped selected-string exact-fit boundaries explicit",
+        "\"One ring to rule them all iter=9\"",
     };
     for (required_markers) |marker| {
-        try expectContains(companion, marker);
+        try expectContains(sample, marker);
     }
 }
 
-test "phase 5 trace-events string-formatting survey keeps the focused replay aligned with the live companion" {
+test "phase 5 trace-events string-formatting survey keeps the shared phase5 build route aware of the sample and survey guard" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const replay = try std.Io.Dir.cwd().readFileAlloc(
+    const build_file = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
-        "zigux/tests/phase5_trace_events_string_formatting_companion.zig",
+        "zigux/tests/phase5_build.zig",
         std.testing.allocator,
-        .limited(16 * 1024),
+        .limited(24 * 1024),
     );
-    defer std.testing.allocator.free(replay);
+    defer std.testing.allocator.free(build_file);
 
     const required_markers = [_][]const u8{
-        "const companion = @import(\"trace_events_string_formatting_sample\");",
-        "phase 5 trace-events string-formatting companion keeps the selected-string and formatting anchor reviewable",
-        "phase 5 trace-events string-formatting companion keeps modulo string replay and exact-fit boundaries explicit",
-        "runStringFormattingCycleReplay",
-        "formatSelectedIterationMessageInto",
-        "One ring to rule them all iter=9",
+        "../../samples/zigux/trace_events_string_formatting_sample.zig",
+        "phase5_trace_events_string_formatting_companion_survey.zig",
+        "\"phase5-trace-events-string-formatting-companion-tests\"",
+        "\"phase5-trace-events-string-formatting-companion-survey-tests\"",
+        "\"phase5-trace-events-string-formatting-companion-survey\"",
+        "Run the Phase 5 trace-events string-formatting companion survey guard",
+        "test_step.dependOn(&run_phase5_trace_events_string_formatting_companion_tests.step);",
+        "test_step.dependOn(&run_phase5_trace_events_string_formatting_companion_survey_tests.step);",
     };
     for (required_markers) |marker| {
-        try expectContains(replay, marker);
+        try expectContains(build_file, marker);
     }
 }
