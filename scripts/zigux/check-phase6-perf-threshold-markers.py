@@ -117,7 +117,7 @@ EXPECTED_HEXDUMP_CASES = [
     {"label": "16B-ascii-g8", "reps": 20000, "max_slowdown_pct": 600},
 ]
 
-SELF_TEST_CASE_COUNT = 19
+SELF_TEST_CASE_COUNT = 20
 
 
 class ValidationError(RuntimeError):
@@ -243,6 +243,10 @@ def validate_hexdump_perf(perf: dict[str, object], label: str) -> None:
         perf.get("linux_style_rerun_routes"),
         label,
         [
+            "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
+            "make -C zigux phase6-hexdump-review",
+            "zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+            "make -C zigux phase6-hexdump-perf-matrix-test",
             "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
             "make -C zigux phase6-hexdump-perf",
             "make -C zigux phase6-perf",
@@ -375,6 +379,10 @@ def scaffold_manifest(packet: str, lane_scope: str, *, parity: bool) -> dict[str
                 "current_perf_evidence": {
                     "cases": EXPECTED_HEXDUMP_CASES,
                     "linux_style_rerun_routes": [
+                        "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
+                        "make -C zigux phase6-hexdump-review",
+                        "zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+                        "make -C zigux phase6-hexdump-perf-matrix-test",
                         "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
                         "make -C zigux phase6-hexdump-perf",
                         "make -C zigux phase6-perf",
@@ -418,20 +426,6 @@ def scaffold_repo(root: Path) -> None:
 
 def mutate_text(path: Path, old: str, new: str) -> None:
     write(path, read_text(path).replace(old, new, 1))
-
-
-
-def expect_failure(root: Path, mutate, expected_fragment: str) -> None:
-    mutate()
-    try:
-        validate(root)
-    except ValidationError as exc:
-        if expected_fragment not in str(exc):
-            raise AssertionError(
-                f"expected {expected_fragment!r} in {str(exc)!r}"
-            ) from exc
-    else:
-        raise AssertionError("expected validation failure")
 
 
 
@@ -539,6 +533,12 @@ def run_self_test() -> None:
                 '"make -C zigux phase6-bsearch-perf"',
                 '"make -C zigux phase6-bsearch-test"',
                 "helper-evidence bsearch rerun route missing make -C zigux phase6-bsearch-perf",
+            ),
+            (
+                EVIDENCE_MANIFEST_PATH,
+                '"make -C zigux phase6-hexdump-review"',
+                '"make -C zigux phase6-hexdump-test"',
+                "helper-evidence hexdump rerun route missing make -C zigux phase6-hexdump-review",
             ),
             (
                 PARITY_MANIFEST_PATH,
