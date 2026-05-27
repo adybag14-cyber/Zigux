@@ -5,6 +5,7 @@
   "surveyed_commit_mode": "dated_master_readback",
   "review_process_note": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "decision_record_template": "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+  "decision_index_note": "Documentation/zigux/phase15-architecture-council-decision-index.md",
   "indefinite_c_policy_note": "Documentation/zigux/phase15-indefinite-c-policy.md",
   "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
   "shared_summary_gap_note": "Documentation/zigux/phase15-shared-summary-gap.md",
@@ -130,6 +131,7 @@
     "`Documentation/zigux/README.md`",
     "`Documentation/zigux/phase15-architecture-council-review-process.md`",
     "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+    "`Documentation/zigux/phase15-architecture-council-decision-index.md`",
     "`Documentation/zigux/phase15-deep-core-blocker-survey.md`",
     "`Documentation/zigux/phase15-indefinite-c-policy.md`",
     "`Documentation/zigux/phase15-shared-summary-gap.md`",
@@ -157,6 +159,7 @@
   "shared_gap_expected_present_paths": [
     "`Documentation/zigux/phase15-architecture-council-review-process.md`",
     "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+    "`Documentation/zigux/phase15-architecture-council-decision-index.md`",
     "`Documentation/zigux/phase15-parity-scorecard-survey.md`",
     "`Documentation/zigux/phase15-readiness-gate-survey.md`",
     "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
