@@ -17,6 +17,7 @@ REQUIRED_PATHS = (
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase10-closure-evidence.md",
+    "Documentation/zigux/phase10-freeze-boundary-gap-survey.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
     "Documentation/zigux/phase10-virtio-core-slice.md",
@@ -324,6 +325,10 @@ def run_self_test() -> int:
             "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
             "missing_lane_sequencing_path",
         )
+        assert_missing_required_path(
+            "Documentation/zigux/phase10-freeze-boundary-gap-survey.md",
+            "missing_freeze_boundary_gap_survey_path",
+        )
 
         def assert_subcommand_failure(
             script_rel: str,
@@ -393,7 +398,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=32")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=33")
     return 0
 
 
