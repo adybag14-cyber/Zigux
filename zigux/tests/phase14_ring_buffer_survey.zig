@@ -144,7 +144,7 @@ test "phase14 ring-buffer manifest tracks the parked study packet with its full 
     try std.testing.expectEqual(true, manifest.survey_summary.preexisting_phase14_ring_buffer_survey_note_present);
     try std.testing.expectEqualStrings("study_only", manifest.study_only_governance.status_bucket);
     try std.testing.expectEqualStrings("", manifest.study_only_governance.ready_next_gap);
-    try std.testing.expectEqualStrings("phase14-ring-buffer-maintenance-handoff", manifest.study_only_governance.last_closed_followup);
+    try std.testing.expectEqualStrings("phase14-ring-buffer-resize-disabled-lifetime-followup", manifest.study_only_governance.last_closed_followup);
     try std.testing.expectEqualStrings("phase14-ring-buffer-zig-port-blocker", manifest.study_only_governance.blocked_gap);
     try std.testing.expectEqualStrings("same_packet_truthfulness_repairs_only", manifest.study_only_governance.lane_reopen_scope);
     try std.testing.expect(std.mem.indexOf(u8, manifest.study_only_governance.why_now, "shared Phase 14 build shard") != null);
