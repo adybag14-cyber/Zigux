@@ -23,76 +23,50 @@ DOCS_ROOT_MARKERS = (
     "`Documentation/zigux/phase11-driver-lane-sequencing.md`",
     "`Documentation/zigux/phase11-validation-matrix-gap-survey.md`",
     "`Documentation/zigux/phase11-hvc-console-survey.md`",
-    "`Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
-    "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
-    "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-    "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
-    "`scripts/zigux/check-phase11-build-inventory.py`",
-    "`scripts/zigux/check-phase11-matrix-gap-survey.py`",
-    "`scripts/zigux/check-phase11-validation-matrix-gap-survey.py`",
-    "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
-    "`drivers/watchdog/dw_wdt.zig`",
-    "`drivers/watchdog/dw_wdt_verify.zig`",
-    "`drivers/tty/hvc/hvc_console.zig`",
-    "`zigux/tests/fixtures/phase11_build_inventory.json`",
-    "`zigux/tests/phase11_dw_wdt_manifest.json`",
-    "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
-    "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
-    "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
-    "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
     "`Documentation/zigux/phase11-shared-replay-contract.md`",
-    "`Documentation/zigux/phase11-closure-note.md`",
-    "`scripts/zigux/check-phase11-shared-replay-contract.py`",
-    "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
-    "`zigux/tests/phase11_build.zig`",
-    "still exposes no dedicated `make -C zigux phase11`, `make -C zigux phase11-validate`, or `make -C zigux phase11-contract` routes",
+    "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
+    "`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
+    "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+    "`scripts/zigux/validate-phase11.py`",
+    "`zigux/Makefile`",
+    "`make -C zigux phase11-validate`",
 )
 
 SEQUENCING_MARKERS = (
-    "shared sequencing lane `P11-Y06`",
-    "DesignWare lane `P11-L10` currently owns the returned watchdog-local packet",
-    "`drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`,",
-    "`scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, and",
-    "`scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`",
-    "HVC archival lane `P11-L16` currently keeps the directly readable",
-    "`Documentation/zigux/phase11-hvc-console-survey.md`,",
-    "`drivers/tty/hvc/hvc_console.zig`,",
-    "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and",
-    "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md` authoritative",
-    "current `master` still does not rematerialize the shared-validator surfaces `scripts/zigux/validate-phase11.py`",
+    "shared sequencing lane `P11-Y06` owns the shared reminder wording",
+    "DesignWare lane `P11-L10` stays separate from the shared sequencing lane",
+    "HVC continuity lane `P11-L16` currently keeps the directly readable",
+    "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
+    "`scripts/zigux/validate-phase11.py`,",
+    "`zigux/Makefile`, and the returned `make -C zigux phase11-validate` route",
+    "`make -C zigux phase11` and",
+    "`make -C zigux phase11-contract` still remain missing on current `master`",
 )
 
 MATRIX_GAP_MARKERS = (
-    "`PHASE11_MATRIX_GAP_STATUS=gpio_hvc_and_dw_matrices_direct_readback_only`",
-    "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
-    "`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
-    "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-    "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
-    "`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`",
-    "`scripts/zigux/check-phase11-matrix-gap-survey.py`",
-    "`scripts/zigux/check-phase11-validation-matrix-gap-survey.py`",
-    "`scripts/zigux/check-phase11-build-inventory.py`",
-    "Current direct contents reads in this run do not rematerialize",
-    "The shared build inventory now carries 3 HVC proof-backed build tests, 0 shared",
-    "depend steps, 0 dedicated survey replays, and 3 proof adjunct replays.",
+    "`PHASE11_MATRIX_GAP_STATUS=all_simple_driver_matrices_present`",
+    "deterministic tooling survey lane: `P11-L07`",
+    "`zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/fixtures/phase11_validate_checks.json`, and `zigux/tests/phase11_dw_wdt_manifest.json`",
+    "The shared Phase 11 packet now rematerializes a dedicated golden-output fixture roster through `zigux/tests/fixtures/phase11_validate_checks.json` plus fail-closed `scripts/zigux/check-phase11-validate-check-roster.py` and `scripts/zigux/check-phase11-validate-route-alignment.py` guards.",
+    "It still does not rematerialize a refresh helper route or an artifact-diff-style deterministic output guard for the driver-local proof builds.",
+    "`scripts/zigux/validate-phase11.py` and `make -C zigux phase11-validate` therefore stay build-proof-first rather than expected-output-refresh-first.",
+    "they still do not refresh or compare stable expected-output artifacts for the shared Phase 11 proof fan-out.",
 )
 
 HVC_SURVEY_MARKERS = (
     "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
     "current authenticated contents readback keeps the bounded HVC current-head",
-    "`Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
-    "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
-    "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-    "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
-    "`zigux/tests/fixtures/phase11_build_inventory.json`",
-    "`zigux/tests/phase11_hvc_export_surface_layout_proof.zig`",
-    "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
-    "`zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`",
-    "`zigux/tests/phase11_hvc_hv_ops_layout_build.zig`",
-    "`zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
-    "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
-    "Current-Head Packet",
-    "keep the deeper verify helper, sysrq helper, focused survey replay, manifest,",
+    "`scripts/zigux/check-phase11-validate-manifest-roster.py`",
+    "`scripts/zigux/check-phase11-validate-check-roster.py`",
+    "`scripts/zigux/check-phase11-validate-route-alignment.py`",
+    "the dedicated validate-check fixture roster",
+    "focused-direct-build replay checker",
+    "cleanup-current-head checker",
+    "targetless-unregister witness checker",
+    "the dedicated modem-control proof pair",
+    "the standalone targetless-unregister witness pair",
+    "`zigux/tests/phase11_hvc_current_head_manifest.json`",
+    "`scripts/zigux/check-phase11-hvc-current-head-manifest.py`",
     "`zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey`",
 )
 
@@ -167,33 +141,16 @@ def build_fixture(root: Path) -> None:
         "\n".join(
             [
                 "# Zigux Documentation",
-                "Phase 11 notes",
                 "- `Documentation/zigux/phase11-driver-lane-sequencing.md`",
                 "- `Documentation/zigux/phase11-validation-matrix-gap-survey.md`",
                 "- `Documentation/zigux/phase11-hvc-console-survey.md`",
-                "- `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
-                "- `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
-                "- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-                "- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
-                "- `scripts/zigux/check-phase11-build-inventory.py`",
-                "- `scripts/zigux/check-phase11-matrix-gap-survey.py`",
-                "- `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`",
-                "- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
-                "- `drivers/watchdog/dw_wdt.zig`",
-                "- `drivers/watchdog/dw_wdt_verify.zig`",
-                "- `drivers/tty/hvc/hvc_console.zig`",
-                "- `zigux/tests/fixtures/phase11_build_inventory.json`",
-                "- `zigux/tests/phase11_dw_wdt_manifest.json`",
-                "- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
-                "- `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
-                "- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
-                "- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
                 "- `Documentation/zigux/phase11-shared-replay-contract.md`",
-                "- `Documentation/zigux/phase11-closure-note.md`",
-                "- `scripts/zigux/check-phase11-shared-replay-contract.py`",
-                "- `scripts/zigux/check-phase11-shared-summary-surfaces.py`",
-                "- `zigux/tests/phase11_build.zig`",
-                "- current `master` still exposes no dedicated `make -C zigux phase11`, `make -C zigux phase11-validate`, or `make -C zigux phase11-contract` routes",
+                "- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
+                "- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
+                "- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+                "- `scripts/zigux/validate-phase11.py`",
+                "- `zigux/Makefile`",
+                "- `make -C zigux phase11-validate`",
                 "",
             ]
         ),
@@ -203,17 +160,14 @@ def build_fixture(root: Path) -> None:
         "\n".join(
             [
                 "# Phase 11 Driver Lane Sequencing",
-                "shared sequencing lane `P11-Y06`",
-                "DesignWare lane `P11-L10` currently owns the returned watchdog-local packet",
-                "`drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`,",
-                "`scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, and",
-                "`scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`",
-                "HVC archival lane `P11-L16` currently keeps the directly readable",
-                "`Documentation/zigux/phase11-hvc-console-survey.md`,",
-                "`drivers/tty/hvc/hvc_console.zig`,",
-                "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and",
-                "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md` authoritative",
-                "current `master` still does not rematerialize the shared-validator surfaces `scripts/zigux/validate-phase11.py`",
+                "shared sequencing lane `P11-Y06` owns the shared reminder wording",
+                "DesignWare lane `P11-L10` stays separate from the shared sequencing lane",
+                "HVC continuity lane `P11-L16` currently keeps the directly readable",
+                "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
+                "`scripts/zigux/validate-phase11.py`,",
+                "`zigux/Makefile`, and the returned `make -C zigux phase11-validate` route",
+                "`make -C zigux phase11` and",
+                "`make -C zigux phase11-contract` still remain missing on current `master`",
                 "",
             ]
         ),
@@ -223,18 +177,13 @@ def build_fixture(root: Path) -> None:
         "\n".join(
             [
                 "# Phase 11 Validation Matrix Gap Survey",
-                "`PHASE11_MATRIX_GAP_STATUS=gpio_hvc_and_dw_matrices_direct_readback_only`",
-                "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
-                "`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
-                "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-                "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
-                "`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`",
-                "`scripts/zigux/check-phase11-matrix-gap-survey.py`",
-                "`scripts/zigux/check-phase11-validation-matrix-gap-survey.py`",
-                "`scripts/zigux/check-phase11-build-inventory.py`",
-                "Current direct contents reads in this run do not rematerialize",
-                "The shared build inventory now carries 3 HVC proof-backed build tests, 0 shared",
-                "depend steps, 0 dedicated survey replays, and 3 proof adjunct replays.",
+                "`PHASE11_MATRIX_GAP_STATUS=all_simple_driver_matrices_present`",
+                "deterministic tooling survey lane: `P11-L07`",
+                "`zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/fixtures/phase11_validate_checks.json`, and `zigux/tests/phase11_dw_wdt_manifest.json`",
+                "The shared Phase 11 packet now rematerializes a dedicated golden-output fixture roster through `zigux/tests/fixtures/phase11_validate_checks.json` plus fail-closed `scripts/zigux/check-phase11-validate-check-roster.py` and `scripts/zigux/check-phase11-validate-route-alignment.py` guards.",
+                "It still does not rematerialize a refresh helper route or an artifact-diff-style deterministic output guard for the driver-local proof builds.",
+                "`scripts/zigux/validate-phase11.py` and `make -C zigux phase11-validate` therefore stay build-proof-first rather than expected-output-refresh-first.",
+                "they still do not refresh or compare stable expected-output artifacts for the shared Phase 11 proof fan-out.",
                 "",
             ]
         ),
@@ -245,21 +194,19 @@ def build_fixture(root: Path) -> None:
             [
                 "# Phase 11 HVC Console Survey",
                 "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
-                "current authenticated contents readback keeps the bounded HVC current-head packet reviewable through:",
-                "`Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
-                "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
-                "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-                "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
-                "`zigux/tests/fixtures/phase11_build_inventory.json`",
-                "`zigux/tests/phase11_hvc_export_surface_layout_proof.zig`",
-                "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
-                "`zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`",
-                "`zigux/tests/phase11_hvc_hv_ops_layout_build.zig`",
-                "`zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
-                "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
-                "## Current-Head Packet",
-                "keep the deeper verify helper, sysrq helper, focused survey replay, manifest, teardown note, slice, and dedicated survey checker framed as archival or repo-reality-gap vocabulary until a future reread proves they returned beside the smaller companion packet.",
-                "`zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey` route",
+                "current authenticated contents readback keeps the bounded HVC current-head",
+                "`scripts/zigux/check-phase11-validate-manifest-roster.py`",
+                "`scripts/zigux/check-phase11-validate-check-roster.py`",
+                "`scripts/zigux/check-phase11-validate-route-alignment.py`",
+                "the dedicated validate-check fixture roster",
+                "focused-direct-build replay checker",
+                "cleanup-current-head checker",
+                "targetless-unregister witness checker",
+                "the dedicated modem-control proof pair",
+                "the standalone targetless-unregister witness pair",
+                "`zigux/tests/phase11_hvc_current_head_manifest.json`",
+                "`scripts/zigux/check-phase11-hvc-current-head-manifest.py`",
+                "`zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey`",
                 "",
             ]
         ),
@@ -287,49 +234,60 @@ def run_self_test() -> int:
         build_fixture(fixture)
         run_check(fixture)
 
-        missing_docs_gap = tmpdir / "missing_docs_gap"
-        shutil.copytree(fixture, missing_docs_gap, dirs_exist_ok=True)
+        missing_docs_route = tmpdir / "missing_docs_route"
+        shutil.copytree(fixture, missing_docs_route, dirs_exist_ok=True)
         write(
-            missing_docs_gap / DOCS_ROOT_PATH,
-            read_text(missing_docs_gap / DOCS_ROOT_PATH).replace(
-                "`scripts/zigux/check-phase11-shared-summary-surfaces.py`",
+            missing_docs_route / DOCS_ROOT_PATH,
+            read_text(missing_docs_route / DOCS_ROOT_PATH).replace(
+                "- `make -C zigux phase11-validate`\n",
                 "",
             ),
         )
-        expect_failure(missing_docs_gap, "`scripts/zigux/check-phase11-shared-summary-surfaces.py`")
+        expect_failure(missing_docs_route, "`make -C zigux phase11-validate`")
 
-        missing_validate_gap = tmpdir / "missing_validate_gap"
-        shutil.copytree(fixture, missing_validate_gap, dirs_exist_ok=True)
+        missing_validate_route = tmpdir / "missing_validate_route"
+        shutil.copytree(fixture, missing_validate_route, dirs_exist_ok=True)
         write(
-            missing_validate_gap / SEQUENCING_PATH,
-            read_text(missing_validate_gap / SEQUENCING_PATH).replace(
-                "`scripts/zigux/validate-phase11.py`",
-                "`scripts/zigux/validate-phase11-missing.py`",
+            missing_validate_route / SEQUENCING_PATH,
+            read_text(missing_validate_route / SEQUENCING_PATH).replace(
+                "`zigux/Makefile`, and the returned `make -C zigux phase11-validate` route",
+                "`zigux/Makefile`, but no shared route returned",
             ),
         )
-        expect_failure(missing_validate_gap, "`scripts/zigux/validate-phase11.py`")
+        expect_failure(missing_validate_route, "`zigux/Makefile`, and the returned `make -C zigux phase11-validate` route")
 
-        missing_matrix_inventory = tmpdir / "missing_matrix_inventory"
-        shutil.copytree(fixture, missing_matrix_inventory, dirs_exist_ok=True)
+        missing_matrix_status = tmpdir / "missing_matrix_status"
+        shutil.copytree(fixture, missing_matrix_status, dirs_exist_ok=True)
         write(
-            missing_matrix_inventory / MATRIX_GAP_PATH,
-            read_text(missing_matrix_inventory / MATRIX_GAP_PATH).replace(
-                "The shared build inventory now carries 3 HVC proof-backed build tests, 0 shared",
-                "The shared build inventory now carries 2 HVC proof-backed build tests, 0 shared",
+            missing_matrix_status / MATRIX_GAP_PATH,
+            read_text(missing_matrix_status / MATRIX_GAP_PATH).replace(
+                "all_simple_driver_matrices_present",
+                "gpio_hvc_and_dw_matrices_direct_readback_only",
             ),
         )
-        expect_failure(missing_matrix_inventory, "The shared build inventory now carries 3 HVC proof-backed build tests")
+        expect_failure(missing_matrix_status, "all_simple_driver_matrices_present")
 
-        missing_hvc_route = tmpdir / "missing_hvc_route"
-        shutil.copytree(fixture, missing_hvc_route, dirs_exist_ok=True)
+        missing_validate_roster = tmpdir / "missing_validate_roster"
+        shutil.copytree(fixture, missing_validate_roster, dirs_exist_ok=True)
         write(
-            missing_hvc_route / HVC_SURVEY_PATH,
-            read_text(missing_hvc_route / HVC_SURVEY_PATH).replace(
-                "`zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey` route",
+            missing_validate_roster / MATRIX_GAP_PATH,
+            read_text(missing_validate_roster / MATRIX_GAP_PATH).replace(
+                "`scripts/zigux/check-phase11-validate-check-roster.py` and ",
                 "",
             ),
         )
-        expect_failure(missing_hvc_route, "`zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey`")
+        expect_failure(missing_validate_roster, "`scripts/zigux/check-phase11-validate-check-roster.py`")
+
+        missing_targetless_marker = tmpdir / "missing_targetless_marker"
+        shutil.copytree(fixture, missing_targetless_marker, dirs_exist_ok=True)
+        write(
+            missing_targetless_marker / HVC_SURVEY_PATH,
+            read_text(missing_targetless_marker / HVC_SURVEY_PATH).replace(
+                "targetless-unregister witness checker\n",
+                "",
+            ),
+        )
+        expect_failure(missing_targetless_marker, "targetless-unregister witness checker")
 
         wrong_inventory = tmpdir / "wrong_inventory"
         shutil.copytree(fixture, wrong_inventory, dirs_exist_ok=True)
@@ -344,7 +302,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(DOCS_ROOT_PATH))
 
         print("PHASE11_SHARED_DIRECT_READ_ALIGNMENT_SELF_TEST=pass")
-        print("PHASE11_SHARED_DIRECT_READ_ALIGNMENT_SELF_TEST_CASE_COUNT=6")
+        print("PHASE11_SHARED_DIRECT_READ_ALIGNMENT_SELF_TEST_CASE_COUNT=7")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
@@ -354,10 +312,15 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--write-sample-root", type=Path)
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
+
+    if args.write_sample_root is not None:
+        build_fixture(args.write_sample_root)
+        return 0
 
     try:
         run_check(args.root)
