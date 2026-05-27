@@ -61,6 +61,7 @@ The repo already had the shared Phase 4 build entrypoint, validator wiring, and 
   * the dedicated local perf-baseline survey route that keeps the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates machine-checked without treating it as shared CI perf approval
   * the shared review-checklist guardrail that keeps the same Phase 4 packet explicit when reviewers touch it
   * the dedicated reversible-delivery handoff note and pin checker that keep the shared exact-readback packet, the validator-first route inventory, and the dedicated local-only perf packet exact together as the smallest current reversible-delivery evidence set
+  * any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and rollback owner, and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners
   * the remaining roadmap-backed gaps that are still intentionally outside the shipped Phase 4 packet
 
 Without that record, Phase 4 validation exists in code but not yet as a product-facing ownership note.
@@ -86,7 +87,8 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
   * local-only benchmark commands and acceptable limits are approved today
   * the dedicated perf-baseline survey may keep the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates machine-checked
   * must stay outside the shared `phase4-test` entrypoint until any shared CI perf promotion is intentionally approved
-  * any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners
+  * any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and rollback owner, and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners
+  * promotion rollback owner: `Validation and Perf Team`
   * current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`
   * Validation and Perf Team owning that policy decision keeps the threshold posture bounded to current local evidence rather than shared CI approval.
   * gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
