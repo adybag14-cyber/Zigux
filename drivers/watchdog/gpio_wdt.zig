@@ -369,6 +369,35 @@ pub const RemoveHandoffSummary = struct {
     blocked_on_host_shutdown_execution: bool,
 };
 
+pub const HardwareValidationMatrixRow = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    always_running: bool,
+    nowayout: bool,
+    requested_line: ProbeLineRequest,
+    descriptor_flags: DescriptorRequestFlags,
+    start_mode: ProbeStartMode,
+    stop_disposition: StopDisposition,
+    reaches_registration_running: bool,
+    reaches_registration_line_state: bool,
+    reaches_registration_line_is_output: bool,
+    ping_uses_pulse: bool,
+    stop_allowed_by_watchdog_core: bool,
+    blocked_on_live_gpio_lookup: bool,
+    blocked_on_platform_registration: bool,
+    blocked_on_reboot_glue: bool,
+    blocked_on_host_shutdown_execution: bool,
+};
+
+pub const HardwareValidationMatrixSummary = struct {
+    anchor: []const u8,
+    rows: [4]HardwareValidationMatrixRow,
+    covers_toggle_and_level: bool,
+    covers_register_only_and_prestart: bool,
+    covers_stop_dispositions: bool,
+    covers_failure_and_teardown_blockers: bool,
+};
+
 pub const GpioWatchdogLab = struct {
     const Self = @This();
 
@@ -880,6 +909,45 @@ pub const GpioWatchdogLab = struct {
         };
     }
 
+    pub fn hardwareValidationMatrixSummary() !HardwareValidationMatrixSummary {
+        var toggle_register_only = try Self.init(.toggle, 60, false);
+        var level_nowayout = try Self.init(.level, 64, true);
+        var level_register_only = try Self.init(.level, 17, false);
+        var toggle_prestart = try Self.init(.toggle, 42, true);
+
+        const rows = .{
+            try buildHardwareValidationMatrixRow(&toggle_register_only, false),
+            try buildHardwareValidationMatrixRow(&level_nowayout, true),
+            try buildHardwareValidationMatrixRow(&level_register_only, false),
+            try buildHardwareValidationMatrixRow(&toggle_prestart, false),
+        };
+
+        return .{
+            .anchor = descriptor().anchor,
+            .rows = rows,
+            .covers_toggle_and_level = rows[0].hw_algo == .toggle and
+                rows[1].hw_algo == .level and
+                rows[2].hw_algo == .level and
+                rows[3].hw_algo == .toggle,
+            .covers_register_only_and_prestart = rows[0].start_mode == .register_only and
+                rows[1].start_mode == .start_before_register and
+                rows[2].start_mode == .register_only and
+                rows[3].start_mode == .start_before_register,
+            .covers_stop_dispositions = rows[0].stop_disposition == .stopped and
+                rows[1].stop_disposition == .blocked_by_nowayout and
+                rows[2].stop_disposition == .stopped and
+                rows[3].stop_disposition == .kept_running,
+            .covers_failure_and_teardown_blockers = rows[0].blocked_on_reboot_glue and
+                rows[1].blocked_on_reboot_glue and
+                rows[2].blocked_on_reboot_glue and
+                rows[3].blocked_on_reboot_glue and
+                rows[0].blocked_on_host_shutdown_execution and
+                rows[1].blocked_on_host_shutdown_execution and
+                rows[2].blocked_on_host_shutdown_execution and
+                rows[3].blocked_on_host_shutdown_execution,
+        };
+    }
+
     fn disable(self: *Self) void {
         self.disable_count += 1;
         self.line_state = true;
@@ -906,6 +974,38 @@ pub const GpioWatchdogLab = struct {
         };
     }
 };
+
+fn buildHardwareValidationMatrixRow(
+    lab: *GpioWatchdogLab,
+    nowayout: bool,
+) !HardwareValidationMatrixRow {
+    const descriptor = lab.descriptorRequestSummary();
+    const handoff = lab.registrationHandoffSummary(nowayout);
+    const register_call = lab.registerDeviceCallSummary(nowayout);
+    const reboot_glue = lab.rebootGlueCheckpointSummary();
+    const first_ping = try lab.start();
+    const stop = lab.requestStop(nowayout);
+
+    return .{
+        .anchor = GpioWatchdogLab.descriptor().anchor,
+        .hw_algo = lab.hw_algo,
+        .always_running = lab.always_running,
+        .nowayout = nowayout,
+        .requested_line = descriptor.requested_line,
+        .descriptor_flags = descriptor.descriptor_flags,
+        .start_mode = handoff.start_mode,
+        .stop_disposition = stop.disposition,
+        .reaches_registration_running = handoff.reaches_registration_running,
+        .reaches_registration_line_state = handoff.reaches_registration_line_state,
+        .reaches_registration_line_is_output = handoff.reaches_registration_line_is_output,
+        .ping_uses_pulse = first_ping.last_ping_was_pulse,
+        .stop_allowed_by_watchdog_core = stop.stop_allowed_by_watchdog_core,
+        .blocked_on_live_gpio_lookup = descriptor.blocked_on_live_gpio_lookup,
+        .blocked_on_platform_registration = descriptor.blocked_on_platform_registration,
+        .blocked_on_reboot_glue = register_call.blocked_on_reboot_glue,
+        .blocked_on_host_shutdown_execution = reboot_glue.blocked_on_host_shutdown_execution,
+    };
+}
 
 fn validateHeartbeatMargin(hw_margin_ms: u32) !void {
     if (hw_margin_ms < min_hw_margin_ms) return error.HeartbeatMarginTooSmall;
@@ -1049,4 +1149,19 @@ test "remove handoff summary stays bounded before live unregister behavior" {
     try std.testing.expect(guarded_remove_handoff.request_stop_reviewable);
     try std.testing.expect(guarded_remove_handoff.register_device_failure_reviewable);
     try std.testing.expect(guarded_remove_handoff.reboot_glue_checkpoint_reviewable);
+}
+
+test "hardware validation matrix covers the phase11 simple-driver scenarios" {
+    const matrix = try GpioWatchdogLab.hardwareValidationMatrixSummary();
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", matrix.anchor);
+    try std.testing.expect(matrix.covers_toggle_and_level);
+    try std.testing.expect(matrix.covers_register_only_and_prestart);
+    try std.testing.expect(matrix.covers_stop_dispositions);
+    try std.testing.expect(matrix.covers_failure_and_teardown_blockers);
+
+    try std.testing.expectEqual(HardwareAlgorithm.toggle, matrix.rows[0].hw_algo);
+    try std.testing.expectEqual(HardwareAlgorithm.level, matrix.rows[1].hw_algo);
+    try std.testing.expectEqual(HardwareAlgorithm.level, matrix.rows[2].hw_algo);
+    try std.testing.expectEqual(HardwareAlgorithm.toggle, matrix.rows[3].hw_algo);
 }
