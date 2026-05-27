@@ -1,0 +1,87 @@
+{
+  "word_bits": 64,
+  "safe_inline_limit": 9223372036854773759,
+  "safe_inline_limit_raw_hex": "0xffffffffffffefff",
+  "cases": [
+    {
+      "name": "null",
+      "kind": "empty",
+      "raw_hex": "0x0",
+      "raw_decimal": "0",
+      "is_tagged_internal": false,
+      "decoded_internal_value": null,
+      "decoded_error": null,
+      "pointer_raw": null
+    },
+    {
+      "name": "pointer_like",
+      "kind": "pointer_like",
+      "raw_hex": "0x40",
+      "raw_decimal": "64",
+      "is_tagged_internal": false,
+      "decoded_internal_value": null,
+      "decoded_error": null,
+      "pointer_raw": 64
+    },
+    {
+      "name": "internal_zero",
+      "kind": "internal_value",
+      "raw_hex": "0x1",
+      "raw_decimal": "1",
+      "is_tagged_internal": true,
+      "decoded_internal_value": 0,
+      "decoded_error": null,
+      "pointer_raw": null
+    },
+    {
+      "name": "internal_small",
+      "kind": "internal_value",
+      "raw_hex": "0x3b",
+      "raw_decimal": "59",
+      "is_tagged_internal": true,
+      "decoded_internal_value": 29,
+      "decoded_error": null,
+      "pointer_raw": null
+    },
+    {
+      "name": "internal_limit",
+      "kind": "internal_value",
+      "raw_hex": "0xffffffffffffefff",
+      "raw_decimal": "18446744073709547519",
+      "is_tagged_internal": true,
+      "decoded_internal_value": 9223372036854773759,
+      "decoded_error": null,
+      "pointer_raw": null
+    },
+    {
+      "name": "gap_before_err_floor",
+      "kind": "pointer_like",
+      "raw_hex": "0xfffffffffffff000",
+      "raw_decimal": "18446744073709547520",
+      "is_tagged_internal": false,
+      "decoded_internal_value": null,
+      "decoded_error": null,
+      "pointer_raw": 18446744073709547520
+    },
+    {
+      "name": "err_enomem",
+      "kind": "err_ptr",
+      "raw_hex": "0xfffffffffffffff4",
+      "raw_decimal": "18446744073709551604",
+      "is_tagged_internal": true,
+      "decoded_internal_value": null,
+      "decoded_error": -12,
+      "pointer_raw": null
+    },
+    {
+      "name": "err_max",
+      "kind": "err_ptr",
+      "raw_hex": "0xfffffffffffff001",
+      "raw_decimal": "18446744073709547521",
+      "is_tagged_internal": true,
+      "decoded_internal_value": null,
+      "decoded_error": -4095,
+      "pointer_raw": null
+    }
+  ]
+}
