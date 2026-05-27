@@ -70,3 +70,40 @@ test "phase10 virtio ring callback-enable wrapper fences broken queues" {
 
     try std.testing.expectError(error.QueueBroken, summarizeCallbackEnable(&ring, 5));
 }
+
+test "phase10 virtio ring callback-enable wrapper keeps recovery debt explicit after a broken queue is cleared" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(6, 8, .packed_ring, true, true);
+
+    try ring.publishDescriptorChain(6);
+    try ring.publishDescriptorChain(6);
+    _ = try ring.prepareKick(6);
+    try ring.recordUsedChains(6, 1);
+
+    _ = try ring.markBroken(6);
+    try std.testing.expectError(error.QueueBroken, summarizeCallbackEnable(&ring, 6));
+
+    const cleared = try ring.clearBroken(6);
+    try std.testing.expect(!cleared.broken);
+    try std.testing.expectEqual(@as(u16, 1), cleared.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), cleared.pending_used_chain_count);
+
+    var summary = try summarizeCallbackEnable(&ring, 6);
+    try std.testing.expect(summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 1), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), summary.pending_used_chain_count);
+    try std.testing.expect(callbackShouldPoll(summary));
+    try std.testing.expect(!callbackObservedAllUsedChains(summary));
+
+    const poll = try ring.pollUsedBuffers(6);
+    try std.testing.expectEqual(@as(u16, 1), poll.newly_used_chain_count);
+
+    summary = try summarizeCallbackEnable(&ring, 6);
+    try std.testing.expect(summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 1), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), summary.pending_used_chain_count);
+    try std.testing.expect(!callbackShouldPoll(summary));
+    try std.testing.expect(callbackObservedAllUsedChains(summary));
+}
