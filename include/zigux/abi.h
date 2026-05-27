@@ -77,12 +77,12 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view 
 typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view
     zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view;
 
-struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary {
+struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_summary {
     uint32_t applied;
     uint32_t skipped;
     uint32_t delivered;
 };
-typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary
+typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_summary
     zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary;
 
 struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view {
@@ -341,15 +341,25 @@ static inline int zigux_abi_version_is_current(uint16_t abi_version)
     return abi_version == (uint16_t)ZIGUX_ABI_VERSION;
 }
 
+static inline int zigux_header_is_compatible_size(uint32_t size)
+{
+    return size >= (uint32_t)sizeof(zigux_boundary_header);
+}
+
+static inline int zigux_header_is_canonical_size(uint32_t size)
+{
+    return size == (uint32_t)sizeof(zigux_boundary_header);
+}
+
 static inline int zigux_header_is_canonical(zigux_boundary_header header)
 {
-    return header.size == (uint32_t)sizeof(zigux_boundary_header) &&
+    return zigux_header_is_canonical_size(header.size) &&
         zigux_abi_version_is_current(header.abi_version);
 }
 
 static inline int zigux_header_is_compatible(zigux_boundary_header header)
 {
-    return header.size >= (uint32_t)sizeof(zigux_boundary_header) &&
+    return zigux_header_is_compatible_size(header.size) &&
         zigux_abi_version_is_current(header.abi_version);
 }
 
