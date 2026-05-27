@@ -281,6 +281,8 @@ def validate_manifest_fields(root: Path) -> list[str]:
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [path for path in REQUIRED_MARKERS if not (root / path).exists()]
+    if not (root / MANIFEST_PATH).exists():
+        missing_files.append(MANIFEST_PATH)
     if missing_files:
         return missing_files, []
 
@@ -384,19 +386,26 @@ def run_self_test() -> int:
                 if not problems:
                     raise SystemExit(f"phase10-ring-packet:{label}-not-detected")
 
-        forbidden_case_path = "Documentation/zigux/phase10-virtio-ring-slice.md"
-        forbidden_marker = FORBIDDEN_MARKERS[forbidden_case_path][0]
-        with tempfile.TemporaryDirectory(prefix="zigux_phase10_ring_packet_forbidden_") as tmp_case:
-            case_root = Path(tmp_case)
-            write_fixture_tree(case_root)
-            current = read_text(case_root, forbidden_case_path)
-            write_file(case_root, forbidden_case_path, current + forbidden_marker + "\n")
-            missing, problems = validate(case_root)
-            if not problems:
-                raise SystemExit("phase10-ring-packet:forbidden-marker-not-detected")
+        forbidden_case_count = 0
+        for forbidden_case_path, forbidden_markers in FORBIDDEN_MARKERS.items():
+            for forbidden_index, forbidden_marker in enumerate(forbidden_markers, start=1):
+                forbidden_case_count += 1
+                with tempfile.TemporaryDirectory(
+                    prefix=f"zigux_phase10_ring_packet_forbidden_{forbidden_case_count}_"
+                ) as tmp_case:
+                    case_root = Path(tmp_case)
+                    write_fixture_tree(case_root)
+                    current = read_text(case_root, forbidden_case_path)
+                    write_file(case_root, forbidden_case_path, current + forbidden_marker + "\n")
+                    missing, problems = validate(case_root)
+                    if not problems:
+                        raise SystemExit(
+                            "phase10-ring-packet:forbidden-marker-not-detected:"
+                            f"{forbidden_case_path}:{forbidden_index}"
+                        )
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
