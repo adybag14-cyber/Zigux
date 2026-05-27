@@ -2,12 +2,15 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
+from contextlib import redirect_stdout
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -193,6 +196,35 @@ def is_zig_check(spec: CheckSpec) -> bool:
     return spec.command[0] == "zig"
 
 
+def declared_command(spec: CheckSpec) -> str:
+    return shlex.join(spec.command)
+
+
+def partition_checks(*, skip_zig_builds: bool) -> tuple[list[CheckSpec], list[CheckSpec]]:
+    executed: list[CheckSpec] = []
+    skipped: list[CheckSpec] = []
+    for spec in CHECKS:
+        if skip_zig_builds and is_zig_check(spec):
+            skipped.append(spec)
+        else:
+            executed.append(spec)
+    return executed, skipped
+
+
+def emit_success_report(*, skip_zig_builds: bool) -> None:
+    executed, skipped = partition_checks(skip_zig_builds=skip_zig_builds)
+    print("PHASE11_VALIDATION=pass")
+    print(f"PHASE11_VALIDATION_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
+    print(f"PHASE11_VALIDATION_CHECK_COUNT={len(CHECKS)}")
+    print(f"PHASE11_VALIDATION_EXECUTED_CHECK_COUNT={len(executed)}")
+    print(f"PHASE11_VALIDATION_SKIPPED_CHECK_COUNT={len(skipped)}")
+    print("PHASE11_VALIDATION_EXACT_CHECKS_START")
+    for spec in CHECKS:
+        status = "skipped" if spec in skipped else "executed"
+        print(f"{status}:{spec.name}:{declared_command(spec)}")
+    print("PHASE11_VALIDATION_EXACT_CHECKS_END")
+
+
 def read_manifest(path: Path) -> dict[str, object] | None:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -232,9 +264,8 @@ def collect_issues(root: Path, *, skip_zig_builds: bool = False) -> list[str]:
     if issues:
         return issues
 
-    for spec in CHECKS:
-        if skip_zig_builds and is_zig_check(spec):
-            continue
+    executed, _skipped = partition_checks(skip_zig_builds=skip_zig_builds)
+    for spec in executed:
         completed = run_command(command_for(spec, root), root)
         if completed.returncode != 0:
             issues.append(f"live_failed:{spec.name}:exit={completed.returncode}")
@@ -256,9 +287,7 @@ def run_check(root: Path, *, skip_zig_builds: bool = False) -> int:
             print(issue)
         print("PHASE11_VALIDATION_ISSUES_END")
         return 1
-    print("PHASE11_VALIDATION=pass")
-    print(f"PHASE11_VALIDATION_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
-    print(f"PHASE11_VALIDATION_CHECK_COUNT={len(CHECKS)}")
+    emit_success_report(skip_zig_builds=skip_zig_builds)
     return 0
 
 
@@ -271,19 +300,22 @@ def build_stub_script(path: Path, *, self_test_exit_code: int = 0, live_exit_cod
     live_exit_literal = self_test_exit_code if live_exit_code is None else live_exit_code
     write_text(
         path,
-        "\n".join([
-            "#!/usr/bin/env python3",
-            "from __future__ import annotations",
-            "import argparse",
-            "parser = argparse.ArgumentParser()",
-            "parser.add_argument('--self-test', action='store_true')",
-            "parser.add_argument('--root')",
-            "parser.add_argument('--repo-root')",
-            "args = parser.parse_args()",
-            f"SELF_TEST_EXIT_CODE = {self_test_exit_code}",
-            f"LIVE_EXIT_CODE = {live_exit_literal}",
-            "raise SystemExit(SELF_TEST_EXIT_CODE if args.self_test else LIVE_EXIT_CODE)",
-        ]) + "\n",
+        "\n".join(
+            [
+                "#!/usr/bin/env python3",
+                "from __future__ import annotations",
+                "import argparse",
+                "parser = argparse.ArgumentParser()",
+                "parser.add_argument('--self-test', action='store_true')",
+                "parser.add_argument('--root')",
+                "parser.add_argument('--repo-root')",
+                "args = parser.parse_args()",
+                f"SELF_TEST_EXIT_CODE = {self_test_exit_code}",
+                f"LIVE_EXIT_CODE = {live_exit_literal}",
+                "raise SystemExit(SELF_TEST_EXIT_CODE if args.self_test else LIVE_EXIT_CODE)",
+            ]
+        )
+        + "\n",
     )
     os.chmod(path, 0o755)
 
@@ -292,23 +324,26 @@ def build_fake_zig(path: Path, *, fail_build_file: str | None = None) -> None:
     fail_literal = repr(fail_build_file) if fail_build_file is not None else "None"
     write_text(
         path,
-        "\n".join([
-            "#!/usr/bin/env python3",
-            "from __future__ import annotations",
-            "import sys",
-            f"FAIL_BUILD_FILE = {fail_literal}",
-            "args = sys.argv[1:]",
-            "if args[:2] != ['build', 'test']:",
-            "    raise SystemExit(2)",
-            "try:",
-            "    build_file = args[args.index('--build-file') + 1]",
-            "except (ValueError, IndexError):",
-            "    raise SystemExit(3)",
-            "if FAIL_BUILD_FILE is not None and build_file == FAIL_BUILD_FILE:",
-            "    print(f'fake zig failed for {build_file}')",
-            "    raise SystemExit(1)",
-            "raise SystemExit(0)",
-        ]) + "\n",
+        "\n".join(
+            [
+                "#!/usr/bin/env python3",
+                "from __future__ import annotations",
+                "import sys",
+                f"FAIL_BUILD_FILE = {fail_literal}",
+                "args = sys.argv[1:]",
+                "if args[:2] != ['build', 'test']:",
+                "    raise SystemExit(2)",
+                "try:",
+                "    build_file = args[args.index('--build-file') + 1]",
+                "except (ValueError, IndexError):",
+                "    raise SystemExit(3)",
+                "if FAIL_BUILD_FILE is not None and build_file == FAIL_BUILD_FILE:",
+                "    print(f'fake zig failed for {build_file}')",
+                "    raise SystemExit(1)",
+                "raise SystemExit(0)",
+            ]
+        )
+        + "\n",
     )
     os.chmod(path, 0o755)
 
@@ -325,13 +360,33 @@ def build_sample_repo(root: Path) -> None:
                         "phase": "Phase 11",
                         "gaps": [{"id": f"sample-{Path(rel).stem}"}],
                     }
-                ) + "\n",
+                )
+                + "\n",
             )
             continue
         if rel.startswith("scripts/zigux/") and rel.endswith(".py"):
             build_stub_script(path)
             continue
         write_text(path, f"sample:{rel}\n")
+
+
+def capture_success_output(root: Path, *, skip_zig_builds: bool = False) -> list[str]:
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):
+        result = run_check(root, skip_zig_builds=skip_zig_builds)
+    if result != 0:
+        raise SystemExit("phase11-validate-self-test:expected_success_output")
+    return [line for line in buffer.getvalue().splitlines() if line]
+
+
+def require_output_line(lines: list[str], expected: str) -> None:
+    if expected not in lines:
+        actual = ",".join(lines) if lines else "none"
+        raise SystemExit(f"phase11-validate-self-test:missing_output:{expected}:actual={actual}")
+
+
+def require_exact_check_output(lines: list[str], *, status: str, spec: CheckSpec) -> None:
+    require_output_line(lines, f"{status}:{spec.name}:{declared_command(spec)}")
 
 
 def run_self_test() -> int:
@@ -360,6 +415,27 @@ def run_self_test() -> int:
         if baseline_issues:
             raise SystemExit("phase11-validate-self-test:baseline_failed:" + ",".join(baseline_issues))
         case_count = 1
+
+        baseline_output = capture_success_output(root)
+        zig_check_count = sum(1 for spec in CHECKS if is_zig_check(spec))
+        require_output_line(baseline_output, "PHASE11_VALIDATION=pass")
+        require_output_line(baseline_output, f"PHASE11_VALIDATION_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
+        require_output_line(baseline_output, f"PHASE11_VALIDATION_CHECK_COUNT={len(CHECKS)}")
+        require_output_line(baseline_output, f"PHASE11_VALIDATION_EXECUTED_CHECK_COUNT={len(CHECKS)}")
+        require_output_line(baseline_output, "PHASE11_VALIDATION_SKIPPED_CHECK_COUNT=0")
+        require_output_line(baseline_output, "PHASE11_VALIDATION_EXACT_CHECKS_START")
+        require_output_line(baseline_output, "PHASE11_VALIDATION_EXACT_CHECKS_END")
+        require_exact_check_output(baseline_output, status="executed", spec=CHECKS[0])
+        require_exact_check_output(baseline_output, status="executed", spec=CHECKS[-1])
+        case_count += 1
+
+        skip_output = capture_success_output(root, skip_zig_builds=True)
+        require_output_line(skip_output, "PHASE11_VALIDATION=pass")
+        require_output_line(skip_output, f"PHASE11_VALIDATION_EXECUTED_CHECK_COUNT={len(CHECKS) - zig_check_count}")
+        require_output_line(skip_output, f"PHASE11_VALIDATION_SKIPPED_CHECK_COUNT={zig_check_count}")
+        require_exact_check_output(skip_output, status="executed", spec=CHECKS[0])
+        require_exact_check_output(skip_output, status="skipped", spec=CHECKS[-1])
+        case_count += 1
 
         def expect_issue(fragment: str) -> None:
             issues = collect_issues(root)
@@ -406,6 +482,8 @@ def run_self_test() -> int:
         reset_fixture(fail_build_file="zigux/tests/phase11_dw_wdt_build.zig")
         if collect_issues(root, skip_zig_builds=True):
             raise SystemExit("phase11-validate-self-test:skip_zig_builds_not_honored")
+        skip_output = capture_success_output(root, skip_zig_builds=True)
+        require_exact_check_output(skip_output, status="skipped", spec=CHECKS[-1])
         case_count += 1
 
         os.environ["PATH"] = original_path
