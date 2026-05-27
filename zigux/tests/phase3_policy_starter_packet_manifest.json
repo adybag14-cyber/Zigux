@@ -35,7 +35,6 @@
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "make -C zigux phase3-policy-starter-packet-test",
     "zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
-    "make -C zigux phase3-policy-unsafe-test",
     "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-dump.py",
     "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
@@ -49,5 +48,5 @@
     "mmio, low-level-wrapper, and shared runtime-shim widening remain unfinished relative to the Phase 3 roadmap",
     "this packet proves bounded policy decoding, dedicated policy-unsafe replay, survey gating, and dump replay only, not permanent-boundary completion"
   ],
-  "next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, dedicated policy-unsafe replay routing, dedicated policy-unsafe survey gating, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families"
+  "next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, dedicated policy-unsafe replay evidence, dedicated policy-unsafe survey gating, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families"
 }
