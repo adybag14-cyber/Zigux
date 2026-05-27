@@ -15,6 +15,7 @@ REQUIRED_MARKERS = [
     "This note restores the roadmap-to-repo owner map for the active Phase 13 shared-helper packet on current `master`.",
     "Phase 13 in the Zigux roadmap is the shared-subsystem-helper tranche bounded to four Linux anchors:",
     "- stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
+    "- stable roadmap-traceability guard: `python3 scripts/zigux/check-phase13-roadmap-traceability.py`",
     "Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface",
     "`Documentation/zigux/phase13-devres-iomap-planner.md`",
     "`scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py`",
@@ -77,6 +78,22 @@ def run_self_test() -> int:
         source_text = source_note.read_text(encoding="utf-8")
         write_text(tempdir, ROADMAP_NOTE, source_text)
         assert collect_issues(tempdir) == []
+        checks_run += 1
+
+        write_text(
+            tempdir,
+            ROADMAP_NOTE,
+            source_text.replace(
+                "- stable roadmap-traceability guard: `python3 scripts/zigux/check-phase13-roadmap-traceability.py`\n",
+                "",
+                1,
+            ),
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:- stable roadmap-traceability guard: `python3 scripts/zigux/check-phase13-roadmap-traceability.py`"
+            in issues
+        )
         checks_run += 1
 
         note_path = tempdir / ROADMAP_NOTE
