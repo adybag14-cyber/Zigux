@@ -26,6 +26,7 @@ Current shared Phase 11 tooling evidence on `master` now centers on the returned
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
+- `Documentation/zigux/phase11-watchdog-lifecycle-parity-gap.md`
 - `Documentation/zigux/phase11-codegen-manifest-tooling-gap-survey.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-validate-manifest-roster.py`
@@ -35,9 +36,12 @@ Current shared Phase 11 tooling evidence on `master` now centers on the returned
 - `scripts/zigux/check-phase11-shared-replay-contract-counts.py`
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
+- `scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
+- `scripts/zigux/check-phase11-hvc-current-head-manifest.py`
 - `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`
 - `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
 - `scripts/zigux/check-phase11-shared-tooling-manifest.py`
@@ -48,8 +52,9 @@ Current shared Phase 11 tooling evidence on `master` now centers on the returned
 - `zigux/Makefile`
 - `make -C zigux phase11-validate`
 
-That shared packet is stronger than the older replay-only story: `scripts/zigux/validate-phase11.py` exists, `make -C zigux phase11-validate` is the live shared route, and the new aggregate manifest records the shared checker stack and proof fan-out without pretending it replaces the narrower HVC continuity inventory.
+That shared packet is stronger than the older replay-only story: `scripts/zigux/validate-phase11.py` exists, `make -C zigux phase11-validate` is the live shared route, and the aggregate manifest now records the shared checker stack and proof fan-out without pretending it replaces the narrower HVC continuity inventory.
 `scripts/zigux/check-phase11-shared-tooling-manifest.py` is already wired into `scripts/zigux/validate-phase11.py`, and `zigux/tests/fixtures/phase11_validate_checks.json` records both the shared tooling-manifest self-test and live validator entries.
+The aggregate surface now also carries the shared watchdog lifecycle note plus the cleanup-prerequisite and current-head manifest guards that the validator route already ships.
 
 ## Live Gap Versus The Roadmap
 
