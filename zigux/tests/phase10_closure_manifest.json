@@ -39,6 +39,8 @@
       "evidence": [
         "drivers/virtio/virtio_ring.zig",
         "drivers/virtio/virtio_ring_publish_readiness.zig",
+        "drivers/virtio/virtio_ring_registration_summary.zig",
+        "drivers/virtio/virtio_ring_used_buffer_poll.zig",
         "zigux/tests/phase10_virtio_ring.zig",
         "zigux/tests/phase10_virtio_ring_manifest.json",
         "Documentation/zigux/phase10-virtio-ring-survey.md"
@@ -67,6 +69,8 @@
         "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
         "zigux/tests/phase10_virtio_core_survey.zig",
         "zigux/tests/phase10_virtio_ring.zig",
+        "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
+        "zigux/tests/phase10_virtio_ring_registration_replay.zig",
         "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
         "zigux/tests/phase10_virtio_ring_reset_readiness.zig",
         "zigux/tests/phase10_virtio_ring_queue_build.zig",
@@ -74,6 +78,7 @@
         "drivers/virtio/virtio_ring_verify.zig",
         "drivers/virtio/virtio_ring_publish_readiness.zig",
         "drivers/virtio/virtio_ring_registration_summary.zig",
+        "drivers/virtio/virtio_ring_used_buffer_poll.zig",
         "drivers/virtio/virtio_input_queue_callback_preflight.zig",
         "drivers/virtio/virtio_input_registration_preflight.zig",
         "drivers/virtio/virtio_input_teardown_preflight.zig",
