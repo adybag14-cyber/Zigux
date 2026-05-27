@@ -62,6 +62,8 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     defer allocator.free(helper_companion);
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
     defer allocator.free(build_file);
+    const shared_tests_build = try readRepoFile(allocator, "zigux/tests/build.zig");
+    defer allocator.free(shared_tests_build);
     const makefile = try readRepoFile(allocator, "zigux/Makefile");
     defer allocator.free(makefile);
     const workflow = try readRepoFile(allocator, ".github/workflows/zigux-bootstrap.yml");
@@ -132,6 +134,13 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     try expectContains(helper_companion, "phase 7 rbtree companion replays plain erase-init ownership boundaries");
     try expectContains(helper_companion, "phase 7 rbtree companion replays reverse traversal aliases and detached null stops");
     try expectContains(build_file, "../../lib/rbtree.zig");
+    try expectContains(build_file, "phase7-rbtree-test");
+    try expectContains(build_file, "phase7-rbtree-survey");
+
+    try expectContains(shared_tests_build, "phase7-argv-split-survey");
+    try expectNotContains(shared_tests_build, "../../lib/rbtree.zig");
+    try expectNotContains(shared_tests_build, "phase7-rbtree-test");
+    try expectNotContains(shared_tests_build, "phase7-rbtree-survey");
 
     try expectContains(makefile, "phase7-validate:");
     try expectContains(makefile, "phase7-rbtree-test:");
