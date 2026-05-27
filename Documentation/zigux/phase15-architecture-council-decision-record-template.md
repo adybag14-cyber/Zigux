@@ -71,7 +71,8 @@ This is a review packet template, not approval by itself.
 ## Usage Rules
 
 - Prefer the dated master readback form for parked governance and stay-in-C review packets.
-- Only record an exact head when the linked review needs it to anchor a named published decision, and explain that exception in the exact-head provenance note.
+- Only record an exact head when the linked review needs it to anchor a named published decision, and explain that exception in the exact-head provenance exception note.
+- Any exact-head provenance exception must keep the lane owner, rollback owner, and required approver set explicit and explain why dated master readback is insufficient for the named published decision.
 - Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other study-only anchor into a freeze-in-C status review unless the freeze map and supporting governance packet have been explicitly updated first.
 - If any required field above cannot be stated honestly, keep the request blocked and leave the C implementation as the product source of truth.
 - A stay-in-C closeout must keep the retained `freeze_in_c` decision, the current blocker, the required approver set, the governance lane sequencing link or explicit scope note, the automatic return-to-blocked trigger, `retired_from_active_discussion` state, reopen triggers, trigger-specific evidence refresh, and the evidence archive path that will be refreshed before any later reopen request explicit.
