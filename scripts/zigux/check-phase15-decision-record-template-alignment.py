@@ -11,6 +11,7 @@ DECISION_TEMPLATE_PATH = Path(
 )
 REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 FREEZE_MAP_PATH = Path("Documentation/zigux/freeze-map.md")
+SHARED_SUMMARY_GAP_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 
 REQUIRED_REVIEW_FIELDS = (
     "exact Linux anchor path",
@@ -33,6 +34,8 @@ REQUIRED_REVIEW_FIELDS = (
     "trigger-specific evidence refresh",
     "parity scorecard link or blocker record",
     "indefinite-C policy link or explicit non-applicability note",
+    "governance lane sequencing link or explicit scope note",
+    "study-only anchor accounting link or explicit freeze-map-anchor confirmation",
     "explicit non-goals",
     "written rationale",
 )
@@ -41,6 +44,7 @@ STAY_IN_C_CLOSEOUT_FIELDS = (
     "the retained `freeze_in_c` decision",
     "the current blocker",
     "the required approver set",
+    "governance lane sequencing link or explicit scope note",
     "`retired_from_active_discussion` state",
     "automatic return-to-blocked trigger",
     "the reopen triggers",
@@ -55,10 +59,16 @@ REOPEN_EVIDENCE_FIELDS = (
     "the narrower seam or policy change that makes the new review safe to consider",
 )
 
+REVIEW_OUTCOME_FIELDS = (
+    "closeout result",
+    "follow-up owner",
+    "next bounded step",
+)
+
 TEMPLATE_REQUIRED_MARKERS = (
     "`DECISION_RECORD_ID=<replace-with-stable-id>`",
     "`PHASE=Phase 15`",
-    "`LANE_KEY=P15-L08`",
+    "`LANE_KEY=<replace-with-lane-key>`",
     "`PHASE15_PROVENANCE_MODE=dated_master_readback`",
     "`SURVEYED_COMMIT=current-master-readback-YYYY-MM-DD`",
     "exact-head provenance exception note:",
@@ -67,6 +77,8 @@ TEMPLATE_REQUIRED_MARKERS = (
     "Only record an exact head when the linked review needs it to anchor a named published decision",
     "Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other study-only anchor into a freeze-in-C status review unless the freeze map and supporting governance packet have been explicitly updated first.",
     "If any required field above cannot be stated honestly, keep the request blocked and leave the C implementation as the product source of truth.",
+    "A stay-in-C closeout must keep the retained `freeze_in_c` decision, the current blocker, the required approver set, the governance lane sequencing link or explicit scope note, the automatic return-to-blocked trigger, `retired_from_active_discussion` state, reopen triggers, trigger-specific evidence refresh, and the evidence archive path that will be refreshed before any later reopen request explicit.",
+    "A reopen request must cite the exact reopen trigger being exercised, refreshed evidence by path, the blocker disposition being challenged, and the narrower seam or policy change that makes the new review safe to consider.",
 )
 
 FREEZE_MAP_GOVERNANCE_MARKERS = (
@@ -77,6 +89,8 @@ FREEZE_MAP_GOVERNANCE_MARKERS = (
     "`retired_from_active_discussion` state",
     "parity scorecard link or blocker record",
     "indefinite-C policy link or non-applicability note",
+    "governance lane sequencing link or explicit scope note",
+    "study-only anchor accounting link or explicit freeze-map-anchor confirmation",
 )
 
 CHECKLIST_ENTRY_PROMPT = (
@@ -88,6 +102,14 @@ CHECKLIST_BOUNDARY_MARKERS = (
     "owners of the exact Architecture Council field inventory",
     "stay-in-C closeout record",
     "reopen-evidence details",
+)
+
+SHARED_SUMMARY_GAP_MARKERS = (
+    "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+    "`Documentation/zigux/phase15-architecture-council-review-process.md`",
+    "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
+    "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
+    "the Architecture Council review-process owner note plus decision-record template",
 )
 
 
@@ -107,6 +129,7 @@ def collect_failures(root: Path) -> list[str]:
     decision_template = _read_text(root, DECISION_TEMPLATE_PATH)
     review_checklist = _read_text(root, REVIEW_CHECKLIST_PATH)
     freeze_map = _read_text(root, FREEZE_MAP_PATH)
+    shared_summary_gap = _read_text(root, SHARED_SUMMARY_GAP_PATH)
 
     failures: list[str] = []
 
@@ -136,6 +159,10 @@ def collect_failures(root: Path) -> list[str]:
                 f"decision-record template is missing reopen-evidence field: {field}"
             )
 
+    for field in REVIEW_OUTCOME_FIELDS:
+        if field not in decision_template:
+            failures.append(f"decision-record template is missing review outcome field: {field}")
+
     for marker in FREEZE_MAP_GOVERNANCE_MARKERS:
         if marker not in freeze_map:
             failures.append(f"freeze map is missing governance marker: {marker}")
@@ -151,6 +178,10 @@ def collect_failures(root: Path) -> list[str]:
                 failures.append(
                     f"review checklist entry prompt is missing boundary marker: {marker}"
                 )
+
+    for marker in SHARED_SUMMARY_GAP_MARKERS:
+        if marker not in shared_summary_gap:
+            failures.append(f"shared-summary gap note is missing marker: {marker}")
 
     return failures
 
@@ -187,6 +218,8 @@ def _sample_files(root: Path) -> None:
 - trigger-specific evidence refresh
 - parity scorecard link or blocker record
 - indefinite-C policy link or explicit non-applicability note
+- governance lane sequencing link or explicit scope note
+- study-only anchor accounting link or explicit freeze-map-anchor confirmation
 - explicit non-goals
 - written rationale
 
@@ -195,6 +228,7 @@ def _sample_files(root: Path) -> None:
 - the retained `freeze_in_c` decision
 - the current blocker
 - the required approver set
+- governance lane sequencing link or explicit scope note
 - `retired_from_active_discussion` state
 - the automatic return-to-blocked trigger
 - the reopen triggers
@@ -215,7 +249,7 @@ def _sample_files(root: Path) -> None:
 
 - `DECISION_RECORD_ID=<replace-with-stable-id>`
 - `PHASE=Phase 15`
-- `LANE_KEY=P15-L08`
+- `LANE_KEY=<replace-with-lane-key>`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - `SURVEYED_COMMIT=current-master-readback-YYYY-MM-DD`
 - exact-head provenance exception note:
@@ -246,6 +280,7 @@ def _sample_files(root: Path) -> None:
 - the retained `freeze_in_c` decision:
 - the current blocker:
 - the required approver set:
+- governance lane sequencing link or explicit scope note:
 - `retired_from_active_discussion` state:
 - automatic return-to-blocked trigger:
 - the reopen triggers:
@@ -261,10 +296,18 @@ def _sample_files(root: Path) -> None:
 
 ## Supporting Context
 
+- governance lane sequencing link or explicit scope note:
+- study-only anchor accounting link or explicit freeze-map-anchor confirmation:
 - parity scorecard link or blocker record:
 - indefinite-C policy link or explicit non-applicability note:
 - explicit non-goals:
 - written rationale:
+
+## Review Outcome
+
+- closeout result:
+- follow-up owner:
+- next bounded step:
 
 ## Usage Rules
 
@@ -272,6 +315,8 @@ def _sample_files(root: Path) -> None:
 - Only record an exact head when the linked review needs it to anchor a named published decision, and explain that exception in the exact-head provenance note.
 - Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other study-only anchor into a freeze-in-C status review unless the freeze map and supporting governance packet have been explicitly updated first.
 - If any required field above cannot be stated honestly, keep the request blocked and leave the C implementation as the product source of truth.
+- A stay-in-C closeout must keep the retained `freeze_in_c` decision, the current blocker, the required approver set, the governance lane sequencing link or explicit scope note, the automatic return-to-blocked trigger, `retired_from_active_discussion` state, reopen triggers, trigger-specific evidence refresh, and the evidence archive path that will be refreshed before any later reopen request explicit.
+- A reopen request must cite the exact reopen trigger being exercised, refreshed evidence by path, the blocker disposition being challenged, and the narrower seam or policy change that makes the new review safe to consider.
 """,
     )
     _write(
@@ -285,7 +330,18 @@ def _sample_files(root: Path) -> None:
         root / FREEZE_MAP_PATH,
         """# Zigux Freeze Map
 
-- freeze-map status-change requests must route through `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, and keep the exact Linux anchor path, current roadmap phase, lane owner, rollback owner, current status bucket, requested decision bucket, decision record ID, required approver set, validation gate summary, evidence archive path, latest blocker disposition, automatic return-to-blocked trigger, benchmark notes, replay command, rollback threshold, `retired_from_active_discussion` state, reopen triggers, trigger-specific evidence refresh, parity scorecard link or blocker record, indefinite-C policy link or non-applicability note, explicit non-goals, and written rationale explicit beside those minimum lane fields
+- freeze-map status-change requests must route through `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, and keep the exact Linux anchor path, current roadmap phase, lane owner, rollback owner, current status bucket, requested decision bucket, decision record ID, required approver set, validation gate summary, evidence archive path, latest blocker disposition, automatic return-to-blocked trigger, benchmark notes, replay command, rollback threshold, `retired_from_active_discussion` state, reopen triggers, trigger-specific evidence refresh, parity scorecard link or blocker record, indefinite-C policy link or non-applicability note, governance lane sequencing link or explicit scope note, study-only anchor accounting link or explicit freeze-map-anchor confirmation, explicit non-goals, and written rationale explicit beside those minimum lane fields
+""",
+    )
+    _write(
+        root / SHARED_SUMMARY_GAP_PATH,
+        """# Phase 15 Shared Summary Gap
+
+- `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
+- `zigux/tests/phase15_architecture_council_review_process_manifest.json`
+- `zigux/tests/phase15_architecture_council_review_process_build.zig`
+- the Architecture Council review-process owner note plus decision-record template
 """,
     )
 
@@ -300,10 +356,86 @@ def run_self_test() -> int:
             for failure in failures:
                 print(f" - {failure}")
             return 1
+
+        missing_scope_root = root / "missing_scope"
+        _sample_files(missing_scope_root)
+        _write(
+            missing_scope_root / DECISION_TEMPLATE_PATH,
+            _read_text(missing_scope_root, DECISION_TEMPLATE_PATH).replace(
+                "governance lane sequencing link or explicit scope note", ""
+            ),
+        )
+        failures = collect_failures(missing_scope_root)
+        expected = [
+            "decision-record template is missing required marker: A stay-in-C closeout must keep the retained `freeze_in_c` decision, the current blocker, the required approver set, the governance lane sequencing link or explicit scope note, the automatic return-to-blocked trigger, `retired_from_active_discussion` state, reopen triggers, trigger-specific evidence refresh, and the evidence archive path that will be refreshed before any later reopen request explicit.",
+            "decision-record template is missing required review field: governance lane sequencing link or explicit scope note",
+            "decision-record template is missing stay-in-C closeout field: governance lane sequencing link or explicit scope note",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected governance-scope failure: {failures}")
+
+        missing_anchor_root = root / "missing_anchor"
+        _sample_files(missing_anchor_root)
+        _write(
+            missing_anchor_root / REVIEW_PROCESS_PATH,
+            _read_text(missing_anchor_root, REVIEW_PROCESS_PATH).replace(
+                "- study-only anchor accounting link or explicit freeze-map-anchor confirmation\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(missing_anchor_root)
+        expected = [
+            "review-process note is missing required review field: study-only anchor accounting link or explicit freeze-map-anchor confirmation"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected study-only-anchor failure: {failures}")
+
+        missing_outcome_root = root / "missing_outcome"
+        _sample_files(missing_outcome_root)
+        _write(
+            missing_outcome_root / DECISION_TEMPLATE_PATH,
+            _read_text(missing_outcome_root, DECISION_TEMPLATE_PATH).replace(
+                "- closeout result:\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(missing_outcome_root)
+        expected = [
+            "decision-record template is missing review outcome field: closeout result"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected review-outcome failure: {failures}")
+
+        missing_gap_root = root / "missing_gap"
+        _sample_files(missing_gap_root)
+        _write(
+            missing_gap_root / SHARED_SUMMARY_GAP_PATH,
+            _read_text(missing_gap_root, SHARED_SUMMARY_GAP_PATH).replace(
+                "- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(missing_gap_root)
+        expected = [
+            "shared-summary gap note is missing marker: `Documentation/zigux/phase15-architecture-council-decision-record-template.md`"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected shared-summary-gap failure: {failures}")
+
     print("PHASE15_DECISION_RECORD_TEMPLATE_ALIGNMENT_SELF_TEST=pass")
-    print(f"PHASE15_DECISION_RECORD_TEMPLATE_ALIGNMENT_REQUIRED_FIELD_COUNT={len(REQUIRED_REVIEW_FIELDS)}")
-    print(f"PHASE15_DECISION_RECORD_TEMPLATE_ALIGNMENT_CLOSEOUT_FIELD_COUNT={len(STAY_IN_C_CLOSEOUT_FIELDS)}")
-    print(f"PHASE15_DECISION_RECORD_TEMPLATE_ALIGNMENT_REOPEN_FIELD_COUNT={len(REOPEN_EVIDENCE_FIELDS)}")
+    print(
+        f"PHASE15_DECISION_RECORD_TEMPLATE_ALIGNMENT_REQUIRED_FIELD_COUNT={len(REQUIRED_REVIEW_FIELDS)}"
+    )
+    print(
+        f"PHASE15_DECISION_RECORD_TEMPLATE_ALIGNMENT_CLOSEOUT_FIELD_COUNT={len(STAY_IN_C_CLOSEOUT_FIELDS)}"
+    )
+    print(
+        f"PHASE15_DECISION_RECORD_TEMPLATE_ALIGNMENT_REOPEN_FIELD_COUNT={len(REOPEN_EVIDENCE_FIELDS)}"
+    )
+    print("PHASE15_DECISION_RECORD_TEMPLATE_ALIGNMENT_SELF_TEST_CASES=4")
     return 0
 
 
@@ -326,9 +458,15 @@ def main() -> int:
         return 1
 
     print("PHASE15_DECISION_RECORD_TEMPLATE_ALIGNMENT=pass")
-    print(f"PHASE15_DECISION_RECORD_TEMPLATE_ALIGNMENT_REQUIRED_FIELD_COUNT={len(REQUIRED_REVIEW_FIELDS)}")
-    print(f"PHASE15_DECISION_RECORD_TEMPLATE_ALIGNMENT_CLOSEOUT_FIELD_COUNT={len(STAY_IN_C_CLOSEOUT_FIELDS)}")
-    print(f"PHASE15_DECISION_RECORD_TEMPLATE_ALIGNMENT_REOPEN_FIELD_COUNT={len(REOPEN_EVIDENCE_FIELDS)}")
+    print(
+        f"PHASE15_DECISION_RECORD_TEMPLATE_ALIGNMENT_REQUIRED_FIELD_COUNT={len(REQUIRED_REVIEW_FIELDS)}"
+    )
+    print(
+        f"PHASE15_DECISION_RECORD_TEMPLATE_ALIGNMENT_CLOSEOUT_FIELD_COUNT={len(STAY_IN_C_CLOSEOUT_FIELDS)}"
+    )
+    print(
+        f"PHASE15_DECISION_RECORD_TEMPLATE_ALIGNMENT_REOPEN_FIELD_COUNT={len(REOPEN_EVIDENCE_FIELDS)}"
+    )
     return 0
 
 
