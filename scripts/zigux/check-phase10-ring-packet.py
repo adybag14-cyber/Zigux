@@ -62,6 +62,7 @@ EXPECTED_SURVEY_SUMMARY_FIELDS = {
     "preexisting_ring_verify_present": True,
     "preexisting_ring_publish_readiness_present": True,
     "preexisting_ring_registration_summary_present": True,
+    "preexisting_ring_used_buffer_poll_present": True,
 }
 EXPECTED_GAP_METADATA = {
     "phase10-build-gate": ("validation", "starter_landed", "zigux/tests/phase10_build.zig"),
@@ -79,7 +80,7 @@ EXPECTED_GAP_METADATA = {
     "phase10-virtio-ring-survey-gate": ("validation", "starter_landed", "zigux/tests/phase10_virtio_ring_survey.zig"),
     "phase10-virtio-ring-survey-note": ("documentation", "starter_landed", "Documentation/zigux/phase10-virtio-ring-survey.md"),
     "phase10-virtqueue-shape-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
-    "phase10-used-buffer-polling-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
+    "phase10-used-buffer-polling-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring_used_buffer_poll.zig"),
     "phase10-callback-enable-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
     "phase10-callback-delay-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
     "phase10-notify-prepare-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
@@ -105,6 +106,7 @@ REQUIRED_MARKERS = {
         "`phase10-virtio-ring-survey-gate`",
         "`drivers/virtio/virtio_ring_publish_readiness.zig`",
         "`drivers/virtio/virtio_ring_registration_summary.zig`",
+        "`drivers/virtio/virtio_ring_used_buffer_poll.zig`",
         "`zigux/tests/phase10_virtio_ring.zig`",
         "`zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`",
         "`zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`",
@@ -112,7 +114,8 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase10_virtio_ring_reset_readiness.zig`",
         "`zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`",
         "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`",
-        "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `drivers/virtio/virtio_ring_registration_summary.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
+        "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `drivers/virtio/virtio_ring_registration_summary.zig`, `drivers/virtio/virtio_ring_used_buffer_poll.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
+        "`phase10-used-buffer-polling-helper`",
         "`phase10-queue-registration-summary-helper`",
         "`phase10-ring-reset-readiness-replay`",
         "the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
@@ -121,19 +124,20 @@ REQUIRED_MARKERS = {
         "current packet lane on master: `P10-L10`",
         "adjacent freeze-boundary owner: `P10-L11`",
         "direct current-head readback now keeps the broader ring replay `zigux/tests/phase10_virtio_ring.zig` inside the same ring packet as the queue-local helper ladder",
-        "the publish-readiness helper `drivers/virtio/virtio_ring_publish_readiness.zig`, the notification-data replay `zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`, the reset-readiness replay `zigux/tests/phase10_virtio_ring_reset_readiness.zig`, and the dedicated ring survey replay `zigux/tests/phase10_virtio_ring_survey.zig` stay part of the same directly readable ring packet",
+        "the used-buffer-poll wrapper `drivers/virtio/virtio_ring_used_buffer_poll.zig`, the publish-readiness helper `drivers/virtio/virtio_ring_publish_readiness.zig`, the notification-data replay `zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`, the reset-readiness replay `zigux/tests/phase10_virtio_ring_reset_readiness.zig`, and the dedicated ring survey replay `zigux/tests/phase10_virtio_ring_survey.zig` stay part of the same directly readable ring packet",
         "the smallest same-lane follow-through is reminder-surface, checker, or manifest truthfulness work",
     ],
     "Documentation/zigux/phase10-virtio-ring-slice.md": [
         "`drivers/virtio/virtio_ring_publish_readiness.zig`",
         "`drivers/virtio/virtio_ring_registration_summary.zig`",
+        "`drivers/virtio/virtio_ring_used_buffer_poll.zig`",
         "`zigux/tests/phase10_virtio_ring.zig`",
         "`zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`",
         "`zigux/tests/phase10_virtio_ring_reset_readiness.zig`",
         "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`",
         "`zigux/tests/phase10_virtio_ring_survey.zig`",
         "the broader ring replay `zigux/tests/phase10_virtio_ring.zig` now sits beside that queue-local helper ladder as direct current-head evidence in this slice",
-        "the notification-data replay, the registration replay, the registration-summary wrapper, the reset-readiness replay, and the dedicated survey gate are now landed review surfaces inside this slice",
+        "the used-buffer-poll wrapper, the notification-data replay, the registration replay, the registration-summary wrapper, the reset-readiness replay, and the dedicated survey gate are now landed review surfaces inside this slice",
     ],
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
         "`scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`",
@@ -181,16 +185,27 @@ REQUIRED_MARKERS = {
         "test \"phase10 virtio ring registration-summary wrapper keeps definition discipline explicit\" {",
         "test \"phase10 virtio ring registration-summary wrapper stays queue-local across noncontiguous queue definitions\" {",
     ],
+    "drivers/virtio/virtio_ring_used_buffer_poll.zig": [
+        "pub fn summarizeUsedBufferPoll(",
+        "pub fn usedBufferPollHasNewChains(summary: UsedBufferPollSummary) bool {",
+        "pub fn usedBufferPollSettled(summary: UsedBufferPollSummary) bool {",
+        "test \"phase10 virtio ring used-buffer-poll wrapper keeps empty queues settled\" {",
+        "test \"phase10 virtio ring used-buffer-poll wrapper exposes newly used chains before the follow-up poll settles\" {",
+        "test \"phase10 virtio ring used-buffer-poll wrapper settles once all used chains are observed\" {",
+    ],
     "zigux/tests/phase10_build.zig": [
         ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_publish_readiness.zig\"),",
+        ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_used_buffer_poll.zig\"),",
         ".root_source_file = b.path(\"phase10_virtio_ring_survey.zig\"),",
         ".name = \"phase10-virtio-ring-notification-data-readiness-tests\",",
         ".name = \"phase10-virtio-ring-reset-readiness-tests\",",
         ".name = \"phase10-virtio-ring-publish-readiness-tests\",",
+        ".name = \"phase10-virtio-ring-used-buffer-poll-tests\",",
         ".name = \"phase10-virtio-ring-survey-tests\",",
         "test_step.dependOn(&run_phase10_virtio_ring_notification_data_readiness_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_reset_readiness_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);",
+        "test_step.dependOn(&run_phase10_virtio_ring_used_buffer_poll_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_survey_tests.step);",
     ],
     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig": [
@@ -203,15 +218,16 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase10_virtio_ring_survey.zig": [
         "try expectContains(survey_note, \"drivers/virtio/virtio_ring_registration_summary.zig\");",
+        "try expectContains(survey_note, \"drivers/virtio/virtio_ring_used_buffer_poll.zig\");",
         "try expectContains(survey_note, \"zigux/tests/phase10_virtio_ring_reset_readiness.zig\");",
         "try expectContains(manifest, \"\\\"preexisting_phase10_test_files\\\": 9\");",
         "try expectContains(manifest, \"\\\"preexisting_ring_registration_summary_present\\\": true\");",
+        "try expectContains(manifest, \"\\\"preexisting_ring_used_buffer_poll_present\\\": true\");",
+        "try expectContains(manifest, \"\\\"id\\\": \\\"phase10-used-buffer-polling-helper\\\"\");",
         "try expectContains(manifest, \"\\\"id\\\": \\\"phase10-queue-registration-summary-helper\\\"\");",
-        "try expectContains(manifest, \"\\\"id\\\": \\\"phase10-ring-reset-readiness-replay\\\"\");",
-        "const registration_summary_file = try readRepoRelative(",
-        "const reset_readiness_file = try readRepoRelative(",
-        "test \"phase10 virtio ring registration-summary wrapper stays direct current-head evidence in the survey packet\" {",
-        "try expectContains(reset_readiness_file, \"test \\\"phase10 virtio ring reset-readiness replay keeps queue-local blocker progression explicit\\\" {\");",
+        "const used_buffer_poll_file = try readRepoRelative(",
+        "test \"phase10 virtio ring used-buffer-poll wrapper stays direct current-head evidence in the survey packet\" {",
+        "try expectContains(used_buffer_poll_file, \"test \\\"phase10 virtio ring used-buffer-poll wrapper exposes newly used chains before the follow-up poll settles\\\" {\");",
     ],
 }
 
@@ -347,6 +363,7 @@ def run_self_test() -> int:
         removal_cases = {
             "missing_survey_note": "Documentation/zigux/phase10-virtio-ring-survey.md",
             "missing_registration_summary_wrapper": "drivers/virtio/virtio_ring_registration_summary.zig",
+            "missing_used_buffer_poll_wrapper": "drivers/virtio/virtio_ring_used_buffer_poll.zig",
             "missing_manifest": MANIFEST_PATH,
         }
         for label, rel_path in removal_cases.items():
@@ -372,7 +389,7 @@ def run_self_test() -> int:
                 [gap for gap in manifest["gaps"] if gap["id"] != "phase10-queue-registration-summary-helper"],
             ),
             "wrong_summary": lambda manifest: manifest["survey_summary"].__setitem__(
-                "preexisting_ring_registration_summary_present", False
+                "preexisting_ring_used_buffer_poll_present", False
             ),
         }
         for label, mutate in manifest_problem_cases.items():
@@ -405,7 +422,7 @@ def run_self_test() -> int:
                         )
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
