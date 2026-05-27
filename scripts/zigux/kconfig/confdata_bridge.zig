@@ -31,6 +31,20 @@ pub const Summary = struct {
     unset_count: usize,
 };
 
+pub const ParseMode = enum {
+    dotconfig,
+    autoconf,
+
+    pub fn parse(text: []const u8) ?ParseMode {
+        inline for (std.meta.fields(ParseMode)) |field| {
+            if (std.mem.eql(u8, text, field.name)) {
+                return @field(ParseMode, field.name);
+            }
+        }
+        return null;
+    }
+};
+
 fn deinitEntries(allocator: std.mem.Allocator, entries: []Entry) void {
     for (entries) |entry| {
         allocator.free(entry.name);
@@ -171,7 +185,7 @@ fn parseUnsetSymbol(line: []const u8) ?[]const u8 {
     return name;
 }
 
-pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
+pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8, parse_mode: ParseMode) !Summary {
     var entries = std.ArrayList(Entry).empty;
     var entry_indexes = std.StringHashMap(usize).init(allocator);
     defer entry_indexes.deinit();
@@ -230,19 +244,20 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         const raw_value = line[eq_index + 1 ..];
 
         const closing_quote_index = findClosingQuote(raw_value);
-        const malformed_quoted_value = raw_value.len > 0 and raw_value[0] == '"' and closing_quote_index == null;
+        const malformed_quoted_value = parse_mode == .dotconfig and raw_value.len > 0 and raw_value[0] == '"' and closing_quote_index == null;
         if (malformed_quoted_value) continue;
+
         const kind: EntryKind = if (isTristateValue(raw_value))
             .tristate
-        else if (closing_quote_index != null)
+        else if (parse_mode == .dotconfig and closing_quote_index != null)
             .string
         else
             .value;
 
         const cooked_value = if (kind == .tristate)
             try dupCanonicalTristateValue(allocator, raw_value)
-        else if (closing_quote_index) |index|
-            try decodeQuotedString(allocator, raw_value, index)
+        else if (kind == .string)
+            try decodeQuotedString(allocator, raw_value, closing_quote_index.?)
         else
             try allocator.dupe(u8, raw_value);
 
@@ -291,8 +306,8 @@ pub fn deinitSummary(allocator: std.mem.Allocator, summary: *Summary) void {
     allocator.free(summary.entries);
 }
 
-pub fn runConfdataBridge(allocator: std.mem.Allocator, input: []const u8, writer: anytype) !void {
-    var summary = try parseConfig(allocator, input);
+pub fn runConfdataBridge(allocator: std.mem.Allocator, input: []const u8, parse_mode: ParseMode, writer: anytype) !void {
+    var summary = try parseConfig(allocator, input, parse_mode);
     defer deinitSummary(allocator, &summary);
 
     try writer.writeAll("{\"counts\":{\"set\":");
@@ -318,18 +333,29 @@ pub fn main(init: std.process.Init) !void {
     const io = init.io;
     const args = try init.minimal.args.toSlice(arena);
 
-    if (args.len != 2) {
-        var stderr_buffer: [160]u8 = undefined;
+    if (args.len < 2 or args.len > 3) {
+        var stderr_buffer: [192]u8 = undefined;
         var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Usage: confdata_bridge <config>\n");
+        try stderr_writer.interface.writeAll("Usage: confdata_bridge <config> [dotconfig|autoconf]\n");
         try stderr_writer.interface.flush();
         std.process.exit(1);
     }
 
+    const parse_mode = if (args.len == 3)
+        ParseMode.parse(args[2]) orelse {
+            var stderr_buffer: [160]u8 = undefined;
+            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            try stderr_writer.interface.writeAll("Error: unsupported confdata parse mode\n");
+            try stderr_writer.interface.flush();
+            std.process.exit(1);
+        }
+    else
+        .dotconfig;
+
     const input = try Io.Dir.cwd().readFileAlloc(io, args[1], arena, .limited(1024 * 1024));
     var stdout_buffer: [2048]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
-    try runConfdataBridge(arena, input, &stdout_writer.interface);
+    try runConfdataBridge(arena, input, parse_mode, &stdout_writer.interface);
     try stdout_writer.interface.flush();
 }
 
@@ -369,8 +395,8 @@ fn expectEntry(summary: Summary, index: usize, name: []const u8, kind: EntryKind
     try std.testing.expectEqualStrings(value, summary.entries[index].value);
 }
 
-fn parseAndExpectSingleEntry(allocator: std.mem.Allocator, input: []const u8, name: []const u8, kind: EntryKind, value: []const u8) !void {
-    var summary = try parseConfig(allocator, input);
+fn parseAndExpectSingleEntry(allocator: std.mem.Allocator, input: []const u8, parse_mode: ParseMode, name: []const u8, kind: EntryKind, value: []const u8) !void {
+    var summary = try parseConfig(allocator, input, parse_mode);
     defer deinitSummary(allocator, &summary);
     try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
     try std.testing.expectEqual(@as(usize, if (kind == .unset) 0 else 1), summary.set_count);
@@ -387,6 +413,7 @@ test "confdata bridge parses bounded config states" {
             "CONFIG_COUNT=7\n" ++
             "CONFIG_NAME=\"zigux\"\n" ++
             "# CONFIG_DEBUG is not set\n",
+        .dotconfig,
     );
     defer deinitSummary(allocator, &summary);
 
@@ -406,7 +433,7 @@ test "confdata bridge emits bounded json output" {
         \\CONFIG_ALPHA=y
         \\# CONFIG_DEBUG is not set
         \\
-    , &capture);
+    , .dotconfig, &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"set\":1") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"unset\":1") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"CONFIG_DEBUG\"") != null);
@@ -417,7 +444,7 @@ test "confdata bridge decodes escaped quoted strings" {
     var summary = try parseConfig(allocator,
         \\CONFIG_MESSAGE="zigux\"bridge\\"
         \\
-    );
+    , .dotconfig);
     defer deinitSummary(allocator, &summary);
 
     try expectEntry(summary, 0, "CONFIG_MESSAGE", .string, "zigux\"bridge\\");
@@ -428,7 +455,7 @@ test "confdata bridge strips backslashes from escaped control sequences like ups
     var summary = try parseConfig(allocator,
         \\CONFIG_ESCAPED="line\n\tend"
         \\
-    );
+    , .dotconfig);
     defer deinitSummary(allocator, &summary);
 
     try expectEntry(summary, 0, "CONFIG_ESCAPED", .string, "linentend");
@@ -443,16 +470,16 @@ test "confdata bridge escapes low control bytes in json output" {
 }
 
 test "confdata bridge accepts CRLF config lines" {
-    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=y\r\n", "CONFIG_ALPHA", .tristate, "y");
+    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=y\r\n", .dotconfig, "CONFIG_ALPHA", .tristate, "y");
 }
 
 test "confdata bridge preserves trailing carriage return on final unterminated value line" {
-    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=value\r", "CONFIG_ALPHA", .value, "value\r");
+    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=value\r", .dotconfig, "CONFIG_ALPHA", .value, "value\r");
 }
 
 test "confdata bridge ignores unterminated unset comment with trailing carriage return" {
     const allocator = std.testing.allocator;
-    var summary = try parseConfig(allocator, "# CONFIG_DEBUG is not set\r");
+    var summary = try parseConfig(allocator, "# CONFIG_DEBUG is not set\r", .dotconfig);
     defer deinitSummary(allocator, &summary);
 
     try std.testing.expectEqual(@as(usize, 0), summary.set_count);
@@ -461,15 +488,15 @@ test "confdata bridge ignores unterminated unset comment with trailing carriage 
 }
 
 test "confdata bridge ignores suffix bytes after an embedded NUL" {
-    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=value\x00suffix\n", "CONFIG_ALPHA", .value, "value");
+    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=value\x00suffix\n", .dotconfig, "CONFIG_ALPHA", .value, "value");
 }
 
 test "confdata bridge preserves carriage return before an embedded NUL on newline-terminated lines" {
-    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=value\r\x00suffix\n", "CONFIG_ALPHA", .value, "value\r");
+    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=value\r\x00suffix\n", .dotconfig, "CONFIG_ALPHA", .value, "value\r");
 }
 
 test "confdata bridge keeps explicit n assignments as tristate values" {
-    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=n\n", "CONFIG_ALPHA", .tristate, "n");
+    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=n\n", .dotconfig, "CONFIG_ALPHA", .tristate, "n");
 }
 
 test "confdata bridge recognizes uppercase tristate assignments" {
@@ -479,7 +506,7 @@ test "confdata bridge recognizes uppercase tristate assignments" {
         \\CONFIG_M=M
         \\CONFIG_N=N
         \\
-    );
+    , .dotconfig);
     defer deinitSummary(allocator, &summary);
 
     try std.testing.expectEqual(@as(usize, 3), summary.set_count);
@@ -495,7 +522,7 @@ test "confdata bridge ignores non-CONFIG lines like upstream confdata" {
         \\NOT_CONFIG=y
         \\CONFIG_ALPHA=m
         \\
-    );
+    , .dotconfig);
     defer deinitSummary(allocator, &summary);
 
     try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
@@ -504,7 +531,7 @@ test "confdata bridge ignores non-CONFIG lines like upstream confdata" {
 
 test "confdata bridge ignores empty CONFIG symbol names" {
     const allocator = std.testing.allocator;
-    var summary = try parseConfig(allocator, "CONFIG_=y\n");
+    var summary = try parseConfig(allocator, "CONFIG_=y\n", .dotconfig);
     defer deinitSummary(allocator, &summary);
 
     try std.testing.expectEqual(@as(usize, 0), summary.entries.len);
@@ -514,7 +541,7 @@ test "confdata bridge ignores empty CONFIG symbol names" {
 
 test "confdata bridge ignores malformed unset comments with extra tokens" {
     const allocator = std.testing.allocator;
-    var summary = try parseConfig(allocator, "# CONFIG_DEBUG is not set today\n");
+    var summary = try parseConfig(allocator, "# CONFIG_DEBUG is not set today\n", .dotconfig);
     defer deinitSummary(allocator, &summary);
 
     try std.testing.expectEqual(@as(usize, 0), summary.entries.len);
@@ -524,16 +551,16 @@ test "confdata bridge keeps trailing escaped backslashes in quoted strings" {
     try parseAndExpectSingleEntry(std.testing.allocator,
         \\CONFIG_PATH="drivers\\"
         \\
-    , "CONFIG_PATH", .string, "drivers\\");
+    , .dotconfig, "CONFIG_PATH", .string, "drivers\\");
 }
 
 test "confdata bridge ignores trailing suffix bytes after a closing quote like upstream confdata" {
-    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=\"zigux\"suffix\n", "CONFIG_ALPHA", .string, "zigux");
+    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=\"zigux\"suffix\n", .dotconfig, "CONFIG_ALPHA", .string, "zigux");
 }
 
 test "confdata bridge ignores malformed quoted values like upstream confdata" {
     const allocator = std.testing.allocator;
-    var summary = try parseConfig(allocator, "CONFIG_ALPHA=\"zigux\n");
+    var summary = try parseConfig(allocator, "CONFIG_ALPHA=\"zigux\n", .dotconfig);
     defer deinitSummary(allocator, &summary);
 
     try std.testing.expectEqual(@as(usize, 0), summary.entries.len);
@@ -545,7 +572,7 @@ test "confdata bridge emits no entries for empty CONFIG symbol names" {
     var capture = try TestCapture.init(std.testing.allocator);
     defer capture.deinit();
 
-    try runConfdataBridge(std.testing.allocator, "CONFIG_=y\n", &capture);
+    try runConfdataBridge(std.testing.allocator, "CONFIG_=y\n", .dotconfig, &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"entries\":[]") != null);
 }
 
@@ -555,7 +582,7 @@ test "confdata bridge keeps only the last assignment for duplicate symbols" {
         \\CONFIG_ALPHA=y
         \\CONFIG_ALPHA=m
         \\
-    );
+    , .dotconfig);
     defer deinitSummary(allocator, &summary);
 
     try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
@@ -569,7 +596,7 @@ test "confdata bridge keeps the prior duplicate value when a later quoted assign
         \\CONFIG_ALPHA="stable"
         \\CONFIG_ALPHA="broken
         \\
-    );
+    , .dotconfig);
     defer deinitSummary(allocator, &summary);
 
     try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
@@ -584,7 +611,7 @@ test "confdata bridge emits the preserved duplicate state after later malformed 
         \\CONFIG_ALPHA="stable"
         \\CONFIG_ALPHA="broken
         \\
-    , &capture);
+    , .dotconfig, &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"CONFIG_ALPHA\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"value\":\"stable\"") != null);
 }
@@ -596,7 +623,7 @@ test "confdata bridge keeps only the last state across unset and set transitions
         \\# CONFIG_ALPHA is not set
         \\CONFIG_ALPHA=m
         \\
-    );
+    , .dotconfig);
     defer deinitSummary(allocator, &summary);
 
     try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
@@ -611,6 +638,7 @@ test "confdata bridge keeps explicit empty assignments distinct from quoted empt
         allocator,
         "CONFIG_EMPTY=\n" ++
             "CONFIG_QUOTED_EMPTY=\"\"\n",
+        .dotconfig,
     );
     defer deinitSummary(allocator, &summary);
 
@@ -629,7 +657,7 @@ test "confdata bridge emits explicit empty assignments distinctly in json output
         \\CONFIG_EMPTY=
         \\CONFIG_QUOTED_EMPTY=""
         \\
-    , &capture);
+    , .dotconfig, &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"name\":\"CONFIG_EMPTY\",\"kind\":\"value\",\"value\":\"\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"name\":\"CONFIG_QUOTED_EMPTY\",\"kind\":\"string\",\"value\":\"\"") != null);
 }
@@ -641,8 +669,30 @@ test "confdata bridge escapes parsed string bytes in json output" {
     try runConfdataBridge(std.testing.allocator,
         \\CONFIG_ALPHA="zigux\"bridge\\"
         \\
-    , &capture);
+    , .dotconfig, &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"value\":\"zigux\\\"bridge\\\\\"") != null);
+}
+
+test "confdata bridge autoconf mode preserves malformed quoted values verbatim" {
+    try parseAndExpectSingleEntry(
+        std.testing.allocator,
+        "CONFIG_CMDLINE=\"console=ttyS0 root=/dev/vda\n",
+        .autoconf,
+        "CONFIG_CMDLINE",
+        .value,
+        "\"console=ttyS0 root=/dev/vda",
+    );
+}
+
+test "confdata bridge autoconf mode keeps quoted values raw in json output" {
+    var capture = try TestCapture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(std.testing.allocator,
+        \\CONFIG_CMDLINE="console=ttyS0 root=/dev/vda"
+        \\
+    , .autoconf, &capture);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"name\":\"CONFIG_CMDLINE\",\"kind\":\"value\",\"value\":\"\\\"console=ttyS0 root=/dev/vda\\\"\"") != null);
 }
 
 test "confdata bridge releases appended entry ownership on index-allocation failure" {
@@ -651,7 +701,7 @@ test "confdata bridge releases appended entry ownership on index-allocation fail
             var summary = try parseConfig(allocator,
                 \\CONFIG_ALPHA=y
                 \\
-            );
+            , .dotconfig);
             defer deinitSummary(allocator, &summary);
             try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
         }
@@ -667,7 +717,7 @@ test "confdata bridge preserves duplicate unset ownership on allocation failure"
                 \\# CONFIG_DEBUG is not set
                 \\# CONFIG_DEBUG is not set
                 \\
-            );
+            , .dotconfig);
             defer deinitSummary(allocator, &summary);
             try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
             try expectEntry(summary, 0, "CONFIG_DEBUG", .unset, "n");
