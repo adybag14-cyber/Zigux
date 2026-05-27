@@ -108,6 +108,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test",
         "scripts/zigux/check-phase12-cross-compile-smoke.py --self-test",
         "current contents-bridge shared support bundle during degraded contents reads:",
+        "Segmented rollout is the governing rule for the active tranche: only the six-file `virtio_net` sextet may move through the shared wrapper set, while the rollback-lab `virtio_scsi` survey-build packet, the published-but-unwired `nvme_pci` foothold, and the parked libbpf packet stay outside that shared route until new checker-backed promotions land on `master`.",
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         "scripts/zigux/check-phase12-complex-driver-lane-packet.py",
