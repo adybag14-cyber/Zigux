@@ -216,6 +216,11 @@
       "name": "duplicate_malformed_quoted_assignment",
       "input": "duplicate_malformed_quoted_assignment.config",
       "expected": "duplicate_malformed_quoted_assignment_expected.json"
+    },
+    {
+      "name": "explicit_empty_assignments",
+      "input": "explicit_empty_assignments.config",
+      "expected": "explicit_empty_assignments_expected.json"
     }
   ]
 }
