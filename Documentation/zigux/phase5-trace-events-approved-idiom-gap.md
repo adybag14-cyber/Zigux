@@ -62,7 +62,7 @@ Keep the bounded callback-focus companion explicit too: `anchorFocusOrder()` and
 ## Exact checks run on 2026-05-20
 
 This run verified the current formatting companion with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2` using a focused `zig test` against the current `master` file body.
-The same focused rerun did not widen into a dedicated callback-focus companion step: current `master` still returns `samples/zigux/trace_events_callback_focus_contract.zig` as direct sample-root reviewability help, but `zigux/tests/phase5_build.zig` still only exposes the broader `phase5-trace-events-sample-tests`, `phase5-trace-events-sample-survey-tests`, and the dedicated `phase5-trace-events-string-formatting-companion` route for this packet.
+The same focused rerun stayed scoped to the formatting companion rather than widening into a broader trace-events replay, but current `master` now also exposes the dedicated `phase5-trace-events-callback-focus-companion` shared build step beside `phase5-trace-events-sample-tests`, `phase5-trace-events-sample-survey-tests`, and `phase5-trace-events-string-formatting-companion` in `zigux/tests/phase5_build.zig`.
 
 The exact checks that passed were:
 
