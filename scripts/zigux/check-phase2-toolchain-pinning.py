@@ -44,6 +44,7 @@ GENKSYMS_EXPECTED = (
     "zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json",
 )
 
