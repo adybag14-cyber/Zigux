@@ -1,0 +1,44 @@
+{
+  "lane_key": "P13-Y01",
+  "phase": "Phase 13",
+  "surveyed_commit": "master-readback-2026-05-27",
+  "anchor": "fs/libfs.c",
+  "packet": "phase13-libfs-dcache-cursor-release",
+  "gaps": [
+    {
+      "id": "phase13-libfs-dcache-dir-close-release-planner",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "fs/libfs_dcache_cursor_release.zig",
+      "why_now": "Current master can keep `dcache_dir_close()` teardown planning reviewable as a helper-first packet without implying live cursor unlinking."
+    },
+    {
+      "id": "phase13-libfs-dcache-cursor-release-review-packet",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_libfs_dcache_cursor_release.zig",
+      "why_now": "The focused replay keeps end-of-directory and cursor-consumption preconditions explicit as the only teardown-ready state."
+    },
+    {
+      "id": "phase13-build-gate",
+      "status": "missing_on_current_master",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_build.zig",
+      "why_now": "The older shared Phase 13 build route is still absent, so this packet remains helper-local."
+    },
+    {
+      "id": "phase13-libfs-live-cursor-unlink",
+      "status": "blocked_on_dcache_state",
+      "kind": "runtime_boundary",
+      "zigux_destination": "fs/libfs_dcache_cursor_release.zig",
+      "why_now": "This packet must not overclaim live private-cursor unlinking, sibling mutation, or dentry lifecycle ownership."
+    },
+    {
+      "id": "phase13-libfs-live-cursor-release-lock-ordering",
+      "status": "blocked_on_locking",
+      "kind": "runtime_boundary",
+      "zigux_destination": "fs/libfs_dcache_cursor_release.zig",
+      "why_now": "This packet must not overclaim close-path lock ordering or broader VFS teardown sequencing."
+    }
+  ]
+}
