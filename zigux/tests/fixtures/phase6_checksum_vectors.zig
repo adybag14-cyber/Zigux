@@ -1,5 +1,17 @@
 const std = @import("std");
 
+pub const ComputeCase = struct {
+    label: []const u8,
+    payload: []const u8,
+};
+
+pub const SeededCase = struct {
+    label: []const u8,
+    prefix: []const u8,
+    suffix: []const u8,
+    seed: u32,
+};
+
 pub const PerfCase = struct {
     label: []const u8,
     bytes: []const u8,
@@ -38,6 +50,20 @@ pub const perf_payload_1501b = makePerfPayload(1501, 0x6c);
 pub const perf_cases = [_]PerfCase{
     .{ .label = "64B", .bytes = &perf_payload_64b, .iterations = 200_000, .max_slowdown_pct = 150 },
     .{ .label = "1501B", .bytes = &perf_payload_1501b, .iterations = 12_000, .max_slowdown_pct = 150 },
+};
+
+pub const compute_cases = [_]ComputeCase{
+    .{ .label = "empty", .payload = "" },
+    .{ .label = "single-byte", .payload = "f" },
+    .{ .label = "two-byte", .payload = "fo" },
+    .{ .label = "three-byte", .payload = "foo" },
+    .{ .label = "phase6", .payload = "phase6" },
+};
+
+pub const seeded_cases = [_]SeededCase{
+    .{ .label = "seed-zero", .prefix = "ph", .suffix = "ase6", .seed = 0x0000_0000 },
+    .{ .label = "seed-carry", .prefix = "netw", .suffix = "orkstack", .seed = 0x0001_ffff },
+    .{ .label = "seed-wrap", .prefix = "carryf", .suffix = "old", .seed = 0xffff_ff10 },
 };
 
 pub const carry16_cases = [_]Carry16Case{
@@ -113,7 +139,7 @@ fn validateFastPathHeader(header: []const u8) !void {
     try std.testing.expectEqual(header.len, @as(usize, (header[0] & 0x0f) * 4));
 }
 
-test "phase 6 checksum perf fixture packet stays bounded to the documented matrices" {
+test "phase 6 checksum fixture packet stays bounded to the documented matrices" {
     const expected = [_]struct {
         label: []const u8,
         len: usize,
@@ -123,6 +149,18 @@ test "phase 6 checksum perf fixture packet stays bounded to the documented matri
     }{
         .{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150, .fingerprint = 0xb498_d304_d0ee_aea5 },
         .{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0xc457_3e1a_cc20_3461 },
+    };
+    const compute_expected = [_]ComputeCase{
+        .{ .label = "empty", .payload = "" },
+        .{ .label = "single-byte", .payload = "f" },
+        .{ .label = "two-byte", .payload = "fo" },
+        .{ .label = "three-byte", .payload = "foo" },
+        .{ .label = "phase6", .payload = "phase6" },
+    };
+    const seeded_expected = [_]SeededCase{
+        .{ .label = "seed-zero", .prefix = "ph", .suffix = "ase6", .seed = 0x0000_0000 },
+        .{ .label = "seed-carry", .prefix = "netw", .suffix = "orkstack", .seed = 0x0001_ffff },
+        .{ .label = "seed-wrap", .prefix = "carryf", .suffix = "old", .seed = 0xffff_ff10 },
     };
     const carry16_expected = [_]struct {
         label: []const u8,
@@ -150,6 +188,8 @@ test "phase 6 checksum perf fixture packet stays bounded to the documented matri
     };
 
     try std.testing.expectEqual(expected.len, perf_cases.len);
+    try std.testing.expectEqual(compute_expected.len, compute_cases.len);
+    try std.testing.expectEqual(seeded_expected.len, seeded_cases.len);
     try std.testing.expectEqual(carry16_expected.len, carry16_cases.len);
     try std.testing.expectEqual(fast_path_expected.len, fast_path_cases.len);
 
@@ -160,6 +200,20 @@ test "phase 6 checksum perf fixture packet stays bounded to the documented matri
         try std.testing.expectEqual(want.iterations, actual.iterations);
         try std.testing.expectEqual(want.max_slowdown_pct, actual.max_slowdown_pct);
         try std.testing.expectEqual(want.fingerprint, perfPayloadFingerprint(actual.bytes));
+    }
+
+    for (compute_expected, 0..) |want, idx| {
+        const actual = compute_cases[idx];
+        try std.testing.expectEqualStrings(want.label, actual.label);
+        try std.testing.expectEqualSlices(u8, want.payload, actual.payload);
+    }
+
+    for (seeded_expected, 0..) |want, idx| {
+        const actual = seeded_cases[idx];
+        try std.testing.expectEqualStrings(want.label, actual.label);
+        try std.testing.expectEqualSlices(u8, want.prefix, actual.prefix);
+        try std.testing.expectEqualSlices(u8, want.suffix, actual.suffix);
+        try std.testing.expectEqual(want.seed, actual.seed);
     }
 
     for (carry16_expected, 0..) |want, idx| {
