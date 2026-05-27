@@ -1,4 +1,5 @@
 const std = @import("std");
+const sample = @import("bytestream_fifo.zig");
 
 pub const linux_anchor = "samples/kfifo/bytestream-example.c";
 pub const fifo_capacity: usize = 32;
@@ -145,6 +146,23 @@ fn writableWindowsNeverExceedTwo(windows: [3]WritableWindow) bool {
     return true;
 }
 
+fn expectVisibleWindowMatches(actual: sample.VisibleSpanSummary, expected: VisibleWindow) !void {
+    try std.testing.expectEqual(expected.head_index, actual.head_index);
+    try std.testing.expectEqual(expected.tail_index, actual.tail_index);
+    try std.testing.expectEqual(expected.total_visible, actual.total_visible);
+    try std.testing.expectEqual(expected.first_window_len, actual.first_window_len);
+    try std.testing.expectEqual(expected.second_window_len, actual.second_window_len);
+    try std.testing.expectEqual(expected.wraps, actual.wraps);
+}
+
+fn expectWritableWindowMatches(actual: sample.WritableSpanSummary, expected: WritableWindow) !void {
+    try std.testing.expectEqual(expected.tail_index, actual.tail_index);
+    try std.testing.expectEqual(expected.writable_count, actual.writable_count);
+    try std.testing.expectEqual(expected.first_window_len, actual.first_window_len);
+    try std.testing.expectEqual(expected.second_window_len, actual.second_window_len);
+    try std.testing.expectEqual(expected.wraps, actual.wraps);
+}
+
 test "bytestream fifo companion keeps the two-window kfifo contract explicit" {
     const contract = referencePattern();
 
@@ -229,4 +247,24 @@ test "bytestream fifo companion keeps checkpoint lookups aligned with the shippe
     try std.testing.expectEqual(@as(usize, 22), preview_writable.writable_count);
     try std.testing.expectEqual(@as(usize, 0), wrapped_writable.writable_count);
     try std.testing.expectEqual(@as(usize, 8), partial_writable.writable_count);
+
+    try std.testing.expectEqualStrings(sample.BytestreamFifoSample.descriptor().anchor, linux_anchor);
+
+    var module = sample.BytestreamFifoSample{};
+    try module.init();
+
+    const preview = try module.runPreviewBoundaryReplay();
+    try expectVisibleWindowMatches(preview.visible_span_after_preview, preview_visible);
+    try expectWritableWindowMatches(module.writableSpanSummary(), preview_writable);
+    try std.testing.expect(!module.usesWrappedStorageWindow());
+
+    const wrapped = try module.runWrappedPreviewReplay();
+    try expectVisibleWindowMatches(wrapped.visible_span_after_preview, wrapped_visible);
+    try expectWritableWindowMatches(module.writableSpanSummary(), wrapped_writable);
+    try std.testing.expect(module.usesWrappedStorageWindow());
+
+    const remaining = try module.runRemainingCapacityReplay();
+    try expectVisibleWindowMatches(remaining.visible_span_after_partial_drain, partial_visible);
+    try expectWritableWindowMatches(module.writableSpanSummary(), partial_writable);
+    try std.testing.expect(module.usesWrappedStorageWindow());
 }
