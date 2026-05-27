@@ -196,16 +196,31 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase10_build.zig": [
         ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_publish_readiness.zig\"),",
         ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_used_buffer_poll.zig\"),",
+        ".root_source_file = b.path(\"phase10_virtio_ring_registration_replay.zig\"),",
+        ".root_source_file = b.path(\"phase10_virtio_ring_prepare_kick_idempotent.zig\"),",
+        ".root_source_file = b.path(\"phase10_virtio_ring_reset_reuse.zig\"),",
+        ".root_source_file = b.path(\"phase10_virtio_ring_broken_queue_queue_discipline.zig\"),",
+        ".root_source_file = b.path(\"phase10_virtio_ring_delayed_callback_budget.zig\"),",
         ".root_source_file = b.path(\"phase10_virtio_ring_survey.zig\"),",
-        ".name = \"phase10-virtio-ring-notification-data-readiness-tests\",",
-        ".name = \"phase10-virtio-ring-reset-readiness-tests\",",
-        ".name = \"phase10-virtio-ring-publish-readiness-tests\",",
-        ".name = \"phase10-virtio-ring-used-buffer-poll-tests\",",
-        ".name = \"phase10-virtio-ring-survey-tests\",",
+        ".name = \\\"phase10-virtio-ring-notification-data-readiness-tests\\\",",
+        ".name = \\\"phase10-virtio-ring-registration-replay-tests\\\",",
+        ".name = \\\"phase10-virtio-ring-reset-readiness-tests\\\",",
+        ".name = \\\"phase10-virtio-ring-publish-readiness-tests\\\",",
+        ".name = \\\"phase10-virtio-ring-used-buffer-poll-tests\\\",",
+        ".name = \\\"phase10-virtio-ring-prepare-kick-idempotent-tests\\\",",
+        ".name = \\\"phase10-virtio-ring-reset-reuse-tests\\\",",
+        ".name = \\\"phase10-virtio-ring-broken-queue-queue-discipline-tests\\\",",
+        ".name = \\\"phase10-virtio-ring-delayed-callback-budget-tests\\\",",
+        ".name = \\\"phase10-virtio-ring-survey-tests\\\",",
         "test_step.dependOn(&run_phase10_virtio_ring_notification_data_readiness_tests.step);",
+        "test_step.dependOn(&run_phase10_virtio_ring_registration_replay_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_reset_readiness_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_used_buffer_poll_tests.step);",
+        "test_step.dependOn(&run_phase10_virtio_ring_prepare_kick_idempotent_tests.step);",
+        "test_step.dependOn(&run_phase10_virtio_ring_reset_reuse_tests.step);",
+        "test_step.dependOn(&run_phase10_virtio_ring_broken_queue_queue_discipline_tests.step);",
+        "test_step.dependOn(&run_phase10_virtio_ring_delayed_callback_budget_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_survey_tests.step);",
     ],
     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig": [
@@ -403,6 +418,21 @@ def run_self_test() -> int:
                 if not problems:
                     raise SystemExit(f"phase10-ring-packet:{label}-not-detected")
 
+        with tempfile.TemporaryDirectory(prefix="zigux_phase10_ring_packet_missing_build_marker_") as tmp_case:
+            case_root = Path(tmp_case)
+            write_fixture_tree(case_root)
+            build_path = case_root / "zigux/tests/phase10_build.zig"
+            build_text = build_path.read_text(encoding="utf-8")
+            build_text = build_text.replace(
+                ".name = \\\"phase10-virtio-ring-registration-replay-tests\\\",",
+                "",
+                1,
+            )
+            build_path.write_text(build_text, encoding="utf-8")
+            missing, problems = validate(case_root)
+            if not problems:
+                raise SystemExit("phase10-ring-packet:missing-build-marker-not-detected")
+
         forbidden_case_count = 0
         for forbidden_case_path, forbidden_markers in FORBIDDEN_MARKERS.items():
             for forbidden_index, forbidden_marker in enumerate(forbidden_markers, start=1):
@@ -422,7 +452,7 @@ def run_self_test() -> int:
                         )
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
