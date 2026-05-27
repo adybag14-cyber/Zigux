@@ -139,7 +139,7 @@
     {
       "variable": "throughput_parity_step",
       "step": "phase12-virtio-net-throughput-parity",
-      "description": "Run the Phase 12 virtio_net throughput parity checks"
+      "description": "Run the Phase 12 virtio_net throughput-parity replay in isolation"
     }
   ]
 }
