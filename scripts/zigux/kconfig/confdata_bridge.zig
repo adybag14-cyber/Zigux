@@ -133,7 +133,7 @@ fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8, closi
 }
 
 fn isTristateValue(raw_value: []const u8) bool {
-    if (raw_value.len == 0) return false;
+    if (raw_value.len != 1) return false;
     return switch (std.ascii.toLower(raw_value[0])) {
         'y', 'm', 'n' => true,
         else => false,
@@ -493,13 +493,15 @@ test "confdata bridge ignores non-CONFIG lines like upstream confdata" {
     var summary = try parseConfig(allocator,
         \\source "Kconfig"
         \\NOT_CONFIG=y
+        \\CONFIG_WORD=yes
         \\CONFIG_ALPHA=m
         \\
     );
     defer deinitSummary(allocator, &summary);
 
-    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
-    try expectEntry(summary, 0, "CONFIG_ALPHA", .tristate, "m");
+    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
+    try expectEntry(summary, 0, "CONFIG_WORD", .value, "yes");
+    try expectEntry(summary, 1, "CONFIG_ALPHA", .tristate, "m");
 }
 
 test "confdata bridge ignores empty CONFIG symbol names" {
