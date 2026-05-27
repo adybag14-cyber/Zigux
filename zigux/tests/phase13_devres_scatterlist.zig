@@ -7,6 +7,12 @@ fn requireContains(text: []const u8, needle: []const u8) !void {
     }
 }
 
+fn requireAbsent(text: []const u8, needle: []const u8) !void {
+    if (std.mem.indexOf(u8, text, needle) != null) {
+        return error.UnexpectedMarker;
+    }
+}
+
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(1 << 20));
 }
@@ -19,6 +25,27 @@ test "phase13 devres descriptor records helper-first scatterlist planning" {
     try std.testing.expect(descriptor.provides_scatterlist_lifetime_planning);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_live_scatterlist);
+}
+
+test "phase13 devres scatterlist helper stays planning-only at the boundary" {
+    const helper = try readRepoFile(std.testing.allocator, "lib/devres_scatterlist.zig");
+    defer std.testing.allocator.free(helper);
+
+    try requireContains(helper, ".provides_scatterlist_lifetime_planning = true");
+    try requireContains(helper, ".touches_live_dma = false");
+    try requireContains(helper, ".touches_live_scatterlist = false");
+    try requireContains(helper, "pub fn planManagedScatterlistMap");
+    try requireContains(helper, "pub fn scatterlistReleaseMatches");
+    try requireContains(helper, "pub fn planManagedScatterlistUnmap");
+    try requireAbsent(helper, "dma_map_sg(");
+    try requireAbsent(helper, "dma_unmap_sg(");
+    try requireAbsent(helper, "dma_map_sgtable(");
+    try requireAbsent(helper, "sg_alloc_table(");
+    try requireAbsent(helper, "sg_free_table(");
+    try requireAbsent(helper, "sg_dma_address(");
+    try requireAbsent(helper, "sg_dma_len(");
+    try requireAbsent(helper, "struct scatterlist");
+    try requireAbsent(helper, "sg_table");
 }
 
 test "phase13 devres retains the release record when helper-first scatterlist planning succeeds" {
