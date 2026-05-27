@@ -217,7 +217,7 @@ test "queue resume keeps receive and transmit submission ownership distinct whil
     try std.testing.expectEqual(QueueSubmissionOwner.driver, transmit.receive_submission_owner);
     try std.testing.expectEqual(QueueSubmissionOwner.recovery, transmit.transmit_submission_owner);
     try std.testing.expect(!transmit.can_resume_queues);
-    try std.testing.expect(!transmit.queues_ready_forDriver_ownership);
+    try std.testing.expect(!transmit.queues_ready_for_driver_ownership);
 }
 
 test "queue resume keeps probe snapshot replay explicit before queue submission resumes" {
