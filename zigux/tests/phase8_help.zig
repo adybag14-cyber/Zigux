@@ -79,6 +79,21 @@ test "phase 8 help pretty printer keeps the current row-major stable output" {
     );
 }
 
+test "phase 8 help pretty printer falls back to the default width when terminal columns are unavailable" {
+    var cmds = help.CommandNames.init(std.testing.allocator);
+    defer cmds.deinit();
+    try cmds.add("annotate");
+    try cmds.add("bench");
+
+    const rendered = try help.renderPrettyStringList(std.testing.allocator, &cmds, 0);
+    defer std.testing.allocator.free(rendered);
+
+    try std.testing.expectEqualStrings(
+        " annotate bench\n",
+        rendered,
+    );
+}
+
 test "phase 8 help section rendering keeps stable main and fallback headings" {
     var main_cmds = help.CommandNames.init(std.testing.allocator);
     defer main_cmds.deinit();
@@ -169,4 +184,24 @@ test "phase 8 help fallback-only packet suppresses the empty main heading" {
             "\n",
         rendered,
     );
+}
+
+test "phase 8 help fully empty section rendering stays empty" {
+    var main_cmds = help.CommandNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+
+    var other_cmds = help.CommandNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    const rendered = try help.renderCommandSections(
+        std.testing.allocator,
+        "subcommands",
+        null,
+        &main_cmds,
+        &other_cmds,
+        80,
+    );
+    defer std.testing.allocator.free(rendered);
+
+    try std.testing.expectEqualStrings("", rendered);
 }
