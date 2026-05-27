@@ -643,6 +643,20 @@ test "memparse keeps signed non-decimal prefixes aligned with suffix handling" {
     try std.testing.expectEqualStrings("more", unsigned_octal.rest);
 }
 
+test "memparse saturates positive overflow suffixes after helper-local clamping" {
+    const plain_overflow = memparse("18446744073709551616 rest");
+    try std.testing.expectEqual(@as(u64, std.math.maxInt(i64)), plain_overflow.value);
+    try std.testing.expectEqualStrings(" rest", plain_overflow.rest);
+
+    const suffix_overflow = memparse("18446744073709551616Ktail");
+    try std.testing.expectEqual(std.math.maxInt(u64), suffix_overflow.value);
+    try std.testing.expectEqualStrings("tail", suffix_overflow.rest);
+
+    const lowercase_suffix_overflow = memparse("18446744073709551616mtail");
+    try std.testing.expectEqual(std.math.maxInt(u64), lowercase_suffix_overflow.value);
+    try std.testing.expectEqualStrings("tail", lowercase_suffix_overflow.rest);
+}
+
 test "parseOptionStr matches only exact bare options" {
     try std.testing.expect(parseOptionStr("quiet,debug,nohlt", "debug"));
     try std.testing.expect(parseOptionStr("quiet,debug\x00,nohlt", "debug"));
