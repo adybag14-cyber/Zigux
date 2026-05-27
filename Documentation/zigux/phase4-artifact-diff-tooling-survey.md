@@ -20,7 +20,7 @@ Phase 4 in `ZAR_TO_ZIGUX_PRODUCT_ROADMAP (1).md` still calls for host-side artif
 
 Current `master` now keeps the directly readable helper, contract checker, determinism checker, validator-replay checker, shared validator packet, and broader owner-and-rollback note aligned around the same bytes-capable artifact-diff contract.
 
-The broader `Documentation/zigux/artifact-diff.md` note is directly readable on current `master` again and now matches the current 23-case helper packet, the current 25-base-case / 30-case contract packet, and the current 12-case determinism self-test packet.
+The broader `Documentation/zigux/artifact-diff.md` note is directly readable on current `master` again and now matches the current 23-case helper packet, the current 25-base-case / 30-case contract packet, and the current 13-case determinism self-test packet.
 
 The directly readable Phase 4 packet therefore stays reviewable in a fully aligned state:
   * `scripts/zigux/artifact_diff.py` is directly readable on current `master`, so the bounded helper-side `text`, `json`, and `bytes` comparison entrypoints, the legacy `sha256 -> bytes` mode alias, and the shipped `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23` packet are current-head evidence rather than historical provenance.
@@ -100,8 +100,8 @@ These are the exact top-level pass markers implied by the current directly reada
     * `ARTIFACT_DIFF_CONTRACT_CASE_COUNT=30`
   * `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test`
     * `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass`
-    * `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=12`
-    * `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES=round_trip,survey_marker_drift,survey_packet_drift,review_checklist_drift,note_marker_drift,broader_note_marker_drift,broader_note_stale_packet_drift,repo_warning_drift,helper_mode_drift,helper_catalog_drift,contract_catalog_drift,direct_packet_missing`
+    * `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=13`
+    * `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES=round_trip,survey_marker_drift,survey_packet_drift,survey_exact_packet_drift,review_checklist_drift,note_marker_drift,broader_note_marker_drift,broader_note_stale_packet_drift,repo_warning_drift,helper_mode_drift,helper_catalog_drift,contract_catalog_drift,direct_packet_missing`
   * `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py`
     * `PHASE4_ARTIFACT_DIFF_DETERMINISM=pass`
     * `PHASE4_ARTIFACT_DIFF_DETERMINISM_DIRECT_PACKET_MEMBERS=11`
