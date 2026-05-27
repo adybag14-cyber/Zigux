@@ -18,6 +18,7 @@ REQUIRED_FILES = [
     "scripts/zigux/validate-phase10-closure.py",
     "scripts/zigux/validate-phase10.py",
     ".github/workflows/zigux-bootstrap.yml",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
@@ -38,6 +39,21 @@ REQUIRED_FILES = [
 
 MAKE_MARKERS = [
     "PHONY += phase10-validate phase10-test phase10",
+]
+
+DOCS_ROOT_MARKERS = [
+    "`Documentation/zigux/phase10-closure-evidence.md`",
+    "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
+    "`scripts/zigux/check-phase10-harness-coverage.py`",
+    "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+    "`zigux/tests/phase10_closure_manifest.json`",
+    "`zigux/tests/phase10_build.zig`",
+    "`drivers/virtio/virtio_input_probe_preflight.zig`",
+    "`zigux/tests/phase10_virtio_input_probe_preflight.zig`",
+    "`make -C zigux phase10-validate`",
+    "`make -C zigux phase10-test`",
+    "`make -C zigux phase10`",
+    "while risky transport stays parked behind the shared closure manifest and its lane-local follow-through notes.",
 ]
 
 CLOSURE_DOC_MARKERS = [
@@ -146,6 +162,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
     checks = [
         ("make", "zigux/Makefile", MAKE_MARKERS),
+        ("docs-root", "Documentation/zigux/README.md", DOCS_ROOT_MARKERS),
         ("closure", "Documentation/zigux/phase10-closure-evidence.md", CLOSURE_DOC_MARKERS),
         ("lane", "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", LANE_MARKERS),
         ("review", "Documentation/zigux/review-checklist.md", REVIEW_CHECKLIST_MARKERS),
@@ -189,6 +206,7 @@ def write_fixture(root: Path) -> None:
         write_text(root / rel_path, stub)
 
     for rel_path, markers in {
+        "Documentation/zigux/README.md": DOCS_ROOT_MARKERS,
         "Documentation/zigux/phase10-closure-evidence.md": CLOSURE_DOC_MARKERS,
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": LANE_MARKERS,
         "Documentation/zigux/review-checklist.md": REVIEW_CHECKLIST_MARKERS,
@@ -223,6 +241,24 @@ def run_self_test() -> int:
         if collect_missing_files(root) or collect_missing_markers(root) or run_required_commands(root):
             raise SystemExit("phase10-closure-self-test:baseline_failed")
         cases = 1
+
+        docs_root = root / "Documentation/zigux/README.md"
+        original_docs_root = docs_root.read_text(encoding="utf-8")
+        docs_root.write_text(
+            original_docs_root.replace(
+                "while risky transport stays parked behind the shared closure manifest and its lane-local follow-through notes.",
+                "while risky transport stays parked behind the shared closure packet.",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_contains(
+            collect_missing_markers(root),
+            "docs-root:while risky transport stays parked behind the shared closure manifest and its lane-local follow-through notes.",
+            "phase10-closure-self-test",
+        )
+        cases += 1
+        docs_root.write_text(original_docs_root, encoding="utf-8")
 
         closure_doc = root / "Documentation/zigux/phase10-closure-evidence.md"
         original_doc = closure_doc.read_text(encoding="utf-8")
@@ -314,6 +350,12 @@ def run_self_test() -> int:
         cases += 1
         write_fixture(root)
 
+        (root / "Documentation/zigux/README.md").unlink()
+        missing = collect_missing_files(root)
+        expect_contains(missing, "Documentation/zigux/README.md", "phase10-closure-self-test")
+        cases += 1
+        write_fixture(root)
+
         (root / "zigux/tests/phase10_virtio_mmio_manifest.json").unlink()
         missing = collect_missing_files(root)
         expect_contains(missing, "zigux/tests/phase10_virtio_mmio_manifest.json", "phase10-closure-self-test")
@@ -361,7 +403,7 @@ def main() -> int:
 
     print("PHASE10_CLOSURE_VALIDATION=pass")
     print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE10_CLOSURE_REQUIRED_MARKER_COUNT={len(MAKE_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(LEDGER_MARKERS) + len(MANIFEST_MARKERS)}")
+    print(f"PHASE10_CLOSURE_REQUIRED_MARKER_COUNT={len(MAKE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(LEDGER_MARKERS) + len(MANIFEST_MARKERS)}")
     print(f"PHASE10_CLOSURE_EXACT_CHECK_COUNT={EXACT_CHECK_COUNT}")
     return 0
 
