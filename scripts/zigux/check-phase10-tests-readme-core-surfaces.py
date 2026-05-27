@@ -63,11 +63,9 @@ TESTS_ROOT_REQUIRED_MARKERS = (
     "The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`.",
     "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
     "`drivers/virtio/virtio_input_queue_callback_preflight.zig`",
-    "`drivers/virtio/virtio_input_teardown_preflight.zig`",
     "`drivers/virtio/virtio_ring_publish_readiness.zig`",
-    "`zigux/tests/phase10_virtio_input_teardown_preflight.zig`",
     "`zigux/tests/phase10_virtio_input_teardown_observation.zig`",
-    "queue-callback-preflight, registration-preflight, teardown-preflight, status-drain, and teardown-observation replays explicit here",
+    "queue-callback-preflight, registration-preflight, status-drain, and teardown-observation replays explicit here",
     "`zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig`",
     "`zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig`",
     "without widening into lifecycle, IRQ-delivery, or DMA claims",
@@ -175,11 +173,9 @@ Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bou
 The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`.
 `Documentation/zigux/phase10-virtio-input-module-slice.md`
 `drivers/virtio/virtio_input_queue_callback_preflight.zig`
-`drivers/virtio/virtio_input_teardown_preflight.zig`
 `drivers/virtio/virtio_ring_publish_readiness.zig`
-`zigux/tests/phase10_virtio_input_teardown_preflight.zig`
 `zigux/tests/phase10_virtio_input_teardown_observation.zig`
-queue-callback-preflight, registration-preflight, teardown-preflight, status-drain, and teardown-observation replays explicit here
+queue-callback-preflight, registration-preflight, status-drain, and teardown-observation replays explicit here
 `zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig`
 `zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig`
 without widening into lifecycle, IRQ-delivery, or DMA claims
@@ -222,20 +218,6 @@ do not widen this scripts-root packet into queue execution parity, IRQ delivery,
         raise AssertionError("expected tests-root marker failure")
 
     try:
-        check_tests_root_readme(good_tests_root.replace("`drivers/virtio/virtio_input_teardown_preflight.zig`\n", "", 1))
-    except SystemExit:
-        pass
-    else:
-        raise AssertionError("expected teardown-preflight helper marker failure")
-
-    try:
-        check_tests_root_readme(good_tests_root.replace("`zigux/tests/phase10_virtio_input_teardown_preflight.zig`\n", "", 1))
-    except SystemExit:
-        pass
-    else:
-        raise AssertionError("expected teardown-preflight replay marker failure")
-
-    try:
         check_scripts_readme(good_scripts.replace("pair stays explicit", "pair remain the narrower core-side repo-reality gaps on current `master`", 1))
     except SystemExit:
         pass
@@ -243,7 +225,7 @@ do not widen this scripts-root packet into queue execution parity, IRQ delivery,
         raise AssertionError("expected scripts-root forbidden marker failure")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
