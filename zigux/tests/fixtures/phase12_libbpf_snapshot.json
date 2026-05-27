@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L16",
   "phase": "Phase 12",
-  "surveyed_commit": "8d84eb459b76323b2fe0646ad00ef13c310db0be",
+  "surveyed_commit": "989dd45d14a31f6d013f6a7ac2b5319bf5168ccd",
   "tracked_file_count": 4,
   "tracked_paths": [
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
@@ -22,19 +22,19 @@
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
-      "blob_sha": "9c4f49c046c680467f8411b28bb2dddd5dbc42a7"
+      "blob_sha": "7356b2dd9612b98b50be21ad7ec0ce4075326451"
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
-      "blob_sha": "10f7bcb3299bd65cc3f54037861abba40c862c89"
+      "blob_sha": "4a01b04fba15a7fe80326d546373040e2117519f"
     },
     {
       "path": "Documentation/zigux/phase12-release-coordination-matrix.md",
-      "blob_sha": "0b6918a44469bb2d5b35099643a4c1c9eeaab34c"
+      "blob_sha": "1c088357068e7611cb1f41ee207527637b15f910"
     }
   ],
   "verification_evidence": {
-    "checked_at_utc": "2026-05-25T19:05:31Z",
+    "checked_at_utc": "2026-05-27T19:19:39Z",
     "readback_mode": "github-contents-readback",
     "checker": {
       "path": "scripts/zigux/check-phase12-libbpf-snapshot.py",
@@ -49,15 +49,15 @@
       },
       {
         "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
-        "blob_sha": "9c4f49c046c680467f8411b28bb2dddd5dbc42a7"
+        "blob_sha": "7356b2dd9612b98b50be21ad7ec0ce4075326451"
       },
       {
         "path": "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
-        "blob_sha": "10f7bcb3299bd65cc3f54037861abba40c862c89"
+        "blob_sha": "4a01b04fba15a7fe80326d546373040e2117519f"
       },
       {
         "path": "Documentation/zigux/phase12-release-coordination-matrix.md",
-        "blob_sha": "0b6918a44469bb2d5b35099643a4c1c9eeaab34c"
+        "blob_sha": "1c088357068e7611cb1f41ee207527637b15f910"
       }
     ]
   }
