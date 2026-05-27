@@ -2,19 +2,43 @@
   "shared_build_file": "zigux/tests/phase11_dw_wdt_build.zig",
   "shared_replay_command": "zig build test --build-file zigux/tests/phase11_dw_wdt_build.zig",
   "shared_step_name": "test",
-  "shared_step_description": "Run the focused Phase 11 DesignWare watchdog scaffold packet",
+  "shared_step_description": "Run the focused Phase 11 DesignWare watchdog scaffold, direct replay, and verify packet",
   "build_test_names": [
     "phase11-dw-wdt-registration-scaffold-tests",
-    "phase11-dw-wdt-pm-tests"
+    "phase11-dw-wdt-live-mmio-review-tests",
+    "phase11-dw-wdt-pm-tests",
+    "phase11-dw-wdt-restart-tests",
+    "phase11-dw-wdt-verify-tests",
+    "phase11-dw-wdt-direct-replay-tests"
   ],
   "module_root_source_files": [
+    {
+      "module": "dw_wdt_module",
+      "path": "../../drivers/watchdog/dw_wdt.zig"
+    },
+    {
+      "module": "dw_wdt_pm_module",
+      "path": "../../drivers/watchdog/dw_wdt_pm.zig"
+    },
     {
       "module": "registration_scaffold_module",
       "path": "phase11_dw_wdt_registration_scaffold.zig"
     },
     {
-      "module": "pm_module",
-      "path": "../../drivers/watchdog/dw_wdt_pm.zig"
+      "module": "live_mmio_review_module",
+      "path": "phase11_dw_wdt_live_mmio_review.zig"
+    },
+    {
+      "module": "restart_module",
+      "path": "../../drivers/watchdog/dw_wdt_restart.zig"
+    },
+    {
+      "module": "verify_module",
+      "path": "../../drivers/watchdog/dw_wdt_verify.zig"
+    },
+    {
+      "module": "direct_replay_module",
+      "path": "phase11_dw_wdt.zig"
     }
   ],
   "test_root_modules": [
@@ -23,8 +47,24 @@
       "root_module": "registration_scaffold_module"
     },
     {
+      "test": "phase11-dw-wdt-live-mmio-review-tests",
+      "root_module": "live_mmio_review_module"
+    },
+    {
       "test": "phase11-dw-wdt-pm-tests",
-      "root_module": "pm_module"
+      "root_module": "dw_wdt_pm_module"
+    },
+    {
+      "test": "phase11-dw-wdt-restart-tests",
+      "root_module": "restart_module"
+    },
+    {
+      "test": "phase11-dw-wdt-verify-tests",
+      "root_module": "verify_module"
+    },
+    {
+      "test": "phase11-dw-wdt-direct-replay-tests",
+      "root_module": "direct_replay_module"
     }
   ],
   "exact_current_checks": [
