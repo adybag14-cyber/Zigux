@@ -19,7 +19,7 @@ CHECKER_PATH = Path("scripts/zigux/check-phase15-architecture-council-packet.py"
 
 EXPECTED_LANE_KEY = "P15-L08"
 EXPECTED_PHASE = "Phase 15"
-EXPECTED_SURVEYED_COMMIT = "current-master-readback-2026-05-23"
+EXPECTED_SURVEYED_COMMIT = "current-master-readback-2026-05-26"
 
 REQUIRED_NOTE_MARKERS = (
     "PHASE15_STATUS=architecture_council_review_process_landed",
@@ -266,7 +266,7 @@ This note records the bounded Phase 15 review-policy packet for freeze-map ancho
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_SLICE=stay-in-c-review-field-inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-23`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-26`
 - `PHASE15_PACKET_OWNER=Architecture Council`
 - `PHASE15_PACKET_VALIDATION_GATE=python3 scripts/zigux/check-phase15-review-process-handoff.py && zig test zigux/tests/phase15_architecture_council_review_process.zig && zig build test --build-file zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `PHASE15_PACKET_ROLLBACK_OWNER=Architecture Council`
@@ -320,7 +320,7 @@ Study-only freeze-map anchors stay outside this Architecture Council status-revi
 - follow-up owner
 - next bounded step
 
-## Stay-in-C closeout rule
+## Stay-In-C closeout rule
 
 - the retained `freeze_in_c` decision
 - the current blocker
