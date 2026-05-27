@@ -1,0 +1,89 @@
+{
+  "lane_key": "P15-L01",
+  "phase": "Phase 15",
+  "surveyed_commit_mode": "dated_master_readback",
+  "surveyed_commit": "current-master-readback-2026-05-27",
+  "scope": "tranche readiness gate survey remaining readiness gaps vs roadmap and ledger",
+  "roadmap_required_features": [
+    {
+      "requirement": "freeze map",
+      "status": "landed_but_status_change_still_blocked",
+      "evidence": [
+        "Documentation/zigux/freeze-map.md",
+        "Documentation/zigux/phase15-freeze-map-governance.md"
+      ],
+      "remaining_gap": "no Architecture Council approval is currently recorded for a freeze-map status change"
+    },
+    {
+      "requirement": "Architecture Council review process",
+      "status": "landed_but_no_reopen_decision_recorded",
+      "evidence": [
+        "Documentation/zigux/phase15-architecture-council-review-process.md",
+        "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+        "Documentation/zigux/phase15-architecture-council-decision-index.md"
+      ],
+      "remaining_gap": "no reopen decision is currently recorded for a deep-core Phase 15 status change"
+    },
+    {
+      "requirement": "parity scorecard",
+      "status": "landed_but_not_shared_route_ready",
+      "evidence": [
+        "Documentation/zigux/phase15-parity-scorecard.md",
+        "Documentation/zigux/phase15-parity-scorecard-survey.md",
+        "zigux/tests/phase15_parity_scorecard.json",
+        "zigux/tests/phase15_parity_scorecard.zig"
+      ],
+      "remaining_gap": "the broader Phase 15 replay route is still blocked on missing `phase15*` Makefile wrappers and a dedicated workflow route"
+    },
+    {
+      "requirement": "policy for code that remains in C indefinitely",
+      "status": "landed_but_not_one_command_or_ci_ready",
+      "evidence": [
+        "Documentation/zigux/phase15-indefinite-c-policy.md",
+        "zigux/tests/phase15_indefinite_c_policy.json",
+        "zigux/tests/phase15_indefinite_c_policy.zig"
+      ],
+      "remaining_gap": "the indefinite-C policy is landed and replay-backed, but the broader reminder surface is still not one-command or shared-CI ready"
+    }
+  ],
+  "ledger_anchors": [
+    {
+      "anchor": "docs(zigux): add documentation root, review checklist, and freeze map",
+      "status": "landed_and_materially_exceeded",
+      "evidence": [
+        "Documentation/zigux/freeze-map.md",
+        "Documentation/zigux/review-checklist.md",
+        "Documentation/zigux/phase15-readiness-gate-survey.md"
+      ],
+      "remaining_gap": "none at the original docs-root anchor itself; the remaining readiness gaps now live in missing wrapper and workflow routes"
+    }
+  ],
+  "remaining_readiness_gaps": [
+    {
+      "gap": "missing_make_routes",
+      "status": "blocked",
+      "path": "zigux/Makefile",
+      "blocked_routes": [
+        "phase15-validate",
+        "phase15-test",
+        "phase15"
+      ],
+      "why_it_matters": "without dedicated wrapper routes, the broader Phase 15 replay packet is not one-command ready"
+    },
+    {
+      "gap": "missing_workflow_route",
+      "status": "blocked",
+      "path": ".github/workflows/zigux-bootstrap.yml",
+      "why_it_matters": "without a dedicated workflow route, the broader Phase 15 replay packet is not shared-CI ready"
+    },
+    {
+      "gap": "no_architecture_council_status_change_approval",
+      "status": "blocked",
+      "paths": [
+        "Documentation/zigux/freeze-map.md",
+        "Documentation/zigux/phase15-architecture-council-review-process.md"
+      ],
+      "why_it_matters": "the landed governance packet still does not authorize a freeze-map status change or direct deep-core Zig delivery claim"
+    }
+  ]
+}
