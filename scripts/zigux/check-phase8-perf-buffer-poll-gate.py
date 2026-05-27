@@ -24,6 +24,7 @@ TESTS_README_PATH = "zigux/tests/README.md"
 PERF_BUFFER_POLL_TEST_PATH = "zigux/tests/phase8_perf_buffer_poll.zig"
 PERF_BUFFER_POLL_BUILD_PATH = "zigux/tests/phase8_perf_buffer_poll_only_build.zig"
 PERF_BUFFER_POLL_HELPER_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
+PERF_BUFFER_WAIT_BUDGET_HELPER_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig"
 PHASE8_BUILD_PATH = "zigux/tests/phase8_build.zig"
 
 NOTE_REQUIRED_MARKERS = [
@@ -31,6 +32,7 @@ NOTE_REQUIRED_MARKERS = [
     "`PHASE8_STATUS=parked_helper_slice`",
     "`PHASE8_SLICE=libbpf-perf-buffer-poll`",
     "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`",
+    "`tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig`",
     "`tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`",
     "`tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig`",
     "`zigux/tests/phase8_perf_buffer_poll.zig`",
@@ -99,10 +101,14 @@ TESTS_README_REQUIRED_MARKERS = [
 PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS = [
     "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "phase8-perf-buffer-poll-tests",
+    "../../tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig",
+    "perf_buffer_wait_budget_module.addImport(\"perf_buffer_poll\", perf_buffer_poll_module);",
+    "phase8-perf-buffer-wait-budget-tests",
     "../../tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig",
     "phase8-ready-buffer-fd-lookup-tests",
     "../../tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig",
     "phase8-perf-buffer-poll-verify-tests",
+    "test_step.dependOn(&run_perf_buffer_wait_budget_tests.step);",
     "test_step.dependOn(&run_ready_buffer_fd_lookup_tests.step);",
     "test_step.dependOn(&run_perf_buffer_poll_verify_tests.step);",
 ]
@@ -110,8 +116,12 @@ PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS = [
 PHASE8_BUILD_REQUIRED_MARKERS = [
     "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "phase8-perf-buffer-poll-tests",
+    "../../tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig",
+    "perf_buffer_wait_budget_module.addImport(\"perf_buffer_poll\", perf_buffer_poll_module);",
+    "phase8-perf-buffer-wait-budget-tests",
     "../../tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig",
     "phase8-ready-buffer-fd-lookup-tests",
+    "test_step.dependOn(&run_perf_buffer_wait_budget_tests.step);",
     "test_step.dependOn(&run_ready_buffer_fd_lookup_tests.step);",
 ]
 
@@ -266,6 +276,22 @@ PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS = [
     "PollError.InconsistentPollSummary",
 ]
 
+PERF_BUFFER_WAIT_BUDGET_HELPER_REQUIRED_MARKERS = [
+    "pub const WaitBudgetSummary = struct {",
+    "timeout_ms: i32,",
+    "bounded_timeout_ms: ?u32,",
+    "bounded_timeout_ns: ?u64,",
+    "pub fn summarizeWaitBudget(timeout_ms: i32) perf_buffer_poll.PollError!WaitBudgetSummary {",
+    "pub fn summarizeWaitBudgetFromPollSummary(summary: perf_buffer_poll.PollSummary) WaitBudgetSummary {",
+    'test "phase8 perf-buffer wait budget keeps nonblocking waits budgetless" {',
+    'test "phase8 perf-buffer wait budget keeps indefinite waits budgetless" {',
+    'test "phase8 perf-buffer wait budget normalizes bounded waits into ms and ns budgets" {',
+    'test "phase8 perf-buffer wait budget preserves large bounded waits without overflow" {',
+    'test "phase8 perf-buffer wait budget rejects invalid negative waits" {',
+    "std.time.ns_per_ms",
+    "perf_buffer_poll.PollError.InvalidTimeout",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -287,6 +313,7 @@ def validate(root: Path) -> list[str]:
         PERF_BUFFER_POLL_TEST_PATH,
         PERF_BUFFER_POLL_BUILD_PATH,
         PERF_BUFFER_POLL_HELPER_PATH,
+        PERF_BUFFER_WAIT_BUDGET_HELPER_PATH,
         PHASE8_BUILD_PATH,
     )
     for rel_path in required_files:
@@ -303,6 +330,7 @@ def validate(root: Path) -> list[str]:
         (PERF_BUFFER_POLL_TEST_PATH, PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_BUILD_PATH, PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_HELPER_PATH, PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS),
+        (PERF_BUFFER_WAIT_BUDGET_HELPER_PATH, PERF_BUFFER_WAIT_BUDGET_HELPER_REQUIRED_MARKERS),
         (PHASE8_BUILD_PATH, PHASE8_BUILD_REQUIRED_MARKERS),
     )
     for rel_path, markers in marker_groups:
@@ -322,6 +350,7 @@ def build_fixture_root(root: Path) -> None:
         (PERF_BUFFER_POLL_TEST_PATH, PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_BUILD_PATH, PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_HELPER_PATH, PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS),
+        (PERF_BUFFER_WAIT_BUDGET_HELPER_PATH, PERF_BUFFER_WAIT_BUDGET_HELPER_REQUIRED_MARKERS),
         (PHASE8_BUILD_PATH, PHASE8_BUILD_REQUIRED_MARKERS),
     )
     for rel_path, markers in marker_groups:
@@ -352,6 +381,7 @@ def run_self_test() -> int:
             (PERF_BUFFER_POLL_TEST_PATH, PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS),
             (PERF_BUFFER_POLL_BUILD_PATH, PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS),
             (PERF_BUFFER_POLL_HELPER_PATH, PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS),
+            (PERF_BUFFER_WAIT_BUDGET_HELPER_PATH, PERF_BUFFER_WAIT_BUDGET_HELPER_REQUIRED_MARKERS),
             (PHASE8_BUILD_PATH, PHASE8_BUILD_REQUIRED_MARKERS),
         )
         for rel_path, markers in marker_groups:
@@ -370,6 +400,7 @@ def run_self_test() -> int:
             PERF_BUFFER_POLL_TEST_PATH,
             PERF_BUFFER_POLL_BUILD_PATH,
             PERF_BUFFER_POLL_HELPER_PATH,
+            PERF_BUFFER_WAIT_BUDGET_HELPER_PATH,
             PHASE8_BUILD_PATH,
         ):
             path = base / rel_path
@@ -405,6 +436,10 @@ def run_self_test() -> int:
         f"{len(PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS)}"
     )
     print(
+        "PHASE8_PERF_BUFFER_POLL_GATE_WAIT_BUDGET_HELPER_FILE_MARKER_COUNT="
+        f"{len(PERF_BUFFER_WAIT_BUDGET_HELPER_REQUIRED_MARKERS)}"
+    )
+    print(
         "PHASE8_PERF_BUFFER_POLL_GATE_SHARED_BUILD_MARKER_COUNT="
         f"{len(PHASE8_BUILD_REQUIRED_MARKERS)}"
     )
@@ -417,7 +452,7 @@ def main() -> int:
             "Check that the surviving Phase 8 perf-buffer poll packet stays aligned "
             "across the dedicated poll note, the bridge-boundary reminder, the scripts guide, "
             "the tests guide, the focused poll build shard, the shared Phase 8 aggregate build, "
-            "the bounded poll helper test, and the helper source markers."
+            "the bounded poll helper test, the wait-budget helper, and the helper source markers."
         )
     )
     parser.add_argument(
@@ -464,6 +499,10 @@ def main() -> int:
     print(
         "PHASE8_PERF_BUFFER_POLL_GATE_HELPER_FILE_MARKER_COUNT="
         f"{len(PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS)}"
+    )
+    print(
+        "PHASE8_PERF_BUFFER_POLL_GATE_WAIT_BUDGET_HELPER_FILE_MARKER_COUNT="
+        f"{len(PERF_BUFFER_WAIT_BUDGET_HELPER_REQUIRED_MARKERS)}"
     )
     print(
         "PHASE8_PERF_BUFFER_POLL_GATE_SHARED_BUILD_MARKER_COUNT="
