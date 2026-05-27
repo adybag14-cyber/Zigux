@@ -102,6 +102,8 @@ REQUIRED_MARKERS = {
         '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
         '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
         '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
+        '"make -C zigux phase3-export-uapi-layout-test"',
+        '"make -C zigux phase3-export-shim-test"',
         '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
     ),
     TESTS_BUILD_PATH: (
@@ -148,11 +150,21 @@ REQUIRED_MARKERS = {
         "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
     ),
     SHARED_SELFTEST_PATH: (
+        'Path("scripts/zigux/validate-phase3-export-uapi-survey.py")',
+        '"PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass"',
+        '"PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES="',
+        'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
+        '"PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass"',
+        '"PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT="',
         'print("PHASE3_VALIDATE_SELFTEST=pass")',
     ),
     SHARED_CHECK_RUNNER_PATH: (
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
+        '"validated Documentation/zigux/phase3-export-uapi-boundary-survey.md"',
         '"PHASE3_EXPORT_UAPI_SURVEY=pass"',
+        '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
+        '"validated zigux/tests/phase3_export_uapi_c_header_smoke.c"',
+        '"PHASE3_EXPORT_UAPI_C_HEADER_SMOKE=pass"',
     ),
 }
 
@@ -239,6 +251,21 @@ def run_self_test() -> int:
                 MANIFEST_PATH,
                 '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
                 "expected manifest replay-route marker removal to fail validation",
+            ),
+            (
+                MANIFEST_PATH,
+                '"make -C zigux phase3-export-shim-test"',
+                "expected manifest make-route marker removal to fail validation",
+            ),
+            (
+                SHARED_SELFTEST_PATH,
+                'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
+                "expected shared self-test export/UAPI c-header smoke marker removal to fail validation",
+            ),
+            (
+                SHARED_CHECK_RUNNER_PATH,
+                '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
+                "expected shared check runner export/UAPI c-header smoke route removal to fail validation",
             ),
         )
 
