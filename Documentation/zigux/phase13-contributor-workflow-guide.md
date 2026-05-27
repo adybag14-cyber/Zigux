@@ -41,17 +41,17 @@ Keep `python3 scripts/zigux/validate-phase13-release.py` explicit as the shipped
 
 `zigux/Makefile` is present on current `master`, but it still does not expose `make -C zigux phase13-validate` or `make -C zigux phase13`, so keep the file itself distinct from those missing Phase 13 route names and keep only the route names recorded as repo-reality gaps until the shared build handle returns.
 
-## Docs-Root Gap Fallback
+## Docs-Root Companion
 
-Current `master` still lacks a dedicated Phase 13 reminder block in `Documentation/zigux/README.md`.
+Current `master` now includes a dedicated Phase 13 reminder block in `Documentation/zigux/README.md`.
 
-Until that broader docs-root reminder returns:
+Keep that docs-root block aligned as the broader docs-root companion for this lane:
 
-1. keep the contributor-facing entrypoint anchored to `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
-2. do not treat `Documentation/zigux/README.md` or `zigux/Makefile` as a substitute shared entrypoint for Phase 13 reminder work
-3. if a shared reminder refresh depends on broader docs-root copy, record that as a same-lane follow-up instead of widening a helper-local change
+1. keep the stable contributor-facing handle anchored to `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
+2. keep `Documentation/zigux/README.md` aligned as a broader same-lane reminder surface rather than a substitute for the stable contributor-facing handle
+3. if the docs-root Phase 13 block drifts, land that as one shared reminder-surface refresh instead of widening a helper-local packet
 
-Docs-root fallback rule: while `Documentation/zigux/README.md` still lacks a dedicated Phase 13 reminder block, keep contributors on the workflow-guide, scripts-root, and tests-root trio and record broader docs-root repair as a separate same-lane follow-up.
+Docs-root companion rule: because `Documentation/zigux/README.md` now carries a dedicated Phase 13 reminder block on current `master`, keep it aligned as broader docs-root support for the workflow-guide, scripts-root, and tests-root trio rather than treating it as missing or as the stable contributor-facing handle itself.
 
 ## Contributor Quick Start
 
