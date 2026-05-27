@@ -346,6 +346,12 @@ phase12-smoke:
 phase12-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all
 
+phase12-nvme-pci-direct-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase12-nvme-pci-direct-test --build-file zigux/tests/phase12_nvme_pci_build.zig --summary all
+
+phase12-nvme-pci-survey-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase12-nvme-pci-survey-test --build-file zigux/tests/phase12_nvme_pci_survey_build.zig --summary all
+
 phase12-virtio-net-syntax-lab-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all
 
