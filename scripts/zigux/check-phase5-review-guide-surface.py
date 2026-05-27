@@ -34,6 +34,7 @@ DIRECT_PACKET_PATHS = (
     "samples/zigux/kretprobe_example_instance_budget_contract.zig",
     "samples/zigux/kretprobe_example_probe_spec.zig",
     "samples/zigux/trace_events_callback_focus_contract.zig",
+    "samples/zigux/trace_events_payload_preview_contract.zig",
     "samples/zigux/trace_events_string_formatting_sample.zig",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase5-review-guide-surface.py",
@@ -76,6 +77,7 @@ MARKERS = {
         "Fresh 2026-05-20 follow-up reread also keeps the current direct packet shape explicit: `samples/zigux/bytestream_fifo.zig` now carries four in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps five focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps five survey-packet checks aligned with the survey note and manifest.",
         "`zig test samples/zigux/kobject_example_attr_group_contract.zig` stays the companion-only validation route for the attr-group contract while `zigux/tests/phase5_build.zig` remains the directly readable shared build-route companion for this packet",
         "`samples/zigux/trace_events_callback_focus_contract.zig` keeps the shared `payload_shape`, `string_selection`, `formatted_message`, `conditional_event_families`, `function_callback_registration`, and `ownership_and_lifetime` `checked_focus` order plus the callback-registration recovery cues explicit at the sample root without turning that companion into a fifth Phase 5 sample.",
+        "`samples/zigux/trace_events_payload_preview_contract.zig` keeps the sibling payload-preview companion explicit through `referencePattern()`, the five-case modulo-selected preview ladder, the direct `conditional_event_families` cue, the `vararg_payload_path_checked` and `relative_location_path_checked` booleans, and the largest bounded preview case `\"One ring to rule them all\"` plus `\"iter=4\"` instead of turning that companion into a fifth Phase 5 sample.",
         "`samples/zigux/kretprobe_example_probe_spec.zig` plus `zigux/tests/phase5_kretprobe_example_probe_spec.zig` keep the direct Linux anchor path, default symbol, one-word private-data width, default `maxactive`, replay return and duration summary, missed-instance cue, and the pre-init-only symbol-selection and maxactive-tuning rules explicit beside the main replay packet instead of leaving that probe-spec reviewability trapped in the dedicated survey note alone",
     ),
     DOCS_ROOT_PATH: (
@@ -93,6 +95,7 @@ MARKERS = {
         "Keep the direct modulo-selected cycle explicit too: `runStringFormattingCycleReplay()` now walks all five selected strings through the bounded `iter=%d` formatter while keeping the companion in `.initialized` and leaving `replay_runs` unchanged.",
         "Keep the selected-string iteration companion explicit too: `formatSelectedIterationMessageInto(3, [12]u8)` still returns `\"Frodo iter=3\"` while keeping the sample in `.initialized`, so the approved-idiom note must preserve the selected-string-plus-iteration wording instead of reducing the packet to the bare `iter=%d` formatter.",
         "The same authenticated sample-root reread now directly exposes this bounded callback-focus companion too:",
+        "The same authenticated sample-root reread now directly exposes this bounded payload-preview companion too:",
         "## Exact checks run on 2026-05-20",
         "This run verified the current formatting companion with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2` using a focused `zig test` against the current `master` file body.",
         "The exact checks that passed were:",
@@ -143,6 +146,7 @@ MARKERS = {
         "Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample. Keep the returned runtime bitmap files framed only as separate Phase 9 runtime-pilot evidence.",
         "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here. Keep that formatting boundary tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` and the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion.",
         "* `samples/zigux/trace_events_callback_focus_contract.zig` keeps the shared `payload_shape`, `string_selection`, `formatted_message`, `conditional_event_families`, `function_callback_registration`, and `ownership_and_lifetime` focus order explicit as trace-events reviewability help at the sample root rather than as a separate Phase 5 sample family",
+        "* `samples/zigux/trace_events_payload_preview_contract.zig` stays direct sample-root proof for the bounded payload-shape and conditional-event-family companion, while `samples/zigux/trace_events_sample.zig` stays broader public-tree-backed companion evidence rather than a returned full trace-events port or a fifth sample",
         "* `*kasprintf*`\n* `*strarray*`",
         "* `*rbtree*`",
         "Keep `zig test --dep kobject_attr_group_contract -Mroot=zigux/tests/phase5_kobject_attr_group_contract.zig -Mkobject_attr_group_contract=samples/zigux/kobject_example_attr_group_contract.zig` explicit as the focused replay route for that bounded attr-group packet, and keep `zig test zigux/tests/phase5_kobject_attr_group_contract_survey.zig` explicit as the survey-guard route that checks the companion, focused replay, and shared build-route markers together while `zigux/tests/phase5_build.zig` stays the current directly readable shared build-route companion for the broader kobject packet.",
@@ -186,6 +190,7 @@ def placeholder(path: Path) -> str:
                 "samples/trace_events/trace-events-sample.c",
                 "samples/zigux/trace_events_string_formatting_sample.zig",
                 "samples/zigux/trace_events_callback_focus_contract.zig",
+                "samples/zigux/trace_events_payload_preview_contract.zig",
                 "Documentation/zigux/phase5-trace-events-sample-survey.md",
                 "samples/zigux/trace_events_sample.zig",
                 "zigux/tests/phase5_trace_events_sample.zig",
@@ -249,6 +254,7 @@ def collect_failures(root: Path) -> list[str]:
         "samples/trace_events/trace-events-sample.c",
         "samples/zigux/trace_events_string_formatting_sample.zig",
         "samples/zigux/trace_events_callback_focus_contract.zig",
+        "samples/zigux/trace_events_payload_preview_contract.zig",
         "zigux/tests/phase5_build.zig",
     ):
         if all(token not in approved for token in (f"`{rel}`", rel)):
@@ -269,7 +275,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 49
+    expected_case_count = 54
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -304,6 +310,11 @@ def run_self_test() -> int:
         seed(mutated)
         write_text(mutated, APPROVED_IDIOM_PATH, placeholder(APPROVED_IDIOM_PATH).replace(MARKERS[APPROVED_IDIOM_PATH][6], ""))
         expect_exact("missing approved callback-focus marker", collect_failures(mutated), [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][6]}"])
+        checks_run += 1
+        mutated = root / "missing_approved_payload_preview_marker"
+        seed(mutated)
+        write_text(mutated, APPROVED_IDIOM_PATH, placeholder(APPROVED_IDIOM_PATH).replace(MARKERS[APPROVED_IDIOM_PATH][7], ""))
+        expect_exact("missing approved payload-preview marker", collect_failures(mutated), [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][7]}"])
         checks_run += 1
         mutated = root / "missing_kobject_survey_marker"
         seed(mutated)
@@ -355,10 +366,15 @@ def run_self_test() -> int:
         write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace(MARKERS[GUIDE_PATH][7], ""))
         expect_exact("missing guide trace callback marker", collect_failures(mutated), [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][7]}"])
         checks_run += 1
-        mutated = root / "missing_guide_kretprobe_probe_spec_marker"
+        mutated = root / "missing_guide_trace_payload_preview_marker"
         seed(mutated)
         write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace(MARKERS[GUIDE_PATH][8], ""))
-        expect_exact("missing guide kretprobe probe-spec marker", collect_failures(mutated), [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][8]}"])
+        expect_exact("missing guide trace payload-preview marker", collect_failures(mutated), [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][8]}"])
+        checks_run += 1
+        mutated = root / "missing_guide_kretprobe_probe_spec_marker"
+        seed(mutated)
+        write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace(MARKERS[GUIDE_PATH][9], ""))
+        expect_exact("missing guide kretprobe probe-spec marker", collect_failures(mutated), [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][9]}"])
         checks_run += 1
         mutated = root / "missing_guide_kretprobe_instance_budget_path"
         seed(mutated)
@@ -369,6 +385,11 @@ def run_self_test() -> int:
         seed(mutated)
         write_text(mutated, SAMPLE_ROOT_PATH, placeholder(SAMPLE_ROOT_PATH).replace(MARKERS[SAMPLE_ROOT_PATH][4], ""))
         expect_exact("missing sample-root trace callback marker", collect_failures(mutated), [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][4]}"])
+        checks_run += 1
+        mutated = root / "missing_sample_root_trace_payload_preview_marker"
+        seed(mutated)
+        write_text(mutated, SAMPLE_ROOT_PATH, placeholder(SAMPLE_ROOT_PATH).replace(MARKERS[SAMPLE_ROOT_PATH][5], ""))
+        expect_exact("missing sample-root trace payload-preview marker", collect_failures(mutated), [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][5]}"])
         checks_run += 1
         mutated = root / "missing_direct_packet_path"
         seed(mutated)
@@ -407,6 +428,11 @@ def run_self_test() -> int:
         seed(mutated)
         (mutated / "zigux/tests/phase5_kobject_attr_group_contract_survey.zig").unlink()
         expect_exact("missing kobject repo path", collect_failures(mutated), ["repo:missing_path:zigux/tests/phase5_kobject_attr_group_contract_survey.zig"])
+        checks_run += 1
+        mutated = root / "missing_payload_preview_repo_path"
+        seed(mutated)
+        (mutated / "samples/zigux/trace_events_payload_preview_contract.zig").unlink()
+        expect_exact("missing payload preview repo path", collect_failures(mutated), ["repo:missing_path:samples/zigux/trace_events_payload_preview_contract.zig"])
         checks_run += 1
         mutated = root / "forbidden_full_trace_events_claim"
         seed(mutated)
@@ -461,6 +487,11 @@ def run_self_test() -> int:
         write_text(mutated, APPROVED_IDIOM_PATH, strip_standalone_path(placeholder(APPROVED_IDIOM_PATH), "samples/zigux/trace_events_callback_focus_contract.zig"))
         expect_exact("missing trace callback-focus companion in approved idiom", collect_failures(mutated), ["approved_idiom:missing_path:samples/zigux/trace_events_callback_focus_contract.zig"])
         checks_run += 1
+        mutated = root / "missing_trace_payload_preview_companion_in_approved"
+        seed(mutated)
+        write_text(mutated, APPROVED_IDIOM_PATH, strip_standalone_path(placeholder(APPROVED_IDIOM_PATH), "samples/zigux/trace_events_payload_preview_contract.zig"))
+        expect_exact("missing trace payload-preview companion in approved idiom", collect_failures(mutated), ["approved_idiom:missing_path:samples/zigux/trace_events_payload_preview_contract.zig"])
+        checks_run += 1
         mutated = root / "missing_public_tree_companion_repo_path"
         seed(mutated)
         (mutated / "zigux/tests/phase5_kobject_example_manifest.json").unlink()
@@ -488,13 +519,13 @@ def run_self_test() -> int:
         checks_run += 1
         mutated = root / "missing_sample_root_attr_guard_marker"
         seed(mutated)
-        write_text(mutated, SAMPLE_ROOT_PATH, placeholder(SAMPLE_ROOT_PATH).replace(MARKERS[SAMPLE_ROOT_PATH][5], ""))
-        expect_exact("missing sample root attr guard marker", collect_failures(mutated), [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][5]}"])
+        write_text(mutated, SAMPLE_ROOT_PATH, placeholder(SAMPLE_ROOT_PATH).replace(MARKERS[SAMPLE_ROOT_PATH][6], ""))
+        expect_exact("missing sample root attr guard marker", collect_failures(mutated), [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][6]}"])
         checks_run += 1
         mutated = root / "missing_sample_root_string_boundary_marker"
         seed(mutated)
-        write_text(mutated, SAMPLE_ROOT_PATH, placeholder(SAMPLE_ROOT_PATH).replace(MARKERS[SAMPLE_ROOT_PATH][8], ""))
-        expect_exact("missing sample root string boundary marker", collect_failures(mutated), [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][8]}"])
+        write_text(mutated, SAMPLE_ROOT_PATH, placeholder(SAMPLE_ROOT_PATH).replace(MARKERS[SAMPLE_ROOT_PATH][9], ""))
+        expect_exact("missing sample root string boundary marker", collect_failures(mutated), [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][9]}"])
         checks_run += 1
         mutated = root / "missing_tests_root_kobject_split_marker"
         seed(mutated)
