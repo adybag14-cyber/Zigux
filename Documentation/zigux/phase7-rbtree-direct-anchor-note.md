@@ -43,9 +43,10 @@ The dedicated parity companions now keep the erase-boundary surface broader than
 - `zigux/tests/fixtures/phase7_rbtree_c_harness.c` now mirrors those same three erase-boundary scenarios as direct C-side parity evidence
 - `lib/rbtree.zig` now also keeps the cached duplicate-return ownership boundary explicit through the helper-local proof that `rb_find_add_cached()` returns the existing node while the rejected duplicate caller stays detached, paired with `rb_replace_node_cached()` keeping cached leftmost alignment reviewable in the same packet
 
-Repo-reality warning for the still-missing dedicated Phase 7 rbtree wrapper routes:
+Repo-reality warning for the still-partial shared Phase 7 rbtree wrapper surface:
 
-- `zigux/Makefile` now returns shared `phase7-validate`, but it still lacks dedicated `phase7-rbtree-test:`, `phase7-rbtree-survey:`, `phase7-test:`, and aggregate `phase7:` wrapper markers
+- `zigux/Makefile` now returns shared `phase7-validate` plus dedicated `phase7-rbtree-test:` and `phase7-rbtree-survey:` wrapper markers
+- `zigux/Makefile` still lacks broader `phase7-test:` and aggregate `phase7:` wrapper markers
 - `.github/workflows/zigux-bootstrap.yml` still lacks dedicated Phase 7 runtime-helper steps
 
 Keep the current Phase 7 rbtree reminder surface tied to the returned runtime-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, the parity checker, the returned JSON fixture, the returned C harness, and the readable legacy `tools/lib/rbtree.zig` companion.
