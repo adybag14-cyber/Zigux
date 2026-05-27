@@ -22,10 +22,10 @@ NOTE_PATH = Path("Documentation/zigux/phase14-ring-buffer-survey.md")
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
 
 NOTE_MARKERS = [
-    "current public raw-file readback now recovers both `zigux/tests/phase14_ring_buffer_survey.zig` and `zigux/tests/phase14_build.zig`",
+    "current public raw-file readback now recovers `zigux/tests/phase14_ring_buffer_survey.zig`, while `zigux/tests/phase14_build.zig` still does not return through this lane's exact contents path",
     "`zig test zigux/tests/phase14_ring_buffer_survey.zig`",
-    "`zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
-    "keep those two routes as ring-buffer-local replay vocabulary only",
+    "`zig build phase14-smoke --build-file zigux/tests/phase14_build.zig`",
+    "shared smoke manifest still records that focused build-shard command as historical vocabulary only",
 ]
 
 REQUIRED_MANIFEST_VALUES = {
