@@ -1,0 +1,33 @@
+{
+  "phase": "Phase 3",
+  "lane": "helper-interop",
+  "slug": "phase3-ida-slot",
+  "status": "starter_and_dump_packet_present",
+  "scope": "helper-local ida slot starter packet plus fixture-backed dump parity",
+  "packet_files": [
+    "Documentation/zigux/phase3-ida-slot-slice.md",
+    "zigux/helpers/err_ptr.zig",
+    "zigux/helpers/xa_value.zig",
+    "zigux/helpers/xarray_slot_view.zig",
+    "zigux/helpers/ida_slot_view.zig",
+    "zigux/tests/phase3_ida_slot_starter_packet.zig",
+    "zigux/tests/phase3_ida_slot_starter_packet_build.zig",
+    "scripts/zigux/check-phase3-ida-slot-starter-packet.py",
+    "zigux/tests/phase3_ida_slot_dump.zig",
+    "zigux/tests/phase3_ida_slot_dump_build.zig",
+    "zigux/tests/fixtures/phase3_ida_slot/phase3_ida_slot_c_harness.c",
+    "zigux/tests/fixtures/phase3_ida_slot/expected.json",
+    "zigux/tests/fixtures/phase3_ida_slot_manifest.json",
+    "scripts/zigux/check-phase3-ida-slot.py"
+  ],
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase3-ida-slot-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-ida-slot-starter-packet.py --repo-root .",
+    "zig build phase3-ida-slot-starter-packet-test --build-file zigux/tests/phase3_ida_slot_starter_packet_build.zig",
+    "python3 scripts/zigux/check-phase3-ida-slot.py --self-test",
+    "python3 scripts/zigux/check-phase3-ida-slot.py --repo-root . --zig zig --cc gcc",
+    "zig build phase3-ida-slot-dump --build-file zigux/tests/phase3_ida_slot_dump_build.zig"
+  ],
+  "repo_reality_gaps": [],
+  "next_safe_step": "keep any same-lane follow-through narrowed to shared validator alignment after rereading current master"
+}
