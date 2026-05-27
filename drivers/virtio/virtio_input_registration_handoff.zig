@@ -28,6 +28,10 @@ pub fn deviceIds(summary: RegistrationHandoffSummary) DeviceIds {
     return summary.ids;
 }
 
+pub fn identityReady(summary: RegistrationHandoffSummary) bool {
+    return summary.name.len != 0 and summary.serial.len != 0 and summary.phys.len != 0;
+}
+
 pub fn eventQueueIndex(summary: RegistrationHandoffSummary) u16 {
     return summary.event_queue_index;
 }
@@ -48,12 +52,29 @@ pub fn queuedEventBufferCount(summary: RegistrationHandoffSummary) u16 {
     return summary.queued_event_buffer_count;
 }
 
+pub fn queuePlanReady(summary: RegistrationHandoffSummary) bool {
+    return summary.event_descriptor_count != 0 and
+        summary.status_descriptor_count != 0 and
+        summary.queued_event_buffer_count != 0;
+}
+
+pub fn fullyBufferedEventQueue(summary: RegistrationHandoffSummary) bool {
+    return summary.event_descriptor_count != 0 and
+        summary.queued_event_buffer_count == summary.event_descriptor_count;
+}
+
 pub fn capabilitySetupReady(summary: RegistrationHandoffSummary) bool {
     return summary.capability_setup_ready;
 }
 
 pub fn multitouchSlotsReady(summary: RegistrationHandoffSummary) bool {
     return summary.multitouch_slots_ready;
+}
+
+pub fn waitingOnMultitouchSlots(summary: RegistrationHandoffSummary) bool {
+    return summary.capability_setup_ready and
+        !summary.multitouch_slots_ready and
+        !summary.ready_for_registration;
 }
 
 pub fn readyForRegistration(summary: RegistrationHandoffSummary) bool {
@@ -76,6 +97,7 @@ test "phase10 virtio input registration handoff helper keeps plain-device identi
 
     const summary = summarize(&device);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", anchor(summary));
+    try std.testing.expect(identityReady(summary));
     try std.testing.expectEqualStrings("virtio-tablet", name(summary));
     try std.testing.expectEqualStrings("handoff-plain", serial(summary));
     try std.testing.expectEqualStrings("virtio9/input0", phys(summary));
@@ -85,6 +107,8 @@ test "phase10 virtio input registration handoff helper keeps plain-device identi
     try std.testing.expectEqual(@as(u16, 8), eventDescriptorCount(summary));
     try std.testing.expectEqual(@as(u16, 4), statusDescriptorCount(summary));
     try std.testing.expectEqual(@as(u16, 8), queuedEventBufferCount(summary));
+    try std.testing.expect(queuePlanReady(summary));
+    try std.testing.expect(fullyBufferedEventQueue(summary));
     try std.testing.expect(capabilitySetupReady(summary));
     try std.testing.expect(multitouchSlotsReady(summary));
     try std.testing.expect(readyForRegistration(summary));
@@ -104,8 +128,12 @@ test "phase10 virtio input registration handoff helper keeps multitouch slot pla
     });
 
     var summary = summarize(&device);
+    try std.testing.expect(identityReady(summary));
+    try std.testing.expect(queuePlanReady(summary));
+    try std.testing.expect(fullyBufferedEventQueue(summary));
     try std.testing.expect(capabilitySetupReady(summary));
     try std.testing.expect(!multitouchSlotsReady(summary));
+    try std.testing.expect(waitingOnMultitouchSlots(summary));
     try std.testing.expect(!readyForRegistration(summary));
     try std.testing.expectEqualStrings("virtio11/input0", phys(summary));
 
@@ -114,5 +142,46 @@ test "phase10 virtio input registration handoff helper keeps multitouch slot pla
     summary = summarize(&device);
     try std.testing.expect(capabilitySetupReady(summary));
     try std.testing.expect(multitouchSlotsReady(summary));
+    try std.testing.expect(!waitingOnMultitouchSlots(summary));
     try std.testing.expect(readyForRegistration(summary));
+}
+
+test "phase10 virtio input registration handoff helper preserves identity across reset while revoking registration readiness" {
+    const ids = DeviceIds{
+        .vendor = 0x1af4,
+        .product = 0x1052,
+        .version = 13,
+    };
+    var device = try virtio_input.VirtioInputLab.init("virtio-tablet", "handoff-reset", 13, ids);
+
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(4);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+    try device.configureConfigBitmap(.ev_bits, 0x02, &[_]u16{ 0x00, 0x01 });
+
+    var summary = summarize(&device);
+    try std.testing.expect(identityReady(summary));
+    try std.testing.expect(queuePlanReady(summary));
+    try std.testing.expect(fullyBufferedEventQueue(summary));
+    try std.testing.expect(capabilitySetupReady(summary));
+    try std.testing.expect(multitouchSlotsReady(summary));
+    try std.testing.expect(readyForRegistration(summary));
+    try std.testing.expectEqualDeep(ids, deviceIds(summary));
+
+    device.reset();
+
+    summary = summarize(&device);
+    try std.testing.expect(identityReady(summary));
+    try std.testing.expectEqualStrings("virtio13/input0", phys(summary));
+    try std.testing.expectEqualDeep(ids, deviceIds(summary));
+    try std.testing.expectEqual(@as(u16, 0), eventDescriptorCount(summary));
+    try std.testing.expectEqual(@as(u16, 0), statusDescriptorCount(summary));
+    try std.testing.expectEqual(@as(u16, 0), queuedEventBufferCount(summary));
+    try std.testing.expect(!queuePlanReady(summary));
+    try std.testing.expect(!fullyBufferedEventQueue(summary));
+    try std.testing.expect(!capabilitySetupReady(summary));
+    try std.testing.expect(multitouchSlotsReady(summary));
+    try std.testing.expect(!waitingOnMultitouchSlots(summary));
+    try std.testing.expect(!readyForRegistration(summary));
 }
