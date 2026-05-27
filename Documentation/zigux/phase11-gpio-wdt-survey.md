@@ -20,6 +20,8 @@ wording drifted ahead of current contents reads.
   - `drivers/watchdog/gpio_wdt_verify.zig`
   - `zigux/tests/phase11_gpio_wdt_preflight_review.zig`
   - `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`
+  - `zigux/tests/phase11_gpio_wdt_registration_intent_review.zig`
+  - `zigux/tests/phase11_gpio_wdt_registration_intent_review_build.zig`
   - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
   - `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
   - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
@@ -47,10 +49,11 @@ wording drifted ahead of current contents reads.
 - `zigux/Makefile` still exposes no dedicated `make -C zigux phase11-gpio-wdt`
   route, but the returned packet now has dedicated bounded replay routes at
   `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`,
+  `zigux/tests/phase11_gpio_wdt_registration_intent_review_build.zig`,
   `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`,
   `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`,
-  `zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`, and the new
-  manifest survey route
+  `zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`, and the
+  current-head manifest survey route
   `zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig`
 - remaining unported work is still wider focused replay, dedicated survey-gate
   recovery, the older wider manifest return, live platform-driver registration
@@ -66,6 +69,8 @@ driver-plus-docs-plus-proof packet below:
 - `drivers/watchdog/gpio_wdt_verify.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`
+- `zigux/tests/phase11_gpio_wdt_registration_intent_review.zig`
+- `zigux/tests/phase11_gpio_wdt_registration_intent_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
@@ -86,6 +91,11 @@ bounded replay routes, and companion notes now also carry a machine-readable
 current-head manifest that keeps the packet inventory explicit without
 overclaiming that the older wider manifest or shared replay route has returned
 on current `master`.
+
+The dedicated registration-intent route now keeps timeout setup, nowayout
+application, stop-on-reboot ordering, and pre-registration start posture
+reviewable before the first register-device request, instead of leaving that
+checkpoint implicit inside the broader register-device glue proof.
 
 The focused current-head manifest survey now fail-closes on the recovered
 manifest plus the coupled survey and validation matrix so this smaller packet
