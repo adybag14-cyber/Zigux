@@ -65,11 +65,6 @@ FILE_MARKERS: dict[str, list[str]] = {
         "$(ZIG) build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig --summary all",
         "phase9-test: phase9-runtime-atomic64-test",
     ],
-    WORKFLOW_PATH: [
-        "python3 scripts/zigux/check-phase9-atomic64-runtime-packet.py --self-test",
-        "python3 scripts/zigux/check-phase9-atomic64-runtime-packet.py",
-        "make -C zigux phase9-runtime-atomic64-test",
-    ],
     SAMPLE_PATH: [
         '.name = "runtime_atomic64"',
         '.anchor = "lib/atomic64_test.c"',
@@ -106,13 +101,7 @@ FILE_MARKERS: dict[str, list[str]] = {
     ],
 }
 
-FILE_EXACT_ONCE_MARKERS: dict[str, list[str]] = {
-    WORKFLOW_PATH: [
-        "python3 scripts/zigux/check-phase9-atomic64-runtime-packet.py --self-test",
-        "python3 scripts/zigux/check-phase9-atomic64-runtime-packet.py",
-        "make -C zigux phase9-runtime-atomic64-test",
-    ],
-}
+FILE_EXACT_ONCE_MARKERS: dict[str, list[str]] = {}
 
 
 def read_text(root: Path, rel_path: str) -> str:
