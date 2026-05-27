@@ -102,8 +102,7 @@ def run_self_test() -> int:
 
         populate_repo(tempdir)
         gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
-        gap_path.writeText = gap_path.write_text
-        gap_path.writeText(
+        gap_path.write_text(
             gap_path.read_text(encoding="utf-8").replace(
                 "`include/zigux/notifier_abi.h` materialized on current `master`",
                 "",
