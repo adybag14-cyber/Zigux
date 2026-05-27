@@ -1,0 +1,28 @@
+{
+  "lane_key": "P12-L04",
+  "phase": "Phase 12",
+  "slug": "phase12-virtio-net-throughput-parity-packet",
+  "anchor": "drivers/net/virtio_net.c",
+  "status": "throughput_parity_helper_present_direct_checker_and_shared_route_guard_present",
+  "scope": "review-only virtio_net throughput parity helper evidence plus the direct shared-route guard around the isolated throughput replay",
+  "next_safe_step": "keep future same-lane follow-through narrowed to measured transport throughput replay or runtime completion only if this helper-local packet drifts on master",
+  "packet_files": [
+    "Documentation/zigux/phase12-virtio-net-throughput-parity-slice.md",
+    "drivers/net/virtio_net_throughput_parity.zig",
+    "zigux/tests/phase12_virtio_net_throughput_parity.zig",
+    "zigux/tests/fixtures/phase12_virtio_net_throughput_parity_manifest.json",
+    "scripts/zigux/check-phase12-virtio-net-throughput-parity-packet.py"
+  ],
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase12-virtio-net-throughput-parity-packet.py --self-test",
+    "python3 scripts/zigux/check-phase12-virtio-net-throughput-parity-packet.py --root .",
+    "python3 scripts/zigux/validate-phase12.py",
+    "make -C zigux phase12-validate",
+    "zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all",
+    "make -C zigux phase12-virtio-net-throughput-parity-test"
+  ],
+  "repo_reality_gaps": [
+    "measured transport throughput evidence remains outside the current helper-local throughput parity packet",
+    "runtime queue execution and interrupt-backed transmit completion handling remain outside the current helper-local throughput parity packet"
+  ]
+}
