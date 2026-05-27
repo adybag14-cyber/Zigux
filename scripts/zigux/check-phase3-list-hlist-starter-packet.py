@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-close the bounded Phase 3 list/hlist starter packet."""
+"""Fail-close the bounded Phase 3 list/hlist starter packet inside the live starter-plus-dump slice."""
 
 from __future__ import annotations
 
@@ -20,12 +20,12 @@ MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_list_hlist_manifest.json")
 EXPECTED_MANIFEST_FIELDS = {
     "phase": "Phase 3",
     "lane": "abi-runtime",
-    "slug": "phase3-list-hlist-starter-packet",
-    "status": "helper_local_list_hlist_slice_present",
-    "scope": "helper-local list_head and hlist sentinel, ordering, and backlink replay",
+    "slug": "phase3-list-hlist",
+    "status": "starter_and_dump_packet_present",
+    "scope": "helper-local list_head and hlist starter packet plus fixture-backed dump parity",
     "next_safe_step": (
-        "if this slice needs parity expansion later, add the narrow C harness and "
-        "expected fixture without widening beyond helper-local list_head and hlist semantics"
+        "keep any future same-lane follow-through narrowed to shared validator-entrypoint "
+        "alignment or another explicitly bounded helper-local replay route after rereading current master"
     ),
 }
 
@@ -35,33 +35,41 @@ REQUIRED_PACKET_FILES = (
     "zigux/helpers/hlist_view.zig",
     "zigux/tests/phase3_list_hlist_starter_packet.zig",
     "zigux/tests/phase3_list_hlist_starter_packet_build.zig",
-    "zigux/tests/fixtures/phase3_list_hlist_manifest.json",
     "scripts/zigux/check-phase3-list-hlist-starter-packet.py",
+    "zigux/tests/phase3_list_hlist_dump.zig",
+    "zigux/tests/phase3_list_hlist_dump_build.zig",
+    "zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c",
+    "zigux/tests/fixtures/phase3_list_hlist/expected.json",
+    "zigux/tests/fixtures/phase3_list_hlist_manifest.json",
+    "scripts/zigux/check-phase3-list-hlist.py",
 )
 
 REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py",
     "zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
+    "python3 scripts/zigux/check-phase3-list-hlist.py --self-test",
+    "python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc",
+    "zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
 )
 
-REQUIRED_REPO_REALITY_GAPS = (
-    "zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c",
-    "zigux/tests/fixtures/phase3_list_hlist/expected.json",
-)
+REQUIRED_REPO_REALITY_GAPS: tuple[str, ...] = ()
 
 REQUIRED_MARKERS = {
     DOC_PATH: (
-        "This note records one bounded shared-helper starter packet for the existing Phase 3 `list_head` and `hlist` helpers on current `master`.",
+        "This note records one bounded shared-helper starter-plus-dump packet for the existing Phase 3 `list_head` and `hlist` helpers on current `master`.",
         "`zigux/helpers/list_view.zig`",
         "`zigux/helpers/hlist_view.zig`",
         "`zigux/tests/phase3_list_hlist_starter_packet.zig`",
         "`zigux/tests/phase3_list_hlist_starter_packet_build.zig`",
+        "`zigux/tests/phase3_list_hlist_dump.zig`",
+        "`zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c`",
         "`zigux/tests/fixtures/phase3_list_hlist_manifest.json`",
         "`scripts/zigux/check-phase3-list-hlist-starter-packet.py`",
+        "`scripts/zigux/check-phase3-list-hlist.py`",
         "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test",
-        "zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
-        "It does not yet claim C parity fixtures, exported ABI structs, intrusive container recovery helpers, list mutation semantics, or wider subsystem-specific list ownership behavior.",
+        "python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc",
+        "It does not claim exported ABI structs, intrusive container recovery helpers, list mutation semantics, or wider subsystem-specific list ownership behavior.",
     ),
     LIST_VIEW_PATH: (
         "pub const ListView = struct {",
@@ -93,21 +101,22 @@ REQUIRED_MARKERS = {
         '"Run the shared Phase 3 list/hlist starter packet"',
     ),
     MANIFEST_PATH: (
-        '"slug": "phase3-list-hlist-starter-packet"',
-        '"status": "helper_local_list_hlist_slice_present"',
+        '"slug": "phase3-list-hlist"',
+        '"status": "starter_and_dump_packet_present"',
+        '"zigux/tests/phase3_list_hlist_starter_packet.zig"',
+        '"zigux/tests/phase3_list_hlist_dump.zig"',
         '"scripts/zigux/check-phase3-list-hlist-starter-packet.py"',
-        '"zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c"',
-        '"zigux/tests/fixtures/phase3_list_hlist/expected.json"',
+        '"scripts/zigux/check-phase3-list-hlist.py"',
     ),
 }
 
 SELF_TEST_CASES = (
-    (DOC_PATH, "`scripts/zigux/check-phase3-list-hlist-starter-packet.py`"),
+    (DOC_PATH, "`scripts/zigux/check-phase3-list-hlist.py`"),
     (LIST_VIEW_PATH, "pub fn firstBrokenBacklink(self: ListView) ?BackLinkBreak {"),
     (HLIST_VIEW_PATH, "pub fn tailNextIsNull(self: HListView) bool {"),
     (TEST_PATH, 'test "hlist starter packet reports the first broken prev-link witness" {'),
     (BUILD_PATH, '"phase3-list-hlist-starter-packet"'),
-    (MANIFEST_PATH, '"status": "helper_local_list_hlist_slice_present"'),
+    (MANIFEST_PATH, '"status": "starter_and_dump_packet_present"'),
 )
 
 
@@ -231,7 +240,7 @@ def validate_repo(repo_root: Path, zig: str, *, skip_exec: bool = False) -> list
 
     if repo_reality_gaps != list(REQUIRED_REPO_REALITY_GAPS):
         issues.append(
-            "phase3_list_hlist_manifest.json repo_reality_gaps must stay aligned with the documented absent C parity companions"
+            "phase3_list_hlist_manifest.json repo_reality_gaps must stay empty after the dump packet lands"
         )
 
     if issues or skip_exec:
@@ -305,12 +314,11 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         manifest = json.loads(_read(manifest_path))
-        manifest["repo_reality_gaps"] = []
+        manifest["repo_reality_gaps"] = ["stale-gap"]
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root, zig="zig", skip_exec=True)
         expected = (
-            "phase3_list_hlist_manifest.json repo_reality_gaps must stay aligned with "
-            "the documented absent C parity companions"
+            "phase3_list_hlist_manifest.json repo_reality_gaps must stay empty after the dump packet lands"
         )
         if expected not in issues:
             print("PHASE3_LIST_HLIST_PACKET_SELF_TEST=fail")
