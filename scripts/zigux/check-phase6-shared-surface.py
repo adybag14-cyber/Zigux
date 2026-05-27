@@ -34,6 +34,7 @@ EXPECTED_EVIDENCE_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
+    "Documentation/zigux/phase6-runtime-command-environment-gap-survey.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
