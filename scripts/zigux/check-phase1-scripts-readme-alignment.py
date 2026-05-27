@@ -138,7 +138,7 @@ def run_self_test() -> int:
         build_sample_root(missing_readme_root)
         (missing_readme_root / README_REL).unlink()
         failures = collect_failures(missing_readme_root)
-        assert failures == [f"missing_file:{README_REL.as_posix()}]
+        assert failures == [f"missing_file:{README_REL.as_posix()}"]
         checks_run += 1
 
         for relative_path in REQUIRED_PRESENT_FILES:
@@ -146,7 +146,7 @@ def run_self_test() -> int:
             build_sample_root(broken_root)
             (broken_root / relative_path).unlink()
             failures = collect_failures(broken_root)
-            assert failures == [f"missing_present_file:{relative_path.as_posix()}]
+            assert failures == [f"missing_present_file:{relative_path.as_posix()}"]
             checks_run += 1
 
         for relative_path in REQUIRED_MISSING_FILES:
@@ -154,7 +154,7 @@ def run_self_test() -> int:
             build_sample_root(broken_root)
             write_text(broken_root / relative_path, "returned\n")
             failures = collect_failures(broken_root)
-            assert failures == [f"unexpected_materialized_gap:{relative_path.as_posix()}]
+            assert failures == [f"unexpected_materialized_gap:{relative_path.as_posix()}"]
             checks_run += 1
 
     assert checks_run == expected_case_count
