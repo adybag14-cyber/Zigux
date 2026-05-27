@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -166,6 +168,34 @@ def require_paths_absent(root: Path, paths: tuple[Path, ...]) -> None:
             raise CheckFailure(f"{CHECK_NAME} unexpected path present: {path}")
 
 
+def run_manifest_presence_checker(root: Path) -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(root / VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH),
+            "--root",
+            str(root),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode == 0:
+        return
+
+    combined_output = " | ".join(
+        line.strip()
+        for line in f"{result.stdout}\n{result.stderr}".splitlines()
+        if line.strip()
+    )
+    if combined_output:
+        raise CheckFailure(
+            "virtio_net manifest presence checker failed: "
+            f"{combined_output}"
+        )
+    raise CheckFailure("virtio_net manifest presence checker failed")
+
+
 def check(root: Path) -> None:
     for path in REQUIRED_FILES:
         if not (root / path).is_file():
@@ -173,6 +203,7 @@ def check(root: Path) -> None:
 
     require_paths_present(root, REQUIRED_PRESENT_PATHS)
     require_paths_absent(root, FORBIDDEN_PRESENT_PATHS)
+    run_manifest_presence_checker(root)
 
     require_markers(read_text(root, NOTE_PATH), NOTE_MARKERS, NOTE_PATH)
     require_markers(
@@ -202,6 +233,23 @@ def build_fixture_text() -> str:
     return "\n".join(lines) + "\n"
 
 
+def manifest_presence_checker_fixture_text() -> str:
+    return """#!/usr/bin/env python3
+import argparse
+from pathlib import Path
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--root")
+args = parser.parse_args()
+marker_path = Path(args.root) / "virtio_net_manifest_presence_should_fail"
+if marker_path.exists():
+    print("PHASE12_VIRTIO_NET_MANIFEST_PRESENCE=fail")
+    print("PHASE12_VIRTIO_NET_MANIFEST_PRESENCE_DETAIL=fixture failure")
+    raise SystemExit(1)
+print("PHASE12_VIRTIO_NET_MANIFEST_PRESENCE=pass")
+"""
+
+
 def write_fixture(root: Path) -> None:
     fixtures = {
         NOTE_PATH: "\n".join(NOTE_MARKERS) + "\n",
@@ -210,7 +258,9 @@ def write_fixture(root: Path) -> None:
         WORKFLOW_PATH: "\n".join(WORKFLOW_MARKERS) + "\n",
         BUILD_PATH: build_fixture_text(),
         MAKEFILE_PATH: "\n".join(MAKEFILE_MARKERS) + "\n",
-        VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH: "#!/usr/bin/env python3\n",
+        VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH: (
+            manifest_presence_checker_fixture_text()
+        ),
     }
     for path, text in fixtures.items():
         target = root / path
@@ -221,6 +271,15 @@ def write_fixture(root: Path) -> None:
         target = root / path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text("// fixture\n", encoding="utf-8")
+
+    for path in FORBIDDEN_PRESENT_PATHS:
+        target = root / path
+        if target.exists():
+            target.unlink()
+
+    failure_marker = root / "virtio_net_manifest_presence_should_fail"
+    if failure_marker.exists():
+        failure_marker.unlink()
 
 
 def expect_failure(root: Path, expected_fragment: str) -> None:
@@ -287,6 +346,13 @@ def run_self_test() -> int:
         forbidden.parent.mkdir(parents=True, exist_ok=True)
         forbidden.write_text("// stale monolith\n", encoding="utf-8")
         expect_failure(root, str(FORBIDDEN_PRESENT_PATHS[0]))
+        cases += 1
+
+        write_fixture(root)
+        (root / "virtio_net_manifest_presence_should_fail").write_text(
+            "fail\n", encoding="utf-8"
+        )
+        expect_failure(root, "virtio_net manifest presence checker failed")
         cases += 1
 
     print(f"{CHECK_NAME}_SELF_TEST=pass")
