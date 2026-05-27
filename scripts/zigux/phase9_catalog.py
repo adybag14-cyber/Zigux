@@ -10,6 +10,22 @@ from pathlib import Path
 
 PHASE9_CATALOG_PHASE = "Phase 9"
 PHASE9_CATALOG_LANE = "P9-L11"
+EXPECTED_SLUG = "phase9-runtime-pilot-shared-packet"
+EXPECTED_STATUS = "shared_runtime_pilot_delivery_evidence_present"
+EXPECTED_SCOPE = (
+    "shared reminder, manifest, catalog, ownership, validation, and module-metadata "
+    "boundary surfaces for the atomic64 pilot packet, the shipped trace-events packet, "
+    "the narrower shared runtime-loader packet, the bounded runtime bitmap packet, and "
+    "the returned runtime kretprobe packet without blocked publication claims"
+)
+EXPECTED_GAPS = [
+    "blocked publication and install-root vocabulary remains historical rather than direct shipped proof",
+]
+EXPECTED_NEXT_SAFE_STEP = (
+    "tighten one shared reminder surface at a time where current master still undercounts "
+    "the blocked module-metadata and depmod bridge boundary before widening into runtime behavior "
+    "or build wiring"
+)
 MANIFEST_PATH = Path("zigux/tests/runtime_pilot_manifest.json")
 OWNERSHIP_MAP_PATH = Path("Documentation/zigux/phase9-runtime-pilot-ownership-map.md")
 
@@ -18,6 +34,7 @@ EXPECTED_PACKET_FILES = (
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
     "Documentation/zigux/phase9-runtime-pilot-ownership-map.md",
+    "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
     "Documentation/zigux/phase9-runtime-bitmap-survey.md",
     "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
     "Documentation/zigux/phase9-runtime-trace-events-survey.md",
@@ -70,6 +87,7 @@ EXPECTED_PACKET_FILES = (
     "samples/zigux/runtime_kretprobe_loader.zig",
     "samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig",
     "samples/zigux/runtime_kretprobe_registration_reentry_gate.zig",
+    "samples/zigux/runtime_kretprobe_reinit_reexit_guard.zig",
 )
 
 EXPECTED_REPLAY_ROUTES = (
@@ -188,6 +206,18 @@ def validate_repo(repo_root: Path) -> list[str]:
             "runtime_pilot_manifest.json wrong lane_key: "
             f"{manifest.get('lane_key')!r} != {PHASE9_CATALOG_LANE!r}"
         )
+    if manifest.get("slug") != EXPECTED_SLUG:
+        issues.append(
+            "runtime_pilot_manifest.json wrong slug: "
+            f"{manifest.get('slug')!r} != {EXPECTED_SLUG!r}"
+        )
+    if manifest.get("status") != EXPECTED_STATUS:
+        issues.append(
+            "runtime_pilot_manifest.json wrong status: "
+            f"{manifest.get('status')!r} != {EXPECTED_STATUS!r}"
+        )
+    if manifest.get("scope") != EXPECTED_SCOPE:
+        issues.append("runtime_pilot_manifest.json scope drift from shared Phase 9 catalog expectations")
     if manifest.get("ownership_map_path") != OWNERSHIP_MAP_PATH.as_posix():
         issues.append(
             "runtime_pilot_manifest.json wrong ownership_map_path: "
@@ -208,6 +238,15 @@ def validate_repo(repo_root: Path) -> list[str]:
 
     _append_duplicate_list_entry_issues("runtime_pilot_manifest.json packet_files", packet_files, issues)
     _append_duplicate_list_entry_issues("runtime_pilot_manifest.json replay_routes", replay_routes, issues)
+
+    if packet_files != list(EXPECTED_PACKET_FILES):
+        issues.append("runtime_pilot_manifest.json packet_files drift from shared Phase 9 catalog expectations")
+    if replay_routes != list(EXPECTED_REPLAY_ROUTES):
+        issues.append("runtime_pilot_manifest.json replay_routes drift from shared Phase 9 catalog expectations")
+    if manifest.get("repo_reality_gaps") != EXPECTED_GAPS:
+        issues.append("runtime_pilot_manifest.json repo_reality_gaps drift from shared Phase 9 catalog expectations")
+    if manifest.get("next_safe_step") != EXPECTED_NEXT_SAFE_STEP:
+        issues.append("runtime_pilot_manifest.json next_safe_step drift from shared Phase 9 catalog expectations")
 
     for relative_path in packet_files:
         if not (repo_root / relative_path).is_file():
@@ -250,16 +289,14 @@ def _manifest_payload() -> dict[str, object]:
     return {
         "phase": PHASE9_CATALOG_PHASE,
         "lane_key": PHASE9_CATALOG_LANE,
-        "slug": "phase9-runtime-pilot-shared-packet",
-        "status": "shared_runtime_pilot_delivery_evidence_present",
-        "scope": "shared reminder, manifest, catalog, ownership, and validation surfaces for the atomic64 pilot packet, the shipped trace-events packet, the narrower shared runtime-loader packet, the bounded runtime bitmap packet, and the returned runtime kretprobe packet without blocked publication claims",
+        "slug": EXPECTED_SLUG,
+        "status": EXPECTED_STATUS,
+        "scope": EXPECTED_SCOPE,
         "ownership_map_path": OWNERSHIP_MAP_PATH.as_posix(),
         "packet_files": list(EXPECTED_PACKET_FILES),
         "replay_routes": list(EXPECTED_REPLAY_ROUTES),
-        "repo_reality_gaps": [
-            "blocked publication and install-root vocabulary remains historical rather than direct shipped proof",
-        ],
-        "next_safe_step": "keep the shared Phase 9 validator and runtime-loader shared checker aligned with the manifest and the existing loader packet without widening runtime behavior claims or pretending blocked publication surfaces returned",
+        "repo_reality_gaps": EXPECTED_GAPS,
+        "next_safe_step": EXPECTED_NEXT_SAFE_STEP,
     }
 
 
@@ -313,6 +350,46 @@ def run_self_test() -> int:
             json.dumps(
                 {
                     **_manifest_payload(),
+                    "packet_files": list(EXPECTED_PACKET_FILES[:-1]),
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        issues = validate_repo(root)
+        expected_packet_drift = (
+            "runtime_pilot_manifest.json packet_files drift from shared Phase 9 catalog expectations"
+        )
+        if expected_packet_drift not in issues:
+            print("PHASE9_CATALOG_SELF_TEST=fail")
+            print("expected packet_files drift issue was not reported")
+            return 1
+
+        _write(
+            root / MANIFEST_PATH,
+            json.dumps(
+                {
+                    **_manifest_payload(),
+                    "replay_routes": list(EXPECTED_REPLAY_ROUTES[:-1]),
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        issues = validate_repo(root)
+        expected_route_drift = (
+            "runtime_pilot_manifest.json replay_routes drift from shared Phase 9 catalog expectations"
+        )
+        if expected_route_drift not in issues:
+            print("PHASE9_CATALOG_SELF_TEST=fail")
+            print("expected replay_routes drift issue was not reported")
+            return 1
+
+        _write(
+            root / MANIFEST_PATH,
+            json.dumps(
+                {
+                    **_manifest_payload(),
                     "replay_routes": [EXPECTED_REPLAY_ROUTES[0], EXPECTED_REPLAY_ROUTES[0]],
                 },
                 indent=2,
@@ -326,8 +403,28 @@ def run_self_test() -> int:
             print("expected duplicate replay route was not reported")
             return 1
 
+        _write(
+            root / MANIFEST_PATH,
+            json.dumps(
+                {
+                    **_manifest_payload(),
+                    "next_safe_step": "stale next step",
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        issues = validate_repo(root)
+        expected_next_step_drift = (
+            "runtime_pilot_manifest.json next_safe_step drift from shared Phase 9 catalog expectations"
+        )
+        if expected_next_step_drift not in issues:
+            print("PHASE9_CATALOG_SELF_TEST=fail")
+            print("expected next_safe_step drift issue was not reported")
+            return 1
+
     print("PHASE9_CATALOG_SELF_TEST=pass")
-    print("PHASE9_CATALOG_SELF_TEST_CASE_COUNT=5")
+    print("PHASE9_CATALOG_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
