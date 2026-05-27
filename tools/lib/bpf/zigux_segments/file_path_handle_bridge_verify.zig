@@ -57,9 +57,23 @@ test "phase8 file-path bridge keeps helper-only outputs stable" {
     try std.testing.expectEqualStrings("map_flags", fdinfo.key);
     try std.testing.expectEqualStrings("0x20", fdinfo.value);
 
+    const terminated = try bridge.summarizeReusedMapName("stats_map\x00stale");
+    try std.testing.expectEqual(bridge.ReusedMapNameDisposition.terminated_prefix, terminated.disposition);
+    try std.testing.expectEqual(@as(?usize, 9), terminated.terminator_index);
+    try std.testing.expectEqualStrings("stats_map", terminated.name);
+    try std.testing.expectEqualStrings(
+        "stats_map",
+        try bridge.resolveReusedMapName(&name_buffer, "stats_map\x00stale"),
+    );
+
     const truncated = try bridge.summarizeReusedMapName("truncated_name");
     try std.testing.expectEqual(bridge.ReusedMapNameDisposition.truncated_fixed_width, truncated.disposition);
+    try std.testing.expectEqual(@as(?usize, null), truncated.terminator_index);
     try std.testing.expectEqualStrings("truncated_name", truncated.name);
+    try std.testing.expectEqualStrings(
+        "truncated_name",
+        try bridge.resolveReusedMapName(&name_buffer, "truncated_name"),
+    );
 }
 
 test "phase8 file-path bridge keeps fdinfo-map-info and planning helpers stable" {
@@ -186,6 +200,9 @@ test "phase8 file-path bridge keeps validation and errno outputs stable" {
     try std.testing.expectError(error.InvalidInteger, bridge.parseFdinfoMapInfo("map_flags:\t-1\n"));
     try std.testing.expectError(error.EmptyMapName, bridge.resolveReusedMapName(&name_buffer, ""));
 
+    var tiny_name_buffer: [4]u8 = undefined;
+    try std.testing.expectError(error.NameTooLong, bridge.resolveReusedMapName(&tiny_name_buffer, "stats_map"));
+
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
         bridge.buildProcFdinfoPathReturn(&path_buffer, "proc/fdinfo", 1),
@@ -197,6 +214,10 @@ test "phase8 file-path bridge keeps validation and errno outputs stable" {
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
         bridge.resolveReusedMapNameReturn(&name_buffer, ""),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NAMETOOLONG)),
+        bridge.resolveReusedMapNameReturn(&tiny_name_buffer, "stats_map"),
     );
 
     const incomplete = try bridge.resolveReusePinnedMapAttempt("stats_map\x00", .{
