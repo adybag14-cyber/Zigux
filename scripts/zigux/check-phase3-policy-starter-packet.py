@@ -9,7 +9,6 @@ import tempfile
 from pathlib import Path
 
 POLICY_NOTE_PATH = Path("Documentation/zigux/phase3-policy-slice.md")
-POLICY_UNSAFE_SURVEY_NOTE_PATH = Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md")
 VALIDATOR_NOTE_PATH = Path("Documentation/zigux/phase3-validator-support-surface.md")
 SHARED_REMINDER_GAP_PATH = Path("Documentation/zigux/phase3-shared-reminder-gap.md")
 ABI_HEADER_PATH = Path("include/zigux/abi.h")
@@ -26,8 +25,10 @@ DUMP_PATH = Path("zigux/tests/phase3_policy_dump.zig")
 DUMP_BUILD_PATH = Path("zigux/tests/phase3_policy_dump_build.zig")
 DUMP_EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")
 DUMP_CHECKER_PATH = Path("scripts/zigux/check-phase3-policy-dump.py")
-POLICY_UNSAFE_SURVEY_CHECKER_PATH = Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")
 MANIFEST_PATH = Path("zigux/tests/phase3_policy_starter_packet_manifest.json")
+POLICY_UNSAFE_SURVEY_CHECKER_PATH = Path(
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py"
+)
 
 EXPECTED_MANIFEST_FIELDS = {
     "phase": "Phase 3",
@@ -59,6 +60,7 @@ REQUIRED_PACKET_FILES = (
     "scripts/zigux/check-phase3-policy-starter-packet.py",
     "scripts/zigux/check-phase3-policy-dump.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "zigux/Makefile",
 )
 
 REQUIRED_REPLAY_ROUTES = (
@@ -69,8 +71,10 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-dump.py",
     "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
+    "make -C zigux phase3-policy-dump",
     "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "make -C zigux phase3",
 )
 
 UPDATED_SHARED_REMINDER_MARKER = (
@@ -226,6 +230,8 @@ REQUIRED_MARKERS = {
         '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"',
         '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
         '"make -C zigux phase3-policy-starter-packet-test"',
+        '"make -C zigux phase3-policy-dump"',
+        '"make -C zigux phase3"',
     ),
 }
 
@@ -255,6 +261,7 @@ SELF_TEST_CASES = (
     (MANIFEST_PATH, '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"'),
     (MANIFEST_PATH, '"zigux/tests/phase3_policy_dump.zig"'),
     (MANIFEST_PATH, '"make -C zigux phase3-policy-starter-packet-test"'),
+    (MANIFEST_PATH, '"make -C zigux phase3"'),
 )
 
 
