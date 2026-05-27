@@ -17,6 +17,9 @@ README_PATH = Path("scripts/zigux/README.md")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 BUILD_PATH = Path("zigux/tests/phase12_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
+VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH = Path(
+    "scripts/zigux/check-phase12-virtio-net-manifest-presence.py"
+)
 
 REQUIRED_FILES = (
     NOTE_PATH,
@@ -25,6 +28,7 @@ REQUIRED_FILES = (
     WORKFLOW_PATH,
     BUILD_PATH,
     MAKEFILE_PATH,
+    VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH,
 )
 
 REQUIRED_PRESENT_PATHS = (
@@ -206,6 +210,7 @@ def write_fixture(root: Path) -> None:
         WORKFLOW_PATH: "\n".join(WORKFLOW_MARKERS) + "\n",
         BUILD_PATH: build_fixture_text(),
         MAKEFILE_PATH: "\n".join(MAKEFILE_MARKERS) + "\n",
+        VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH: "#!/usr/bin/env python3\n",
     }
     for path, text in fixtures.items():
         target = root / path
@@ -265,6 +270,11 @@ def run_self_test() -> int:
         write_fixture(root)
         (root / MAKEFILE_PATH).write_text("phase12-smoke:\n", encoding="utf-8")
         expect_failure(root, str(MAKEFILE_PATH))
+        cases += 1
+
+        write_fixture(root)
+        (root / VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH).unlink()
+        expect_failure(root, str(VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH))
         cases += 1
 
         write_fixture(root)
