@@ -48,6 +48,19 @@ pub const CreationPlan = struct {
     stores_access_masks_per_layer: bool,
 };
 
+pub const MergePlan = struct {
+    anchor: []const u8,
+    parent_present: bool,
+    inherited_parent_layers: usize,
+    appended_source_layer_index: usize,
+    resulting_num_layers: u32,
+    resulting_access_masks: [max_num_layers]AccessMasks,
+    allocates_new_domain: bool,
+    copies_parent_rules: bool,
+    merges_source_rules: bool,
+    upgrades_handled_access_masks_for_source_layer: bool,
+};
+
 pub const RuleTreeSearchPlan = struct {
     anchor: []const u8,
     root: TreeRoot,
@@ -84,6 +97,7 @@ pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_ruleset_creation_planning: bool,
+    provides_ruleset_merge_planning: bool,
     provides_rule_tree_search_planning: bool,
     provides_rule_insertion_planning: bool,
     validates_non_empty_access_masks: bool,
@@ -98,6 +112,7 @@ pub const RulesetHelperLab = struct {
             .name = "landlock_ruleset_helper_lab",
             .anchor = "security/landlock/ruleset.c",
             .provides_ruleset_creation_planning = true,
+            .provides_ruleset_merge_planning = true,
             .provides_rule_tree_search_planning = true,
             .provides_rule_insertion_planning = true,
             .validates_non_empty_access_masks = true,
@@ -108,7 +123,7 @@ pub const RulesetHelperLab = struct {
     }
 
     pub fn planRulesetCreation(input: AccessMasks) !CreationPlan {
-        if (input.fs == 0 and input.net == 0 and input.scope == 0) {
+        if (isEmptyAccessMasks(input)) {
             return error.EmptyRuleset;
         }
 
@@ -118,6 +133,39 @@ pub const RulesetHelperLab = struct {
             .access_masks = input,
             .rejects_empty_masks = true,
             .stores_access_masks_per_layer = true,
+        };
+    }
+
+    pub fn planRulesetMerge(
+        parent_layers: []const AccessMasks,
+        source_masks: AccessMasks,
+    ) !MergePlan {
+        if (isEmptyAccessMasks(source_masks)) {
+            return error.EmptyRuleset;
+        }
+        if (parent_layers.len >= max_num_layers) {
+            return error.TooManyLayers;
+        }
+
+        var resulting_access_masks = zeroAccessMasks();
+        for (parent_layers, 0..) |mask, index| {
+            resulting_access_masks[index] = mask;
+        }
+
+        const appended_source_layer_index = parent_layers.len;
+        resulting_access_masks[appended_source_layer_index] = source_masks;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .parent_present = parent_layers.len != 0,
+            .inherited_parent_layers = parent_layers.len,
+            .appended_source_layer_index = appended_source_layer_index,
+            .resulting_num_layers = @intCast(appended_source_layer_index + 1),
+            .resulting_access_masks = resulting_access_masks,
+            .allocates_new_domain = true,
+            .copies_parent_rules = parent_layers.len != 0,
+            .merges_source_rules = true,
+            .upgrades_handled_access_masks_for_source_layer = parent_layers.len != 0,
         };
     }
 
@@ -255,6 +303,10 @@ pub const RulesetHelperLab = struct {
         };
     }
 
+    fn isEmptyAccessMasks(input: AccessMasks) bool {
+        return input.fs == 0 and input.net == 0 and input.scope == 0;
+    }
+
     fn validateMatchedLayerAppend(rule: RulePlan, incoming_level: u16) !void {
         if (rule.layers[0].level == 0) {
             return error.InvalidExistingRule;
@@ -273,6 +325,10 @@ pub const RulesetHelperLab = struct {
         if (incoming_level <= previous_level) {
             return error.InvalidLayerOrder;
         }
+    }
+
+    fn zeroAccessMasks() [max_num_layers]AccessMasks {
+        return [_]AccessMasks{.{}} ** max_num_layers;
     }
 
     fn makeRuleFromLayers(layers: []const Layer) RulePlan {
@@ -313,6 +369,7 @@ test "landlock ruleset descriptor stays inside bounded helper scope" {
     try std.testing.expectEqualStrings("landlock_ruleset_helper_lab", descriptor.name);
     try std.testing.expectEqualStrings("security/landlock/ruleset.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_ruleset_creation_planning);
+    try std.testing.expect(descriptor.provides_ruleset_merge_planning);
     try std.testing.expect(descriptor.provides_rule_tree_search_planning);
     try std.testing.expect(descriptor.provides_rule_insertion_planning);
     try std.testing.expect(descriptor.validates_non_empty_access_masks);
@@ -339,6 +396,60 @@ test "landlock ruleset creation keeps handled access masks explicit" {
 
 test "landlock ruleset creation rejects empty masks" {
     try std.testing.expectError(error.EmptyRuleset, RulesetHelperLab.planRulesetCreation(.{}));
+}
+
+test "landlock ruleset merge appends source layer after inherited parent layers" {
+    const plan = try RulesetHelperLab.planRulesetMerge(
+        &.{
+            .{ .fs = 0x1, .net = 0x2, .scope = 0x4 },
+            .{ .fs = 0x8, .net = 0x10, .scope = 0x20 },
+        },
+        .{ .fs = 0x40, .net = 0x80, .scope = 0x100 },
+    );
+
+    try std.testing.expectEqualStrings(RulesetHelperLab.descriptor().anchor, plan.anchor);
+    try std.testing.expect(plan.parent_present);
+    try std.testing.expectEqual(@as(usize, 2), plan.inherited_parent_layers);
+    try std.testing.expectEqual(@as(usize, 2), plan.appended_source_layer_index);
+    try std.testing.expectEqual(@as(u32, 3), plan.resulting_num_layers);
+    try std.testing.expectEqual(@as(u32, 0x1), plan.resulting_access_masks[0].fs);
+    try std.testing.expectEqual(@as(u32, 0x10), plan.resulting_access_masks[1].net);
+    try std.testing.expectEqual(@as(u32, 0x100), plan.resulting_access_masks[2].scope);
+    try std.testing.expect(plan.allocates_new_domain);
+    try std.testing.expect(plan.copies_parent_rules);
+    try std.testing.expect(plan.merges_source_rules);
+    try std.testing.expect(plan.upgrades_handled_access_masks_for_source_layer);
+}
+
+test "landlock ruleset merge creates a one-layer domain without a parent" {
+    const plan = try RulesetHelperLab.planRulesetMerge(&.{}, .{
+        .fs = 0x6,
+        .net = 0x10,
+        .scope = 0x3,
+    });
+
+    try std.testing.expect(!plan.parent_present);
+    try std.testing.expectEqual(@as(usize, 0), plan.inherited_parent_layers);
+    try std.testing.expectEqual(@as(usize, 0), plan.appended_source_layer_index);
+    try std.testing.expectEqual(@as(u32, 1), plan.resulting_num_layers);
+    try std.testing.expectEqual(@as(u32, 0x6), plan.resulting_access_masks[0].fs);
+    try std.testing.expectEqual(@as(u32, 0x10), plan.resulting_access_masks[0].net);
+    try std.testing.expectEqual(@as(u32, 0x3), plan.resulting_access_masks[0].scope);
+    try std.testing.expect(!plan.copies_parent_rules);
+    try std.testing.expect(!plan.upgrades_handled_access_masks_for_source_layer);
+}
+
+test "landlock ruleset merge rejects empty source masks and layer overflow" {
+    try std.testing.expectError(error.EmptyRuleset, RulesetHelperLab.planRulesetMerge(
+        &.{.{ .fs = 1 }},
+        .{},
+    ));
+
+    const full_parent = [_]AccessMasks{.{ .fs = 1 }} ** max_num_layers;
+    try std.testing.expectError(error.TooManyLayers, RulesetHelperLab.planRulesetMerge(
+        &full_parent,
+        .{ .fs = 1 },
+    ));
 }
 
 test "landlock ruleset tree search returns root insertion when tree is empty" {
