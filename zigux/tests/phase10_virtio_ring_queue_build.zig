@@ -21,6 +21,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     virtio_ring_publish_readiness_module.addImport("virtio_ring", virtio_ring_module);
+    const virtio_ring_registration_summary_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/virtio/virtio_ring_registration_summary.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_ring_registration_summary_module.addImport("virtio_ring", virtio_ring_module);
 
     const phase10_virtio_ring_notification_data_readiness_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_ring_notification_data_readiness.zig"),
@@ -99,6 +105,14 @@ pub fn build(b: *std.Build) void {
         phase10_virtio_ring_registration_replay_tests,
     );
 
+    const phase10_virtio_ring_registration_summary_tests = b.addTest(.{
+        .name = "phase10-virtio-ring-registration-summary-tests",
+        .root_module = virtio_ring_registration_summary_module,
+    });
+    const run_phase10_virtio_ring_registration_summary_tests = b.addRunArtifact(
+        phase10_virtio_ring_registration_summary_tests,
+    );
+
     const phase10_virtio_ring_prepare_kick_idempotent_tests = b.addTest(.{
         .name = "phase10-virtio-ring-prepare-kick-idempotent-tests",
         .root_module = phase10_virtio_ring_prepare_kick_idempotent_module,
@@ -152,6 +166,9 @@ pub fn build(b: *std.Build) void {
         &run_phase10_virtio_ring_registration_replay_tests.step,
     );
     phase10_virtio_ring_queue_tests.dependOn(
+        &run_phase10_virtio_ring_registration_summary_tests.step,
+    );
+    phase10_virtio_ring_queue_tests.dependOn(
         &run_phase10_virtio_ring_prepare_kick_idempotent_tests.step,
     );
     phase10_virtio_ring_queue_tests.dependOn(&run_phase10_virtio_ring_reset_reuse_tests.step);
@@ -173,6 +190,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_notification_data_readiness_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_registration_replay_tests.step);
+    test_step.dependOn(&run_phase10_virtio_ring_registration_summary_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_prepare_kick_idempotent_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_reset_reuse_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_broken_queue_queue_discipline_tests.step);
