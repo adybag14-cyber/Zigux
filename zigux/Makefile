@@ -95,6 +95,10 @@ phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order-selftest-alignment.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order-selftest-alignment.py
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-direct-tool-manifest-validator-support-surfaces.py --self-test
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-direct-tool-manifest-validator-support-surfaces.py
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-direct-tool-manifest-validator-support-surfaces-selftest-alignment.py --self-test
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-direct-tool-manifest-validator-support-surfaces-selftest-alignment.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-tool-manifest-contract.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-tool-manifest-contract.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-tool-manifest-contract-selftest-alignment.py --self-test
