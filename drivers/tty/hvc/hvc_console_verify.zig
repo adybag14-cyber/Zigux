@@ -231,6 +231,23 @@ test "phase11 hvc verify helper keeps registered targetless sysrq fallback sanit
     try std.testing.expect(summary.keeps_live_sysrq_execution_out_of_scope);
 }
 
+test "phase11 hvc verify helper keeps targeted notifier SysRq dispatch explicit" {
+    const summary = try summarizeNotifierDispatch(.{
+        .tty_registered = true,
+        .notifier_registered = true,
+        .target_present = true,
+        .sysrq_requested = true,
+    });
+
+    try std.testing.expect(summary.kernel_sysrq_byte);
+    try std.testing.expect(summary.dispatch_allowed);
+    try std.testing.expect(!summary.targetless_dispatch_without_notifier);
+    try std.testing.expect(!summary.targetless_dispatch_with_notifier_sanitized);
+    try std.testing.expect(!summary.literal_fallback_required);
+    try std.testing.expect(!summary.literal_byte_retained);
+    try std.testing.expect(summary.keeps_live_sysrq_execution_out_of_scope);
+}
+
 test "phase11 hvc verify helper keeps non-kernel sysrq literal fallback explicit" {
     const summary = try summarizeNotifierDispatch(.{
         .tty_registered = true,
