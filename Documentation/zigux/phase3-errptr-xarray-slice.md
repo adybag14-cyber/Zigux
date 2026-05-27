@@ -40,6 +40,7 @@ The current helper-local packet now has three bounded replay layers:
   - `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
   - `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test`
   - `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+  - `zig build phase3-errptr-xarray-starter-packet-test --build-file zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
 - one shared tests-root xarray-slot starter packet:
   - `zigux/helpers/xarray_slot_view.zig`
   - `zigux/tests/phase3_xarray_slot_starter_packet.zig`
