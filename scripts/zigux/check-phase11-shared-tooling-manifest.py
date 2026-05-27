@@ -17,7 +17,7 @@ MANIFEST_PATH = Path("zigux/tests/fixtures/phase11_shared_tooling_manifest.json"
 SURVEY_PATH = Path("Documentation/zigux/phase11-codegen-manifest-tooling-gap-survey.md")
 
 EXPECTED_MANIFEST = {
-    "lane_key": "P11-L04",
+    "lane_key": "P11-L06",
     "phase": "Phase 11",
     "status": "shared_packet_aggregate_surface_materialized",
     "scope": "shared Phase 11 codegen and manifest tooling stale aggregate-manifest cleanup",
@@ -83,15 +83,18 @@ EXPECTED_MANIFEST = {
 
 REQUIRED_SURVEY_MARKERS = (
     "`PHASE11_TOOLING_GAP_STATUS=shared_packet_aggregate_surface_materialized`",
+    "- lane: `P11-L06`",
     "`scripts/zigux/check-phase11-shared-tooling-manifest.py`",
     "`zigux/tests/fixtures/phase11_shared_tooling_manifest.json`",
     "distinguishes the narrower `zigux/tests/fixtures/phase11_build_inventory.json` HVC continuity packet from the broader shared `phase11-validate` checker stack and proof fan-out",
-    "wire `scripts/zigux/check-phase11-shared-tooling-manifest.py` into the shared `phase11-validate` route only after current-head rereads confirm the surrounding Phase 11 packet did not drift again",
+    "`scripts/zigux/validate-phase11.py` and `make -C zigux phase11-validate` already execute `scripts/zigux/check-phase11-shared-tooling-manifest.py` as part of the live deterministic checker stack",
 )
 
 FORBIDDEN_SURVEY_MARKERS = (
     "`PHASE11_TOOLING_GAP_STATUS=shared_packet_manifest_gap_open`",
     "there is no current aggregate manifest or generated summary surface",
+    "wire `scripts/zigux/check-phase11-shared-tooling-manifest.py` into the shared `phase11-validate` route only after current-head rereads confirm the surrounding Phase 11 packet did not drift again",
+    "- lane: `P11-L04`",
 )
 
 
@@ -130,16 +133,16 @@ def require_exact_list(label: str, actual: object, expected: list[str]) -> None:
 
 
 def require_text_markers(label: str, text: str, markers: tuple[str, ...]) -> None:
-    normalized = normalize_whitespace(text)
+    normalized = " ".join(text.split())
     for marker in markers:
-        if normalize_whitespace(marker) not in normalized:
+        if " ".join(marker.split()) not in normalized:
             raise CheckError(f"missing marker in {label}: {marker}")
 
 
 def forbid_text_markers(label: str, text: str, markers: tuple[str, ...]) -> None:
-    normalized = normalize_whitespace(text)
+    normalized = " ".join(text.split())
     for marker in markers:
-        if normalize_whitespace(marker) in normalized:
+        if " ".join(marker.split()) in normalized:
             raise CheckError(f"forbidden marker in {label}: {marker}")
 
 
@@ -200,10 +203,11 @@ def build_fixture(root: Path) -> None:
                 "# Phase 11 Codegen and Manifest Tooling Gap Survey",
                 "",
                 "- `PHASE11_TOOLING_GAP_STATUS=shared_packet_aggregate_surface_materialized`",
+                "- lane: `P11-L06`",
                 "- `scripts/zigux/check-phase11-shared-tooling-manifest.py`",
                 "- `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`",
                 "- distinguishes the narrower `zigux/tests/fixtures/phase11_build_inventory.json` HVC continuity packet from the broader shared `phase11-validate` checker stack and proof fan-out",
-                "- wire `scripts/zigux/check-phase11-shared-tooling-manifest.py` into the shared `phase11-validate` route only after current-head rereads confirm the surrounding Phase 11 packet did not drift again",
+                "- `scripts/zigux/validate-phase11.py` and `make -C zigux phase11-validate` already execute `scripts/zigux/check-phase11-shared-tooling-manifest.py` as part of the live deterministic checker stack",
             )
         )
         + "\n",
@@ -288,6 +292,27 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(stale_gap_claim, "forbidden marker")
+        case_count += 1
+
+        stale_lane_marker = tmpdir / "stale_lane_marker"
+        shutil.copytree(fixture, stale_lane_marker, dirs_exist_ok=True)
+        path = stale_lane_marker / SURVEY_PATH
+        path.write_text(
+            path.read_text(encoding="utf-8").replace("- lane: `P11-L06`", "- lane: `P11-L04`", 1),
+            encoding="utf-8",
+        )
+        expect_failure(stale_lane_marker, "- lane: `P11-L06`")
+        case_count += 1
+
+        stale_future_route = tmpdir / "stale_future_route"
+        shutil.copytree(fixture, stale_future_route, dirs_exist_ok=True)
+        path = stale_future_route / SURVEY_PATH
+        path.write_text(
+            path.read_text(encoding="utf-8")
+            + "\nwire `scripts/zigux/check-phase11-shared-tooling-manifest.py` into the shared `phase11-validate` route only after current-head rereads confirm the surrounding Phase 11 packet did not drift again\n",
+            encoding="utf-8",
+        )
+        expect_failure(stale_future_route, "forbidden marker")
         case_count += 1
 
         print("PHASE11_SHARED_TOOLING_MANIFEST_SELF_TEST=pass")
