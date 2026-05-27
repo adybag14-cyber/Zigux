@@ -22,10 +22,7 @@ DOCS_README_MARKERS = (
     "`python3 scripts/zigux/validate-phase2.py`, `python3 scripts/zigux/validate-phase2-closure.py`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-fixdep`, `make -C zigux phase2-validate`, and `make -C zigux phase2` replay the bounded current Phase 2 closure-side, bounded genksyms bridge, and make-wrapper packet without widening it back into older missing-route assumptions.",
 )
 
-DOCS_README_EXACT_COUNT_MARKERS = (
-    "`third_party/README.md`, `scripts/zigux/check-lane05-local-first-archive-workflow.py`, and `scripts/zigux/check-lane05-local-archive-readme.py` are directly readable on current `master` again, so keep the repo-local pinned archive contract",
-    "`scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `zigux/tests/fixtures/fixdep/cases.json`, and `make -C zigux phase2-fixdep` are directly readable on current `master` again",
-)
+DOCS_README_EXACT_COUNT_MARKERS = DOCS_README_MARKERS
 
 PHASE2_NOTES_MARKERS = (
     "`third_party/README.md` is directly readable on current `master` and keeps the repo-local pinned archive filename, digest, size, duplicate-copy boundary, and `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux` replay contract explicit beside the policy-driven toolchain packet.",
@@ -33,6 +30,8 @@ PHASE2_NOTES_MARKERS = (
     "The rematerialized make-wrapper packet is directly readable on current `master` through `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-fixdep`, `make -C zigux phase2-validate`, and `make -C zigux phase2`, so keep those routes in the present packet instead of the repo-reality-gap list.",
     "No current repo-reality gaps remain inside the bounded toolchain, installer, direct cross-route, local-first archive, returned archive-verification and staged-archive helper packet, or returned fixdep packet on current `master`.",
 )
+
+PHASE2_NOTES_EXACT_COUNT_MARKERS = PHASE2_NOTES_MARKERS
 
 REVIEW_CHECKLIST_MARKERS = (
     "`third_party/README.md`",
@@ -46,12 +45,19 @@ REVIEW_CHECKLIST_MARKERS = (
     "current rematerialized Phase 2 local-first archive, closure-side, closure-validator, validation, installer, direct cross-route, artifact-support, fixdep, toolchain self-check, and make-wrapper packet",
 )
 
+REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = (
+    REVIEW_CHECKLIST_MARKERS[7],
+    REVIEW_CHECKLIST_MARKERS[8],
+)
+
 TESTS_README_MARKERS = (
     "current `master` now directly materializes `third_party/README.md`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-lane05-local-first-archive-workflow.py`, and `scripts/zigux/check-lane05-local-archive-readme.py`, so keep that returned repo-local pinned-archive workflow, bootstrap guard, and archive README contract explicit here instead of leaving them outside the tests-root reminder",
     "keep the local-first archive workflow replay surface explicit through `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`, `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`, `python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`, and `python3 scripts/zigux/check-lane05-local-archive-readme.py`.",
     "current `master` also directly materializes `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`, so keep that returned fixdep governance, parity, helper, wrapper, and fixture packet explicit here instead of leaving it outside the tests-root reminder",
     "current `master` now directly materializes `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so keep that returned installer, direct cross-route, and cross-target fixture packet explicit here instead of leaving it in the historical-gap bucket",
 )
+
+TESTS_README_EXACT_COUNT_MARKERS = TESTS_README_MARKERS
 
 THIRD_PARTY_README_MARKERS = (
     "- `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
@@ -60,10 +66,7 @@ THIRD_PARTY_README_MARKERS = (
     "- `scripts/zigux/check-lane05-local-first-archive-workflow.py` and `scripts/zigux/check-lane05-local-archive-readme.py` are the shipped reminder guards for that local-first archive path.",
 )
 
-THIRD_PARTY_README_EXACT_COUNT_MARKERS = (
-    "- If the repo-local archive is unavailable, `.github/workflows/zigux-bootstrap.yml` falls back to `community-mirrors.txt` before the direct `ziglang.org` download URL.",
-    "- `scripts/zigux/check-lane05-local-first-archive-workflow.py` and `scripts/zigux/check-lane05-local-archive-readme.py` are the shipped reminder guards for that local-first archive path.",
-)
+THIRD_PARTY_README_EXACT_COUNT_MARKERS = THIRD_PARTY_README_MARKERS
 
 
 def read_text(path: Path) -> str:
@@ -71,6 +74,11 @@ def read_text(path: Path) -> str:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
+
+
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -104,42 +112,42 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues.extend(collect_missing(docs_readme, DOCS_README_MARKERS, "docs-readme"))
     issues.extend(collect_exact_count(docs_readme, DOCS_README_EXACT_COUNT_MARKERS, "docs-readme-count"))
     issues.extend(collect_missing(phase2_notes, PHASE2_NOTES_MARKERS, "phase2-notes"))
+    issues.extend(collect_exact_count(phase2_notes, PHASE2_NOTES_EXACT_COUNT_MARKERS, "phase2-notes-count"))
     issues.extend(collect_missing(review_checklist, REVIEW_CHECKLIST_MARKERS, "review-checklist"))
+    issues.extend(collect_exact_count(review_checklist, REVIEW_CHECKLIST_EXACT_COUNT_MARKERS, "review-checklist-count"))
     issues.extend(collect_missing(tests_readme, TESTS_README_MARKERS, "tests-readme"))
+    issues.extend(collect_exact_count(tests_readme, TESTS_README_EXACT_COUNT_MARKERS, "tests-readme-count"))
     issues.extend(collect_missing(third_party_readme, THIRD_PARTY_README_MARKERS, "third-party-readme"))
     issues.extend(collect_exact_count(third_party_readme, THIRD_PARTY_README_EXACT_COUNT_MARKERS, "third-party-readme-count"))
     return issues
 
 
 def write_sample_root(root: Path) -> None:
-    (root / "Documentation" / "zigux").mkdir(parents=True, exist_ok=True)
-    (root / "zigux" / "tests").mkdir(parents=True, exist_ok=True)
-    (root / "third_party").mkdir(parents=True, exist_ok=True)
-
-    (root / "Documentation" / "zigux" / "README.md").write_text(
+    write_text(
+        root / "Documentation" / "zigux" / "README.md",
         "\n".join((" # sample".strip(), *DOCS_README_MARKERS)) + "\n",
-        encoding="utf-8",
     )
-    (root / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md").write_text(
+    write_text(
+        root / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md",
         "\n".join((" # sample".strip(), *PHASE2_NOTES_MARKERS)) + "\n",
-        encoding="utf-8",
     )
-    (root / "Documentation" / "zigux" / "review-checklist.md").write_text(
+    write_text(
+        root / "Documentation" / "zigux" / "review-checklist.md",
         "\n".join((" # sample".strip(), *REVIEW_CHECKLIST_MARKERS)) + "\n",
-        encoding="utf-8",
     )
-    (root / "zigux" / "tests" / "README.md").write_text(
+    write_text(
+        root / "zigux" / "tests" / "README.md",
         "\n".join((" # sample".strip(), *TESTS_README_MARKERS)) + "\n",
-        encoding="utf-8",
     )
-    (root / "third_party" / "README.md").write_text(
+    write_text(
+        root / "third_party" / "README.md",
         "\n".join((" # sample".strip(), *THIRD_PARTY_README_MARKERS)) + "\n",
-        encoding="utf-8",
     )
 
 
 def run_self_test() -> None:
     cases = 0
+    expected_case_count = 16
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
         write_sample_root(root)
@@ -161,6 +169,14 @@ def run_self_test() -> None:
             raise SystemExit("expected docs-readme failure for missing local-first archive marker")
         write_sample_root(root)
 
+        docs_text = docs_path.read_text(encoding="utf-8")
+        docs_path.write_text(docs_text + DOCS_README_EXACT_COUNT_MARKERS[4] + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        cases += 1
+        if ("docs-readme-count", f"2::{DOCS_README_EXACT_COUNT_MARKERS[4]}") not in issues:
+            raise SystemExit("expected docs-readme exact-count failure for duplicate fixdep marker")
+        write_sample_root(root)
+
         notes_path = root / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
         notes_text = notes_path.read_text(encoding="utf-8")
         notes_path.write_text(
@@ -171,6 +187,14 @@ def run_self_test() -> None:
         cases += 1
         if not any(code == "phase2-notes" for code, _ in issues):
             raise SystemExit("expected phase2-notes failure for missing fixdep marker")
+        write_sample_root(root)
+
+        notes_text = notes_path.read_text(encoding="utf-8")
+        notes_path.write_text(notes_text + PHASE2_NOTES_EXACT_COUNT_MARKERS[2] + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        cases += 1
+        if ("phase2-notes-count", f"2::{PHASE2_NOTES_EXACT_COUNT_MARKERS[2]}") not in issues:
+            raise SystemExit("expected phase2-notes exact-count failure for duplicate make-wrapper marker")
         write_sample_root(root)
 
         checklist_path = root / "Documentation" / "zigux" / "review-checklist.md"
@@ -185,16 +209,15 @@ def run_self_test() -> None:
             raise SystemExit("expected review-checklist failure for missing packet summary")
         write_sample_root(root)
 
-        third_party_path = root / "third_party" / "README.md"
-        third_party_text = third_party_path.read_text(encoding="utf-8")
-        third_party_path.write_text(
-            third_party_text + THIRD_PARTY_README_MARKERS[3] + "\n",
+        checklist_text = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(
+            checklist_text + REVIEW_CHECKLIST_EXACT_COUNT_MARKERS[1] + "\n",
             encoding="utf-8",
         )
         issues = collect_issues(root)
         cases += 1
-        if not any(code == "third-party-readme-count" for code, _ in issues):
-            raise SystemExit("expected third-party exact-count failure for duplicate guard line")
+        if ("review-checklist-count", f"2::{REVIEW_CHECKLIST_EXACT_COUNT_MARKERS[1]}") not in issues:
+            raise SystemExit("expected review-checklist exact-count failure for duplicate summary marker")
         write_sample_root(root)
 
         tests_path = root / "zigux" / "tests" / "README.md"
@@ -207,6 +230,55 @@ def run_self_test() -> None:
         cases += 1
         if not any(code == "tests-readme" for code, _ in issues):
             raise SystemExit("expected tests-readme failure for missing fixdep packet marker")
+        write_sample_root(root)
+
+        tests_text = tests_path.read_text(encoding="utf-8")
+        tests_path.write_text(tests_text + TESTS_README_EXACT_COUNT_MARKERS[3] + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        cases += 1
+        if ("tests-readme-count", f"2::{TESTS_README_EXACT_COUNT_MARKERS[3]}") not in issues:
+            raise SystemExit("expected tests-readme exact-count failure for duplicate cross marker")
+        write_sample_root(root)
+
+        third_party_path = root / "third_party" / "README.md"
+        third_party_text = third_party_path.read_text(encoding="utf-8")
+        third_party_path.write_text(
+            third_party_text.replace(THIRD_PARTY_README_MARKERS[1], "missing archive reuse marker", 1),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        cases += 1
+        if not any(code == "third-party-readme" for code, _ in issues):
+            raise SystemExit("expected third-party-readme failure for missing archive reuse marker")
+        write_sample_root(root)
+
+        third_party_text = third_party_path.read_text(encoding="utf-8")
+        third_party_path.write_text(
+            third_party_text + THIRD_PARTY_README_EXACT_COUNT_MARKERS[3] + "\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        cases += 1
+        if ("third-party-readme-count", f"2::{THIRD_PARTY_README_EXACT_COUNT_MARKERS[3]}") not in issues:
+            raise SystemExit("expected third-party exact-count failure for duplicate guard line")
+        write_sample_root(root)
+
+        for rel_path in (DOCS_README, PHASE2_NOTES, REVIEW_CHECKLIST, TESTS_README, THIRD_PARTY_README):
+            resolve_path(root, rel_path).unlink()
+            try:
+                collect_issues(root)
+            except SystemExit as exc:
+                if "required file missing" not in str(exc):
+                    raise
+                cases += 1
+            else:
+                raise SystemExit(f"missing file did not abort: {rel_path}")
+            write_sample_root(root)
+
+    if cases != expected_case_count:
+        raise SystemExit(
+            f"PHASE2_DOCS_README_CURRENT_PACKET_SELF_TEST_COUNT_DRIFT expected={expected_case_count} actual={cases}"
+        )
 
     print("PHASE2_DOCS_README_CURRENT_PACKET_SELF_TEST=pass")
     print(f"PHASE2_DOCS_README_CURRENT_PACKET_SELF_TEST_CASE_COUNT={cases}")
