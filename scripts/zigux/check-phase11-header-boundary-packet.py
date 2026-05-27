@@ -117,6 +117,8 @@ CHECKER_COVERAGE_REQUIRED_MARKERS = (
     "returned dedicated shared checker now exists",
     "note-side evidence only",
     "missing shared manifest, survey source, or build route",
+    "`scripts/zigux/README.md` and `zigux/tests/README.md` currently skip Phase 11",
+    "`make -C zigux phase11-validate`",
 )
 
 CHECKER_COVERAGE_FORBIDDEN_MARKERS = (
@@ -244,6 +246,17 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(checker_missing, CHECKER_COVERAGE_REQUIRED_MARKERS[10])
+        case_count += 1
+
+        checker_reminder_gap_missing = tmpdir / "checker_reminder_gap_missing"
+        shutil.copytree(fixture_root, checker_reminder_gap_missing, dirs_exist_ok=True)
+        path = checker_reminder_gap_missing / CHECKER_COVERAGE_PATH
+        reminder_gap_marker = CHECKER_COVERAGE_REQUIRED_MARKERS[12]
+        path.write_text(
+            remove_marker(path.read_text(encoding="utf-8"), reminder_gap_marker),
+            encoding="utf-8",
+        )
+        expect_failure(checker_reminder_gap_missing, reminder_gap_marker)
         case_count += 1
 
         hv_ops_missing = tmpdir / "hv_ops_missing"
