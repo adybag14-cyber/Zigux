@@ -1,1 +1,9 @@
-module/sample2.o: zigux/tests/fixtures/fixdep/sample2.c zigux/tests/fixtures/fixdep/shared\#config.h zigux/tests/fixtures/fixdep/sample2-config.h zigux/tests/fixtures/fixdep/sample2.so
+module/sample2.o module/sample2.d: zigux/tests/fixtures/fixdep/sample2.c \
+ zigux/tests/fixtures/fixdep/shared\#config.h \
+ zigux/tests/fixtures/fixdep/sample2-config.h \
+ zigux/tests/fixtures/fixdep/sample2.so \
+ zigux/tests/fixtures/fixdep/sample2-config.h
+# comment line that should be ignored \
+still comment with zigux/tests/fixtures/fixdep/escaped\ space-config.h zigux/tests/fixtures/fixdep/shared\#config.h \
+and zigux/tests/fixtures/fixdep/shared\:config.h include/generated/autoconf.h \
+plus zigux/tests/fixtures/fixdep/sample2.so sample.rlib sample.rmeta stay ignored too
