@@ -10,6 +10,7 @@ REVIEW_PROCESS_PATH = Path("Documentation/zigux/phase15-architecture-council-rev
 DECISION_RECORD_TEMPLATE_PATH = Path(
     "Documentation/zigux/phase15-architecture-council-decision-record-template.md"
 )
+DECISION_INDEX_PATH = Path("Documentation/zigux/phase15-architecture-council-decision-index.md")
 INDEFINITE_C_POLICY_PATH = Path("Documentation/zigux/phase15-indefinite-c-policy.md")
 REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 MANIFEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process_manifest.json")
@@ -30,6 +31,21 @@ REQUIRED_NOTE_MARKERS = (
     "`zigux/tests/phase15_architecture_council_review_process.zig`",
     "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
     "exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+    "`Documentation/zigux/phase15-architecture-council-decision-index.md` keeps the current Architecture Council decision inventory explicit, recording that no freeze-map anchor has an approved status change or stay-in-C closeout record on current `master` until a future decision record lands",
+)
+
+DECISION_INDEX_REQUIRED_MARKERS = (
+    "PHASE15_STATUS=architecture_council_decision_index_landed",
+    "PHASE15_LANE_KEY=P15-L09",
+    "PHASE15_PROVENANCE_MODE=dated_master_readback",
+    "approved status-bucket changes recorded on current `master`: none",
+    "stay-in-C closeout decision records recorded on current `master`: none",
+    "no freeze-map anchor has an Architecture Council approval for a status change on current `master`",
+    "`Documentation/zigux/phase15-architecture-council-review-process.md`",
+    "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+    "`Documentation/zigux/phase15-freeze-map-governance.md`",
+    "`Documentation/zigux/phase15-parity-scorecard.md`",
+    "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay outside this index until the freeze map changes",
 )
 
 
@@ -53,6 +69,7 @@ def collect_failures(root: Path) -> list[str]:
     required_paths = (
         REVIEW_PROCESS_PATH,
         DECISION_RECORD_TEMPLATE_PATH,
+        DECISION_INDEX_PATH,
         INDEFINITE_C_POLICY_PATH,
         REVIEW_CHECKLIST_PATH,
         MANIFEST_PATH,
@@ -68,6 +85,7 @@ def collect_failures(root: Path) -> list[str]:
 
     review_process = _read_text(root / REVIEW_PROCESS_PATH)
     decision_record_template = _read_text(root / DECISION_RECORD_TEMPLATE_PATH)
+    decision_index = _read_text(root / DECISION_INDEX_PATH)
     indefinite_c_policy = _read_text(root / INDEFINITE_C_POLICY_PATH)
     review_checklist = _read_text(root / REVIEW_CHECKLIST_PATH)
     manifest = _read_manifest(root / MANIFEST_PATH)
@@ -92,6 +110,10 @@ def collect_failures(root: Path) -> list[str]:
             failures.append(f"missing_note_marker:{marker}")
     if EXPECTED_SURVEYED_COMMIT not in review_process:
         failures.append("surveyed_commit_note_marker")
+
+    for marker in DECISION_INDEX_REQUIRED_MARKERS:
+        if marker not in decision_index:
+            failures.append(f"missing_decision_index_marker:{marker}")
 
     for marker in manifest.get("required_review_fields", []):
         if marker not in review_process:
@@ -278,6 +300,7 @@ This note records the bounded Phase 15 review-policy packet for freeze-map ancho
 - `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
+- `Documentation/zigux/phase15-architecture-council-decision-index.md` keeps the current Architecture Council decision inventory explicit, recording that no freeze-map anchor has an approved status change or stay-in-C closeout record on current `master` until a future decision record lands
 
 ## Required review packet
 
@@ -400,6 +423,28 @@ def _sample_decision_record_template() -> str:
 """
 
 
+def _sample_decision_index() -> str:
+    return """# Phase 15 Architecture Council Decision Index
+
+## Status
+
+- `PHASE15_STATUS=architecture_council_decision_index_landed`
+- `PHASE15_LANE_KEY=P15-L09`
+- `PHASE15_PROVENANCE_MODE=dated_master_readback`
+
+## Current decision inventory
+
+- approved status-bucket changes recorded on current `master`: none
+- stay-in-C closeout decision records recorded on current `master`: none
+- no freeze-map anchor has an Architecture Council approval for a status change on current `master`
+
+## Index rules
+
+- every future Architecture Council decision record must route back through `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, and `Documentation/zigux/phase15-parity-scorecard.md`
+- `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay outside this index until the freeze map changes
+"""
+
+
 def _sample_indefinite_c_policy() -> str:
     return """# Phase 15 Indefinite-C Policy
 
@@ -449,6 +494,7 @@ def run_self_test() -> int:
         root = Path(tmp_dir)
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
         _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
+        _write(root / DECISION_INDEX_PATH, _sample_decision_index())
         _write(root / INDEFINITE_C_POLICY_PATH, _sample_indefinite_c_policy())
         _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
         _write(root / MANIFEST_PATH, _sample_manifest())
@@ -464,6 +510,7 @@ def run_self_test() -> int:
         cases = (
             (REVIEW_PROCESS_PATH, "- roadmap phase\n", ["missing_review_process_required_field:roadmap phase"]),
             (DECISION_RECORD_TEMPLATE_PATH, "- next bounded step:\n", ["missing_decision_record_review_outcome_field:next bounded step"]),
+            (DECISION_INDEX_PATH, "- approved status-bucket changes recorded on current `master`: none\n", ["missing_decision_index_marker:approved status-bucket changes recorded on current `master`: none"]),
             (INDEFINITE_C_POLICY_PATH, "parity scorecard link or blocker record", ["missing_indefinite_c_policy_marker:parity scorecard link or blocker record"]),
             (REVIEW_CHECKLIST_PATH, "retained blocker posture", ["missing_review_checklist_boundary_marker:`Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording", "missing_review_checklist_required_marker:retained blocker posture"]),
         )
@@ -472,6 +519,7 @@ def run_self_test() -> int:
             case_root = root / f"case_{case_count}"
             _write(case_root / REVIEW_PROCESS_PATH, _sample_review_process())
             _write(case_root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
+            _write(case_root / DECISION_INDEX_PATH, _sample_decision_index())
             _write(case_root / INDEFINITE_C_POLICY_PATH, _sample_indefinite_c_policy())
             _write(case_root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
             _write(case_root / MANIFEST_PATH, _sample_manifest())
