@@ -26,6 +26,7 @@ LIBBPF_SEGMENTS_BUILD_PATH = "zigux/tests/phase8_libbpf_segments_only_build.zig"
 VERIFY_PATH = "tools/lib/bpf/zigux_segments/verify.zig"
 CPU_MASK_PATH = "tools/lib/bpf/zigux_segments/cpu_mask.zig"
 CPU_MASK_VERIFY_PATH = "tools/lib/bpf/zigux_segments/cpu_mask_verify.zig"
+FILE_PATH_HANDLE_BRIDGE_VERIFY_PATH = "tools/lib/bpf/zigux_segments/file_path_handle_bridge_verify.zig"
 LOGGING_PATH = "tools/lib/bpf/zigux_segments/logging.zig"
 LOGGING_VERIFY_PATH = "tools/lib/bpf/zigux_segments/logging_verify.zig"
 ONLINE_CPU_ROUTING_PATH = "tools/lib/bpf/zigux_segments/online_cpu_routing.zig"
@@ -63,6 +64,7 @@ REQUIRED_FILES = (
     VERIFY_PATH,
     CPU_MASK_PATH,
     CPU_MASK_VERIFY_PATH,
+    FILE_PATH_HANDLE_BRIDGE_VERIFY_PATH,
     LOGGING_PATH,
     LOGGING_VERIFY_PATH,
     ONLINE_CPU_ROUTING_PATH,
@@ -246,6 +248,7 @@ REQUIRED_MARKERS = {
         'const perf_buffer_poll = @import("perf_buffer_poll.zig");',
         'const perf_buffer_poll_verify = @import("perf_buffer_poll_verify.zig");',
         'const perf_buffer_ready_window = @import("perf_buffer_ready_window.zig");',
+        'const file_path_handle_bridge_verify = @import("file_path_handle_bridge_verify.zig");',
         'const pin_path = @import("pin_path.zig");',
         'const pin_path_verify = @import("pin_path_verify.zig");',
         'const ready_buffer_attempt_verify = @import("ready_buffer_attempt_verify.zig");',
@@ -261,6 +264,7 @@ REQUIRED_MARKERS = {
         "std.testing.refAllDecls(online_cpu_routing_verify);",
         "std.testing.refAllDecls(perf_buffer_poll_verify);",
         "std.testing.refAllDecls(perf_buffer_ready_window);",
+        "std.testing.refAllDecls(file_path_handle_bridge_verify);",
         "std.testing.refAllDecls(pin_path_verify);",
         "std.testing.refAllDecls(ready_buffer_attempt_verify);",
         "std.testing.refAllDecls(ready_buffer_fd_lookup);",
@@ -300,6 +304,14 @@ REQUIRED_MARKERS = {
         'test "phase8 cpu-mask helper entrypoints stay explicit" {',
         "derivePerfBufferAutoCpuCountFromReader",
         'test "phase8 cpu-mask helpers keep invalid direct and reader-backed inputs fail-closed" {',
+    ),
+    FILE_PATH_HANDLE_BRIDGE_VERIFY_PATH: (
+        'test "phase8 file-path bridge entrypoints stay explicit" {',
+        'try std.testing.expect(@hasDecl(bridge, "planTokenPreparation"));',
+        'test "phase8 file-path bridge keeps helper-only outputs stable" {',
+        'test "phase8 file-path bridge keeps fdinfo-map-info and planning helpers stable" {',
+        'test "phase8 file-path bridge keeps reuse-flag normalization and mismatch reporting stable" {',
+        'test "phase8 file-path bridge keeps validation and errno outputs stable" {',
     ),
     LOGGING_PATH: (
         "pub fn parseLogLevelSetting(",
