@@ -174,28 +174,32 @@ test "phase10 virtio ring queue build survey keeps callback-enable coverage expl
     );
     defer allocator.free(survey_note);
 
-    const packet_checker = try readRepoRelative(
-        allocator,
-        "scripts/zigux/check-phase10-ring-packet.py",
-    );
-    defer allocator.free(packet_checker);
-
     const callback_wrapper = try readRepoRelative(
         allocator,
         "drivers/virtio/virtio_ring_callback_enable.zig",
     );
     defer allocator.free(callback_wrapper);
 
+    const manifest = try readRepoRelative(
+        allocator,
+        "zigux/tests/phase10_virtio_ring_manifest.json",
+    );
+    defer allocator.free(manifest);
+
     try expectContains(
         survey_note,
         "`drivers/virtio/virtio_ring_callback_enable.zig` keeps callback-ready, pending-used, and broken-queue recovery state explicit inside the same queue-handling packet.",
     );
     try expectContains(
-        packet_checker,
-        "\"phase10-callback-enable-helper\"",
-    );
-    try expectContains(
         callback_wrapper,
         "test \"phase10 virtio ring callback-enable wrapper keeps recovery debt explicit after a broken queue is cleared\" {",
+    );
+    try expectContains(
+        manifest,
+        "\"preexisting_ring_callback_enable_present\": true",
+    );
+    try expectContains(
+        manifest,
+        "\"zigux_destination\": \"drivers/virtio/virtio_ring_callback_enable.zig\"",
     );
 }
