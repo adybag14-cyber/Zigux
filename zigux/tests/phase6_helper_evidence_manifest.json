@@ -9,6 +9,7 @@
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
+    "Documentation/zigux/phase6-runtime-command-environment-gap-survey.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -289,6 +290,8 @@
           "make -C zigux phase6-hexdump-review",
           "zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
           "make -C zigux phase6-hexdump-perf-matrix-test",
+          "zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig",
+          "make -C zigux phase6-hexdump-test",
           "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
           "make -C zigux phase6-hexdump-perf",
           "make -C zigux phase6-perf"
