@@ -39,7 +39,8 @@ test "phase 8 help command-set helpers keep stable filtering and layout planning
     try std.testing.expect(main_cmds.contains(""));
     try std.testing.expect(main_cmds.contains("trace"));
     try std.testing.expectEqual(@as(usize, 5), main_cmds.longest());
-    try std.testing.expectEqualStrings(".exe", help.trimCommandPrefix("perf-.exe", help.default_command_prefix).?);
+    try std.testing.expectEqual(@as(?[]const u8, null), help.trimCommandPrefix("perf-", help.default_command_prefix));
+    try std.testing.expectEqual(@as(?[]const u8, null), help.trimCommandPrefix("perf-.exe", help.default_command_prefix));
     try std.testing.expectEqualStrings("record", help.trimCommandPrefix("perf-record.exe", help.default_command_prefix).?);
     try std.testing.expectEqual(@as(?[]const u8, null), help.trimCommandPrefix("trace2html", help.default_command_prefix));
 
