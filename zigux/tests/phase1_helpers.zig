@@ -34,6 +34,18 @@ const Fixture = struct {
             value: u64,
             rest: []const u8,
         },
+        hex_m: struct {
+            value: u64,
+            rest: []const u8,
+        },
+        octal_k: struct {
+            value: u64,
+            rest: []const u8,
+        },
+        invalid: struct {
+            value: u64,
+            rest: []const u8,
+        },
         option_debug: bool,
         option_empty_leading: bool,
         option_empty_double_comma: bool,
@@ -236,6 +248,18 @@ test "phase 1 helper ports match committed parity fixture" {
     const saturated_positive_signed = cmdline.memparse("+9223372036854775808");
     try std.testing.expectEqual(fixture.cmdline.saturated_positive_signed.value, saturated_positive_signed.value);
     try std.testing.expectEqualStrings(fixture.cmdline.saturated_positive_signed.rest, saturated_positive_signed.rest);
+
+    const hex_m = cmdline.memparse("0x20M");
+    try std.testing.expectEqual(fixture.cmdline.hex_m.value, hex_m.value);
+    try std.testing.expectEqualStrings(fixture.cmdline.hex_m.rest, hex_m.rest);
+
+    const octal_k = cmdline.memparse("010K");
+    try std.testing.expectEqual(fixture.cmdline.octal_k.value, octal_k.value);
+    try std.testing.expectEqualStrings(fixture.cmdline.octal_k.rest, octal_k.rest);
+
+    const invalid = cmdline.memparse("xyz");
+    try std.testing.expectEqual(fixture.cmdline.invalid.value, invalid.value);
+    try std.testing.expectEqualStrings(fixture.cmdline.invalid.rest, invalid.rest);
 
     try std.testing.expectEqual(fixture.cmdline.option_debug, cmdline.parseOptionStr("quiet,debug,nohlt", "debug"));
     try std.testing.expectEqual(fixture.cmdline.option_empty_leading, cmdline.parseOptionStr(",quiet", ""));
