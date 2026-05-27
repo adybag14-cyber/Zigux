@@ -642,3 +642,45 @@ test "phase8 file-path bridge keeps reused-map name retention summaries stable" 
     try std.testing.expectEqual(ReusedMapNameDisposition.exact_name, exact.disposition);
     try std.testing.expectEqualStrings("stats_map", exact.name);
 }
+
+test "phase8 file-path bridge keeps retained-name dispositions explicit" {
+    const terminated_prefix = try summarizeReusedMapName("stats_map\x00shadow");
+    try std.testing.expectEqual(ReusedMapNameDisposition.terminated_prefix, terminated_prefix.disposition);
+    try std.testing.expectEqual(@as(usize, 9), terminated_prefix.retained_len);
+    try std.testing.expectEqual(@as(?usize, 9), terminated_prefix.terminator_index);
+    try std.testing.expectEqualStrings("stats_map", terminated_prefix.name);
+
+    const truncated_fixed_width = try summarizeReusedMapName("stats_map");
+    try std.testing.expectEqual(ReusedMapNameDisposition.truncated_fixed_width, truncated_fixed_width.disposition);
+    try std.testing.expectEqual(@as(usize, 9), truncated_fixed_width.retained_len);
+    try std.testing.expectEqual(@as(?usize, null), truncated_fixed_width.terminator_index);
+    try std.testing.expectEqualStrings("stats_map", truncated_fixed_width.name);
+}
+
+test "phase8 file-path bridge keeps incomplete fdinfo reuse planning explicit" {
+    const parsed = try parseFdinfoMapInfo(
+        \\map_type: 14
+        \\key_size: 4
+        \\value_size: 8
+        \\max_entries: 16
+    );
+
+    const reuse_attempt = try resolveReusePinnedMapAttempt("stats_map\x00shadow", parsed);
+    try std.testing.expectEqual(
+        ReusePinnedMapAttemptDisposition.incomplete_fdinfo_map_info,
+        reuse_attempt.disposition,
+    );
+    try std.testing.expect(!reuse_attempt.should_attempt_reopen);
+    try std.testing.expectEqualStrings("stats_map", reuse_attempt.retained_name.?);
+    try std.testing.expectEqual(@as(usize, 4), reuse_attempt.fdinfo_summary.parsed_field_count);
+    try std.testing.expect(!reuse_attempt.fdinfo_summary.has_complete_legacy_fields);
+    try std.testing.expectEqual(@as(?u32, 14), reuse_attempt.reuse_observation.map_type);
+    try std.testing.expectEqual(@as(?u32, null), reuse_attempt.reuse_observation.map_flags);
+
+    const token_plan = planTokenPreparation(reuse_attempt);
+    try std.testing.expectEqual(
+        TokenPreparationDisposition.skip_token_open_attempt,
+        token_plan.disposition,
+    );
+    try std.testing.expect(!token_plan.should_attempt_token_open);
+}
