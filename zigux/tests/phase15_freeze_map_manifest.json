@@ -1,9 +1,9 @@
 {
   "lane_key": "P15-L04",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-25",
+  "surveyed_commit": "current-master-readback-2026-05-27",
   "surveyed_commit_mode": "dated_master_readback",
-  "surveyed_commit_mode_reason": "This freeze-map packet now records a dated current-master readback after a fresh reread confirmed that the readiness-gate survey, the focused readiness-packet checker, the tests-root alignment guard, the lane-owner replay, the validator-first companion, and the shared Phase 15 build companion are directly readable while the dedicated make-wrapper routes still remain broader repo-reality gaps.",
+  "surveyed_commit_mode_reason": "This freeze-map packet now records a dated current-master readback after a fresh reread confirmed that the landed docs-root Phase 15 reminder, the focused docs-root alignment checker, the readiness-gate survey, the focused readiness-packet checker, the tests-root alignment guard, the lane-owner replay, the validator-first companion, and the shared Phase 15 build companion are directly readable while the dedicated make-wrapper routes still remain broader repo-reality gaps.",
   "anchor": "Documentation/zigux/freeze-map.md",
   "freeze_in_c_targets": [
     "kernel/sched/core.c",
@@ -189,7 +189,7 @@
       "the freeze-in-C or study-only anchor set changes in Documentation/zigux/freeze-map.md",
       "the checker-backed shared reminder packet or an adjacent Phase 15 governance packet drifts enough to change the per-anchor evidence archive, replay command, stay-in-C, or no-silent-exception posture recorded here"
     ],
-    "next_future_target": "stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread Documentation/zigux/freeze-map.md, Documentation/zigux/review-checklist.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-shared-summary-gap.md, Documentation/zigux/phase15-study-only-anchor-accounting.md, Documentation/zigux/phase15-readiness-gate-survey.md, zigux/tests/README.md, zigux/tests/phase15_freeze_map_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, scripts/zigux/check-phase15-docs-readme-alignment.py, scripts/zigux/check-phase15-review-checklist-study-only-alignment.py, scripts/zigux/check-phase15-tests-readme-alignment.py, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, scripts/zigux/check-phase15-shared-summary-gap.py, and scripts/zigux/check-phase15-readiness-gate-packet.py together, then re-check whether current direct reads still materialize scripts/zigux/validate-phase15.py, zigux/tests/phase15_build.zig, and zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and whether zigux/Makefile still lacks phase15-validate, phase15-test, and phase15 before keeping the repair inside the dedicated freeze-map packet."
+    "next_future_target": "stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread Documentation/zigux/freeze-map.md, Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-shared-summary-gap.md, Documentation/zigux/phase15-study-only-anchor-accounting.md, Documentation/zigux/phase15-readiness-gate-survey.md, zigux/tests/README.md, zigux/tests/phase15_freeze_map_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, scripts/zigux/check-phase15-docs-readme-alignment.py, scripts/zigux/check-phase15-review-checklist-study-only-alignment.py, scripts/zigux/check-phase15-tests-readme-alignment.py, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, scripts/zigux/check-phase15-shared-summary-gap.py, and scripts/zigux/check-phase15-readiness-gate-packet.py together, then re-check whether current direct reads still materialize scripts/zigux/validate-phase15.py, zigux/tests/phase15_build.zig, and zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and whether zigux/Makefile still lacks phase15-validate, phase15-test, and phase15 before keeping the repair inside the dedicated freeze-map packet."
   },
   "gaps": [
     {
@@ -204,7 +204,7 @@
       "status": "landed",
       "kind": "lane_note",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
-      "why_now": "The freeze-map-specific lane note now reflects the narrower current route picture: the readiness-gate survey, the focused readiness-packet checker, the tests-root alignment guard, the lane-owner replay, the validator-first companion, and the shared build companion are readable again, while the dedicated make-wrapper routes still stay missing."
+      "why_now": "The freeze-map-specific lane note now reflects the narrower current route picture: the landed docs-root Phase 15 reminder, the focused docs-root alignment checker, the readiness-gate survey, the focused readiness-packet checker, the tests-root alignment guard, the lane-owner replay, the validator-first companion, and the shared build companion are readable again, while the dedicated make-wrapper routes still stay missing."
     },
     {
       "id": "phase15-freeze-map-manifest",
@@ -268,6 +268,20 @@
       "kind": "maintenance_handoff",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
       "why_now": "The dedicated freeze-map packet says exactly when to reopen, how to rerun the direct checker route, and how to keep future repairs inside the freeze-map packet instead of drifting into neighboring Phase 15 governance lanes."
+    },
+    {
+      "id": "phase15-docs-readme-phase15-reminder",
+      "status": "materialized_in_contents_readback",
+      "kind": "shared_route_presence",
+      "zigux_destination": "Documentation/zigux/README.md",
+      "why_now": "Direct contents readback resolves Documentation/zigux/README.md, so the freeze-map packet must keep the broad docs-root Phase 15 reminder visible as adjacent direct-readback evidence."
+    },
+    {
+      "id": "phase15-docs-readme-alignment-guard",
+      "status": "materialized_in_contents_readback",
+      "kind": "shared_route_presence",
+      "zigux_destination": "scripts/zigux/check-phase15-docs-readme-alignment.py",
+      "why_now": "Direct contents readback resolves scripts/zigux/check-phase15-docs-readme-alignment.py, so the freeze-map packet must keep the focused docs-root alignment guard visible as adjacent direct-readback evidence with Documentation/zigux/README.md."
     },
     {
       "id": "phase15-readiness-gate-note-readback",
