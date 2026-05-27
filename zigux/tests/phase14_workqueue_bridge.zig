@@ -23,7 +23,7 @@ test "phase14 workqueue bridge descriptor matches the blocked-maintenance bridge
     try std.testing.expectEqualStrings("flush, drain, and cancellation completion ownership", audit.blocked_live_behaviors[1]);
     try std.testing.expectEqualStrings("delayed-work requeue control", audit.blocked_live_behaviors[2]);
     try std.testing.expectEqualStrings("runtime max_active retuning ownership", audit.blocked_live_behaviors[3]);
-    try std.testing.expectEqualStrings("scheduler callback parity", audit.blocked_live_behaviors[4]);
+    try std.testing.expectEqualStrings("scheduler-visible worker-state parity", audit.blocked_live_behaviors[4]);
     try std.testing.expectEqualStrings("rescuer execution ownership", audit.blocked_live_behaviors[5]);
     try std.testing.expectEqualStrings("hotplug-driven worker migration and topology rebinding", audit.blocked_live_behaviors[6]);
     try std.testing.expectEqual(@as(usize, 15), workqueue_bridge.WorkqueueBridgeLab.auditCheckpointCount());
