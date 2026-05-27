@@ -55,6 +55,12 @@ const Bitmap = struct {
         try self.zeroRange(0, nbits);
     }
 
+    fn zeroRoundedPrefix(self: *Bitmap, nbits: usize) !void {
+        if (nbits > bitmap_nbits) return error.OutOfBounds;
+        const rounded = @min(std.mem.alignForward(usize, nbits, word_bits), bitmap_nbits);
+        try self.zeroRange(0, rounded);
+    }
+
     fn zeroRange(self: *Bitmap, start: usize, len: usize) !void {
         if (start > bitmap_nbits or len > bitmap_nbits - start) return error.OutOfBounds;
         for (start..start + len) |index| {
@@ -81,6 +87,13 @@ const Bitmap = struct {
     fn firstZeroBit(self: *const Bitmap) usize {
         for (0..bitmap_nbits) |index| {
             if (!self.testBit(index)) return index;
+        }
+        return bitmap_nbits;
+    }
+
+    fn firstSetBit(self: *const Bitmap) usize {
+        for (0..bitmap_nbits) |index| {
+            if (self.testBit(index)) return index;
         }
         return bitmap_nbits;
     }
@@ -197,6 +210,20 @@ test "phase4 bitmap diff gate keeps zero-length range and prefix no-op checks ex
 
     try std.testing.expectEqualDeep(before, bitmap.words);
     try std.testing.expectEqual(@as(usize, 64), bitmap.weight());
+}
+
+test "phase4 bitmap diff gate keeps rounded zero-prefix checkpoints explicit" {
+    var bitmap = Bitmap{};
+    try bitmap.fillPrefix(bitmap_nbits);
+
+    try bitmap.zeroRoundedPrefix(35);
+    try std.testing.expectEqual(@as(usize, 64), bitmap.firstSetBit());
+    try std.testing.expectEqual(@as(usize, bitmap_nbits - 64), bitmap.weight());
+
+    try bitmap.fillPrefix(bitmap_nbits);
+    try bitmap.zeroRoundedPrefix(115);
+    try std.testing.expectEqual(@as(usize, 128), bitmap.firstSetBit());
+    try std.testing.expectEqual(@as(usize, bitmap_nbits - 128), bitmap.weight());
 }
 
 test "phase4 bitmap diff gate keeps copy-tail and zero-length copy invariants explicit" {
