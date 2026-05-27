@@ -7,8 +7,8 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_fixture_harness_anchor`
 - `PHASE7_SLICE=rbtree-runtime-leaf`
 - `PHASE7_LANE_KEY=P7-L13`
-- lane-key note: `P7-L13` keeps the dedicated rbtree packet separate from the broader Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate follow-ons
-- scope: keep the Phase 7 rbtree lane limited to the returned runtime-root helper, the readable legacy tool-root companion, the dedicated slice note, the direct-anchor note, the dedicated replay, the dedicated survey, the dedicated manifest, the dedicated parity checker, the returned JSON fixture, and the returned C harness while dedicated wrapper and workflow follow-ons remain explicit as separate shared-control gaps
+- lane-key note: `P7-L13` keeps the dedicated rbtree packet separate from the broader Phase 7 shared-control lanes; shared docs-root, validator, workflow, and aggregate route reminders stay with those separate follow-ons
+- scope: keep the Phase 7 rbtree lane limited to the returned runtime-root helper, the readable legacy tool-root companion, the dedicated slice note, the direct-anchor note, the dedicated replay, the dedicated survey, the dedicated manifest, the dedicated parity checker, the returned JSON fixture, and the returned C harness while the dedicated `phase7-rbtree-test:` and `phase7-rbtree-survey:` wrappers now stay explicit as returned shared-control evidence and broader shared-control follow-ons remain separate gaps
 - lane state: current `master` directly carries `Documentation/zigux/phase7-rbtree-slice.md`, `Documentation/zigux/phase7-rbtree-direct-anchor-note.md`, `scripts/zigux/check-phase7-rbtree-parity.py`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, and `zigux/tests/fixtures/phase7_rbtree_c_harness.c`. Treat those surfaces as the current helper-local packet for this slice. Keep `tools/lib/rbtree.zig` explicit as a readable legacy runtime-family companion and keep `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` explicit as directly readable shared-control build evidence rather than helper-local ownership.
 
 ## Why This Slice Exists
@@ -78,11 +78,11 @@ The current helper-local replay also keeps these ownership and boundary rules ex
 This helper-local Phase 7 rbtree slice does not yet claim:
 
 - helper-local ownership of the readable legacy companion at `tools/lib/rbtree.zig`
-- dedicated Makefile wrapper routes for `phase7-rbtree-test`, `phase7-rbtree-survey`, `phase7-test`, or aggregate `phase7`
+- broader shared-control routes for `phase7-test` or aggregate `phase7`
 - shared workflow steps for Phase 7 runtime-helper gates
 - ownership of the shared validators at `scripts/zigux/check-phase7-build-wiring.py` and `scripts/zigux/validate-phase7.py`
 - ownership of the shared build file at `zigux/tests/phase7_build.zig`
 
 ## Next Bounded Step
 
-Keep same-lane follow-through inside this slice-backed direct-helper packet by leaving `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` reviewable as returned parity evidence, including the non-leftmost cached erase, singleton cached erase, and plain erase-init reseed cases, and narrowing the next follow-up to whether dedicated `phase7-rbtree-test:` or `phase7-rbtree-survey:` wrapper markers rematerialize on current `master`. Do not widen into workflow-recovery or broader shared-control lanes unless those dedicated wrapper surfaces actually return.
+Keep same-lane follow-through inside this slice-backed direct-helper packet by leaving `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` reviewable as returned parity evidence, including the non-leftmost cached erase, singleton cached erase, and plain erase-init reseed cases, while keeping the returned `phase7-rbtree-test:` and `phase7-rbtree-survey:` wrappers aligned with `zigux/tests/phase7_build.zig`. Do not widen into workflow-recovery or broader shared-control lanes unless `phase7-test:` or aggregate `phase7:` surfaces actually return.
