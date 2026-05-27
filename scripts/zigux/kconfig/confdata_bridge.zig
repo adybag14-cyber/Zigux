@@ -4,7 +4,7 @@ const Io = std.Io;
 const config_prefix = "CONFIG_";
 const max_config_bytes: usize = std.math.maxInt(usize);
 
-const EntryKind = enum {
+pub const EntryKind = enum {
     tristate,
     string,
     value,
