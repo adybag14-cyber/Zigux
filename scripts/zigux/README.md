@@ -63,7 +63,7 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 - `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, and `zigux/tests/phase12_virtio_net_syntax_lab.zig` stay absent on current `master`, so keep the shared reminder scoped to the returned split-helper packet rather than reviving the older monolithic starter vocabulary.
 - `zigux/tests/phase12_virtio_scsi_survey_build.zig` stays the dedicated survey-build rerun beside the rollback-evidence `virtio_scsi` packet instead of becoming shared smoke-route proof.
 - `Documentation/zigux/phase12-nvme-pci-reopen-governance.md` keeps the published-but-unwired NVMe foothold explicit without widening this shared scripts-root reminder into driver-local queueing, transport, or DMA claims.
-- `zigux/tests/phase12_nvme_pci_manifest.json` keeps the rollback-evidence `virtio_scsi` packet and the published-but-unwired NVMe foothold explicit without widening this shared scripts-root reminder into driver-local queueing, transport, or DMA claims
+- `zigux/tests/phase12_nvme_pci_manifest.json` keeps the published-but-unwired NVMe foothold explicit without widening this shared scripts-root reminder into driver-local queueing, transport, or DMA claims
 
 ## Phase 14
 
