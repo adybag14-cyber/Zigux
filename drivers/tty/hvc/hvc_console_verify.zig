@@ -58,16 +58,19 @@ pub const SysrqLiteralFallbackRequest = struct {
     notifier_registered: bool,
     target_present: bool,
     sysrq_requested: bool,
+    kernel_sysrq_byte: bool = true,
 };
 
 pub const SysrqLiteralFallbackSummary = struct {
     tty_registered: bool,
     notifier_registered: bool,
     target_present: bool,
+    kernel_sysrq_byte: bool,
     dispatch_allowed: bool,
     targetless_dispatch_without_notifier: bool,
     targetless_dispatch_with_notifier_sanitized: bool,
     literal_fallback_required: bool,
+    literal_byte_retained: bool,
     keeps_live_sysrq_execution_out_of_scope: bool,
 };
 
@@ -77,20 +80,22 @@ pub fn summarizeNotifierDispatch(
     if (!request.tty_registered) return error.NotifierDispatchRequiresTtyRegistration;
 
     const dispatch_allowed =
-        request.sysrq_requested and request.notifier_registered and request.target_present;
+        request.kernel_sysrq_byte and request.sysrq_requested and request.notifier_registered and request.target_present;
     const targetless_dispatch_without_notifier =
-        request.sysrq_requested and !request.notifier_registered and !request.target_present;
+        request.kernel_sysrq_byte and request.sysrq_requested and !request.notifier_registered and !request.target_present;
     const targetless_dispatch_with_notifier_sanitized =
-        request.sysrq_requested and request.notifier_registered and !request.target_present;
+        request.kernel_sysrq_byte and request.sysrq_requested and request.notifier_registered and !request.target_present;
 
     return .{
         .tty_registered = request.tty_registered,
         .notifier_registered = request.notifier_registered,
         .target_present = request.target_present,
+        .kernel_sysrq_byte = request.kernel_sysrq_byte,
         .dispatch_allowed = dispatch_allowed,
         .targetless_dispatch_without_notifier = targetless_dispatch_without_notifier,
         .targetless_dispatch_with_notifier_sanitized = targetless_dispatch_with_notifier_sanitized,
-        .literal_fallback_required = request.sysrq_requested and !dispatch_allowed,
+        .literal_fallback_required = request.kernel_sysrq_byte and request.sysrq_requested and !dispatch_allowed,
+        .literal_byte_retained = !request.kernel_sysrq_byte and request.sysrq_requested,
         .keeps_live_sysrq_execution_out_of_scope = true,
     };
 }
@@ -186,6 +191,7 @@ test "phase11 hvc verify helper keeps targetless sysrq fallback reviewable" {
     try std.testing.expect(summary.targetless_dispatch_without_notifier);
     try std.testing.expect(!summary.targetless_dispatch_with_notifier_sanitized);
     try std.testing.expect(summary.literal_fallback_required);
+    try std.testing.expect(!summary.literal_byte_retained);
     try std.testing.expect(summary.keeps_live_sysrq_execution_out_of_scope);
 }
 
@@ -201,5 +207,23 @@ test "phase11 hvc verify helper keeps registered targetless sysrq fallback sanit
     try std.testing.expect(!summary.targetless_dispatch_without_notifier);
     try std.testing.expect(summary.targetless_dispatch_with_notifier_sanitized);
     try std.testing.expect(summary.literal_fallback_required);
+    try std.testing.expect(!summary.literal_byte_retained);
+    try std.testing.expect(summary.keeps_live_sysrq_execution_out_of_scope);
+}
+
+test "phase11 hvc verify helper keeps non-kernel sysrq literal fallback explicit" {
+    const summary = try summarizeNotifierDispatch(.{
+        .tty_registered = true,
+        .notifier_registered = true,
+        .target_present = true,
+        .sysrq_requested = true,
+        .kernel_sysrq_byte = false,
+    });
+
+    try std.testing.expect(!summary.dispatch_allowed);
+    try std.testing.expect(!summary.targetless_dispatch_without_notifier);
+    try std.testing.expect(!summary.targetless_dispatch_with_notifier_sanitized);
+    try std.testing.expect(!summary.literal_fallback_required);
+    try std.testing.expect(summary.literal_byte_retained);
     try std.testing.expect(summary.keeps_live_sysrq_execution_out_of_scope);
 }
