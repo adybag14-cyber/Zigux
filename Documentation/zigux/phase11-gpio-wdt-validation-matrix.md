@@ -61,6 +61,13 @@ The focused current-head manifest survey adds one dedicated fail-closed route
 for the recovered manifest packet without pretending that the older wider gpio
 manifest or shared Phase 11 build route has returned.
 
+The dedicated current-head manifest checker now keeps the recovered manifest
+packet aligned through
+`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`
+and `python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`, so the
+manifest, survey note, validation matrix, and dedicated survey build route have
+one direct truthfulness guard on current `master`.
+
 ## Review Guardrails
 
 - Treat this matrix as current-head truthfulness only, not as proof of live
@@ -82,6 +89,6 @@ manifest or shared Phase 11 build route has returned.
 
 ## Next Blocked Step
 
-The next honest gpio-only follow-up is checker upkeep, dedicated survey-gate
-recovery, the older wider manifest return, or another equally small
-validation-truthfulness repair, rather than new runtime behavior.
+The next honest gpio-only follow-up is dedicated survey-gate recovery, the
+older wider manifest return, or another equally small validation-truthfulness
+repair, rather than new runtime behavior.
