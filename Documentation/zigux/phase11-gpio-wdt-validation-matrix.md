@@ -22,6 +22,8 @@ The current gpio watchdog matrix packet on `master` is:
 - `zigux/tests/phase11_gpio_wdt_verify_helper_build.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`
+- `zigux/tests/phase11_gpio_wdt_registration_intent_review.zig`
+- `zigux/tests/phase11_gpio_wdt_registration_intent_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
@@ -51,11 +53,16 @@ directly coupled docs surface only.
 ## Current Matrix
 
 The returned driver, the driver-backed verify helper, focused preflight proof,
-focused register-device glue proof, focused nowayout policy proof, focused
-remove-handoff proof, dedicated bounded replay routes, plus the paired module
-slice, teardown note, remove-handoff note, and machine-readable current-head
-manifest keep the bounded gpio watchdog checkpoint names directly reviewable as
-driver-backed teardown and failure-mode surfaces.
+focused registration-intent proof, focused register-device glue proof, focused
+nowayout policy proof, focused remove-handoff proof, dedicated bounded replay
+routes, plus the paired module slice, teardown note, remove-handoff note, and
+machine-readable current-head manifest keep the bounded gpio watchdog checkpoint
+names directly reviewable as driver-backed teardown and failure-mode surfaces.
+
+The dedicated registration-intent route keeps timeout setup, nowayout
+application, stop-on-reboot ordering, and pre-registration start posture
+reviewable as its own bounded packet before the first register-device request,
+rather than only as an inferred part of the broader register-device glue route.
 
 The focused current-head manifest survey adds one dedicated fail-closed route
 for the recovered manifest packet without pretending that the older wider gpio
