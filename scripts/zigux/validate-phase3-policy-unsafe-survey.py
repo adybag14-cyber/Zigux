@@ -96,6 +96,8 @@ REQUIRED_FILE_MARKERS = {
         "pub fn requiresRawPointerBridgePolicyBytes(scope: u8, reserved: u8) bool {",
         "pub fn requiresRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
         "pub fn allowsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
+        "pub fn constSliceAtByte(",
+        "pub fn writeValueAtByte(",
     ),
     MMIO_PATH: (
         "pub fn readInteropPolicy(comptime T: type, policy: abi.InteropPolicy, ptr: *const volatile T) PolicyError!T {",
@@ -140,10 +142,14 @@ REQUIRED_FILE_MARKERS = {
         '"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"',
         '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
         '"make -C zigux phase3-policy-starter-packet-test"',
+        '"make -C zigux phase3"',
     ),
     POLICY_DUMP_PATH: (
         "const RawBridgeReplay = struct {",
         "fn rawBridgeReplay(policy: abi.InteropPolicy) RawBridgeReplay {",
+        "const const_ptr = unsafe_policy.constPointerAtInteropPolicy(u32, second_addr, policy) catch {",
+        "const const_slice = unsafe_policy.constSliceAtInteropPolicy(u32, first_addr, bridge_words.len, policy) catch {",
+        "unsafe_policy.writeValueAtInteropPolicy(u32, second_addr, 73, policy) catch {",
         "const bridge_replay = rawBridgeReplay(policy);",
         '"bridge_read_ok={any}|bridge_write_ok={any}|narrow={s}|narrow_boundary={s}|narrow_surface={s}\\n",',
     ),
@@ -216,6 +222,18 @@ SELF_TEST_CASES = (
         "marker",
     ),
     (
+        "unsafe policy const-slice byte relay drift",
+        UNSAFE_POLICY_PATH,
+        REQUIRED_FILE_MARKERS[UNSAFE_POLICY_PATH][10],
+        "marker",
+    ),
+    (
+        "unsafe policy write-value byte relay drift",
+        UNSAFE_POLICY_PATH,
+        REQUIRED_FILE_MARKERS[UNSAFE_POLICY_PATH][11],
+        "marker",
+    ),
+    (
         "starter packet build companion drift",
         POLICY_STARTER_PACKET_BUILD_PATH,
         REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_BUILD_PATH][5],
@@ -231,6 +249,12 @@ SELF_TEST_CASES = (
         "starter packet manifest make-route drift",
         POLICY_STARTER_PACKET_MANIFEST_PATH,
         REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_MANIFEST_PATH][6],
+        "marker",
+    ),
+    (
+        "starter packet manifest aggregate-route drift",
+        POLICY_STARTER_PACKET_MANIFEST_PATH,
+        REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_MANIFEST_PATH][7],
         "marker",
     ),
     (
@@ -250,6 +274,24 @@ SELF_TEST_CASES = (
         "missing policy dump raw-bridge replay proof",
         POLICY_DUMP_PATH,
         REQUIRED_FILE_MARKERS[POLICY_DUMP_PATH][1],
+        "marker",
+    ),
+    (
+        "missing policy dump const-pointer replay proof",
+        POLICY_DUMP_PATH,
+        REQUIRED_FILE_MARKERS[POLICY_DUMP_PATH][2],
+        "marker",
+    ),
+    (
+        "missing policy dump const-slice replay proof",
+        POLICY_DUMP_PATH,
+        REQUIRED_FILE_MARKERS[POLICY_DUMP_PATH][3],
+        "marker",
+    ),
+    (
+        "missing policy dump write replay proof",
+        POLICY_DUMP_PATH,
+        REQUIRED_FILE_MARKERS[POLICY_DUMP_PATH][4],
         "marker",
     ),
     (
