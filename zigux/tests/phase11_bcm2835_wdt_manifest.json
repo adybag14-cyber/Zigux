@@ -15,20 +15,13 @@
     "bcm2835_wdt_tests_root_replay_present": true,
     "bcm2835_wdt_manifest_present": true,
     "bcm2835_wdt_slice_note_present": false,
-    "bcm2835_wdt_teardown_note_present": false,
+    "bcm2835_wdt_teardown_note_present": true,
     "bcm2835_platform_validation_plan_present": true,
     "bcm2835_validation_matrix_present": true,
     "bcm2835_manifest_packet_survey_present": true,
     "bcm2835_manifest_packet_build_present": true
   },
   "gaps": [
-    {
-      "id": "phase11-bcm2835-teardown-note",
-      "status": "ready_next",
-      "kind": "documentation",
-      "zigux_destination": "Documentation/zigux/phase11-bcm2835-wdt-teardown-note.md",
-      "why_now": "The manifest-backed closure is back on current master, so the next bounded bcm2835-only follow-through is a teardown note that matches the returned driver, verify helper, manifest, and validation matrix without widening into live platform claims."
-    },
     {
       "id": "phase11-bcm2835-platform-registration",
       "status": "blocked_current_head",
@@ -41,7 +34,7 @@
       "status": "blocked_current_head",
       "kind": "validation",
       "zigux_destination": "drivers/watchdog/bcm2835_wdt_verify.zig",
-      "why_now": "The returned helper keeps claimed, conflicting, and foreign ownership outcomes explicit, but shared callback installation and remove-time release still need dedicated ownership-preserving proof before they can be presented as landed behavior."
+      "why_now": "The returned helper and teardown note keep claimed, conflicting, and foreign ownership outcomes explicit, but shared callback installation and remove-time release still need dedicated ownership-preserving proof before they can be presented as landed behavior."
     },
     {
       "id": "phase11-bcm2835-hardware-backed-validation",
