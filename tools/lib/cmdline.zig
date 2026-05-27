@@ -119,6 +119,10 @@ fn clampSignedMagnitude(magnitude: u64, negative: bool) u64 {
     return magnitude;
 }
 
+fn cStringSlice(text: []const u8) []const u8 {
+    return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
+}
+
 fn skipLeadingSpaces(text: []const u8, start: usize) usize {
     var idx = start;
     while (idx < text.len and std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
@@ -126,20 +130,21 @@ fn skipLeadingSpaces(text: []const u8, start: usize) usize {
 }
 
 pub fn nextArg(args: []const u8) ?NextArgResult {
-    const start = skipLeadingSpaces(args, 0);
-    if (start >= args.len) {
+    const visible_args = cStringSlice(args);
+    const start = skipLeadingSpaces(visible_args, 0);
+    if (start >= visible_args.len) {
         return null;
     }
 
-    const quoted_prefix = args[start] == '"';
+    const quoted_prefix = visible_args[start] == '"';
     const token_start = if (quoted_prefix) start + 1 else start;
 
     var idx = token_start;
     var equals_idx: ?usize = null;
     var in_quote = quoted_prefix;
 
-    while (idx < args.len) : (idx += 1) {
-        const ch = args[idx];
+    while (idx < visible_args.len) : (idx += 1) {
+        const ch = visible_args[idx];
         if (std.ascii.isWhitespace(ch) and !in_quote) {
             break;
         }
@@ -151,30 +156,30 @@ pub fn nextArg(args: []const u8) ?NextArgResult {
         }
     }
 
-    const remaining_start = skipLeadingSpaces(args, idx);
-    const token_end = if (quoted_prefix and idx > token_start and args[idx - 1] == '"') idx - 1 else idx;
+    const remaining_start = skipLeadingSpaces(visible_args, idx);
+    const token_end = if (quoted_prefix and idx > token_start and visible_args[idx - 1] == '"') idx - 1 else idx;
 
     if (equals_idx) |eq| {
         var value_start = eq + 1;
         var value_end = token_end;
-        if (value_start < value_end and args[value_start] == '"') {
+        if (value_start < value_end and visible_args[value_start] == '"') {
             value_start += 1;
-            if (value_end > value_start and args[value_end - 1] == '"') {
+            if (value_end > value_start and visible_args[value_end - 1] == '"') {
                 value_end -= 1;
             }
         }
 
         return .{
-            .param = args[token_start..eq],
-            .value = args[value_start..value_end],
-            .remaining = args[remaining_start..],
+            .param = visible_args[token_start..eq],
+            .value = visible_args[value_start..value_end],
+            .remaining = visible_args[remaining_start..],
         };
     }
 
     return .{
-        .param = args[token_start..token_end],
+        .param = visible_args[token_start..token_end],
         .value = null,
-        .remaining = args[remaining_start..],
+        .remaining = visible_args[remaining_start..],
     };
 }
 
@@ -329,4 +334,24 @@ test "nextArg keeps empty and unterminated quoted values aligned" {
     try std.testing.expectEqualStrings("mode", unterminated.param);
     try std.testing.expectEqualStrings("fast boot", unterminated.value.?);
     try std.testing.expectEqualStrings("", unterminated.remaining);
+}
+
+test "nextArg stops at the first embedded NUL byte" {
+    try std.testing.expect(nextArg("\x00hidden") == null);
+    try std.testing.expect(nextArg(" \t \x00hidden") == null);
+
+    const bare = nextArg("debug\x00 hidden tail") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("debug", bare.param);
+    try std.testing.expect(bare.value == null);
+    try std.testing.expectEqualStrings("", bare.remaining);
+
+    const quoted = nextArg("\"mode=fast boot\"\x00 tail") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("mode", quoted.param);
+    try std.testing.expectEqualStrings("fast boot", quoted.value.?);
+    try std.testing.expectEqualStrings("", quoted.remaining);
+
+    const quoted_value = nextArg("root=\"/dev/sda1 quiet\"\x00 panic=-1") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("root", quoted_value.param);
+    try std.testing.expectEqualStrings("/dev/sda1 quiet", quoted_value.value.?);
+    try std.testing.expectEqualStrings("", quoted_value.remaining);
 }
