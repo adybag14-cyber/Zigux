@@ -65,7 +65,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", manifest.roadmap_target_path);
     try std.testing.expect(manifest.roadmap_bitmap_diff_present);
     try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", manifest.live_gate_path);
-    try std.testing.expectEqualStrings("7b802d3d710426c6369e73dbdeee568a8c045221", manifest.live_gate_blob_sha);
+    try std.testing.expectEqualStrings("3acfd7cc1fb871d695e9289bc0712de38abc7fad", manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings("zigux/tests/phase4_bitmap_live_helper_replay.zig", manifest.helper_replay_path);
     try std.testing.expectEqualStrings("375f7f5ac9dfecee48500cf52a4edbcd7cd02e2f", manifest.helper_replay_blob_sha);
     try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.owner);
@@ -76,6 +76,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expectEqualStrings("348984ebc5a7ac85433a11f87396117059eb34f1", manifest.shared_matrix_blob_sha);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.shared_gate_evidence_path);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.gate_evidence_path);
+    try std.testing.expectEqualStrings("815751ebd266a7c2cc52d9023046848007518234", manifest.gate_evidence_blob_sha);
     try std.testing.expect(manifest.phase4_build_present);
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff);
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff_survey);
@@ -140,4 +141,10 @@ test "phase 4 bitmap survey keeps the helper-backed rollback replay explicit" {
         bitmap_live_helper_replay_source,
         "try std.testing.expectEqual(@as(usize, 993), bitmap.weight());",
     );
+}
+
+test "phase 4 bitmap survey keeps the shared gate evidence packet fail-closed" {
+    try expectContains(gate_evidence_source, "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true");
+    try expectContains(gate_evidence_source, "scripts/zigux/check-phase4-perf-baseline-packet.py");
+    try expectContains(gate_evidence_source, "zigux/tests/phase4_perf_baseline_survey.zig");
 }
