@@ -6,31 +6,40 @@ step: `bcm2835_wdt` and `dw_wdt`.
 
 ## Current Repo Reality
 
-The current `bcm2835_wdt` packet now reads as a bounded current-driver-depth
+The current `bcm2835_wdt` packet still reads as a bounded current-driver-depth
 closure:
 
 - `Documentation/zigux/phase11-bcm2835-wdt-survey.md` says the Phase 11
   simple-driver roadmap gap is closed at bounded current-driver depth on
   `master`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` keeps the
-  driver proof, verify helper, focused replay, and coupled reminder packet
-  explicit without overclaiming live platform behavior
+  driver proof, verify helper, focused replay, teardown note, manifest-backed
+  closure, and coupled reminder packet explicit without overclaiming live
+  platform behavior
+- `zigux/tests/phase11_bcm2835_wdt_manifest.json` keeps the remaining
+  follow-through blocked on current-head platform registration, shared
+  poweroff-callback ownership, and hardware-backed validation
 
-The current `dw_wdt` packet is still narrower:
+The current `dw_wdt` packet is stronger than an archival scaffold-only slice,
+but it is still narrower than bcm2835 at the family lifecycle level:
 
-- `Documentation/zigux/phase11-dw-wdt-survey.md` keeps the broader direct
-  driver and direct replay stack outside the directly readable current-head
-  packet
-- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` still treats the
-  shared `zigux/tests/phase11_build.zig` route as a current-head gap
+- `Documentation/zigux/phase11-dw-wdt-survey.md` and
+  `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` now keep the
+  returned driver, direct tests-root replay, restart helper, verify helper,
+  registration scaffold, and bounded PM-helper packet explicit on current
+  `master`
 - `zigux/tests/phase11_dw_wdt_manifest.json` still keeps
+  `phase11-build-gate` as a shared current-head gap and leaves
   `phase11-dw-wdt-live-mmio-validation` at `ready_next`
+- that means the current DesignWare packet has landed teardown and
+  failure-mode starter coverage, but it still has a nearer next-step MMIO
+  validation gap before it reads like the bcm2835 packet's bounded closure
 
-That means current repo reality does not yet show straightforward lifecycle,
-teardown, or hardware-validation parity between the two watchdog packets. The
-bcm2835 packet already reads as a bounded current-driver-depth slice, while the
-DesignWare packet still keeps hardware-backed MMIO validation and the broader
-direct-driver stack outside the directly readable current-head packet.
+That leaves family-level lifecycle parity intentionally asymmetric on current
+`master`: bcm2835 reads as a bounded current-driver-depth closure with blocked
+platform follow-through, while DesignWare reads as a returned starter-plus-test
+packet whose next bounded step is still live MMIO validation around suspend,
+resume, and platform-backed probe or remove execution.
 
 ## Why This Check Exists
 
