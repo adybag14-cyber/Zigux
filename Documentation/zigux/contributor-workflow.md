@@ -2,7 +2,7 @@
 
 This guide keeps routine Zigux product work small, reviewable, and tied to current repo evidence.
 
-Use it with `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`, `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
+Use it with `CONTRIBUTING.md`, `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`, `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/contributor-entrypoints.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
 
 ## 1. Start With The Current Tree
 
@@ -41,6 +41,7 @@ Avoid treating these as meaningful progress by themselves:
 
 - for docs-only work, verify the touched file names, route names, and status buckets against current repo reads
 - for checklist or guard changes, run the narrowest self-test or focused validator before broader wrapper routes when both exist
+- for top-level contributor onboarding changes, rerun `python3 scripts/zigux/check-contributor-onboarding-packet.py` so `CONTRIBUTING.md`, `Documentation/zigux/contributor-entrypoints.md`, and this workflow note stay aligned
 - for Zig or mixed-source changes, prefer the smallest relevant `zig build ...`, `make -C zigux ...`, or checker replay before claiming success
 - if the full replay path is unavailable, record the degraded path and the exact boundary it leaves unproven
 
@@ -53,7 +54,9 @@ Avoid treating these as meaningful progress by themselves:
 
 ## Quick Entry Points
 
+- `CONTRIBUTING.md`: top-level contributor starting map and bounded onboarding reminders
 - `Documentation/zigux/README.md`: docs-root packet inventory and phase reminders
+- `Documentation/zigux/contributor-entrypoints.md`: bounded guide selection for docs, checklist, and workflow work
 - `Documentation/zigux/review-checklist.md`: pre-merge review prompts and phase safety checks
 - `scripts/zigux/README.md`: validator-first and checker-first reminder routes
 - `zigux/tests/README.md`: tests-root replay packets and focused build surfaces
