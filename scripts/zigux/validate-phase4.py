@@ -174,7 +174,7 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     ),
     "phase4-artifact-diff-determinism-self-test": (
         ("PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST", "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass"),
-        ("PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT", "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=12"),
+        ("PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT", "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=13"),
         ("PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES", "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES="),
     ),
     "phase4-artifact-diff-determinism": (
@@ -512,7 +512,7 @@ def configure_phase4_output_stubs(root: Path) -> None:
         root / "scripts/zigux/check-phase4-artifact-diff-determinism.py",
         self_test_stdout_lines=(
             "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass",
-            "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=12",
+            "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=13",
             "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES=",
         ),
         live_stdout_lines=(
