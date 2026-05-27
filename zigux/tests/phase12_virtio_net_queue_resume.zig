@@ -14,6 +14,10 @@ test "phase12 virtio net queue resume stays lab-only and fail-closed" {
         queue_resume.QueueResumeBlocker.probe_snapshot_replay,
         blocked.blocker,
     );
+    try std.testing.expectEqual(
+        queue_resume.QueueResumeCheckpoint.after_probe_snapshot_replay,
+        blocked.next_checkpoint,
+    );
     try std.testing.expect(!blocked.can_resume_queues);
     try std.testing.expectEqual(
         queue_resume.QueueSubmissionOwner.recovery,
@@ -34,6 +38,10 @@ test "phase12 virtio net queue resume stays lab-only and fail-closed" {
         .probe_snapshot_replayed = true,
     });
     try std.testing.expectEqual(queue_resume.QueueResumeBlocker.none, ready.blocker);
+    try std.testing.expectEqual(
+        queue_resume.QueueResumeCheckpoint.queues_may_resume,
+        ready.next_checkpoint,
+    );
     try std.testing.expect(ready.probe_snapshot_replayed);
     try std.testing.expect(ready.can_resume_queues);
     try std.testing.expect(ready.resumes_receive_submission);
@@ -61,6 +69,10 @@ test "phase12 virtio net queue resume keeps control queue restore optional when 
     });
 
     try std.testing.expectEqual(queue_resume.QueueResumeBlocker.none, summary.blocker);
+    try std.testing.expectEqual(
+        queue_resume.QueueResumeCheckpoint.queues_may_resume,
+        summary.next_checkpoint,
+    );
     try std.testing.expect(!summary.requires_control_queue_restore);
     try std.testing.expect(summary.can_resume_queues);
     try std.testing.expect(summary.resumes_receive_submission);
@@ -86,6 +98,10 @@ test "phase12 virtio net queue resume keeps receive and transmit ownership disti
         .probe_snapshot_replayed = true,
     });
     try std.testing.expectEqual(queue_resume.QueueResumeBlocker.refill_replay, refill_blocked.blocker);
+    try std.testing.expectEqual(
+        queue_resume.QueueResumeCheckpoint.after_receive_refill_replay,
+        refill_blocked.next_checkpoint,
+    );
     try std.testing.expect(!refill_blocked.resumes_receive_submission);
     try std.testing.expect(refill_blocked.resumes_transmit_submission);
     try std.testing.expectEqual(
@@ -110,6 +126,10 @@ test "phase12 virtio net queue resume keeps receive and transmit ownership disti
     try std.testing.expectEqual(
         queue_resume.QueueResumeBlocker.transmit_recycle,
         transmit_blocked.blocker,
+    );
+    try std.testing.expectEqual(
+        queue_resume.QueueResumeCheckpoint.after_transmit_recycle,
+        transmit_blocked.next_checkpoint,
     );
     try std.testing.expect(transmit_blocked.resumes_receive_submission);
     try std.testing.expect(!transmit_blocked.resumes_transmit_submission);
