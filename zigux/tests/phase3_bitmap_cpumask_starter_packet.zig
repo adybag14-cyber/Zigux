@@ -29,6 +29,30 @@ test "bitmap starter packet keeps a sparse shared bitmap reviewable" {
     try testing.expectEqual(@as(?usize, 0), view.firstClearBit());
 }
 
+test "bitmap starter packet keeps subset and overlap checks reusable across helper families" {
+    const bit_len = bitmap_view.word_bits + 2;
+    const base_words = [_]usize{
+        (@as(usize, 1) << 1),
+        (@as(usize, 1) << 2),
+    };
+    const superset_words = [_]usize{
+        (@as(usize, 1) << 1),
+        (@as(usize, 1) << 0),
+    };
+    const disjoint_words = [_]usize{
+        (@as(usize, 1) << 3),
+        (@as(usize, 1) << 2),
+    };
+
+    const base = bitmap_view.BitmapView.init(base_words[0..], bit_len);
+    const superset = bitmap_view.BitmapView.init(superset_words[0..], bit_len);
+    const disjoint = bitmap_view.BitmapView.init(disjoint_words[0..], bit_len);
+
+    try testing.expect(base.isSubsetOf(superset));
+    try testing.expect(!superset.isSubsetOf(base));
+    try testing.expect(!base.intersects(disjoint));
+}
+
 test "cpumask starter packet keeps cpu membership and missing-cpu discovery explicit" {
     const words = [_]usize{
         (@as(usize, 1) << 0) |
