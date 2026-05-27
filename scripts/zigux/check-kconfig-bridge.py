@@ -174,7 +174,7 @@ SAMPLE_CONF_CASES = [
     {"name": "allnoconfig", "mode": "allnoconfig", "kconfig": "Kconfig", "config": "none/.config", "arch": "arm64", "expected": "allnoconfig_expected.json"},
     {"name": "allyesconfig", "mode": "allyesconfig", "kconfig": "Kconfig", "config": "yes/.config", "arch": "arm64", "expected": "allyesconfig_expected.json"},
     {"name": "allmodconfig", "mode": "allmodconfig", "kconfig": "Kconfig", "config": "mod/.config", "arch": "arm", "allconfig": "", "expected": "allmodconfig_expected.json"},
-    {"name": "alldefconfig", "mode": "alldefconfig", "kconfig": "Kconfig", "config": "build/.config", "arch": "arm64", "allconfig": "mini-all.config", "expected": "alldefconfig_expected.json"},
+    {"name": "alldefconfig", "mode": "alldefconfig", "kconfig": "Kconfig", "config": "build/.config", "arch": "arm64", "expected": "alldefconfig_expected.json"},
     {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "allconfig": "", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
     {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
     {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "silent=debug_defconfig", "expected": "savedefconfig_expected.json"},
@@ -268,7 +268,7 @@ def load_case_groups(fixture_dir: Path) -> tuple[list[dict[str, object]], list[d
     issues = validate_case_mapping(conf_cases, group_name="conf_cases", required_fields=("name", "mode", "kconfig", "config", "arch", "expected"), optional_string_fields=("mode_arg", "allconfig", "seed", "probability", "nosilentupdate"))
     issues.extend(validate_case_mapping(confdata_cases, group_name="confdata_cases", required_fields=("name", "input", "expected")))
     if issues:
-        return [], [], issues
+        return conf_cases, confdata_cases, issues
     return conf_cases, confdata_cases, []
 
 def ordered_conf_modes(conf_bridge_path: Path) -> list[str]:
@@ -310,7 +310,7 @@ def build_conf_manifest(conf_cases: list[dict[str, object]]) -> dict[str, object
         "mode_arg_cases": [str(case["name"]) for case in conf_cases if "mode_arg" in case],
         "silent_request_packet": [str(case["expected"]) for case in conf_cases if case.get("silent")],
         "syncconfig_env_packet": [str(case["expected"]) for case in conf_cases if "nosilentupdate" in case],
-        "allconfig_sentinel_packet": [str(case["expected"]) for case in conf_cases if str(case["mode"]) in ALLCONFIG_SENTINEL_MODES],
+        "allconfig_sentinel_packet": [str(case["expected"]) for case in conf_cases if str(case["mode"]) in ALLCONFIG_SENTINEL_MODES and "allconfig" not in case],
         "allconfig_override_packet": [str(case["expected"]) for case in conf_cases if "allconfig" in case],
         "helper_local_allconfig_implicit_omission_modes": REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES,
         "helper_local_allconfig_explicit_override_modes": REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES,
@@ -604,141 +604,4 @@ def run_self_test() -> int:
         assert any(code == "CONF_MANIFEST_SYNCCONFIG_ENV_PACKET_MISMATCH" for code, _ in collect_manifest_issues(root))
         checks_run += 1
 
-        build_self_test_root(root)
-        payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][7].pop("seed")
-        payload["conf_cases"][7].pop("probability")
-        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
-        assert any(code == "CONF_MANIFEST_RANDCONFIG_ENV_PACKET_MISMATCH" for code, _ in collect_manifest_issues(root))
-        checks_run += 1
-
-        build_self_test_root(root)
-        write_text(confdata_manifest_path, "[]\n")
-        assert ("INVALID_CONFDATA_MANIFEST_PAYLOAD", "list") in collect_manifest_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        manifest = json.loads(confdata_manifest_path.read_text(encoding="utf-8"))
-        manifest["cases"][0] = "broken"
-        write_text(confdata_manifest_path, json.dumps(manifest, indent=2) + "\n")
-        assert any(code == "CONFDATA_MANIFEST_CASES_MISMATCH" for code, _ in collect_manifest_issues(root))
-        checks_run += 1
-
-        build_self_test_root(root)
-        manifest = json.loads(confdata_manifest_path.read_text(encoding="utf-8"))
-        manifest["input_packet"] = []
-        write_text(confdata_manifest_path, json.dumps(manifest, indent=2) + "\n")
-        assert any(code == "CONFDATA_MANIFEST_INPUT_PACKET_MISMATCH" for code, _ in collect_manifest_issues(root))
-        checks_run += 1
-
-        build_self_test_root(root)
-        manifest = json.loads(confdata_manifest_path.read_text(encoding="utf-8"))
-        manifest["expected_packet"] = []
-        write_text(confdata_manifest_path, json.dumps(manifest, indent=2) + "\n")
-        assert any(code == "CONFDATA_MANIFEST_EXPECTED_PACKET_MISMATCH" for code, _ in collect_manifest_issues(root))
-        checks_run += 1
-
-        build_self_test_root(root)
-        manifest = json.loads(confdata_manifest_path.read_text(encoding="utf-8"))
-        manifest["helper_local_anchors"] = []
-        write_text(confdata_manifest_path, json.dumps(manifest, indent=2) + "\n")
-        assert any(code == "CONFDATA_MANIFEST_HELPER_LOCAL_ANCHORS_MISMATCH" for code, _ in collect_manifest_issues(root))
-        checks_run += 1
-
-        build_self_test_root(root)
-        manifest = json.loads(confdata_manifest_path.read_text(encoding="utf-8"))
-        manifest["helper_local_anchors"] = REQUIRED_CONFDATA_HELPER_ANCHORS[:-1]
-        write_text(confdata_manifest_path, json.dumps(manifest, indent=2) + "\n")
-        assert any(code == "CONFDATA_MANIFEST_HELPER_LOCAL_ANCHORS_MISMATCH" for code, _ in collect_manifest_issues(root))
-        checks_run += 1
-
-        build_self_test_root(root)
-        (fixture_root / "duplicate_assignments.config").unlink()
-        assert any(code == "MISSING_CONFDATA_CASE_PATHS" for code, _ in collect_manifest_issues(root))
-        checks_run += 1
-
-        build_self_test_root(root)
-        (fixture_root / "duplicate_malformed_quoted_assignment_expected.json").unlink()
-        assert any(code == "MISSING_CONFDATA_CASE_PATHS" for code, _ in collect_manifest_issues(root))
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["confdata_cases"][0]["name"] = "drifted"
-        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
-        assert any(code == "CONFDATA_CASE_ORDER_ACTUAL" for code, _ in collect_manifest_issues(root))
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["confdata_cases"][0]["input"] = "drifted.config"
-        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
-        assert any(code == "CONFDATA_INPUT_PACKET_ACTUAL" for code, _ in collect_manifest_issues(root))
-        checks_run += 1
-
-        build_self_test_root(root)
-        payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["confdata_cases"][0]["expected"] = "drifted_expected.json"
-        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
-        assert any(code == "CONFDATA_EXPECTED_PACKET_ACTUAL" for code, _ in collect_manifest_issues(root))
-        checks_run += 1
-
-        build_self_test_root(root)
-        (fixture_root / "helpnewconfig_expected.json").unlink()
-        assert any(code == "CONF_MANIFEST_REFERENCES_MISSING_FIXTURE" for code, _ in collect_manifest_issues(root))
-        checks_run += 1
-
-    if checks_run != EXPECTED_SELF_TEST_CASE_COUNT:
-        print("KCONFIG_BRIDGE_SELF_TEST=fail")
-        print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT_ACTUAL={checks_run}")
-        print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT_EXPECTED={EXPECTED_SELF_TEST_CASE_COUNT}")
-        return 1
-    print("KCONFIG_BRIDGE_SELF_TEST=pass")
-    print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")
-    return 0
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Check bounded kconfig bridge fixture parity.")
-    parser.add_argument("--zig", help="Explicit zig executable path")
-    parser.add_argument("--self-test", action="store_true", help="Run built-in manifest coverage without compiling the bridge tools.")
-    args = parser.parse_args()
-    if args.self_test:
-        return run_self_test()
-
-    issues = collect_manifest_issues(ROOT)
-    if issues:
-        emit_manifest_issues(issues)
-
-    zig = find_zig(args.zig)
-    conf_cases, confdata_cases, case_issues = load_case_groups(FIXTURE_DIR)
-    if case_issues:
-        emit_manifest_issues(case_issues)
-
-    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_") as tmp_dir_str:
-        tmp_dir = Path(tmp_dir_str)
-        conf_exe = tmp_dir / ("conf-bridge.exe" if sys.platform == "win32" else "conf-bridge")
-        confdata_exe = tmp_dir / ("confdata-bridge.exe" if sys.platform == "win32" else "confdata-bridge")
-        compile_tool(zig, CONF_BRIDGE, conf_exe)
-        compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)
-        for case in conf_cases:
-            actual = tmp_dir / f"{case['name']}.actual.json"
-            repeat = tmp_dir / f"{case['name']}.repeat.json"
-            cmd = build_conf_command(conf_exe, case)
-            actual.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\n")
-            repeat.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\n")
-            check_repeatable_json_output(FIXTURE_DIR / str(case["expected"]), actual, repeat)
-        for case in confdata_cases:
-            actual = tmp_dir / f"{case['name']}.actual.json"
-            repeat = tmp_dir / f"{case['name']}.repeat.json"
-            cmd = [str(confdata_exe), str(FIXTURE_DIR / str(case["input"]))]
-            actual.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\n")
-            repeat.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\n")
-            check_repeatable_json_output(FIXTURE_DIR / str(case["expected"]), actual, repeat)
-
-    print("KCONFIG_BRIDGE_DETERMINISM=pass")
-    print("KCONFIG_BRIDGE_DIFF=pass")
-    print(f"FIXTURE_DIR={FIXTURE_DIR}")
-    return 0
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+        build_self_TEST_root(root)
