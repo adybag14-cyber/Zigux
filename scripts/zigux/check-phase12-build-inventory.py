@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 BUILD_PATH = Path("zigux/tests/phase12_build.zig")
 FIXTURE_PATH = Path("zigux/tests/fixtures/phase12_build_inventory.json")
 SYNTAX_BUILD_PATH = Path("zigux/tests/phase12_virtio_net_syntax_lab_build.zig")
+SYNTAX_SOURCE_PATH = Path("zigux/tests/phase12_virtio_net_syntax_lab.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
 MODULE_RE = re.compile(r'const\s+([A-Za-z0-9_]+)\s*=\s*b\.createModule\(\.\{\s*\.root_source_file\s*=\s*b\.path\("([^"]+)"\)', re.S)
@@ -86,7 +87,7 @@ def render_inventory(build_text: str) -> dict[str, object]:
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
-    for rel in (BUILD_PATH, FIXTURE_PATH, SYNTAX_BUILD_PATH, MAKEFILE_PATH):
+    for rel in (BUILD_PATH, FIXTURE_PATH, SYNTAX_BUILD_PATH, SYNTAX_SOURCE_PATH, MAKEFILE_PATH):
         if not (root / rel).exists():
             failures.append(f"missing_file:{rel.as_posix()}")
     if failures:
@@ -117,8 +118,14 @@ def validate(root: Path) -> list[str]:
 
 
 def write_fixture_root(root: Path) -> None:
-    current_build = Path("/workspace/zigux_phase12_patch/zigux/tests/phase12_build.zig").read_text(encoding="utf-8")
-    current_fixture = Path("/workspace/zigux_phase12_patch/zigux/tests/fixtures/phase12_build_inventory.json").read_text(encoding="utf-8")
+    for rel in (BUILD_PATH, FIXTURE_PATH, SYNTAX_SOURCE_PATH):
+        source_path = ROOT / rel
+        if not source_path.exists():
+            raise SystemExit(f"missing source fixture input: {source_path}")
+
+    current_build = (ROOT / BUILD_PATH).read_text(encoding="utf-8")
+    current_fixture = (ROOT / FIXTURE_PATH).read_text(encoding="utf-8")
+    syntax_source = (ROOT / SYNTAX_SOURCE_PATH).read_text(encoding="utf-8")
     syntax_build = """const std = @import(\"std\");
 
 pub fn build(b: *std.Build) void {
@@ -160,7 +167,13 @@ phase12-virtio-net-syntax-lab-test:
 
 phase12: phase12-validate phase12-smoke phase12-test
 """
-    for rel, text in ((BUILD_PATH, current_build), (FIXTURE_PATH, current_fixture), (SYNTAX_BUILD_PATH, syntax_build), (MAKEFILE_PATH, makefile_text)):
+    for rel, text in (
+        (BUILD_PATH, current_build),
+        (FIXTURE_PATH, current_fixture),
+        (SYNTAX_BUILD_PATH, syntax_build),
+        (SYNTAX_SOURCE_PATH, syntax_source),
+        (MAKEFILE_PATH, makefile_text),
+    ):
         path = root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
@@ -181,8 +194,13 @@ def run_self_test() -> int:
         failures = validate(base)
         if "phase12_build_inventory_mismatch" not in failures:
             raise SystemExit("expected build mismatch")
+        write_fixture_root(base)
+        (base / SYNTAX_SOURCE_PATH).unlink()
+        failures = validate(base)
+        if f"missing_file:{SYNTAX_SOURCE_PATH.as_posix()}" not in failures:
+            raise SystemExit("expected syntax-lab source missing-file failure")
         print("PHASE12_BUILD_INVENTORY_SELF_TEST=pass")
-        print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=2")
+        print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=3")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
