@@ -76,6 +76,8 @@ This survey therefore treats the runtime command, TTY, runtime-service, and pers
 - useful comparison material for later roadmap phases
 - out of scope for current Phase 6 progress claims
 
+A fresh current-master reread on 2026-05-27 did not change that boundary. The four roadmap-backed helper anchors remain the only truthful Phase 6 product scope, and the broader runtime command and persisted environment surfaces are still comparison material rather than helper evidence.
+
 ## Honest next-step boundary
 
 While this survey is part of the shared Phase 6 evidence packet, it should only be used as a boundary note.
