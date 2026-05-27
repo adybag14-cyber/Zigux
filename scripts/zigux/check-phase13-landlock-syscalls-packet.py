@@ -32,53 +32,64 @@ REQUIRED_MARKERS = {
         "FMODE_CAN_READ",
         "FMODE_CAN_WRITE",
     ],
+    "zigux/tests/phase13_landlock_syscalls.zig": [
+        "phase13 landlock syscalls create-handle path reuses the fd install planner",
+        "phase13 landlock syscalls restrict-self planner keeps logging and tsync flags explicit",
+        "phase13 landlock syscalls add-rule planner reuses fd lookup and delegated tree helpers",
+        "phase13 landlock syscalls stub and release helpers stay planning-only",
+    ],
     "Documentation/zigux/phase13-landlock-syscalls-slice.md": [
-        "active materialized helper-local and reviewability packet companions",
+        "active materialized helper-local, direct replay, and reviewability packet companions",
+        "`zigux/tests/phase13_landlock_syscalls.zig`",
         "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
-        "`zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, and the older shared `zigux/tests/phase13_build.zig` companion remain repo-reality gaps",
+        "`zigux/tests/phase13_landlock_syscalls_manifest.json` and the older shared `zigux/tests/phase13_build.zig` companion remain repo-reality gaps",
     ],
     "Documentation/zigux/phase13-landlock-syscalls-governance.md": [
-        "helper-local packet plus the direct reviewability companion",
+        "helper-local packet plus the direct replay and direct reviewability companions",
+        "`zigux/tests/phase13_landlock_syscalls.zig`",
         "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
         "`zigux/tests/phase13_landlock_syscalls_manifest.json`",
     ],
     "Documentation/zigux/phase13-landlock-syscalls-survey.md": [
-        "Current `master` now materializes this helper-local and reviewability packet through:",
+        "Current `master` now materializes this helper-local, direct replay, and reviewability packet through:",
+        "`zigux/tests/phase13_landlock_syscalls.zig`",
         "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
         "Current `master` still leaves these directly coupled companions absent:",
     ],
     "Documentation/zigux/phase13-landlock-syscalls-survey-gap.md": [
+        "`zigux/tests/phase13_landlock_syscalls.zig` as a returned direct replay companion",
         "`zigux/tests/phase13_landlock_syscalls_reviewability.zig` as a returned reviewability companion",
         "`zigux/tests/phase13_landlock_syscalls_manifest.json`",
     ],
     "Documentation/zigux/phase13-roadmap-traceability.md": [
-        "current `master` materializes the helper-local packet plus the direct reviewability companion",
+        "current `master` materializes the helper-local packet plus the direct replay and direct reviewability companions",
+        "`zigux/tests/phase13_landlock_syscalls.zig`",
         "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
         "`zigux/tests/phase13_landlock_syscalls_manifest.json`",
     ],
     "zigux/tests/phase13_landlock_syscalls_reviewability.zig": [
-        "phase13 landlock syscalls docs promote the reviewability companion into current packet truth",
-        "active materialized helper-local and reviewability packet companions",
-        "Current `master` now materializes this helper-local and reviewability packet through:",
-        "current `master` materializes the helper-local packet plus the direct reviewability companion",
+        "phase13 landlock syscalls direct replay covers the current planner packet",
+        "active materialized helper-local, direct replay, and reviewability packet companions",
+        "Current `master` now materializes this helper-local, direct replay, and reviewability packet through:",
+        "current `master` materializes the helper-local packet plus the direct replay and direct reviewability companions",
     ],
 }
 
 FORBIDDEN_MARKERS = {
     "Documentation/zigux/phase13-landlock-syscalls-slice.md": [
-        "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, and the older shared `zigux/tests/phase13_build.zig` companion remain repo-reality gaps",
+        "`zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, and the older shared `zigux/tests/phase13_build.zig` companion remain repo-reality gaps",
     ],
     "Documentation/zigux/phase13-landlock-syscalls-governance.md": [
         "`zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, and `zigux/tests/phase13_build.zig`",
     ],
     "Documentation/zigux/phase13-landlock-syscalls-survey.md": [
-        "- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
+        "Current `master` still leaves these directly coupled companions absent:\n- `zigux/tests/phase13_landlock_syscalls.zig`",
     ],
     "Documentation/zigux/phase13-landlock-syscalls-survey-gap.md": [
-        "- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
+        "The remaining directly coupled gaps stay outside this bounded helper-local step:\n- `zigux/tests/phase13_landlock_syscalls.zig`",
     ],
     "Documentation/zigux/phase13-roadmap-traceability.md": [
-        "- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
+        "## Repo-Reality Gaps\n\nKeep the remaining current gaps explicit:\n- docs-root `Documentation/zigux/README.md` still lacks a dedicated Phase 13 reminder block\n- `make -C zigux phase13-validate`\n- `make -C zigux phase13`\n- `zigux/tests/phase13_build.zig`\n- `zigux/tests/phase13_devres.zig`\n- `zigux/tests/phase13_devres_reviewability.zig`\n- `zigux/tests/phase13_devres_boundary_evidence.zig`\n- `zigux/tests/phase13_devres_manifest.json`\n- `scripts/zigux/check-phase13-devres-packet.py`\n- `scripts/zigux/check-phase13-devres-packet-alignment.py`\n- `zigux/tests/phase13_landlock_syscalls.zig`",
     ],
 }
 
