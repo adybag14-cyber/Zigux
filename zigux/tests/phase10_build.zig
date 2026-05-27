@@ -127,6 +127,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     virtio_ring_registration_summary_module.addImport("virtio_ring", virtio_ring_module);
+    const virtio_ring_used_buffer_poll_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/virtio/virtio_ring_used_buffer_poll.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_ring_used_buffer_poll_module.addImport("virtio_ring", virtio_ring_module);
     const virtio_ring_reset_readiness_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/virtio/virtio_ring_reset_readiness.zig"),
         .target = target,
@@ -424,6 +430,9 @@ pub fn build(b: *std.Build) void {
     const phase10_virtio_ring_registration_summary_tests = b.addTest(.{ .name = "phase10-virtio-ring-registration-summary-tests", .root_module = virtio_ring_registration_summary_module });
     const run_phase10_virtio_ring_registration_summary_tests = b.addRunArtifact(phase10_virtio_ring_registration_summary_tests);
 
+    const phase10_virtio_ring_used_buffer_poll_tests = b.addTest(.{ .name = "phase10-virtio-ring-used-buffer-poll-tests", .root_module = virtio_ring_used_buffer_poll_module });
+    const run_phase10_virtio_ring_used_buffer_poll_tests = b.addRunArtifact(phase10_virtio_ring_used_buffer_poll_tests);
+
     const phase10_virtio_ring_verify_tests = b.addTest(.{ .name = "phase10-virtio-ring-verify-tests", .root_module = virtio_ring_verify_module });
     const run_phase10_virtio_ring_verify_tests = b.addRunArtifact(phase10_virtio_ring_verify_tests);
 
@@ -529,6 +538,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase10_virtio_ring_registration_replay_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_notification_data_wrapper_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_registration_summary_tests.step);
+    test_step.dependOn(&run_phase10_virtio_ring_used_buffer_poll_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_verify_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_prepare_kick_idempotent_tests.step);
