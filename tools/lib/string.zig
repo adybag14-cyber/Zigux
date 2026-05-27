@@ -619,6 +619,9 @@ pub fn strnstr(buf: []const u8, needle: []const u8, count: usize) ?usize {
 
 pub fn strnchr(buf: []const u8, count: usize, needle: u8) ?usize {
     const limit = strnlen(buf, count);
+    if (needle == 0) {
+        return if (limit == count) null else limit;
+    }
     for (buf[0..limit], 0..) |ch, idx| {
         if (ch == needle) {
             return idx;
@@ -1169,6 +1172,12 @@ test "strnchr honors count and C-string boundaries" {
     try std.testing.expectEqual(@as(?usize, 1), strnchr("abc", 2, 'b'));
     try std.testing.expectEqual(@as(?usize, null), strnchr("abc", 1, 'b'));
     try std.testing.expectEqual(@as(?usize, null), strnchr(&[_]u8{ 'a', 0, 'b' }, 3, 'b'));
+}
+
+test "strnchr treats the NUL terminator as searchable within the count window" {
+    try std.testing.expectEqual(@as(?usize, 1), strnchr(&[_]u8{ 'a', 0, 'b' }, 3, 0));
+    try std.testing.expectEqual(@as(?usize, 3), strnchr("abc", 4, 0));
+    try std.testing.expectEqual(@as(?usize, null), strnchr("abc", 3, 0));
 }
 
 test "strlen honors C-string boundaries" {
