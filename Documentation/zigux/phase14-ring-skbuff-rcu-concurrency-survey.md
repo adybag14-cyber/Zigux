@@ -1,76 +1,77 @@
-# Phase 14 Ring Buffer, Skbuff, and RCU Concurrency Survey
+# Phase 14 Ring Skbuff RCU Concurrency Survey
 
-This note records the bounded `P14-L12` cross-anchor study packet for the three Phase 14 concurrency-heavy anchors that still stay outside active Zig ownership: `kernel/trace/ring_buffer.c`, `net/core/skbuff.c`, and `kernel/rcu/tree.c`.
+This note records the bounded `P14-L12` cross-anchor concurrency audit for the Phase 14 packets around `kernel/trace/ring_buffer.c`, `net/core/skbuff.c`, and `kernel/rcu/tree.c`.
 
 ## Status
+
 - `PHASE14_LANE_KEY=P14-L12`
-- `PHASE14_STATUS_BUCKET=study_only_cross_anchor`
-- `PHASE14_SCOPE=ring-buffer-skbuff-rcu-concurrency`
-- `PHASE14_BLOCKED_GAP=phase14-cross-anchor-concurrency-bridge-blocker`
-- roadmap-aligned owner surfaces for this packet:
-  - `Documentation/zigux/phase14-ring-buffer-survey.md`
-  - `Documentation/zigux/phase14-skbuff-bridge-survey.md`
-  - `Documentation/zigux/phase14-rcu-tree-survey.md`
-  - `Documentation/zigux/phase14-core-boundary-traceability.md`
-  - `Documentation/zigux/freeze-map.md`
-- retained posture from the roadmap and freeze map:
-  - `kernel/trace/ring_buffer.c`: `Study / Boundary Only`
-  - `net/core/skbuff.c`: `Freeze In C Initially`
-  - `kernel/rcu/tree.c`: `Freeze In C Initially`
+- `PHASE14_PHASE=Phase 14`
+- `PHASE14_STATUS_BUCKET=cross_anchor_stay_in_c_audit`
+- `PHASE14_PROVENANCE_MODE=dated_master_readback`
+- surveyed against `current-master-readback-2026-05-27`
+- this note stays inside roadmap-backed concurrency audits and explicit stay-in-C decisions; it does not reopen ring-buffer, skbuff, or RCU bridge ownership
 
-## Why this packet exists
-The roadmap does not just ask for isolated boundary notes. It explicitly asks for concurrency audits and explicit stay-in-C decisions where warranted.
+## Why this slice exists
 
-Current `master` already has dedicated anchor-local packets for ring buffer, skbuff, and RCU tree.
-What it did not yet have was one bounded note that names the shared concurrency pattern across those three anchors and explains why that pattern still blocks a wider bridge story.
+The Phase 14 roadmap asks for boundary maps, concurrency audits, and explicit stay-in-C decisions around core-adjacent internals. Current `master` already carries anchor-local packets for:
 
-This packet stays narrow on purpose.
-It does not reopen any anchor-local blocker.
-It does not claim parity.
-It does not claim ownership transfer.
-It records one cross-anchor finding: the same three classes of concurrency contract keep reappearing across the ring-buffer, skbuff, and RCU packets, and those contracts still belong to the shipped C implementations.
+- `P14-L08` ring-buffer study-only survey evidence
+- `P14-L11` skbuff freeze-in-C boundary evidence
+- `P14-L16` RCU freeze-in-C boundary evidence
 
-## Cross-anchor finding
-The three anchor-local packets now support one shared conclusion:
+The missing bounded gap is the cross-anchor statement those three packets now justify together: publication and ordering ownership, consumer lifetime and teardown ownership, and asynchronous wake or escalation ownership still remain C-owned concurrency state machines across this family.
 
-1. Publication and ordering ownership still stays in C.
-- ring buffer: reserve or commit publication, head-page rotation, and reader-visible metadata publication still stay coupled inside `ring_buffer_lock_reserve()`, `ring_buffer_unlock_commit()`, `rb_move_tail()`, `rb_update_meta_page()`, and the related reader-page choreography.
-- skbuff: qdisc-facing publication, checksum ownership, segmentation metadata, and the final sock-owned tail transfer still stay coupled inside the live `validate_xmit_skb_list()` path and its destructor-linked ownership updates.
-- RCU tree: grace-period sequence publication, the memory-ordering lock network, and public wait-visible sequence state still stay coupled inside `rcu_start_this_gp`, `rcu_gp_init`, `__note_gp_changes`, `raw_spin_lock_rcu_node`, `smp_mb__after_unlock_lock`, and `smp_store_release`.
+## Anchor posture
 
-2. Consumer lifetime and teardown ownership still stays in C.
-- ring buffer: reader-page handoff, read-page extraction, tracefs read-versus-splice lifetime, and mapped-reader teardown still stay coupled inside `rb_get_reader_page()`, `ring_buffer_read_page()`, `tracing_buffers_read()`, `tracing_buffers_splice_read()`, and `rb_remove_pages()`.
-- skbuff: skb lifetime, shared-info `dataref`, destructor ordering, `sock_wfree`, `tail->destructor`, `tail->sk`, `tail->next`, `segs->prev`, and the consumer-side `tail = skb->prev` reset still stay coupled inside the existing C-owned teardown and transmission path.
-- RCU tree: callback enqueue, callback drain, callback-barrier ownership, synchronize_rcu wait-head rollover, completion cleanup, and CPU hotplug callback migration still stay coupled inside `__call_rcu_common`, `rcu_do_batch`, `rcu_barrier`, `rcu_sr_normal_gp_init`, `rcu_sr_normal_gp_cleanup_work`, `rcutree_prepare_cpu`, `rcutree_offline_cpu`, and `rcutree_migrate_callbacks`.
+- `kernel/trace/ring_buffer.c`: `study_only`
+- `net/core/skbuff.c`: `freeze_in_c`
+- `kernel/rcu/tree.c`: `freeze_in_c`
+- `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` remain the governing reminders for the study-only versus freeze-in-C split
 
-3. Asynchronous wake, offload, and escalation ownership still stays in C.
-- ring buffer: wakeup or watermark publication, mapped-reader ioctl wakeups, remote-reader metadata import, and resize or snapshot lockouts still stay coupled inside `ring_buffer_wait()`, `ring_buffer_poll_wait()`, `rb_wake_up_waiters()`, `ring_buffer_map_get_reader()`, `rb_read_remote_meta_page()`, and `ring_buffer_resize()`.
-- skbuff: queue publication, segmentation-side follow-on ownership, and destructor-backed handoff still stay coupled inside the same transmission and queue-drain path instead of exposing a bridge-safe async seam.
-- RCU tree: expedited waits, force-quiescent-state escalation, NOCB deferred wakeups, idle-watch transitions, and hotplug-facing callback handoff still stay coupled inside `sync_rcu_exp_select_cpus`, `synchronize_rcu_expedited_wait_once`, `rcu_force_quiescent_state`, `rcu_gp_fqs_loop`, `wake_nocb_gp_defer`, `do_nocb_deferred_wakeup`, `rcu_is_watching`, and `invoke_rcu_core`.
+## Cross-anchor concurrency findings
 
-## Explicit stay-in-C decision
-- do not treat `kernel/trace/ring_buffer.zig` as an active bridge target; the ring-buffer packet still supports study-only evidence, not live ownership.
-- do not treat the returned skbuff bridge packet as a parity or runtime-ownership signal; the packet remains review-only boundary evidence while `phase14-skbuff-live-ownership-blocker` stays open.
-- do not treat `kernel/rcu/tree_bridge.zig` as a live bridge claim; the dedicated RCU packet remains freeze-in-C evidence while `phase14-rcu-tree-bridge-blocker` stays open.
-- do not collapse these three anchors into one generic wrapper story; their shared blocker is precisely that publication, lifetime, and escalation semantics are still concurrency-owned C state machines rather than detachable helper seams.
+### Publication and ordering ownership
 
-## Reopen threshold
-- `phase14-cross-anchor-concurrency-bridge-blocker` remains open until a future packet can show narrower evidence than the current anchor-local surveys.
-- minimum reopen evidence for any wider cross-anchor status review:
-  - `Architecture Council` reopen record linked from the active packet that proposes the wider review
-  - parity scorecard and benchmark evidence attached to the exact anchor-local packet being reconsidered
-  - replay command and evidence archive path recorded beside the latest blocker disposition
-- automatic return-to-blocked triggers:
-  - any wording that upgrades this packet into parity, bridge ownership, or a freeze-map status change
-  - any cross-anchor summary that drops the explicit study-only or freeze-in-C distinction between ring buffer, skbuff, and RCU tree
-  - any same-family reminder note that repeats a shared bridge claim without updated anchor-local evidence
+- ring-buffer reserve or commit publication, `reader_page` handoff, and mapped-reader metadata publication still stay in C
+- skbuff qdisc-facing publication, shared-info header-write ownership, and checksum-state ownership still stay in C
+- RCU grace-period sequence publication and the memory-ordering lock network still stay in C
+
+These are not three unrelated helper gaps. They are one cross-anchor warning that publication and ordering state still belongs to mature C-owned concurrency machinery.
+
+### Consumer lifetime and teardown ownership
+
+- ring-buffer read-page extraction, reader-page consume boundaries, and `rb_remove_pages()` mapped-reader lifetime teardown still stay in C
+- skbuff destructor ordering, zerocopy fragment orphaning, shared-frag ownership transfer, and the final sock-owned tail transfer still stay in C
+- RCU callback enqueue and batch invocation, public wait and callback-barrier ownership, and CPU hotplug callback migration still stay in C
+
+Across all three anchors, teardown is still coupled to live ownership transitions rather than to a wrapper-safe Zig seam.
+
+### Asynchronous wake or escalation ownership
+
+- ring-buffer wakeup or watermark publication and tracefs reader competition still stay in C
+- skbuff queue ownership and deferred destructor-side ownership escalation still stay in C
+- RCU expedited funnel behavior, force-quiescent-state escalation, and NOCB wakeup handoff still stay in C
+
+The shared product reading is still blocker accounting, not bridge readiness.
+
+## Shared boundary result
+
+- keep `P14-L08`, `P14-L11`, and `P14-L16` on their dedicated anchor-local packets
+- keep this cross-anchor note limited to concurrency-audit truthfulness
+- do not treat the current shared `phase14-validate` route, any focused build shard, or any returned anchor-local executable companion as ownership transfer evidence for these concurrency surfaces
+- if a future lane changes one of these three anchor packets materially, reread this note before reusing older cross-anchor language
 
 ## Non-goals
-- a new shared build route
-- a shared wrapper surface for the three anchors
-- any claim that the ring-buffer, skbuff, or RCU executable companions now imply shared replay parity
+
+This note does not claim:
+
+- a `kernel/trace/ring_buffer.zig` implementation
+- parity or runtime ownership for `net/core/skbuff.c`
+- active `kernel/rcu/tree_bridge.zig` ownership
 - any freeze-map status change
+- any Architecture Council reopen request
 
 ## Next bounded step
-Keep this packet parked unless one of the three anchor-local surveys, the shared core traceability note, or the freeze map drifts in a way that hides the shared concurrency blocker described here.
-If the packet reopens, prefer the smallest truthfulness repair inside this note first, then update the owning anchor-local survey only if that survey is the surface that actually drifted.
+
+Keep this note parked unless the ring-buffer, skbuff, or RCU anchor-local surveys change their concurrency blocker wording enough that the shared cross-anchor summary would drift.
+If the lane reopens, keep the next move on the smallest truthfulness repair inside this note and its checker before widening into any anchor-local reminder or shared Phase 14 route surface.
