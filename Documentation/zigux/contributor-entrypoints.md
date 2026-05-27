@@ -24,6 +24,22 @@ Keep those four files aligned as the baseline contributor packet:
 
 After the shared entry reread, choose one bounded guide instead of widening across multiple lanes.
 
+### Top-Level Contributor Onboarding
+
+Use this path when the change is about the main contributor starting map, the start-here file list, or the routine workflow wording that new contributors see first.
+
+Stable onboarding packet:
+
+- `CONTRIBUTING.md`
+- `Documentation/zigux/contributor-entrypoints.md`
+- `Documentation/zigux/contributor-workflow.md`
+
+Matching guard:
+
+- `python3 scripts/zigux/check-contributor-onboarding-packet.py`
+
+Keep this packet scoped to contributor-facing onboarding only. Do not widen it into phase-local status claims or helper-local proof.
+
 ### Samples And Reference Patterns
 
 Use `Documentation/zigux/phase5-sample-review-guide.md` when the change touches sample-facing contributor guidance, approved Phase 5 idioms, or review wording around the bytestream, kobject, kretprobe, or bounded trace-events packet.
@@ -84,9 +100,10 @@ When the change stays inside the developer-enablement lane, use this bounded loo
 
 1. reread the four shared entry surfaces together
 2. reread one phase-local guide or checklist that matches the actual change
-3. update one shared reminder surface plus the smallest necessary companion note
-4. rerun the smallest checker set that matches the packet you touched
-5. keep absent routes, helpers, and replay files recorded as repo-reality gaps instead of promoting them into shipped evidence
+3. if the change touches top-level onboarding wording, keep `CONTRIBUTING.md`, `Documentation/zigux/contributor-entrypoints.md`, and `Documentation/zigux/contributor-workflow.md` aligned and rerun `python3 scripts/zigux/check-contributor-onboarding-packet.py`
+4. update one shared reminder surface plus the smallest necessary companion note
+5. rerun the smallest checker set that matches the packet you touched
+6. keep absent routes, helpers, and replay files recorded as repo-reality gaps instead of promoting them into shipped evidence
 
 ## Current Route Truths
 
