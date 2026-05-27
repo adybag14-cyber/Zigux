@@ -70,6 +70,19 @@ test "phase 5 kretprobe sample exports the live instance-budget contract" {
     try std.testing.expect(contract.nmissed_suggests_increasing_maxactive);
 }
 
+test "phase 5 kretprobe sample keeps contributor route packet explicit" {
+    const routes = sample.KretprobeExampleSample.contributorRoutePacket();
+
+    try std.testing.expectEqualStrings(sample.sample_selfcheck_route, routes.sample_selfcheck_route);
+    try std.testing.expectEqualStrings(sample.focused_replay_route, routes.focused_replay_route);
+    try std.testing.expectEqualStrings(sample.survey_guard_route, routes.survey_guard_route);
+    try std.testing.expectEqualStrings(sample.instance_budget_companion_route, routes.instance_budget_companion_route);
+    try std.testing.expectEqualStrings(sample.instance_budget_focused_route, routes.instance_budget_focused_route);
+    try std.testing.expectEqualStrings(sample.probe_spec_companion_route, routes.probe_spec_companion_route);
+    try std.testing.expectEqualStrings(sample.probe_spec_focused_route, routes.probe_spec_focused_route);
+    try std.testing.expectEqualStrings(sample.shared_build_route, routes.shared_build_route);
+}
+
 test "phase 5 kretprobe sample keeps maxactive retargeting pre-init and explicit" {
     var module = sample.KretprobeExampleSample{};
 
