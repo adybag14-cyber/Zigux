@@ -539,6 +539,7 @@ test "ipFastCsum stays aligned with compute across aligned IPv4 headers" {
 test "snake_case checksum aliases stay aligned across incremental and parity-sensitive helpers" {
     const seed: u32 = 0x1357_9bdf;
     const fragment: u32 = 0x2468_ace0;
+    const wide: u64 = 0x1234_5678_9abc_def0;
     const payload = [_]u8{ 'p', 'h', 'a', 's', 'e', '6', '!' };
     const ipv4_header = [_]u8{
         0x45, 0x00, 0x00, 0x3c,
@@ -556,6 +557,9 @@ test "snake_case checksum aliases stay aligned across incremental and parity-sen
     const payload_partial = partial(&payload, 0);
     const payload_diff = sub(total_len_new, total_len_old);
 
+    try std.testing.expectEqual(negate(seed), csum_negate(seed));
+    try std.testing.expectEqual(from32to16(seed), csum_from32to16(seed));
+    try std.testing.expectEqual(from64to32(wide), csum_from64to32(wide));
     try std.testing.expectEqual(add(seed, fragment), csum_add(seed, fragment));
     try std.testing.expectEqual(sub(seed, fragment), csum_sub(seed, fragment));
     try std.testing.expectEqual(shift(fragment, 255), csum_shift(fragment, 255));
@@ -578,6 +582,9 @@ test "snake_case checksum aliases stay aligned across incremental and parity-sen
     try std.testing.expectEqual(tcpUdpV6Magic(payload_partial, &v6_saddr, &v6_daddr, payload.len, 58), csum_ipv6_magic(payload_partial, &v6_saddr, &v6_daddr, payload.len, 58));
 }
 
+pub const csum_negate = negate;
+pub const csum_from32to16 = from32to16;
+pub const csum_from64to32 = from64to32;
 pub const csum_add = add;
 pub const csum_sub = sub;
 pub const csum_shift = shift;
