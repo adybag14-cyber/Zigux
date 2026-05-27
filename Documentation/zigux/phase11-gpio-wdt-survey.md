@@ -90,3 +90,9 @@ on current `master`.
 The focused current-head manifest survey now fail-closes on the recovered
 manifest plus the coupled survey and validation matrix so this smaller packet
 cannot drift silently while the wider archival manifest path stays absent.
+
+`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`
+and `python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`
+now fail-closes on the recovered manifest, survey note, validation matrix, and
+dedicated build route so this current-head packet keeps one directly readable
+checker surface instead of leaving checker upkeep implicit.
