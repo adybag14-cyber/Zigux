@@ -3,7 +3,7 @@
   "lane_key": "P9-L08",
   "status": "active",
   "surveyed_commit": "e306440f579ded71e8441c1a513af6fd12bbbfdd",
-  "scope": "partial runtime bitmap reminder packet, direct sample proof, direct direct-init companion proof, direct cold-stage guard proof, direct loader proof, direct module proof, direct diff proof, manifest-backed ownership packet, top-bit companion proof, and no broader shared runtime-loader parity claim",
+  "scope": "partial runtime bitmap reminder packet, direct sample proof, direct direct-init companion proof, direct cold-stage guard proof, direct loader proof, direct module proof, direct diff proof, manifest-backed ownership packet, top-bit and active-word-boundary companion proof, and no broader shared runtime-loader parity claim",
   "sample_path": "samples/zigux/runtime_bitmap.zig",
   "direct_init_contract_path": "samples/zigux/runtime_bitmap_direct_init_contract.zig",
   "loader_path": "samples/zigux/runtime_bitmap_loader.zig",
@@ -32,7 +32,7 @@
     "Keep the module-side descriptor, selftest-summary, lifecycle-summary, mutation-and-copy, and source-target guard proofs explicit when the manifest summarizes the direct module packet.",
     "Keep the module selftested-target copy replay explicit when the manifest summarizes the direct module packet.",
     "Keep the diff-side summary replay, copy-tail clearing, and exit-guard coverage explicit when the manifest summarizes the bounded runtime bitmap packet.",
-    "Keep the top-bit source-target copy guards explicit when the manifest summarizes the bounded top-bit companion proof."
+    "Keep the top-bit source-target copy guards and active word-width boundary replay explicit when the manifest summarizes the bounded top-bit companion proof."
   ],
   "exact_checks": [
     "descriptor_and_anchor",
@@ -68,6 +68,7 @@
     "diff_copy_tail_clearing",
     "diff_exit_lifecycle_guards",
     "top_bit_source_target_copy_guards",
+    "active_word_boundary_contract",
     "top_bit_contract",
     "shared_build_route_visibility"
   ],
