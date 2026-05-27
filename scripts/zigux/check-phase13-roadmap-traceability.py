@@ -20,7 +20,7 @@ REQUIRED_MARKERS = [
     "`scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py`",
     "direct replay and direct reviewability companions through `zigux/tests/phase13_landlock_syscalls.zig` and `zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
     "`zigux/tests/phase13_landlock_syscalls_manifest.json`",
-    "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, still-missing direct Landlock syscall companions, older direct devres companions, and missing notifier-chain companion.",
+    "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and missing notifier-chain companion.",
     "- `zigux/helpers/notifier_chain_view.zig`",
 ]
 
@@ -95,10 +95,33 @@ def run_self_test() -> int:
         )
         checks_run += 1
 
-        write_text(tempdir, ROADMAP_NOTE, source_text.replace("`zigux/tests/phase13_landlock_syscalls_manifest.json`", "`zigux/tests/phase13_landlock_syscalls_manifest_missing.json`", 1))
+        write_text(
+            tempdir,
+            ROADMAP_NOTE,
+            source_text.replace(
+                "`zigux/tests/phase13_landlock_syscalls_manifest.json`",
+                "`zigux/tests/phase13_landlock_syscalls_manifest_missing.json`",
+            ),
+        )
         issues = collect_issues(tempdir)
         assert (
             "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:`zigux/tests/phase13_landlock_syscalls_manifest.json`"
+            in issues
+        )
+        checks_run += 1
+
+        write_text(
+            tempdir,
+            ROADMAP_NOTE,
+            source_text.replace(
+                "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and missing notifier-chain companion.",
+                "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, still-missing direct Landlock syscall companions, older direct devres companions, and missing notifier-chain companion.",
+                1,
+            ),
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and missing notifier-chain companion."
             in issues
         )
         checks_run += 1
