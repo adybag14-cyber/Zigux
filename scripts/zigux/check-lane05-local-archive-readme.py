@@ -241,7 +241,7 @@ def run_self_test() -> int:
             include_archive=True,
             archive_bytes=b"wrong-bytes",
         ),
-        "to have sha256 313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
+        "to have sha256 a3eae1cdb9643cf68e09e97574fb6780699e05148c270e52347faa293b80d858",
     )
 
     print("LANE05_LOCAL_ARCHIVE_README_SELF_TEST=pass")
