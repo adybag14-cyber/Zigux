@@ -17,6 +17,12 @@ fn tailMask(bit_len: usize) Word {
     return (@as(Word, 1) << @intCast(remainder)) - 1;
 }
 
+fn startMask(bit_index: usize) Word {
+    const offset = bit_index % word_bits;
+    if (offset == 0) return std.math.maxInt(Word);
+    return (~@as(Word, 0)) << @as(std.math.Log2Int(Word), @intCast(offset));
+}
+
 pub const BitmapView = struct {
     words: []const Word,
     bit_len: usize,
@@ -60,8 +66,18 @@ pub const BitmapView = struct {
     }
 
     pub fn firstSetBit(self: BitmapView) ?usize {
-        for (0..self.activeWordLen()) |index| {
-            const masked = self.maskedWord(index);
+        return self.nextSetBit(0);
+    }
+
+    pub fn nextSetBit(self: BitmapView, start_bit: usize) ?usize {
+        if (start_bit >= self.bit_len) return null;
+
+        const start_word = wordIndex(start_bit);
+        for (start_word..self.activeWordLen()) |index| {
+            var masked = self.maskedWord(index);
+            if (index == start_word) {
+                masked &= startMask(start_bit);
+            }
             if (masked == 0) continue;
 
             const base = index * word_bits;
@@ -71,10 +87,18 @@ pub const BitmapView = struct {
     }
 
     pub fn firstClearBit(self: BitmapView) ?usize {
-        if (self.bit_len == 0) return null;
+        return self.nextClearBit(0);
+    }
 
-        for (0..self.activeWordLen()) |index| {
-            const masked = ~self.maskedWord(index) & tailMask(@min(self.bit_len, (index + 1) * word_bits));
+    pub fn nextClearBit(self: BitmapView, start_bit: usize) ?usize {
+        if (self.bit_len == 0 or start_bit >= self.bit_len) return null;
+
+        const start_word = wordIndex(start_bit);
+        for (start_word..self.activeWordLen()) |index| {
+            var masked = ~self.maskedWord(index);
+            if (index == start_word) {
+                masked &= startMask(start_bit);
+            }
             if (masked == 0) continue;
 
             const base = index * word_bits;
@@ -170,4 +194,22 @@ test "bitmap view keeps subset and overlap checks bounded to active bits" {
     try std.testing.expect(base.isSubsetOf(superset));
     try std.testing.expect(!superset.isSubsetOf(base));
     try std.testing.expect(!base.intersects(disjoint));
+}
+
+test "bitmap view can walk set and clear bits from a bounded start point" {
+    const words = [_]Word{
+        bitMask(1) | bitMask(4) | bitMask(7),
+        std.math.maxInt(Word),
+    };
+    const view = BitmapView.init(words[0..], 8);
+
+    try std.testing.expectEqual(@as(?usize, 1), view.nextSetBit(0));
+    try std.testing.expectEqual(@as(?usize, 4), view.nextSetBit(2));
+    try std.testing.expectEqual(@as(?usize, 7), view.nextSetBit(7));
+    try std.testing.expectEqual(@as(?usize, null), view.nextSetBit(8));
+
+    try std.testing.expectEqual(@as(?usize, 0), view.nextClearBit(0));
+    try std.testing.expectEqual(@as(?usize, 2), view.nextClearBit(2));
+    try std.testing.expectEqual(@as(?usize, 5), view.nextClearBit(5));
+    try std.testing.expectEqual(@as(?usize, null), view.nextClearBit(8));
 }
