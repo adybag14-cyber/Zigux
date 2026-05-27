@@ -161,6 +161,18 @@ pub fn statusIsOk(status: ExportStatus) bool {
     return abi.statusIsOk(status);
 }
 
+pub fn facilityFromInt(value: u16) ?Facility {
+    return abi.facilityFromInt(value);
+}
+
+pub fn facilityIsKnown(value: u16) bool {
+    return abi.facilityIsKnown(value);
+}
+
+pub fn statusHasKnownFacility(status: ExportStatus) bool {
+    return abi.statusHasKnownFacility(status);
+}
+
 test "header family binding mirrors current version compatibility surface" {
     const live = currentVersion();
     const stale_major = Version{
@@ -306,6 +318,27 @@ test "header family binding relays boundary header validation statuses" {
     try std.testing.expect(std.meta.eql(ok, validateBoundaryHeaderStatus(expanded)));
     try std.testing.expect(std.meta.eql(invalid, validateBoundaryHeaderStatus(undersized)));
     try std.testing.expect(std.meta.eql(invalid, validateBoundaryHeaderStatus(stale)));
+}
+
+test "header family binding keeps export-status facility relays explicit" {
+    const ok = okStatus(.helpers);
+    const err = errorStatus(-22, .kernel);
+    const unknown = ExportStatus{
+        .code = 0,
+        .facility = 9,
+        .flags = 0,
+    };
+
+    try std.testing.expectEqual(@as(?Facility, .helpers), facilityFromInt(ok.facility));
+    try std.testing.expectEqual(@as(?Facility, .kernel), facilityFromInt(err.facility));
+    try std.testing.expect(facilityIsKnown(ok.facility));
+    try std.testing.expect(facilityIsKnown(err.facility));
+    try std.testing.expect(statusHasKnownFacility(ok));
+    try std.testing.expect(statusHasKnownFacility(err));
+
+    try std.testing.expectEqual(@as(?Facility, null), facilityFromInt(unknown.facility));
+    try std.testing.expect(!facilityIsKnown(unknown.facility));
+    try std.testing.expect(!statusHasKnownFacility(unknown));
 }
 
 test "header family binding mirrors Linux-facing dev_t helpers" {
