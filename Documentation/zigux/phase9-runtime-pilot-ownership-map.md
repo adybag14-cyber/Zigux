@@ -18,6 +18,7 @@ These files describe the shared reminder, review, rerun, and validation surfaces
 
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 - `Documentation/zigux/phase9-runtime-pilot-ownership-map.md`
+- `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
@@ -115,6 +116,8 @@ Keep these names historical until trusted rereads return them:
 - `zigux/tests/runtime_loader_gap_survey.zig`
 - `samples/zigux/runtime_trace_events_loader.zig`
 - blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, depmod, install-root, `modules.order`, `modules.builtin`, and `Module.symvers` publication claims
+
+Use `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md` as the current reminder surface for that blocked publication boundary instead of treating the historical names above as active owner paths.
 
 ## Governance Rule
 
