@@ -143,6 +143,9 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "buildDeferredExecvCall()",
         "make -C zigux phase8-validate",
         "kernel/workqueue.c remains a Phase 14 boundary-study target",
+        "no retry scheduling, timer-backed backoff, timeout handling, or poll-loop ownership around deferred execution",
+        "no queue ownership, wakeup routing, worker-pool control, or scheduler-visible execution substrate",
+        "deferred-execution runtime, a broader task queue, or any workqueue-style execution substrate",
     ),
     BRIDGE_BOUNDARY_SURVEY: (
         "`PHASE8_SURVEY=userspace-kernel-bridge-boundary-readback`",
