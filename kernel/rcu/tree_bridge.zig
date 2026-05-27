@@ -145,6 +145,24 @@ pub fn findBoundaryById(id: []const u8) ?*const BridgeBoundary {
     return null;
 }
 
+pub fn boundaryContainsAnchorSymbol(boundary: *const BridgeBoundary, symbol: []const u8) bool {
+    for (boundary.anchor_symbols) |anchor_symbol| {
+        if (std.mem.eql(u8, anchor_symbol, symbol)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+pub fn findBoundaryByAnchorSymbol(symbol: []const u8) ?*const BridgeBoundary {
+    for (&blocked_boundaries) |*boundary| {
+        if (boundaryContainsAnchorSymbol(boundary, symbol)) {
+            return boundary;
+        }
+    }
+    return null;
+}
+
 fn contains(haystack: []const u8, needle: []const u8) bool {
     return std.mem.indexOf(u8, haystack, needle) != null;
 }
@@ -238,4 +256,21 @@ test "tree bridge boundary map stays review-only" {
     const hotplug = findBoundaryById("cpu_hotplug_callback_migration").?;
     try std.testing.expect(contains(hotplug.summary, "callback migration"));
     try std.testing.expectEqual(BoundaryCoupling.concurrency_coupled, hotplug.coupling);
+}
+
+test "tree bridge anchor lookup resolves blocked ownership" {
+    const force_qs = findBoundaryByAnchorSymbol("rcu_gp_fqs_loop").?;
+    try std.testing.expectEqualStrings("force_quiescent_state_and_gp_wake_escalation", force_qs.id);
+    try std.testing.expect(boundaryContainsAnchorSymbol(force_qs, "rcu_gp_kthread_wake"));
+    try std.testing.expect(!boundaryContainsAnchorSymbol(force_qs, "synchronize_rcu"));
+
+    const poll_cookie = findBoundaryByAnchorSymbol("rcu_sr_normal_gp_cleanup_work").?;
+    try std.testing.expectEqualStrings("poll_cookie_and_sync_waithead_rollover", poll_cookie.id);
+    try std.testing.expectEqual(BoundaryCoupling.public_wait_surface, poll_cookie.coupling);
+
+    const public_wait = findBoundaryByAnchorSymbol("synchronize_rcu").?;
+    try std.testing.expectEqualStrings("public_wait_and_callback_barrier", public_wait.id);
+
+    const missing = findBoundaryByAnchorSymbol("phase14_missing_tree_anchor");
+    try std.testing.expect(missing == null);
 }
