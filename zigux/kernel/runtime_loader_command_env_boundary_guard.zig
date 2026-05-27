@@ -342,6 +342,52 @@ test "shared runtime loader surface keeps Phase 8 poll ownership in the perf-buf
     }
 }
 
+test "shared runtime loader surface keeps runtime task accounting and queue ownership in their original owners" {
+    const runtime_trace_events_source = try readRepoFile(
+        std.testing.allocator,
+        "samples/zigux/runtime_trace_events.zig",
+    );
+    defer std.testing.allocator.free(runtime_trace_events_source);
+
+    const perf_buffer_poll_source = try readRepoFile(
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+    );
+    defer std.testing.allocator.free(perf_buffer_poll_source);
+
+    const trace_events_owner_markers = [_][]const u8{
+        "registration_depth",
+        "main_thread_events",
+        "fn_thread_events",
+        "total_events",
+        "last_main_emitted_events",
+        "last_fn_emitted_events",
+        "registerFunctionThread",
+        "unregisterFunctionThread",
+    };
+    const perf_buffer_owner_markers = [_][]const u8{
+        "WaitObservation",
+        "ready_events",
+        "ReadyBufferSummary",
+        "PollSummary",
+        "PollExecutionSummary",
+        "PollExecutionResult",
+        "advanceReadyBufferCursor",
+        "resolvePollExecutionResultFromWaitResult",
+    };
+
+    inline for (trace_events_owner_markers) |marker| {
+        try expectContains(runtime_trace_events_source, marker);
+        try expectLacks(runtime_loader_source, marker);
+        try expectLacks(runtime_loader_contract_source, marker);
+    }
+    inline for (perf_buffer_owner_markers) |marker| {
+        try expectContains(perf_buffer_poll_source, marker);
+        try expectLacks(runtime_loader_source, marker);
+        try expectLacks(runtime_loader_contract_source, marker);
+    }
+}
+
 test "shared runtime loader surface rejects task, poll, and event-loop field bleed-through" {
     const forbidden_field_decls = [_][]const u8{
         "task_queue:",
