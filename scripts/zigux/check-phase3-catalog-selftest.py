@@ -41,6 +41,7 @@ REQUIRED_MARKERS = {
         '"Documentation/zigux/phase3-export-uapi-boundary-survey.md"',
         '"Documentation/zigux/phase3-errptr-xarray-slice.md"',
         '"Documentation/zigux/phase3-xarray-slot-slice.md"',
+        '"Documentation/zigux/phase3-idr-slot-slice.md"',
         '"Documentation/zigux/phase3-bitmap-cpumask-slice.md"',
         '"Documentation/zigux/phase3-list-hlist-slice.md"',
         '"scripts/zigux/check-phase3-catalog-selftest.py"',
@@ -48,9 +49,14 @@ REQUIRED_MARKERS = {
         '"scripts/zigux/check-phase3-wrapper-templates.py"',
         '"scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"',
         '"scripts/zigux/check-phase3-xarray-slot.py"',
+        '"scripts/zigux/check-phase3-idr-slot-starter-packet.py"',
         '"scripts/zigux/check-phase3-bitmap-cpumask.py"',
         '"scripts/zigux/check-phase3-list-hlist-starter-packet.py"',
         '"scripts/zigux/check-phase3-list-hlist.py"',
+        '"zigux/helpers/idr_slot_view.zig"',
+        '"zigux/tests/phase3_idr_slot_starter_packet.zig"',
+        '"zigux/tests/phase3_idr_slot_starter_packet_build.zig"',
+        '"zigux/tests/fixtures/phase3_idr_slot_manifest.json"',
         '"zigux/tests/fixtures/phase3_bitmap_cpumask/phase3_bitmap_cpumask_c_harness.c"',
         '"zigux/tests/fixtures/phase3_bitmap_cpumask/expected.json"',
         '"zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c"',
@@ -59,8 +65,11 @@ REQUIRED_MARKERS = {
         '"zigux/tests/phase3_list_hlist_dump_build.zig"',
         '"python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test"',
         '"python3 scripts/zigux/check-phase3-wrapper-templates.py --self-test"',
+        '"python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --self-test"',
+        '"python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --repo-root ."',
         '"python3 scripts/zigux/check-phase3-bitmap-cpumask.py --self-test"',
         '"python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc"',
+        '"zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig"',
         '"zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig"',
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
@@ -174,6 +183,30 @@ def run_self_test() -> int:
         required_cases = (
             (
                 CATALOG_PATH,
+                '"Documentation/zigux/phase3-idr-slot-slice.md"',
+                'missing scripts/zigux/phase3_catalog.py marker: "Documentation/zigux/phase3-idr-slot-slice.md"',
+                "expected missing idr-slot slice marker was not reported",
+            ),
+            (
+                CATALOG_PATH,
+                '"python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --repo-root ."',
+                'missing scripts/zigux/phase3_catalog.py marker: "python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --repo-root ."',
+                "expected missing idr-slot replay marker was not reported",
+            ),
+            (
+                CATALOG_PATH,
+                '"zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig"',
+                'missing scripts/zigux/phase3_catalog.py marker: "zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig"',
+                "expected missing idr-slot build marker was not reported",
+            ),
+            (
+                CATALOG_PATH,
+                '"zigux/tests/fixtures/phase3_idr_slot_manifest.json"',
+                'missing scripts/zigux/phase3_catalog.py marker: "zigux/tests/fixtures/phase3_idr_slot_manifest.json"',
+                "expected missing idr-slot manifest marker was not reported",
+            ),
+            (
+                CATALOG_PATH,
                 '"Documentation/zigux/phase3-list-hlist-slice.md"',
                 'missing scripts/zigux/phase3_catalog.py marker: "Documentation/zigux/phase3-list-hlist-slice.md"',
                 "expected missing list-hlist slice marker was not reported",
@@ -201,11 +234,11 @@ def run_self_test() -> int:
         forbidden_cases = (
             (
                 '"zigux/tests/phase3_abi_dump.zig"',
-                'expected forbidden legacy abi dump packet marker was not reported',
+                "expected forbidden legacy abi dump packet marker was not reported",
             ),
             (
                 '"phase3_abi_dump_build.zig"',
-                'expected forbidden legacy abi dump build marker was not reported',
+                "expected forbidden legacy abi dump build marker was not reported",
             ),
         )
 
