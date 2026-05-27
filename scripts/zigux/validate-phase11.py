@@ -20,6 +20,7 @@ REQUIRED_PATHS = (
     "Documentation/zigux/phase11-shared-replay-contract.md",
     "Documentation/zigux/phase11-driver-lane-sequencing.md",
     "Documentation/zigux/phase11-validation-matrix-gap-survey.md",
+    "Documentation/zigux/phase11-watchdog-lifecycle-parity-gap.md",
     "Documentation/zigux/phase11-uapi-header-parity-survey.md",
     "Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md",
     "Documentation/zigux/phase11-bcm2835-wdt-survey.md",
@@ -50,6 +51,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
     "scripts/zigux/check-phase11-matrix-gap-survey.py",
     "scripts/zigux/check-phase11-validation-matrix-gap-survey.py",
+    "scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py",
     "scripts/zigux/check-phase11-header-boundary-packet.py",
     "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
     "scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py",
@@ -182,6 +184,14 @@ CHECKS = (
     CheckSpec(
         "phase11-validation-matrix-gap-survey",
         ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"),
+    ),
+    CheckSpec(
+        "phase11-watchdog-lifecycle-parity-gap-self-test",
+        ("python", "scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase11-watchdog-lifecycle-parity-gap",
+        ("python", "scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py"),
     ),
     CheckSpec(
         "phase11-header-boundary-packet-self-test",
@@ -463,7 +473,8 @@ def run_self_test() -> int:
                         shutil.rmtree(child)
                     else:
                         child.unlink()
-            build_sample_repo(root)
+            build_sampleRepo = build_sample_repo
+            build_sampleRepo(root)
             build_fake_zig(fake_zig, fail_build_file=fail_build_file)
 
         os.environ["PATH"] = f"{tool_root}{os.pathsep}{original_path}" if original_path else str(tool_root)
@@ -481,6 +492,7 @@ def run_self_test() -> int:
 
         for rel in (
             "Documentation/zigux/phase11-shared-replay-contract.md",
+            "Documentation/zigux/phase11-watchdog-lifecycle-parity-gap.md",
             "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
             "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md",
             "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
@@ -500,6 +512,7 @@ def run_self_test() -> int:
             "scripts/zigux/check-phase11-validate-route-alignment.py",
             "scripts/zigux/check-phase11-focused-direct-build-replays.py",
             "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
+            "scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py",
             "scripts/zigux/check-phase11-header-boundary-packet.py",
             "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
             "scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py",
@@ -591,6 +604,8 @@ def run_self_test() -> int:
             ("scripts/zigux/check-phase11-matrix-gap-survey.py", "phase11-matrix-gap-survey"),
             ("scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "phase11-validation-matrix-gap-survey-self-test"),
             ("scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "phase11-validation-matrix-gap-survey"),
+            ("scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py", "phase11-watchdog-lifecycle-parity-gap-self-test"),
+            ("scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py", "phase11-watchdog-lifecycle-parity-gap"),
             ("scripts/zigux/check-phase11-header-boundary-packet.py", "phase11-header-boundary-packet-self-test"),
             ("scripts/zigux/check-phase11-header-boundary-packet.py", "phase11-header-boundary-packet"),
             ("scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "phase11-hvc-cleanup-current-head-self-test"),
@@ -636,7 +651,7 @@ def run_self_test() -> int:
 
         reset_fixture(fail_build_file="zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig")
         if collect_issues(root, skip_zig_builds=True):
-            raise SystemExit("phase11-validate-self-test:skip_zig_builds_not_honored")
+            raise SystemExit("phase11-validate-self-test:skip_zig-builds_not_honored")
         case_count += 1
 
         os.environ["PATH"] = original_path
