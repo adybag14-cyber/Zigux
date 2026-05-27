@@ -102,7 +102,7 @@ pub fn summarizePlatformHandoff(input: PlatformHandoffInput) !PlatformHandoffSum
     return .{
         .anchor = anchor_path,
         .parent_attached = input.parent_attached,
-        .parent_supplies_pm_base = input.pm_base_present,
+        .parent_supplies_pm_base = input.parent_attached and input.pm_base_present,
         .pm_base_required = true,
         .pm_base_handoff_ready = pm_base_handoff_ready,
         .timeout_init_requested = true,
