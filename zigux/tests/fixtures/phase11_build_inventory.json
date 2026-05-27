@@ -86,7 +86,7 @@
   "deterministic_fixture_surfaces": [
     "zigux/tests/fixtures/phase11_build_inventory.json",
     "zigux/tests/fixtures/phase11_validate_checks.json",
-    "zigux/tests/phase11_dw_wdt_manifest.json"
+    "zigux/tests/fixtures/phase11_shared_tooling_manifest.json"
   ],
   "focused_teardown_failure_mode_builds": [
     "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
@@ -94,5 +94,5 @@
     "zigux/tests/phase11_dw_wdt_restart_build.zig",
     "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig"
   ],
-  "deterministic_golden_output_gap": "phase11-validate now carries the dedicated golden-output fixture roster `zigux/tests/fixtures/phase11_validate_checks.json` plus fail-closed `scripts/zigux/check-phase11-validate-check-roster.py` and `scripts/zigux/check-phase11-validate-route-alignment.py` guards; keep future deterministic output drift inside that validator packet"
+  "deterministic_golden_output_gap": "phase11-validate now carries the dedicated golden-output fixture roster `zigux/tests/fixtures/phase11_validate_checks.json`, the shared aggregate manifest `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`, plus fail-closed `scripts/zigux/check-phase11-validate-check-roster.py`, `scripts/zigux/check-phase11-validate-route-alignment.py`, and `scripts/zigux/check-phase11-shared-tooling-manifest.py` guards; keep future deterministic output drift inside that validator packet"
 }
