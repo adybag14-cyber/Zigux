@@ -221,11 +221,12 @@ pub fn setArgvExecPath(
     const owned_path = try allocator.dupe(u8, exec_path);
     errdefer allocator.free(owned_path);
 
+    try env.set(config.exec_path_env, exec_path);
+
     if (state.argv_exec_path) |previous| {
         allocator.free(previous);
     }
     state.argv_exec_path = owned_path;
-    try env.set(config.exec_path_env, exec_path);
 }
 
 pub fn setArgv0Path(
@@ -233,13 +234,18 @@ pub fn setArgv0Path(
     state: *ExecCmdState,
     argv0_path: ?[]const u8,
 ) !void {
+    if (argv0_path) |path| {
+        const owned_path = try allocator.dupe(u8, path);
+        if (state.argv0_path) |previous| {
+            allocator.free(previous);
+        }
+        state.argv0_path = owned_path;
+        return;
+    }
+
     if (state.argv0_path) |previous| {
         allocator.free(previous);
         state.argv0_path = null;
-    }
-
-    if (argv0_path) |path| {
-        state.argv0_path = try allocator.dupe(u8, path);
     }
 }
 
@@ -487,6 +493,57 @@ test "setArgvExecPath keeps the previous path when allocation fails" {
         setArgvExecPath(failing_allocator, &env, &state, config, "new-path"),
     );
     try std.testing.expectEqualStrings("old", state.argv_exec_path.?);
+}
+
+test "setArgvExecPath keeps previous state and env when env update fails" {
+    var backing: std.heap.DebugAllocator(.{}) = .{};
+    defer std.testing.expect(backing.deinit() == .ok) catch @panic("leak");
+
+    var env = EnvMap.init(backing.allocator());
+    defer env.deinit();
+    try env.set("PERF_EXEC_PATH", "old-env");
+
+    var state = ExecCmdState{
+        .argv_exec_path = try backing.allocator().dupe(u8, "old-state"),
+    };
+    defer state.deinit(backing.allocator());
+
+    var failing_state = std.testing.FailingAllocator.init(backing.allocator(), .{ .fail_index = 1 });
+    const failing_allocator = failing_state.allocator();
+    env.allocator = failing_allocator;
+
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    try std.testing.expectError(
+        error.OutOfMemory,
+        setArgvExecPath(failing_allocator, &env, &state, config, "new-path"),
+    );
+    try std.testing.expectEqualStrings("old-state", state.argv_exec_path.?);
+    try std.testing.expectEqualStrings("old-env", env.get("PERF_EXEC_PATH").?);
+}
+
+test "setArgv0Path keeps the previous path when allocation fails" {
+    var backing: std.heap.DebugAllocator(.{}) = .{};
+    defer std.testing.expect(backing.deinit() == .ok) catch @panic("leak");
+
+    var state = ExecCmdState{
+        .argv0_path = try backing.allocator().dupe(u8, "old-argv0"),
+    };
+    defer state.deinit(backing.allocator());
+
+    var failing_state = std.testing.FailingAllocator.init(backing.allocator(), .{ .fail_index = 0 });
+    const failing_allocator = failing_state.allocator();
+
+    try std.testing.expectError(
+        error.OutOfMemory,
+        setArgv0Path(failing_allocator, &state, "new-argv0"),
+    );
+    try std.testing.expectEqualStrings("old-argv0", state.argv0_path.?);
 }
 
 test "buildSearchPath rewrites relative entries against the working directory" {
