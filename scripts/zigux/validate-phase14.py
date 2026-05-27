@@ -51,6 +51,7 @@ SKBUFF_COMPILE_ROUTE_CHECKER_PATH = "scripts/zigux/check-phase14-skbuff-compile-
 RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH = (
     "scripts/zigux/check-phase14-ring-buffer-compile-route.py"
 )
+RCU_COMPILE_ROUTE_CHECKER_PATH = "scripts/zigux/check-phase14-rcu-compile-route.py"
 RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH = "scripts/zigux/check-phase14-rcu-rollback-guardrail.py"
 TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -88,6 +89,7 @@ REQUIRED_FILES = [
     SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
     SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
     RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
+    RCU_COMPILE_ROUTE_CHECKER_PATH,
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
     TESTS_README_CHECKER_PATH,
     TESTS_README_PATH,
@@ -109,6 +111,7 @@ SUBCHECKER_PATHS = [
     SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
     SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
     RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
+    RCU_COMPILE_ROUTE_CHECKER_PATH,
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
 ]
@@ -176,6 +179,7 @@ REQUIRED_MARKERS = {
         "- checker: `scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
         "- skbuff compile-route checker: `scripts/zigux/check-phase14-skbuff-compile-route.py`",
         "- ring-buffer compile-route checker: `scripts/zigux/check-phase14-ring-buffer-compile-route.py`",
+        "- rcu compile-route checker: `scripts/zigux/check-phase14-rcu-compile-route.py`",
     ],
     WORKQUEUE_SLICE_PATH: [
         "  * `PHASE14_LANE_KEY=P14-L04`",
@@ -255,6 +259,12 @@ REQUIRED_MARKERS = {
         '"phase14-ring-buffer-survey-tests"',
         '"phase14-ring-buffer-zig-port-blocker"',
     ],
+    RCU_COMPILE_ROUTE_CHECKER_PATH: [
+        "PHASE14_CHECK_PACKET=rcu_compile_route",
+        "PHASE14_RCU_COMPILE_ROUTE_SELF_TEST=pass",
+        '"phase14-rcu-tree-survey-tests"',
+        '"phase14-rcu-tree-bridge-blocker"',
+    ],
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH: [
         "PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass",
         "`PHASE14_LANE_KEY=P14-L16`",
@@ -306,6 +316,9 @@ REQUIRED_MARKERS = {
         '"zig build phase14-smoke --build-file zigux/tests/phase14_build.zig"',
         '"phase14_make_smoke_target_present": false',
         '"smoke_note_records_rollback_threshold": true',
+        '"scripts/zigux/check-phase14-rcu-compile-route.py"',
+        '"phase14_validate_runs_rcu_compile_route_checker": true',
+        '"shared_manifest_records_rcu_compile_route_checker": true',
     ],
     WORKFLOW_PATH: [
         "- name: Self-test current Phase 14 shared smoke route checker",
@@ -433,6 +446,19 @@ def fixture_text(rel_path: str) -> str:
             "else:\n"
             '    print("PHASE14_RING_BUFFER_COMPILE_ROUTE=pass")\n'
         )
+    if rel_path == RCU_COMPILE_ROUTE_CHECKER_PATH:
+        return (
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "# PHASE14_CHECK_PACKET=rcu_compile_route\n"
+            "# PHASE14_RCU_COMPILE_ROUTE_SELF_TEST=pass\n"
+            '# "phase14-rcu-tree-survey-tests"\n'
+            '# "phase14-rcu-tree-bridge-blocker"\n'
+            'if "--self-test" in sys.argv:\n'
+            '    print("PHASE14_RCU_COMPILE_ROUTE_SELF_TEST=pass")\n'
+            "else:\n"
+            '    print("PHASE14_RCU_COMPILE_ROUTE=pass")\n'
+        )
     if rel_path == RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH:
         return (
             "#!/usr/bin/env python3\n"
@@ -530,6 +556,7 @@ def run_self_test() -> int:
             SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
             SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
             RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
+            RCU_COMPILE_ROUTE_CHECKER_PATH,
             RCU_TREE_SURVEY_PATH,
             RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
             TESTS_README_CHECKER_PATH,
@@ -557,6 +584,7 @@ def run_self_test() -> int:
             (SCRIPTS_README_PATH, REQUIRED_MARKERS[SCRIPTS_README_PATH][2]),
             (COMPILE_SHARD_MATRIX_SURVEY_PATH, REQUIRED_MARKERS[COMPILE_SHARD_MATRIX_SURVEY_PATH][4]),
             (COMPILE_SHARD_MATRIX_SURVEY_PATH, REQUIRED_MARKERS[COMPILE_SHARD_MATRIX_SURVEY_PATH][5]),
+            (COMPILE_SHARD_MATRIX_SURVEY_PATH, REQUIRED_MARKERS[COMPILE_SHARD_MATRIX_SURVEY_PATH][6]),
             (RING_BUFFER_SURVEY_PATH, REQUIRED_MARKERS[RING_BUFFER_SURVEY_PATH][2]),
             (
                 RELEASE_BOUNDARY_CHECKER_PATH,
@@ -578,6 +606,10 @@ def run_self_test() -> int:
                 RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
                 REQUIRED_MARKERS[RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH][3],
             ),
+            (
+                RCU_COMPILE_ROUTE_CHECKER_PATH,
+                REQUIRED_MARKERS[RCU_COMPILE_ROUTE_CHECKER_PATH][3],
+            ),
             (RCU_TREE_SURVEY_PATH, REQUIRED_MARKERS[RCU_TREE_SURVEY_PATH][4]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][0]),
             (RING_BUFFER_MANIFEST_PATH, REQUIRED_MARKERS[RING_BUFFER_MANIFEST_PATH][0]),
@@ -593,6 +625,9 @@ def run_self_test() -> int:
             (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][7]),
             (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][10]),
             (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][13]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][15]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][16]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][17]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_tree(base)
@@ -616,8 +651,8 @@ def main() -> int:
             "the compile-shard matrix survey, the ring-buffer study-only packet, the dedicated "
             "rollback-threshold sequencing checker, the dedicated skbuff stay-in-C "
             "guardrail, the dedicated skbuff compile-route checker, the dedicated ring-buffer "
-            "compile-route checker, the dedicated RCU rollback guardrail, and the returned "
-            "workqueue reviewability shard."
+            "compile-route checker, the dedicated RCU compile-route checker, the dedicated "
+            "RCU rollback guardrail, and the returned workqueue reviewability shard."
         )
     )
     parser.add_argument(
