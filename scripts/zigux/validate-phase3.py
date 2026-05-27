@@ -23,6 +23,8 @@ ABI_DUMP_PATH = Path("zigux/tests/phase3_abi_dump_current.zig")
 EXPORT_UAPI_LAYOUT_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
 EXPORT_UAPI_LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 EXPORT_SHIM_BUILD_PATH = Path("zigux/tests/phase3_export_shim_build.zig")
+EXPORT_SHIM_PATH = Path("zigux/kernel/export_shim.zig")
+UAPI_VERSION_PATH = Path("zigux/uapi/version.zig")
 ABI_MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 
 CURRENT_NEXT_SAFE_STEP = (
@@ -204,6 +206,22 @@ REQUIRED_SOURCE_MARKERS = {
         'export_shim_module.addImport("version_binding", version_binding_module);',
         '.name = "phase3-export-shim-test",',
         '"Run the focused Phase 3 export shim replay",',
+    ),
+    EXPORT_SHIM_PATH: (
+        "pub const Header = version.Header;",
+        "pub fn canonicalHeader(flags: u16) BoundaryHeader {",
+        "pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {",
+        "pub fn validateVersion(candidate: Version) ExportStatus {",
+        "pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {",
+        'test "export shim relays boundary header compatibility through status helpers" {',
+    ),
+    UAPI_VERSION_PATH: (
+        "pub const abi_major: u32 = 0;",
+        "pub const abi_minor: u32 = 1;",
+        "pub const header_family_revision: u32 = 1;",
+        "pub fn compatibleHeader(size: u32, flags: u16) Header {",
+        "pub fn validateBoundaryHeader(header: Header) abi.ExportStatus {",
+        'test "version helpers keep boundary header compatibility explicit" {',
     ),
 }
 
@@ -590,6 +608,26 @@ def validate_repo(repo_root: Path) -> list[str]:
             issues,
         )
 
+    export_shim_text = texts.get(EXPORT_SHIM_PATH)
+    if export_shim_text is not None:
+        _append_duplicate_name_issues(
+            EXPORT_SHIM_PATH,
+            export_shim_text,
+            ZIG_PUB_FN_RE,
+            "export shim pub fn",
+            issues,
+        )
+
+    uapi_version_text = texts.get(UAPI_VERSION_PATH)
+    if uapi_version_text is not None:
+        _append_duplicate_name_issues(
+            UAPI_VERSION_PATH,
+            uapi_version_text,
+            ZIG_PUB_FN_RE,
+            "uapi version pub fn",
+            issues,
+        )
+
     if header_text is not None and bindings_text is not None:
         missing_binding_constants = sorted(
             _abi_header_constant_names(header_text).difference(
@@ -853,6 +891,16 @@ def run_self_test() -> int:
                 '.name = "phase3-export-shim-test",\n',
                 'missing zigux/tests/phase3_export_shim_build.zig marker: .name = "phase3-export-shim-test",',
             ),
+            (
+                EXPORT_SHIM_PATH,
+                "pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {\n",
+                "missing zigux/kernel/export_shim.zig marker: pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {",
+            ),
+            (
+                UAPI_VERSION_PATH,
+                "pub fn validateBoundaryHeader(header: Header) abi.ExportStatus {\n",
+                "missing zigux/uapi/version.zig marker: pub fn validateBoundaryHeader(header: Header) abi.ExportStatus {",
+            ),
         )
 
         for rel_path, needle, expected in cases:
@@ -1066,6 +1114,44 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(repo_root)
+        current_export_shim = _read(repo_root / EXPORT_SHIM_PATH)
+        _write(
+            repo_root / EXPORT_SHIM_PATH,
+            current_export_shim
+            + "\npub fn validateVersion(candidate: Version) ExportStatus {\n"
+            + "    _ = candidate;\n"
+            + "    return undefined;\n"
+            + "}\n",
+        )
+        issues = validate_repo(repo_root)
+        if not any(
+            issue.startswith("duplicate export shim pub fn: validateVersion ")
+            for issue in issues
+        ):
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected export shim duplicate pub fn issue was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        current_uapi_version = _read(repo_root / UAPI_VERSION_PATH)
+        _write(
+            repo_root / UAPI_VERSION_PATH,
+            current_uapi_version
+            + "\npub fn validateBoundaryHeader(header: Header) abi.ExportStatus {\n"
+            + "    _ = header;\n"
+            + "    return undefined;\n"
+            + "}\n",
+        )
+        issues = validate_repo(repo_root)
+        if not any(
+            issue.startswith("duplicate uapi version pub fn: validateBoundaryHeader ")
+            for issue in issues
+        ):
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected uapi version duplicate pub fn issue was not reported")
+            return 1
+
+        _populate_repo(repo_root)
         (repo_root / "zigux/kernel/export_shim.zig").unlink()
         issues = validate_repo(repo_root)
         expected = (
@@ -1078,7 +1164,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print(f"PHASE3_VALIDATION_SELF_TEST_CASE_COUNT={len(cases) + len(packet_file_checks) + len(replay_route_checks) + 7}")
+    print(f"PHASE3_VALIDATION_SELF_TEST_CASE_COUNT={len(cases) + len(packet_file_checks) + len(replay_route_checks) + 9}")
     return 0
 
 
