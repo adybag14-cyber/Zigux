@@ -1,0 +1,42 @@
+{
+  "lane_key": "P7-L14",
+  "phase": "Phase 7",
+  "verified_on_utc": "2026-05-27T00:44:01Z",
+  "anchor": "lib/base64.c",
+  "roadmap_destinations": [
+    "lib/base64.zig"
+  ],
+  "current_master_state": "helper_slice_test_build_survey_manifest_checker_anchor",
+  "review_surfaces": [
+    "Documentation/zigux/phase7-base64-slice.md",
+    "scripts/zigux/check-phase7-base64-packet.py",
+    "lib/base64.zig",
+    "zigux/tests/phase7_base64.zig",
+    "zigux/tests/phase7_base64_build.zig",
+    "zigux/tests/phase7_base64_survey.zig",
+    "zigux/tests/phase7_base64_manifest.json"
+  ],
+  "covered_helpers": [
+    "chars",
+    "bytesStd",
+    "bytesUrlsafe",
+    "bytesImap",
+    "encodeStd",
+    "encodeUrlsafe",
+    "encodeImap",
+    "decodeStd",
+    "decodeUrlsafe",
+    "decodeImap",
+    "encodeStdSlice",
+    "encodeStdAlloc",
+    "decodeStdSlice",
+    "decodeStdAlloc"
+  ],
+  "ownership_focus": [
+    "variant-pinned convenience wrappers keep the standard, urlsafe, and IMAP alphabets explicit without widening into shared streaming ownership",
+    "short-tail packet checks keep one-byte and two-byte replay cases bounded to foreign-alphabet rejection and exact decoded lengths",
+    "slice and allocator companions keep exact-span ownership reviewable for the same bounded standard packet",
+    "the helper-local base64 packet stays separate from the broader shared Phase 7 docs-root, tests-root, Makefile, and workflow reminder surfaces"
+  ],
+  "next_bounded_step": "Keep same-lane follow-through limited to this helper-local base64 packet and only reopen it when a fresh reread finds checker, manifest, replay, build-entrypoint, or slice-note drift inside these returned packet members before widening into any broader Phase 7 shared reminder work."
+}
