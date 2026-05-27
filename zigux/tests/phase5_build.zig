@@ -20,6 +20,15 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase5_bytestream_fifo_module.addImport("bytestream_fifo_sample", bytestream_fifo_sample_module);
+    const phase5_bytestream_fifo_window_contract_module = b.createModule(.{
+        .root_source_file = b.path("phase5_bytestream_fifo_window_contract.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase5_bytestream_fifo_window_contract_module.addImport(
+        "bytestream_fifo_window_contract",
+        bytestream_fifo_window_contract_module,
+    );
     const phase5_bytestream_fifo_survey_module = b.createModule(.{
         .root_source_file = b.path("phase5_bytestream_fifo_survey.zig"),
         .target = target,
@@ -162,6 +171,20 @@ pub fn build(b: *std.Build) void {
         .root_module = phase5_bytestream_fifo_module,
     });
     const run_phase5_bytestream_fifo_tests = b.addRunArtifact(phase5_bytestream_fifo_tests);
+
+    const phase5_bytestream_fifo_window_contract_focused_tests = b.addTest(.{
+        .name = "phase5-bytestream-fifo-window-contract-focused-tests",
+        .root_module = phase5_bytestream_fifo_window_contract_module,
+    });
+    const run_phase5_bytestream_fifo_window_contract_focused_tests =
+        b.addRunArtifact(phase5_bytestream_fifo_window_contract_focused_tests);
+    const phase5_bytestream_fifo_window_contract_focused_step = b.step(
+        "phase5-bytestream-fifo-window-contract-focused",
+        "Run the Phase 5 bytestream FIFO window-contract focused replay checks",
+    );
+    phase5_bytestream_fifo_window_contract_focused_step.dependOn(
+        &run_phase5_bytestream_fifo_window_contract_focused_tests.step,
+    );
 
     const phase5_bytestream_fifo_survey_tests = b.addTest(.{
         .name = "phase5-bytestream-fifo-survey-tests",
@@ -319,6 +342,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase5_bytestream_fifo_sample_selfcheck_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_window_contract_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_tests.step);
+    test_step.dependOn(&run_phase5_bytestream_fifo_window_contract_focused_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_survey_tests.step);
     test_step.dependOn(&run_phase5_kobject_example_sample_selfcheck_tests.step);
     test_step.dependOn(&run_phase5_kobject_example_tests.step);
