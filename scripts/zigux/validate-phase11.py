@@ -71,6 +71,7 @@ REQUIRED_PATHS = (
     "zigux/Makefile",
     "zigux/tests/fixtures/phase11_build_inventory.json",
     "zigux/tests/fixtures/phase11_validate_checks.json",
+    "zigux/tests/phase11_bcm2835_wdt_manifest.json",
     "zigux/tests/phase11_dw_wdt_manifest.json",
     "zigux/tests/phase11_dw_wdt_survey.zig",
     "zigux/tests/phase11_dw_wdt_registration_scaffold.zig",
@@ -84,7 +85,7 @@ REQUIRED_PATHS = (
     "zigux/tests/phase11_gpio_wdt_preflight_review.zig",
     "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig",
-    "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_register-device-glue-review_build.zig",
     "zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig",
     "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig",
@@ -102,6 +103,7 @@ REQUIRED_PATHS = (
 )
 
 MANIFEST_EXPECTATIONS = {
+    "zigux/tests/phase11_bcm2835_wdt_manifest.json": "P11-L08",
     "zigux/tests/phase11_dw_wdt_manifest.json": "P11-L10",
 }
 
@@ -508,6 +510,7 @@ def run_self_test() -> int:
             "zigux/tests/phase11_bcm2835_wdt.zig",
             "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey.zig",
             "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig",
+            "zigux/tests/phase11_bcm2835_wdt_manifest.json",
             "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
             "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
             "zigux/tests/phase11_hvc_modem_control_proof.zig",
@@ -542,6 +545,14 @@ def run_self_test() -> int:
         case_count += 1
 
         reset_fixture()
+        bcm_manifest_path = root / "zigux/tests/phase11_bcm2835_wdt_manifest.json"
+        payload = json.loads(bcm_manifest_path.read_text(encoding="utf-8"))
+        payload["lane_key"] = "P11-L99"
+        write_text(bcm_manifest_path, json.dumps(payload) + "\n")
+        expect_issue("manifest_lane_key_mismatch:zigux/tests/phase11_bcm2835_wdt_manifest.json:expected=P11-L08:actual='P11-L99'")
+        case_count += 1
+
+        reset_fixture()
         payload = json.loads(manifest_path.read_text(encoding="utf-8"))
         payload["lane_key"] = "P11-L05"
         write_text(manifest_path, json.dumps(payload) + "\n")
@@ -556,10 +567,10 @@ def run_self_test() -> int:
         case_count += 1
 
         reset_fixture()
-        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload = json.loads(bcm_manifest_path.read_text(encoding="utf-8"))
         payload["gaps"] = []
-        write_text(manifest_path, json.dumps(payload) + "\n")
-        expect_issue("manifest_gaps_invalid:zigux/tests/phase11_dw_wdt_manifest.json")
+        write_text(bcm_manifest_path, json.dumps(payload) + "\n")
+        expect_issue("manifest_gaps_invalid:zigux/tests/phase11_bcm2835_wdt_manifest.json")
         case_count += 1
 
         for script_rel, spec_name in (
@@ -600,7 +611,7 @@ def run_self_test() -> int:
                 build_stub_script(root / script_rel, self_test_exit_code=1, live_exit_code=0)
             else:
                 build_stub_script(root / script_rel, self_test_exit_code=0, live_exit_code=1)
-            expect_issue(f"live_failed:{spec_name}:exit=1")
+            expect_issue(f"live_failed:{spec.name}:exit={completed.returncode}")
             case_count += 1
 
         for build_file, spec_name in (
