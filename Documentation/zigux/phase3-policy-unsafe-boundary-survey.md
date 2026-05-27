@@ -20,7 +20,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge-with-explicit-audit-gates`
 - `PHASE3_UNSAFE_BLOB_SHA=0a2bfa31a3fc061f9ec24bc0975cde8ce41e1f62`
-- `PHASE3_POLICY_SLICE_DOC_BLOB_SHA=07a0a34ed9b2d5b1794862a441e540c82302faf3`
+- `PHASE3_POLICY_SLICE_DOC_BLOB_SHA=5fa18a5fd7e5c5157f6d6e904b9f0da6f4bce346`
 - `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_DOC_BLOB_SHA=9d2a2c37b90fd180bc8b5550e975c6452d7e2015`
 - `PHASE3_POLICY_STARTER_PACKET_MANIFEST_PATH=zigux/tests/phase3_policy_starter_packet_manifest.json`
 - `PHASE3_POLICY_PACKET_GATE=python3 scripts/zigux/check-phase3-policy-starter-packet.py`
@@ -33,9 +33,8 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_POLICY_UNSAFE_REPLAY_PATH=zigux/tests/phase3_policy_unsafe.zig`
 - `PHASE3_POLICY_UNSAFE_REPLAY_BUILD_PATH=zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_POLICY_UNSAFE_REPLAY_TEST_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
-- `PHASE3_LOW_LEVEL_WRAPPER_TEST_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-further-policy-unsafe-gap-beyond-keeping-the-helper-local-packet-dedicated-replay-pair-and-the-directly-coupled-low-level-wrapper-packet-aligned`
-- `PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-layout-assert-panic-policy-allocator-policy-unsafe-policy-mmio-or-narrow-helper-surfaces-or-the-dedicated-policy-unsafe-survey-gate-drift-again`
+- `PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-layout-assert-panic-policy-allocator-policy-unsafe-policy-mmio-or-narrow-helper-surfaces-the-dedicated-policy-unsafe-replay-pair-or-the-dedicated-policy-unsafe-survey-gate-drift-again`
 
 ## Roadmap Contract
 Phase 3 is where Zigux starts defining permanent C and Zig boundary rules rather than only helper scaffolding.
@@ -68,7 +67,7 @@ This policy-and-unsafe note is still evidence for the same bounded Phase 3 ABI s
 There is no remaining packet-local product gap to open inside this lane today. The live need is truthfulness and alignment:
 - keep the helper-local policy slice, dedicated `phase3_policy_unsafe` replay pair, focused policy dump route, and directly coupled low-level-wrapper packet describing the same shipped surface
 - keep the survey validator tracking the files that now form the real bounded packet
-- avoid claiming that the older shared-ABI reminder path is still the only proof route when current `master` already ships a dedicated replay pair
+- avoid claiming that the older shared-ABI reminder path is still the only proof route when current `master` already ships a dedicated replay pair with its own direct build route
 
 ## Next Bounded Step
 - leave this lane parked unless `zigux/helpers/layout_assert.zig`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, `zigux/helpers/unsafe_policy.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_policy_unsafe.zig`, `zigux/tests/phase3_policy_unsafe_build.zig`, `Documentation/zigux/phase3-policy-slice.md`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, or `scripts/zigux/validate-phase3-policy-unsafe-survey.py` drifts again from this survey
