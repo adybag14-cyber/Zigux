@@ -60,17 +60,20 @@ NOTE_MARKERS = (
     "`PHASE12_LANE=complex-driver-shared-release-packet`",
     "anti-overlap checker: `scripts/zigux/check-phase12-complex-driver-lane-packet.py`",
     "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
+    "build-inventory checker: `scripts/zigux/check-phase12-build-inventory.py`",
     "`drivers/net/virtio_net_queue_resume.zig`, `drivers/net/virtio_net_receive_refill_replay.zig`, `drivers/net/virtio_net_transmit_recycle.zig`, `drivers/net/virtio_net_post_reset_replay.zig`, and `drivers/net/virtio_net_throughput_parity.zig` are now present on `master`.",
     "`zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, and `zigux/tests/phase12_virtio_net_throughput_parity.zig` are now present on `master` as the directly coupled review packet for that split-helper family.",
     "`zigux/tests/phase12_virtio_net_survey.zig` is also present on `master` as the shared survey gate for that same bounded packet; keep it explicit as reviewability support beside the five replay shards without reviving the older monolithic starter or implying live DMA-safe queue ownership, queue restart parity, or completion-path delivery.",
     "`zigux/tests/phase12_virtio_net_syntax_lab.zig` and `zigux/tests/phase12_virtio_net_syntax_lab_build.zig` are now present on `master` as isolated compile-smoke companions for the split-helper family, and current `zigux/Makefile` ships `phase12-virtio-net-syntax-lab-test` to keep that review-only rerun hook explicit outside the shared `phase12-validate` / `phase12-smoke` / `phase12-test` route.",
     "`drivers/net/virtio_net.zig` and `zigux/tests/phase12_virtio_net.zig` are currently absent on `master`",
     "current `zigux/Makefile` now ships `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12`, so `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are current wrapper proof on `master`.",
+    "The directly readable rerun and support surfaces in this lane are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-build-inventory.py --self-test`, `python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test`, `python3 scripts/zigux/check-phase12-build-inventory.py`, `python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-test`, and `make -C zigux phase12`.",
     "The note-local compile-smoke companion in this lane is `Documentation/zigux/phase12-cross-compile-smoke.md`, and its directly readable rerun handle is `python3 scripts/zigux/check-phase12-cross-compile-smoke.py --self-test` plus `python3 scripts/zigux/check-phase12-cross-compile-smoke.py`; keep that narrower smoke packet explicit beside the broader validator-first support bundle without treating it as DMA, queue ownership, throughput, recovery, or driver-delivery proof.",
 )
 
 SUPPORT_BUNDLE_MAP_MARKERS = (
     "- lane owner: `pmo-release`",
+    "- `scripts/zigux/check-phase12-build-inventory.py`",
     "- `scripts/zigux/check-phase12-complex-driver-lane-packet.py`",
     "- `scripts/zigux/check-phase12-cross-compile-smoke.py`",
     "- `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py`",
@@ -329,7 +332,7 @@ def run_self_test() -> int:
         cases += 1
 
         write_fixture(root)
-        (root / SUPPORT_BUNDLE_MAP_PATH).write_text("broken\n", encoding="utf-8")
+        (root / SUPPORT_BUNDLE_MAP_PATH).writeText("broken\n", encoding="utf-8")
         expect_failure(root, str(SUPPORT_BUNDLE_MAP_PATH))
         cases += 1
 
