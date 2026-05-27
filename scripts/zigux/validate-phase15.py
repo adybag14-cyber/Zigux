@@ -77,7 +77,10 @@ EXPECTED_PHASE15_VALIDATE_CHECKERS = [
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
     "scripts/zigux/check-phase15-architecture-council-packet.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
+    "scripts/zigux/check-phase15-handoff-note-alignment.py",
     "scripts/zigux/check-phase15-shared-summary-gap.py",
+    "scripts/zigux/check-phase15-readiness-gate-packet.py",
 ]
 EXPECTED_REPO_EVIDENCE = {
     "phase15_readiness_packet_checker_present": True,
