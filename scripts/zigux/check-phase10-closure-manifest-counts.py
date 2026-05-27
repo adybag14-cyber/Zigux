@@ -12,9 +12,9 @@ MANIFEST_PATH = 'zigux/tests/phase10_closure_manifest.json'
 LEDGER_PATH = 'zigux-alpha/PHASE10_CLOSURE_LEDGER.md'
 COUNT_FIELDS = {'doc_count': 'docs', 'manifest_count': 'manifests', 'driver_count': 'drivers', 'test_count': 'tests'}
 REQUIRED_EXACT_CHECKS = ['python3 scripts/zigux/check-phase10-bootstrap-route.py', 'python3 scripts/zigux/check-phase10-core-packet.py', 'python3 scripts/zigux/check-phase10-shared-freeze-boundary.py', 'python3 scripts/zigux/check-phase10-ring-packet.py', 'python3 scripts/zigux/check-phase10-input-packet.py', 'python3 scripts/zigux/check-phase10-mmio-packet.py', 'python3 scripts/zigux/check-phase10-harness-coverage.py', 'python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py', 'python3 scripts/zigux/check-phase10-closure-manifest-counts.py', 'python3 scripts/zigux/validate-phase10.py', 'python3 scripts/zigux/validate-phase10-closure.py', 'make -C zigux phase10-validate', 'zig build test --build-file zigux/tests/phase10_build.zig --summary all', 'make -C zigux phase10-test', 'make -C zigux phase10']
-REQUIRED_RING_SCOREBOARD_EVIDENCE = ['drivers/virtio/virtio_ring.zig', 'drivers/virtio/virtio_ring_publish_readiness.zig', 'zigux/tests/phase10_virtio_ring.zig', 'zigux/tests/phase10_virtio_ring_manifest.json', 'Documentation/zigux/phase10-virtio-ring-survey.md']
+REQUIRED_RING_SCOREBOARD_EVIDENCE = ['drivers/virtio/virtio_ring.zig', 'drivers/virtio/virtio_ring_publish_readiness.zig', 'drivers/virtio/virtio_ring_registration_summary.zig', 'drivers/virtio/virtio_ring_used_buffer_poll.zig', 'zigux/tests/phase10_virtio_ring.zig', 'zigux/tests/phase10_virtio_ring_manifest.json', 'Documentation/zigux/phase10-virtio-ring-survey.md']
 REQUIRED_MMIO_SCOREBOARD_EVIDENCE = ['drivers/virtio/virtio_mmio.zig', 'zigux/tests/phase10_virtio_mmio.zig', 'drivers/virtio/virtio_mmio_verify.zig', 'zigux/tests/phase10_virtio_mmio_manifest.json', 'Documentation/zigux/phase10-virtio-mmio-survey.md']
-REQUIRED_LAB_VALIDATION_EVIDENCE = ['scripts/zigux/check-phase10-core-packet.py', 'scripts/zigux/check-phase10-closure-manifest-counts.py', 'scripts/zigux/validate-phase10.py', 'scripts/zigux/validate-phase10-closure.py', 'zigux/Makefile', '.github/workflows/zigux-bootstrap.yml', 'zigux/tests/phase10_virtio_ring_queue_build.zig', 'zigux/tests/phase10_virtio_ring_queue_build_survey.zig']
+REQUIRED_LAB_VALIDATION_EVIDENCE = ['scripts/zigux/check-phase10-core-packet.py', 'scripts/zigux/check-phase10-closure-manifest-counts.py', 'scripts/zigux/validate-phase10.py', 'scripts/zigux/validate-phase10-closure.py', 'zigux/Makefile', '.github/workflows/zigux-bootstrap.yml', 'zigux/tests/phase10_virtio_ring_queue_build.zig', 'zigux/tests/phase10_virtio_ring_queue_build_survey.zig', 'drivers/virtio/virtio_ring_verify.zig', 'drivers/virtio/virtio_ring_registration_summary.zig', 'drivers/virtio/virtio_ring_used_buffer_poll.zig', 'zigux/tests/phase10_virtio_ring_notification_data_readiness.zig', 'zigux/tests/phase10_virtio_ring_registration_replay.zig', 'zigux/tests/phase10_virtio_ring_reset_readiness.zig', 'zigux/tests/phase10_virtio_ring_reset_reuse.zig']
 REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE = ['drivers/virtio/virtio_input_teardown_preflight.zig', 'zigux/tests/phase10_virtio_input_teardown_preflight.zig']
 REQUIRED_MMIO_LAB_VALIDATION_EVIDENCE = ['zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig']
 REQUIRED_REFERENCE_SAMPLE_SCOREBOARD_EVIDENCE = ['samples/zigux', 'zigux/tests/phase5_build.zig', 'Documentation/zigux/review-checklist.md']
@@ -43,8 +43,10 @@ REQUIRED_FOCUSED_HARNESS_REPLAYS = {
     'zigux/tests/phase10_virtio_ring.zig': ['phase10 ring broader replay'],
     'zigux/tests/phase10_virtio_ring_notification_data_readiness.zig': ['phase10 ring notification-data readiness replay'],
     'zigux/tests/phase10_virtio_ring_registration_replay.zig': ['phase10 ring queue-registration replay'],
+    'drivers/virtio/virtio_ring_registration_summary.zig': ['phase10 ring registration-summary wrapper replay'],
     'zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig': ['phase10 ring prepare-kick idempotence replay'],
     'zigux/tests/phase10_virtio_ring_reset_reuse.zig': ['phase10 ring drained-reset reuse replay'],
+    'zigux/tests/phase10_virtio_ring_reset_readiness.zig': ['phase10 ring reset-readiness replay'],
     'zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig': ['phase10 ring broken-queue queue-discipline replay'],
     'zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig': ['phase10 ring delayed-callback budget replay'],
     'zigux/tests/phase10_virtio_ring_queue_build.zig': ['phase10 ring focused queue-build replay'],
@@ -326,6 +328,18 @@ def run_self_test() -> int:
         cases += 1
         write_fixture(root)
         broken = copy.deepcopy(original)
+        broken['roadmap_parity_scoreboard']['virtqueue_wrappers']['evidence'] = [item for item in broken['roadmap_parity_scoreboard']['virtqueue_wrappers']['evidence'] if item != 'drivers/virtio/virtio_ring_registration_summary.zig']
+        write_manifest(broken)
+        expect_contains(validate(root)[1], "roadmap_parity_scoreboard:virtqueue_wrappers:'drivers/virtio/virtio_ring_registration_summary.zig':missing", 'phase10-manifest-counts-self-test')
+        cases += 1
+        write_fixture(root)
+        broken = copy.deepcopy(original)
+        broken['roadmap_parity_scoreboard']['virtqueue_wrappers']['evidence'] = [item for item in broken['roadmap_parity_scoreboard']['virtqueue_wrappers']['evidence'] if item != 'drivers/virtio/virtio_ring_used_buffer_poll.zig']
+        write_manifest(broken)
+        expect_contains(validate(root)[1], "roadmap_parity_scoreboard:virtqueue_wrappers:'drivers/virtio/virtio_ring_used_buffer_poll.zig':missing", 'phase10-manifest-counts-self-test')
+        cases += 1
+        write_fixture(root)
+        broken = copy.deepcopy(original)
         broken['roadmap_parity_scoreboard']['lab_only_driver_validation']['evidence'] = [item for item in broken['roadmap_parity_scoreboard']['lab_only_driver_validation']['evidence'] if item != 'zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig']
         write_manifest(broken)
         expect_contains(validate(root)[1], "roadmap_parity_scoreboard:lab_only_driver_validation:'zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig':missing", 'phase10-manifest-counts-self-test')
@@ -335,6 +349,18 @@ def run_self_test() -> int:
         broken['roadmap_parity_scoreboard']['lab_only_driver_validation']['evidence'] = [item for item in broken['roadmap_parity_scoreboard']['lab_only_driver_validation']['evidence'] if item != 'drivers/virtio/virtio_driver_id.zig']
         write_manifest(broken)
         expect_contains(validate(root)[1], "roadmap_parity_scoreboard:lab_only_driver_validation:'drivers/virtio/virtio_driver_id.zig':missing", 'phase10-manifest-counts-self-test')
+        cases += 1
+        write_fixture(root)
+        broken = copy.deepcopy(original)
+        broken['roadmap_parity_scoreboard']['lab_only_driver_validation']['evidence'] = [item for item in broken['roadmap_parity_scoreboard']['lab_only_driver_validation']['evidence'] if item != 'drivers/virtio/virtio_ring_registration_summary.zig']
+        write_manifest(broken)
+        expect_contains(validate(root)[1], "roadmap_parity_scoreboard:lab_only_driver_validation:'drivers/virtio/virtio_ring_registration_summary.zig':missing", 'phase10-manifest-counts-self-test')
+        cases += 1
+        write_fixture(root)
+        broken = copy.deepcopy(original)
+        broken['roadmap_parity_scoreboard']['lab_only_driver_validation']['evidence'] = [item for item in broken['roadmap_parity_scoreboard']['lab_only_driver_validation']['evidence'] if item != 'zigux/tests/phase10_virtio_ring_reset_readiness.zig']
+        write_manifest(broken)
+        expect_contains(validate(root)[1], "roadmap_parity_scoreboard:lab_only_driver_validation:'zigux/tests/phase10_virtio_ring_reset_readiness.zig':missing", 'phase10-manifest-counts-self-test')
         cases += 1
         write_fixture(root)
         broken = copy.deepcopy(original)
@@ -353,6 +379,18 @@ def run_self_test() -> int:
         broken['focused_harness_replays']['zigux/tests/phase10_virtio_ring_queue_build_survey.zig'] = []
         write_manifest(broken)
         expect_contains(validate(root)[1], 'focused_harness_replays:zigux/tests/phase10_virtio_ring_queue_build_survey.zig:missing', 'phase10-manifest-counts-self-test')
+        cases += 1
+        write_fixture(root)
+        broken = copy.deepcopy(original)
+        broken['focused_harness_replays']['drivers/virtio/virtio_ring_registration_summary.zig'] = []
+        write_manifest(broken)
+        expect_contains(validate(root)[1], 'focused_harness_replays:drivers/virtio/virtio_ring_registration_summary.zig:missing', 'phase10-manifest-counts-self-test')
+        cases += 1
+        write_fixture(root)
+        broken = copy.deepcopy(original)
+        broken['focused_harness_replays']['zigux/tests/phase10_virtio_ring_reset_readiness.zig'] = []
+        write_manifest(broken)
+        expect_contains(validate(root)[1], 'focused_harness_replays:zigux/tests/phase10_virtio_ring_reset_readiness.zig:missing', 'phase10-manifest-counts-self-test')
         cases += 1
         write_fixture(root)
         broken = copy.deepcopy(original)
