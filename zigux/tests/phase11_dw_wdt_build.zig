@@ -4,31 +4,30 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const dw_wdt_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/watchdog/dw_wdt.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const dw_wdt_pm_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/watchdog/dw_wdt_pm.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const registration_scaffold_module = b.createModule(.{
         .root_source_file = b.path("phase11_dw_wdt_registration_scaffold.zig"),
         .target = target,
         .optimize = optimize,
     });
+    registration_scaffold_module.addImport("dw_wdt", dw_wdt_module);
     const live_mmio_review_module = b.createModule(.{
         .root_source_file = b.path("phase11_dw_wdt_live_mmio_review.zig"),
         .target = target,
         .optimize = optimize,
     });
-    live_mmio_review_module.addImport("dw_wdt", b.createModule(.{
-        .root_source_file = b.path("../../drivers/watchdog/dw_wdt.zig"),
-        .target = target,
-        .optimize = optimize,
-    }));
-    live_mmio_review_module.addImport("dw_wdt_pm", b.createModule(.{
-        .root_source_file = b.path("../../drivers/watchdog/dw_wdt_pm.zig"),
-        .target = target,
-        .optimize = optimize,
-    }));
-    const pm_module = b.createModule(.{
-        .root_source_file = b.path("../../drivers/watchdog/dw_wdt_pm.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    live_mmio_review_module.addImport("dw_wdt", dw_wdt_module);
+    live_mmio_review_module.addImport("dw_wdt_pm", dw_wdt_pm_module);
     const restart_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/watchdog/dw_wdt_restart.zig"),
         .target = target,
@@ -39,6 +38,14 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const direct_replay_module = b.createModule(.{
+        .root_source_file = b.path("phase11_dw_wdt.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    direct_replay_module.addImport("dw_wdt", dw_wdt_module);
+    direct_replay_module.addImport("dw_wdt_pm", dw_wdt_pm_module);
+    direct_replay_module.addImport("dw_wdt_restart", restart_module);
 
     const registration_scaffold_tests = b.addTest(.{
         .name = "phase11-dw-wdt-registration-scaffold-tests",
@@ -54,7 +61,7 @@ pub fn build(b: *std.Build) void {
 
     const pm_tests = b.addTest(.{
         .name = "phase11-dw-wdt-pm-tests",
-        .root_module = pm_module,
+        .root_module = dw_wdt_pm_module,
     });
     const run_pm_tests = b.addRunArtifact(pm_tests);
 
@@ -70,13 +77,20 @@ pub fn build(b: *std.Build) void {
     });
     const run_verify_tests = b.addRunArtifact(verify_tests);
 
+    const direct_replay_tests = b.addTest(.{
+        .name = "phase11-dw-wdt-direct-replay-tests",
+        .root_module = direct_replay_module,
+    });
+    const run_direct_replay_tests = b.addRunArtifact(direct_replay_tests);
+
     const test_step = b.step(
         "test",
-        "Run the focused Phase 11 DesignWare watchdog scaffold and verify packet",
+        "Run the focused Phase 11 DesignWare watchdog scaffold, direct replay, and verify packet",
     );
     test_step.dependOn(&run_registration_scaffold_tests.step);
     test_step.dependOn(&run_live_mmio_review_tests.step);
     test_step.dependOn(&run_pm_tests.step);
     test_step.dependOn(&run_restart_tests.step);
     test_step.dependOn(&run_verify_tests.step);
+    test_step.dependOn(&run_direct_replay_tests.step);
 }
