@@ -60,7 +60,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
 
     try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-23", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-26", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.review_process_note);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-decision-record-template.md", manifest.decision_record_template);
@@ -86,12 +86,12 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqual(@as(usize, 2), manifest.supporting_context_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_outcome_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_outcome_markers.len);
-    try std.testing.expectEqual(@as(usize, 4), manifest.indefinite_c_policy_required_markers.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.indefinite_c_policy_required_markers.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_record_template_required_markers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.study_only_anchor_review_markers.len);
     try std.testing.expectEqual(@as(usize, 27), manifest.handoff_required_markers.len);
     try std.testing.expectEqual(@as(usize, 29), manifest.shared_gap_expected_present_paths.len);
-    try std.testing.expectEqual(@as(usize, 1), manifest.shared_gap_expected_missing_paths.len);
+    try std.testing.expectEqual(@as(usize, 0), manifest.shared_gap_expected_missing_paths.len);
 
     try expectSliceContains(manifest.review_checklist_entry_prompt_required_markers, "required approver set");
     try expectSliceContains(manifest.review_checklist_entry_prompt_required_markers, "rollback owner");
@@ -142,7 +142,6 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts/zigux/check-phase15-handoff-note-alignment.py`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts/zigux/validate-phase15.py`");
-    try expectSliceContains(manifest.shared_gap_expected_missing_paths, "`zigux/tests/phase15_build.zig`");
 }
 
 test "phase 15 review-process note stays aligned with the focused replay packet" {
@@ -277,8 +276,8 @@ test "phase 15 review-process handoff checker fails closed on missing present pa
     try expectContains(checker, "repo_path = _marker_to_repo_path(marker)");
     try expectContains(checker, "zigux/tests/phase15_architecture_council_review_process.zig");
     try expectContains(checker, "PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass");
-    try expectContains(checker, "current-master-readback-2026-05-23");
-    try expectContains(review_process, "current-master-readback-2026-05-23");
+    try expectContains(checker, "current-master-readback-2026-05-26");
+    try expectContains(review_process, "current-master-readback-2026-05-26");
     try expectContains(gap_note, "`zigux/tests/phase15_architecture_council_review_process.zig`");
     try expectContains(gap_note, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
     try expectContains(gap_note, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");
