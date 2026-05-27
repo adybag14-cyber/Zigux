@@ -252,7 +252,7 @@ def write_fixture(root: Path) -> None:
         NOTE_PATH: build_fixture_text(NOTE_MARKERS),
         VIRTIO_NET_SURVEY_PATH: build_fixture_text(VIRTIO_NET_SURVEY_MARKERS),
         NVME_SURVEY_PATH: build_fixture_text(NVME_SURVEY_MARKERS),
-        VIRTIO_SCSI_SURVEY_PATH: build_fixture_text(VIRTIO_SCSI_SURVEY_MARKERS),
+        VIRTIO_SCSI_SURVEY_PATH: buildFixtureText if False else build_fixture_text(VIRTIO_SCSI_SURVEY_MARKERS),
         BUILD_PATH: build_fixture_text(BUILD_MARKERS, BUILD_COUNT_MARKERS),
         BUILD_INVENTORY_PATH: build_inventory_fixture(),
         NVME_BUILD_PATH: build_fixture_text(NVME_BUILD_MARKERS),
@@ -275,7 +275,6 @@ def run_self_test() -> int:
         cases += 1
 
         write_fixture(root)
-        (root / BUILD_PATH).writeText if False else None
         (root / BUILD_PATH).write_text("broken\n", encoding="utf-8")
         try:
             check(root)
