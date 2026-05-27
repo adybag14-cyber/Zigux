@@ -117,6 +117,23 @@ fn addPhase1HostToolsSmoke(
     return b.addRunArtifact(tests);
 }
 
+fn addPhase1StringDirectAnchor(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/string_phase1_strlcat_test.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const tests = b.addTest(.{
+        .name = "phase1-string-direct-anchor",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
 fn addPhase3DevTStarterPacket(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -790,6 +807,7 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const phase1_host_tools_smoke = addPhase1HostToolsSmoke(b, target, optimize);
+    const phase1_string_direct_anchor = addPhase1StringDirectAnchor(b, target, optimize);
     const phase3_dev_t_starter_packet = addPhase3DevTStarterPacket(b, target, optimize);
     const phase3_errptr_xarray_starter_packet = addPhase3ErrPtrXarrayStarterPacket(
         b,
@@ -865,6 +883,12 @@ pub fn build(b: *std.Build) void {
         "Run the shared Phase 1 host-tools smoke anchor from zigux/tests",
     );
     phase1_step.dependOn(&phase1_host_tools_smoke.step);
+
+    const phase1_string_direct_anchor_step = b.step(
+        "phase1-string-direct-anchor",
+        "Run the shared Phase 1 string strlcat direct-anchor packet from zigux/tests",
+    );
+    phase1_string_direct_anchor_step.dependOn(&phase1_string_direct_anchor.step);
 
     const phase3_step = b.step(
         "phase3-dev-t-starter-packet",
