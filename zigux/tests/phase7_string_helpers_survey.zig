@@ -95,6 +95,9 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "test \\\"phase 7 string helpers starter keeps termination checks bounded by the caller limit\\\" {");
     try expectContains(helper_tests, "test \\\"phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary\\\" {");
     try expectContains(helper_tests, "test \\\"phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly\\\" {");
+    try expectContains(helper_tests, "test \\\"phase 7 string helpers starter keeps rendered size accounting explicit when no payload bytes can be written\\\" {");
+    try expectContains(helper_tests, "test \\\"phase 7 string helpers starter keeps exact-fit, terminator-only, and zero-capacity unescape destinations reviewable\\\" {");
+    try expectContains(helper_tests, "test \\\"phase 7 string helpers starter keeps zero-capacity and exact-fit escape accounting explicit\\\" {");
     try expectNotContains(helper_tests, "devmKasprintfStrarray");
     try expectNotContains(helper_tests, "devm_kasprintf_strarray");
     try expectNotContains(helper_tests, "parseIntArrayUser");
