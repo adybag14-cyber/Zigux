@@ -7,6 +7,7 @@ const word_count: usize = bitmap_nbits / word_bits;
 
 const manifest_source = @embedFile("phase4_bitmap_diff_manifest.json");
 const bitmap_diff_source = @embedFile("bitmap_diff.zig");
+const gate_evidence_source = @embedFile("../../Documentation/zigux/phase4-gate-evidence.md");
 
 const ThresholdReplay = struct {
     iterations: usize,
@@ -274,6 +275,7 @@ test "phase4 bitmap diff gate keeps manifest-backed source inventory explicit" {
     try expectMarker(manifest_source, "\"threshold_posture\": \"threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks\"");
     try expectMarker(bitmap_diff_source, "phase4 bitmap diff gate keeps exact 81-bit find_nth_bit window boundary explicit");
     try expectManifestContainsGitBlobSha(manifest_source, "live_gate_blob_sha", bitmap_diff_source);
+    try expectManifestContainsGitBlobSha(manifest_source, "gate_evidence_blob_sha", gate_evidence_source);
 }
 
 test "phase4 bitmap diff gate keeps checksum-pinned threshold replay checkpoints explicit" {
