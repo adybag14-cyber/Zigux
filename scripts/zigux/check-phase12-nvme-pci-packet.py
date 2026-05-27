@@ -153,14 +153,18 @@ EXTRA_REQUIRED_PATHS = (
 TEXT_MARKERS = {
     DIRECT_BUILD_PATH: (
         "phase12_nvme_pci.zig",
-        "phase12-nvme-pci-direct-tests",
+        "../../drivers/nvme/host/pci_verify.zig",
+        "phase12-nvme-pci-verify-test",
+        "../../drivers/nvme/host/pci_replay_reserved_io_queues_test.zig",
+        "phase12-nvme-pci-replay-wrapper-test",
+        'run_nvme_pci_tests.setCwd(b.path("../.."));',
         "phase12-nvme-pci-direct-test",
         "Run the direct Phase 12 NVMe PCI replay, helper-local wrapper proof, and driver-local verifier in isolation",
     ),
     SURVEY_BUILD_PATH: (
         "phase12_nvme_pci_survey.zig",
         "phase12-nvme-pci-survey-tests",
-        "run_tests.setCwd(b.path(\"../..\"));",
+        'run_tests.setCwd(b.path("../.."));',
         "phase12-nvme-pci-survey-test",
         "Run the Phase 12 NVMe PCI survey gate tests in isolation",
     ),
@@ -240,7 +244,36 @@ TEXT_MARKERS = {
     ),
 }
 
+DIRECT_BUILD_COUNT_MARKERS = {
+    "b.createModule(.{": 4,
+    ".addImport(": 1,
+    "b.addTest(.{": 3,
+    "b.addRunArtifact(": 3,
+    "direct_test_step.dependOn(": 3,
+}
+
+SURVEY_BUILD_COUNT_MARKERS = {
+    "b.createModule(.{": 1,
+    "b.addTest(.{": 1,
+    "b.addRunArtifact(": 1,
+    "test_step.dependOn(": 1,
+}
+
 FORBIDDEN_MARKERS = {
+    DIRECT_BUILD_PATH: (
+        "phase12_nvme_pci_survey.zig",
+        "phase12-nvme-pci-survey-tests",
+        "phase12-nvme-pci-survey-test",
+        "phase12-smoke",
+        "phase12-test",
+    ),
+    SURVEY_BUILD_PATH: (
+        "phase12_nvme_pci.zig",
+        "phase12-nvme-pci-direct-tests",
+        "phase12-nvme-pci-direct-test",
+        "phase12-nvme-pci-verify-test",
+        "phase12-nvme-pci-replay-wrapper-test",
+    ),
     SURVEY_NOTE_PATH: (
         "now wires the NVMe direct replay into the shared `phase12-smoke` and `phase12` routes",
     ),
@@ -272,6 +305,15 @@ def require_markers(text: str, markers: tuple[str, ...], label: str) -> None:
     for marker in markers:
         if marker not in text:
             raise CheckFailure(f"{label} missing marker: {marker}")
+
+
+def require_counts(text: str, counts: dict[str, int], label: str) -> None:
+    for marker, expected_count in counts.items():
+        actual_count = text.count(marker)
+        if actual_count != expected_count:
+            raise CheckFailure(
+                f"{label} wrong count for {marker!r}: expected {expected_count}, got {actual_count}"
+            )
 
 
 def forbid_markers(text: str, markers: tuple[str, ...], label: str) -> None:
@@ -335,6 +377,17 @@ def check_manifest(root: Path) -> int:
         if relative_path in FORBIDDEN_MARKERS:
             forbid_markers(text, FORBIDDEN_MARKERS[relative_path], relative_path)
 
+    require_counts(
+        read_text(root, DIRECT_BUILD_PATH),
+        DIRECT_BUILD_COUNT_MARKERS,
+        DIRECT_BUILD_PATH,
+    )
+    require_counts(
+        read_text(root, SURVEY_BUILD_PATH),
+        SURVEY_BUILD_COUNT_MARKERS,
+        SURVEY_BUILD_PATH,
+    )
+
     require(surveyed_commit in read_text(root, SURVEY_NOTE_PATH), "nvme_pci survey note lost the manifest surveyed_commit pin")
     return len(gaps)
 
@@ -368,10 +421,20 @@ def write_fixture(root: Path) -> None:
         ],
     }
 
+    direct_build_sections = []
+    for marker, expected_count in DIRECT_BUILD_COUNT_MARKERS.items():
+        direct_build_sections.extend(marker for _ in range(expected_count))
+    direct_build_sections.extend(TEXT_MARKERS[DIRECT_BUILD_PATH])
+
+    survey_build_sections = []
+    for marker, expected_count in SURVEY_BUILD_COUNT_MARKERS.items():
+        survey_build_sections.extend(marker for _ in range(expected_count))
+    survey_build_sections.extend(TEXT_MARKERS[SURVEY_BUILD_PATH])
+
     fixture_files = {
         MANIFEST_PATH: json.dumps(manifest, indent=2) + "\n",
-        DIRECT_BUILD_PATH: "\n".join(TEXT_MARKERS[DIRECT_BUILD_PATH]) + "\n",
-        SURVEY_BUILD_PATH: "\n".join(TEXT_MARKERS[SURVEY_BUILD_PATH]) + "\n",
+        DIRECT_BUILD_PATH: "\n".join(direct_build_sections) + "\n",
+        SURVEY_BUILD_PATH: "\n".join(survey_build_sections) + "\n",
         DIRECT_REPLAY_PATH: "\n".join(TEXT_MARKERS[DIRECT_REPLAY_PATH]) + "\n",
         VERIFIER_PATH: "\n".join(TEXT_MARKERS[VERIFIER_PATH]) + "\n",
         FALLBACK_MAP_PATH: "\n".join(TEXT_MARKERS[FALLBACK_MAP_PATH]) + "\n",
@@ -466,8 +529,26 @@ def run_self_test() -> int:
         cases += 1
 
         write_fixture(root)
+        rewrite(
+            root,
+            DIRECT_BUILD_PATH,
+            "\n".join(list(TEXT_MARKERS[DIRECT_BUILD_PATH]) + list(FORBIDDEN_MARKERS[DIRECT_BUILD_PATH])) + "\n",
+        )
+        expect_failure(root, "forbidden marker")
+        cases += 1
+
+        write_fixture(root)
         rewrite(root, SURVEY_BUILD_PATH, "phase12_nvme_pci_survey.zig\n")
         expect_failure(root, SURVEY_BUILD_PATH)
+        cases += 1
+
+        write_fixture(root)
+        rewrite(
+            root,
+            SURVEY_BUILD_PATH,
+            "\n".join(list(TEXT_MARKERS[SURVEY_BUILD_PATH]) + list(FORBIDDEN_MARKERS[SURVEY_BUILD_PATH])) + "\n",
+        )
+        expect_failure(root, "forbidden marker")
         cases += 1
 
         write_fixture(root)
