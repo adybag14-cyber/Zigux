@@ -16,6 +16,8 @@ Keep the current validator-first route explicit:
 
 - `python3 scripts/zigux/check-phase10-bootstrap-route.py --self-test`
 - `python3 scripts/zigux/check-phase10-bootstrap-route.py`
+- `python3 scripts/zigux/check-phase10-docs-readme-shared-packet.py --self-test`
+- `python3 scripts/zigux/check-phase10-docs-readme-shared-packet.py`
 - `python3 scripts/zigux/check-phase10-core-packet.py`
 - `python3 scripts/zigux/check-phase10-shared-freeze-boundary.py`
 - `python3 scripts/zigux/check-phase10-ring-packet.py`
@@ -34,6 +36,7 @@ Keep the current validator-first route explicit:
 
 Keep these evidence surfaces aligned in the same review:
 
+- `Documentation/zigux/README.md`
 - `Documentation/zigux/phase10-closure-evidence.md`
 - `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
 - `Documentation/zigux/phase10-virtio-core-survey.md`
@@ -74,6 +77,7 @@ Keep these evidence surfaces aligned in the same review:
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `scripts/zigux/check-phase10-bootstrap-route.py`
+- `scripts/zigux/check-phase10-docs-readme-shared-packet.py`
 - `scripts/zigux/check-phase10-core-packet.py`
 - `scripts/zigux/check-phase10-shared-freeze-boundary.py`
 - `scripts/zigux/check-phase10-ring-packet.py`
@@ -93,6 +97,7 @@ Keep the current repo-reality split explicit too:
 - `zigux/tests/phase10_virtio_core.zig` is back as the returned bounded core replay inside the shared closure packet.
 - `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_virtio_ring_survey.zig` are part of the returned ring packet and should move together with the queue-local wrapper survey instead of dropping back into neighboring reminder wording.
 - `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `zigux/tests/phase10_virtio_mmio_survey.zig` are part of the returned helper-local MMIO packet and should stay paired with the bounded config-write, interrupt-ack, and survey evidence rather than widening into lifecycle or IRQ claims.
+- `Documentation/zigux/README.md` plus `scripts/zigux/check-phase10-docs-readme-shared-packet.py` now keep the shared docs-root reminder explicit inside the live Phase 10 packet, so stale missing-route or wrapper wording in the docs root fails closed beside the broader validator-first packet instead of drifting into neighboring-surface prose.
 - Keep the lane-owner split explicit in reviewer wording: `Documentation/zigux/phase10-virtio-ring-survey.md` plus `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md` remain the queue-local `P10-L10` freeze-boundary packet, while `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, and `zigux/tests/phase10_virtio_mmio_manifest.json` remain the bounded `P10-L11` MMIO helper packet; shared review notes should not collapse those owner lanes into one generic freeze-boundary bucket.
 - `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_preflight.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, and `zigux/tests/phase10_virtio_input_survey.zig` are part of the returned bounded input packet and should stay paired with the survey, slice, module-slice, manifest, checker, and shared build route instead of dropping back into stale compile-path or queue-only reminder wording.
 - `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, and `zigux/tests/phase10_virtio_core_survey.zig` now rematerialize through public current-`master` readback and should stay explicit as returned core-side companions beside the bounded core replay.
@@ -100,7 +105,7 @@ Keep the current repo-reality split explicit too:
 
 Reviewer prompts:
 
-- Does the shared Phase 10 packet still read as one validator-first lab bundle, with the bootstrap-route guard, the returned shared core-packet guard, the freeze-boundary guard, the ring, input, and MMIO packet guards, the tests-root reminder guard, the closure-manifest count guard, the shared validation pair, the returned bounded core replay `zigux/tests/phase10_virtio_core.zig`, the returned ring freeze-boundary and dedicated survey gate, the returned MMIO companion, manifest, and survey gate, the closure manifest, and the returned `zigux/Makefile` Phase 10 routes all naming the same bounded surfaces?
+- Does the shared Phase 10 packet still read as one validator-first lab bundle, with the bootstrap-route guard, the docs-root reminder guard, the returned shared core-packet guard, the freeze-boundary guard, the ring, input, and MMIO packet guards, the tests-root reminder guard, the closure-manifest count guard, the shared validation pair, the returned bounded core replay `zigux/tests/phase10_virtio_core.zig`, the returned ring freeze-boundary and dedicated survey gate, the returned MMIO companion, manifest, and survey gate, the closure manifest, and the returned `zigux/Makefile` Phase 10 routes all naming the same bounded surfaces?
 - Does the Phase 10 freeze-boundary posture still keep `Documentation/zigux/freeze-map.md` explicit, leave `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the separate Phase 14 study-only family, keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet, and keep queue setup or reset execution parity, IRQ delivery, DMA behavior, input registration lifecycle closure, and MMIO lifecycle-and-IRQ follow-through parked behind the risky-transport blocker?
 
 ## Phase 11: Simple-driver packet
