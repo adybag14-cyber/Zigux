@@ -15,6 +15,17 @@ fn expectSnapshotStable(
     try std.testing.expectEqual(before.active_instances, after.active_instances);
     try std.testing.expectEqual(before.completed_instances, after.completed_instances);
     try std.testing.expectEqual(before.last_retval, after.last_retval);
+    try std.testing.expectEqual(before.last_entry_timestamp_ns, after.last_entry_timestamp_ns);
+    try std.testing.expectEqual(before.last_return_timestamp_ns, after.last_return_timestamp_ns);
+    try std.testing.expectEqual(before.last_duration_ns, after.last_duration_ns);
+    try std.testing.expectEqual(
+        before.oldest_active_entry_timestamp_ns,
+        after.oldest_active_entry_timestamp_ns,
+    );
+    try std.testing.expectEqual(
+        before.newest_active_entry_timestamp_ns,
+        after.newest_active_entry_timestamp_ns,
+    );
 }
 
 test "runtime kretprobe sample advertises the bounded pilot-module contract" {
