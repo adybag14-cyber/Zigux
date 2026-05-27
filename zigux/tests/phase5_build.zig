@@ -32,7 +32,7 @@ pub fn build(b: *std.Build) void {
     });
     phase5_bytestream_fifo_window_contract_module.addImport(
         "bytestream_fifo_window_contract",
-        phase5_bytestream_fifo_window_contract_module,
+        bytestream_fifo_window_contract_module,
     );
     const phase5_bytestream_fifo_survey_module = b.createModule(.{
         .root_source_file = b.path("phase5_bytestream_fifo_survey.zig"),
