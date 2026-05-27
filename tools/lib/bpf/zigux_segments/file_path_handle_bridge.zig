@@ -329,6 +329,10 @@ fn retainedNameSlice(observed_name: []const u8) FilePathHandleBridgeError!Reused
 
     const terminator_index = std.mem.indexOfScalar(u8, observed_name, 0);
     const retained_len = terminator_index orelse observed_name.len;
+    if (retained_len == 0) {
+        return error.EmptyMapName;
+    }
+
     const disposition: ReusedMapNameDisposition = if (terminator_index) |index|
         if (index + 1 == observed_name.len) .exact_name else .terminated_prefix
     else
@@ -372,7 +376,16 @@ pub fn resolveReusePinnedMapAttempt(
         };
     }
 
-    const retained_name = try summarizeReusedMapName(observed_name);
+    const retained_name = summarizeReusedMapName(observed_name) catch |err| switch (err) {
+        error.EmptyMapName => return .{
+            .disposition = .missing_map_name,
+            .should_attempt_reopen = false,
+            .retained_name = null,
+            .fdinfo_summary = fdinfo_summary,
+            .reuse_observation = reuse_observation,
+        },
+        else => return err,
+    };
 
     if (!fdinfo_summary.has_complete_legacy_fields) {
         return .{
@@ -581,6 +594,40 @@ test "phase8 file-path bridge keeps missing-map-name reuse planning explicit" {
     try std.testing.expect(!reuse_attempt.should_attempt_reopen);
     try std.testing.expectEqual(@as(?[]const u8, null), reuse_attempt.retained_name);
     try std.testing.expect(reuse_attempt.fdinfo_summary.has_complete_legacy_fields);
+
+    const token_plan = planTokenPreparation(reuse_attempt);
+    try std.testing.expectEqual(
+        TokenPreparationDisposition.skip_token_open_attempt,
+        token_plan.disposition,
+    );
+    try std.testing.expect(!token_plan.should_attempt_token_open);
+}
+
+test "phase8 file-path bridge treats a leading NUL map name as missing" {
+    const parsed = try parseFdinfoMapInfo(
+        \\map_type: 14
+        \\key_size: 4
+        \\value_size: 8
+        \\max_entries: 16
+        \\map_flags: 0x80
+    );
+
+    try std.testing.expectError(error.EmptyMapName, summarizeReusedMapName("\x00hidden"));
+
+    var buffer: [32]u8 = undefined;
+    try std.testing.expectError(error.EmptyMapName, resolveReusedMapName(&buffer, "\x00hidden"));
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        resolveReusedMapNameReturn(&buffer, "\x00hidden"),
+    );
+
+    const reuse_attempt = try resolveReusePinnedMapAttempt("\x00hidden", parsed);
+    try std.testing.expectEqual(
+        ReusePinnedMapAttemptDisposition.missing_map_name,
+        reuse_attempt.disposition,
+    );
+    try std.testing.expect(!reuse_attempt.should_attempt_reopen);
+    try std.testing.expectEqual(@as(?[]const u8, null), reuse_attempt.retained_name);
 
     const token_plan = planTokenPreparation(reuse_attempt);
     try std.testing.expectEqual(
