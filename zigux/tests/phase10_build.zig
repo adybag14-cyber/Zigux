@@ -462,7 +462,7 @@ pub fn build(b: *std.Build) void {
 
     const phase10_virtio_mmio_tests = b.addTest(.{ .name = "phase10-virtio-mmio-tests", .root_module = virtio_mmio_module });
     const run_phase10_virtio_mmio_tests = b.addRunArtifact(phase10_virtio_mmio_tests);
-    const phase10_virtio_mmio_lab_tests = b.addTest(.{ .name = "phase10-virtio-mmio-lab-tests", .root_module = virtio_mmio_module });
+    const phase10_virtio_mmio_lab_tests = b.addTest(.{ .name = "phase10-virtio-mmio-lab-tests", .root_module = phase10_virtio_mmio_module });
     const run_phase10_virtio_mmio_lab_tests = b.addRunArtifact(phase10_virtio_mmio_lab_tests);
     const phase10_virtio_mmio_verify_tests = b.addTest(.{ .name = "phase10-virtio-mmio-verify-tests", .root_module = virtio_mmio_verify_module });
     const run_phase10_virtio_mmio_verify_tests = b.addRunArtifact(phase10_virtio_mmio_verify_tests);
