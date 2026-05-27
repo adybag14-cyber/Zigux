@@ -43,6 +43,15 @@ FILE_MARKERS = {
         "`zigux/tests/runtime_kretprobe_module.zig`",
         "`zigux/tests/runtime_first_loadable_parity_behavior.zig`",
         "`scripts/zigux/check-phase9-kretprobe-runtime-packet.py`",
+        "bounded `phase9-runtime-kretprobe-sample-tests`",
+        "bounded `phase9-runtime-kretprobe-loader-tests`",
+        "bounded `phase9-runtime-kretprobe-initialized-snapshot-guard-tests`",
+        "bounded `phase9-runtime-kretprobe-registration-reentry-gate-tests`",
+        "bounded `phase9-runtime-kretprobe-reinit-reexit-guard-tests`",
+        "bounded `phase9-runtime-kretprobe-survey-tests`",
+        "bounded `phase9-runtime-kretprobe-module-tests`",
+        "bounded `phase9-runtime-kretprobe-tests`",
+        "bounded `phase9-first-loadable-runtime-module-parity-behavior-tests`",
     ),
     SAMPLE_PATH: (
         '.name = "runtime_kretprobe"',
@@ -168,14 +177,14 @@ def run_self_test() -> int:
         _write(
             root / OWNERSHIP_MAP_PATH,
             _read(root / OWNERSHIP_MAP_PATH).replace(
-                "`scripts/zigux/check-phase9-kretprobe-runtime-packet.py`",
+                "bounded `phase9-runtime-kretprobe-reinit-reexit-guard-tests`",
                 "",
                 1,
             ),
         )
         _expect_issue(
             root,
-            "missing Documentation/zigux/phase9-runtime-pilot-ownership-map.md marker: `scripts/zigux/check-phase9-kretprobe-runtime-packet.py`",
+            "missing Documentation/zigux/phase9-runtime-pilot-ownership-map.md marker: bounded `phase9-runtime-kretprobe-reinit-reexit-guard-tests`",
         )
 
         _populate_repo(root)
