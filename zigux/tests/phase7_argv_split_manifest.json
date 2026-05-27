@@ -1,7 +1,7 @@
 {
   "lane_key": "P7-L09",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-26T13:36:04Z",
+  "verified_on_utc": "2026-05-27T06:02:01Z",
   "anchor": "lib/argv_split.c",
   "current_master_state": "helper_slice_test_fixture_survey_manifest_anchor",
   "review_surfaces": [
@@ -16,9 +16,13 @@
   ],
   "covered_helpers": [
     "countArgc",
+    "count_argc",
     "argvSplit",
+    "argv_split",
     "argvSplitWithArgc",
+    "argv_split_with_argc",
     "argvFree",
+    "argv_free",
     "ArgvSplitResult.deinit",
     "ArgvSplitResult.cArgv"
   ],
@@ -32,6 +36,7 @@
     "blank, whitespace-only, whitespace-before-first-NUL, and leading-NUL inputs all reuse the same shared empty storage, argv, and cArgv() views across calls so blank-result teardown stays repeatable without hidden allocation churn",
     "non-blank sibling results keep owned storage, argv slices, and exported cArgv views isolated across calls",
     "deinit(), argvFree(), allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet",
+    "exported snake-case alias parity keeps `count_argc`, `argv_split`, `argv_split_with_argc`, and `argv_free` matched to the same count, split, and teardown behavior as the canonical helper exports",
     "fixture vectors keep copied-storage, blank-input, whitespace-before-first-NUL blank-sentinel reuse, first-NUL truncation, and quoted-token packet expectations reviewable without widening into shared-control ownership",
     "the helper-local argv_split packet stays reviewable without treating `Documentation/zigux/phase7-helper-lane-sequencing.md` as same-lane ownership",
     "the no-standalone-argv sample boundary stays explicit only while `samples/zigux/README.md` keeps `*argv*` listed among the no-extra-sample reminders"
