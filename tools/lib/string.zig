@@ -336,9 +336,19 @@ pub fn memchrInv(buf: []const u8, value: u8) ?usize {
 
     if (buf.len >= word_bytes * 2) {
         const repeated = repeatByte(value);
+        const prefix = @intFromPtr(buf.ptr) % word_bytes;
+        if (prefix != 0) {
+            const prefix_len = @min(word_bytes - prefix, buf.len);
+            while (idx < prefix_len) : (idx += 1) {
+                if (buf[idx] != value) {
+                    return idx;
+                }
+            }
+        }
 
         while (idx + word_bytes <= buf.len) : (idx += word_bytes) {
-            const word_ptr: *align(1) const usize = @ptrCast(buf[idx .. idx + word_bytes].ptr);
+            const word_bytes_ptr: [*]align(@alignOf(usize)) const u8 = @alignCast(buf[idx .. idx + word_bytes].ptr);
+            const word_ptr: *const usize = @ptrCast(word_bytes_ptr);
             const diff = word_ptr.* ^ repeated;
             if (diff != 0) {
                 return idx + firstDirtyByteIndex(diff);
@@ -1005,6 +1015,26 @@ test "memchrInv keeps the earliest dirty byte for long zero-value scans across a
         var backing = [_]u8{0} ** 40;
         backing[offset + 13] = 4;
         try std.testing.expectEqual(@as(?usize, 13), memchrInv(backing[offset .. offset + 32], 0));
+    }
+}
+
+test "memchrInv finds a dirty byte in the unaligned prefix before the word fast path" {
+    for (1..@sizeOf(usize)) |offset| {
+        var backing = [_]u8{0} ** 40;
+        backing[offset + 2] = 9;
+        try std.testing.expectEqual(@as(?usize, 2), memchrInv(backing[offset..], 0));
+    }
+}
+
+test "memchrInv keeps aligned word hits stable after consuming an unaligned prefix" {
+    for (1..@sizeOf(usize)) |offset| {
+        var backing = [_]u8{7} ** 48;
+        const aligned_index = @sizeOf(usize) - offset;
+        backing[offset + aligned_index + @sizeOf(usize)] = 1;
+        try std.testing.expectEqual(
+            @as(?usize, aligned_index + @sizeOf(usize)),
+            memchrInv(backing[offset .. offset + 32], 7),
+        );
     }
 }
 
