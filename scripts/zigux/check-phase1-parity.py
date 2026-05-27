@@ -89,6 +89,9 @@ EXPECTED_DIRECT_REVIEW_ANCHOR_EXACT_FIELDS: dict[str, dict[str, object]] = {
             "alloc_words",
             "zalloc_words",
             "zalloc_values",
+            "copy_values",
+            "copy_clear_tail_values",
+            "copy_and_extend_values",
             "scnprintf",
             "truncated_scnprintf_len",
             "truncated_scnprintf",
@@ -268,7 +271,7 @@ EXPECTED_FIXTURE_VALUES = {
     ("string", "replace_char_cstr_bytes"): [97, 95, 0, 45, 122],
     ("slab", "zero_after_kmalloc"): True,
     ("bitmap", "truncated_scnprintf_len"): 7,
-    ("bitmap", "truncated_scnprintf"): "1-3,7,1",
+    ("bitmap", "truncated_scnprintf"): "1-3,66-",
     ("bitmap", "terminator_only_scnprintf_len"): 0,
     ("bitmap", "zero_length_scnprintf_len"): 0,
     ("bitmap", "copy_clear_tail_values"): [18446744073709551615, 31],
@@ -596,7 +599,7 @@ else:
     fixture_payload["string"]["replace_char_cstr_bytes"] = [97, 95, 0, 45, 122]
     fixture_payload["slab"]["zero_after_kmalloc"] = True
     fixture_payload["bitmap"]["truncated_scnprintf_len"] = 7
-    fixture_payload["bitmap"]["truncated_scnprintf"] = "1-3,7,1"
+    fixture_payload["bitmap"]["truncated_scnprintf"] = "1-3,66-"
     fixture_payload["bitmap"]["terminator_only_scnprintf_len"] = 0
     fixture_payload["bitmap"]["zero_length_scnprintf_len"] = 0
     fixture_payload["bitmap"]["copy_clear_tail_values"] = [18446744073709551615, 31]
