@@ -20,6 +20,11 @@ const max_perf_case_len: usize = blk: {
     break :blk max_len;
 };
 
+const BudgetCase = struct {
+    target: u32,
+    expected: bsearch.IndexRange,
+};
+
 fn compareCountedOpaqueInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) c_int {
     const typed_key: *const CountedOpaqueKey = @ptrCast(@alignCast(key));
     const typed_item: *const u32 = @ptrCast(@alignCast(item));
@@ -193,6 +198,39 @@ fn populateDescending(descending: []u32, ascending: []const u32) void {
     }
 }
 
+fn populateAscendingDuplicateSpan(values: []u32) bsearch.IndexRange {
+    std.debug.assert(values.len >= 3);
+    populateAscending(values);
+
+    const middle = values.len / 2;
+    const lower = middle - 1;
+    const upper = lower + 3;
+    const duplicate = values[middle];
+    values[lower] = duplicate;
+    values[middle] = duplicate;
+    values[upper - 1] = duplicate;
+    return .{ .lower = lower, .upper = upper };
+}
+
+fn expectedBounds(values: []const u32, query: u32, descending: bool) bsearch.IndexRange {
+    var lower = values.len;
+    var upper = values.len;
+
+    if (descending) {
+        for (values, 0..) |value, index| {
+            if (lower == values.len and value <= query) lower = index;
+            if (upper == values.len and value < query) upper = index;
+        }
+    } else {
+        for (values, 0..) |value, index| {
+            if (lower == values.len and value >= query) lower = index;
+            if (upper == values.len and value > query) upper = index;
+        }
+    }
+
+    return .{ .lower = lower, .upper = upper };
+}
+
 fn assertRepresentativeBudget(items: []const u32, compare: bsearch.CRawComparator) !void {
     const budget = maxBinarySearchComparisons(items.len);
     if (items.len == 0) {
@@ -227,6 +265,20 @@ fn assertRepresentativeTypedBudget(items: []const u32, compare: bsearch.CCompara
         const comparisons = try expectTypedSearchBudget(items, query, expect_hit, compare);
         try std.testing.expect(comparisons <= budget);
     }
+}
+
+fn assertRawBoundBudgetCase(items: []const u32, case: BudgetCase, compare: bsearch.CRawComparator) !void {
+    const budget = maxBinarySearchComparisons(items.len);
+    try std.testing.expect((try expectRawLowerBoundBudget(items, case.target, case.expected.lower, compare)) <= budget);
+    try std.testing.expect((try expectRawUpperBoundBudget(items, case.target, case.expected.upper, compare)) <= budget);
+    try std.testing.expect((try expectRangeBudget(items, case.target, case.expected, compare)) <= (2 * budget));
+}
+
+fn assertTypedBoundBudgetCase(items: []const u32, case: BudgetCase, compare: bsearch.CComparator(CountedTypedKey, u32)) !void {
+    const budget = maxBinarySearchComparisons(items.len);
+    try std.testing.expect((try expectTypedLowerBoundBudget(items, case.target, case.expected.lower, compare)) <= budget);
+    try std.testing.expect((try expectTypedUpperBoundBudget(items, case.target, case.expected.upper, compare)) <= budget);
+    try std.testing.expect((try expectTypedRangeBudget(items, case.target, case.expected, compare)) <= (2 * budget));
 }
 
 test "phase 6 bsearch raw c abi budgets stay logarithmic for deterministic ascending and descending slices" {
@@ -331,6 +383,80 @@ test "phase 6 bsearch typed c abi bound budgets stay logarithmic for duplicate s
     try std.testing.expect((try expectTypedUpperBoundBudget(descending_duplicates[0..], 21, 6, compareCountedTypedDescendingInt)) <= descending_budget);
     try std.testing.expect((try expectTypedLowerBoundBudget(descending_duplicates[0..], 20, 6, compareCountedTypedDescendingInt)) <= descending_budget);
     try std.testing.expect((try expectTypedUpperBoundBudget(descending_duplicates[0..], 20, 6, compareCountedTypedDescendingInt)) <= descending_budget);
+}
+
+test "phase 6 bsearch raw c abi bound budgets stay logarithmic for perf-sized duplicate spans and insertion sites" {
+    var ascending_storage: [max_perf_case_len]u32 = undefined;
+    var descending_storage: [max_perf_case_len]u32 = undefined;
+
+    for (fixtures.perf_cases) |case| {
+        const ascending = ascending_storage[0..case.len];
+        const ascending_hit = populateAscendingDuplicateSpan(ascending);
+        const duplicate = ascending[ascending_hit.lower];
+        const ascending_miss_before = expectedBounds(ascending, duplicate - 1, false);
+        const ascending_miss_after = expectedBounds(ascending, duplicate + 1, false);
+
+        populateDescending(descending_storage[0..case.len], ascending);
+        const descending = descending_storage[0..case.len];
+        const descending_hit = expectedBounds(descending, duplicate, true);
+        const descending_miss_before = expectedBounds(descending, duplicate - 1, true);
+        const descending_miss_after = expectedBounds(descending, duplicate + 1, true);
+
+        const ascending_cases = [_]BudgetCase{
+            .{ .target = duplicate, .expected = ascending_hit },
+            .{ .target = duplicate - 1, .expected = ascending_miss_before },
+            .{ .target = duplicate + 1, .expected = ascending_miss_after },
+        };
+        const descending_cases = [_]BudgetCase{
+            .{ .target = duplicate, .expected = descending_hit },
+            .{ .target = duplicate - 1, .expected = descending_miss_before },
+            .{ .target = duplicate + 1, .expected = descending_miss_after },
+        };
+
+        for (ascending_cases) |budget_case| {
+            try assertRawBoundBudgetCase(ascending, budget_case, compareCountedOpaqueInt);
+        }
+        for (descending_cases) |budget_case| {
+            try assertRawBoundBudgetCase(descending, budget_case, compareCountedOpaqueDescendingInt);
+        }
+    }
+}
+
+test "phase 6 bsearch typed c abi bound budgets stay logarithmic for perf-sized duplicate spans and insertion sites" {
+    var ascending_storage: [max_perf_case_len]u32 = undefined;
+    var descending_storage: [max_perf_case_len]u32 = undefined;
+
+    for (fixtures.perf_cases) |case| {
+        const ascending = ascending_storage[0..case.len];
+        const ascending_hit = populateAscendingDuplicateSpan(ascending);
+        const duplicate = ascending[ascending_hit.lower];
+        const ascending_miss_before = expectedBounds(ascending, duplicate - 1, false);
+        const ascending_miss_after = expectedBounds(ascending, duplicate + 1, false);
+
+        populateDescending(descending_storage[0..case.len], ascending);
+        const descending = descending_storage[0..case.len];
+        const descending_hit = expectedBounds(descending, duplicate, true);
+        const descending_miss_before = expectedBounds(descending, duplicate - 1, true);
+        const descending_miss_after = expectedBounds(descending, duplicate + 1, true);
+
+        const ascending_cases = [_]BudgetCase{
+            .{ .target = duplicate, .expected = ascending_hit },
+            .{ .target = duplicate - 1, .expected = ascending_miss_before },
+            .{ .target = duplicate + 1, .expected = ascending_miss_after },
+        };
+        const descending_cases = [_]BudgetCase{
+            .{ .target = duplicate, .expected = descending_hit },
+            .{ .target = duplicate - 1, .expected = descending_miss_before },
+            .{ .target = duplicate + 1, .expected = descending_miss_after },
+        };
+
+        for (ascending_cases) |budget_case| {
+            try assertTypedBoundBudgetCase(ascending, budget_case, compareCountedTypedInt);
+        }
+        for (descending_cases) |budget_case| {
+            try assertTypedBoundBudgetCase(descending, budget_case, compareCountedTypedDescendingInt);
+        }
+    }
 }
 
 test "phase 6 bsearch typed c abi runtime-selected comparator pointers keep the budget contract" {
