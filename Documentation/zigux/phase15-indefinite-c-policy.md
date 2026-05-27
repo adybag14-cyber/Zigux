@@ -8,8 +8,8 @@ This note keeps the roadmap-required Phase 15 stay-in-C policy surface explicit 
 - `PHASE15_LANE_KEY=P15-L16`
 - `PHASE15_SLICE=maintenance-mode-policy-truthfulness`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-26`
-- current repo reality: the roadmap-required stay-in-C policy packet remains landed on `current-master-readback-2026-05-26`, and the remaining gap versus the roadmap now lives in broader reminder-route alignment rather than in a missing indefinite-C policy packet
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-27`
+- current repo reality: the roadmap-required stay-in-C policy packet remains landed on `current-master-readback-2026-05-27`, the docs-root Phase 15 reminder and its focused checker are directly materialized, and the remaining gap versus the roadmap now lives in broader dedicated wrapper-route and shared-CI follow-through rather than in a missing indefinite-C policy packet
 - scope: keep the dedicated indefinite-C policy note, its direct policy vocabulary, and its lane-owner alignment companion truthful without widening into neighboring Phase 15 packets
 
 ## Why this slice exists
@@ -24,7 +24,7 @@ This packet keeps that policy surface explicit without claiming a new deep-core 
 
 - roadmap requirement: `policy for code that remains in C indefinitely`
 - current dedicated packet is already materialized through `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
-- broader reminder-route gaps still exist around this packet: `Documentation/zigux/README.md` still stops at Phase 14, `zigux/Makefile` still carries no dedicated `phase15-validate`, `phase15-test`, or `phase15` routes, and `.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route
+- current shared reminder surfaces now directly materialize `Documentation/zigux/README.md`, `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/validate-phase15.py`, and `zigux/tests/phase15_build.zig` beside this packet, while `zigux/Makefile` still carries no dedicated `phase15-validate`, `phase15-test`, or `phase15` routes and `.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route
 - honest conclusion: the roadmap's indefinite-C policy requirement is satisfied by the direct policy packet, while the remaining drift is shared-summary and wrapper-route follow-through rather than evidence that the stay-in-C policy itself is missing
 
 ## When the indefinite-C policy applies
@@ -70,6 +70,10 @@ There is no silent exception path around the indefinite-C policy.
 
 The only allowed exception is a documented Architecture Council reopen request that cites a named reopen trigger and carries the trigger-specific evidence refresh showing why the older blocker is no longer the current product truth.
 
+Any reopen request or exact-head provenance exception note must keep the lane owner, rollback owner, and required approver set explicit in the linked review packet.
+
+If the exception note cannot explain why dated master readback is insufficient for the named decision, or if the owning fields are missing, the request returns to blocked review posture and the C implementation remains the product source of truth.
+
 Until that happens, the blocker remains recorded and the C implementation remains the product source of truth.
 
 ## Reopen conditions
@@ -114,9 +118,10 @@ The current lane state is:
 - landed `phase15-indefinite-c-review-process-companion-sync`
 - landed `phase15-indefinite-c-ownership-template-sync`
 - landed `phase15-indefinite-c-lane-owner-companion-sync`
+- landed `phase15-indefinite-c-exact-head-exception-ownership-sync`
 - landed `phase15-indefinite-c-current-reread-refresh`
 - blocked_on_stay_in_c_evidence `phase15-deep-core-status-change-blocker`
 
 ## Next bounded step
 
-Keep this lane parked until the blocker posture changes, the Architecture Council review packet changes its stay-in-C field inventory, or the parity scorecard changes the blocked-posture accounting tied to this packet.
+Keep this lane parked until the blocker posture changes, the Architecture Council review packet changes its stay-in-C field inventory, the parity scorecard changes the blocked-posture accounting tied to this packet, or a provenance-exception request needs the same owner trio refreshed inside this direct policy packet.
