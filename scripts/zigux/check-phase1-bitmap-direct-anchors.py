@@ -94,8 +94,15 @@ REQUIRED_SOURCE_MARKERS = {
     "bitmap_full_alias_assert": "try std.testing.expectEqual(full(&direct, nbits), bitmap_full(&alias, nbits));",
     "bitmap_weight_alias_assert": "try std.testing.expectEqual(weight(&direct, nbits), bitmap_weight(&alias, nbits));",
     "bitmap_copy_alias_assert": "bitmap_copy(&alias, &lhs, nbits);",
+    "bitmap_copy_clear_tail_alias_assert": "bitmap_copy_clear_tail(&alias_tail, src[0..2], count);",
+    "bitmap_copy_and_extend_alias_assert": "bitmap_copy_and_extend(&alias_extend, src[0..2], count, size);",
     "bitmap_or_alias_assert": "bitmap_or(&alias, &lhs, &rhs, nbits);",
     "bitmap_xor_alias_assert": "bitmap_xor(&alias, &lhs, &rhs, nbits);",
+    "bitmap_weighted_or_alias_assert": "const alias_or_weight = bitmap_weighted_or(&alias_or, &or_lhs, &or_rhs, nbits);",
+    "bitmap_weighted_xor_alias_assert": "const alias_xor_weight = bitmap_weighted_xor(&alias_xor, &xor_lhs, &xor_rhs, nbits);",
+    "bitmap_weight_and_alias_assert": "const alias_and_weight = bitmap_weight_and(&and_lhs, &and_rhs, nbits);",
+    "bitmap_weight_andnot_alias_assert": "const alias_andnot_weight = bitmap_weight_andnot(&and_lhs, &and_rhs, nbits);",
+    "bitmap_complement_alias_assert": "bitmap_complement(&alias, &src, nbits);",
     "bitmap_and_alias_assert": "try std.testing.expectEqual(andBits(&direct, &lhs, &rhs, nbits), bitmap_and(&alias, &lhs, &rhs, nbits));",
     "bitmap_andnot_alias_assert": "try std.testing.expectEqual(andNotBits(&direct, &lhs, &rhs, nbits), bitmap_andnot(&alias, &lhs, &rhs, nbits));",
     "bitmap_equal_alias_assert": "try std.testing.expectEqual(equal(&lhs, &rhs, nbits), bitmap_equal(&lhs, &rhs, nbits));",
@@ -104,6 +111,8 @@ REQUIRED_SOURCE_MARKERS = {
     "bitmap_set_alias_assert": "bitmap_set(&alias_range, 1, 3);",
     "bitmap_clear_alias_assert": "bitmap_clear(&alias_range, 2, 1);",
     "bitmap_scnprintf_alias_assert": "const alias_len = bitmap_scnprintf(&alias_range, nbits, &alias_buffer);",
+    "bitmap_alloc_alias_assert": "var plain_alias: ?[]Word = try bitmap_alloc(allocator, nbits);",
+    "bitmap_zalloc_alias_assert": "var zeroed_alias: ?[]Word = try bitmap_zalloc(allocator, nbits);",
 }
 
 
