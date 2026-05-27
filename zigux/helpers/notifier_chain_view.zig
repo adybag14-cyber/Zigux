@@ -44,6 +44,15 @@ pub const NotifierChainView = struct {
         return self.head;
     }
 
+    pub fn last(self: NotifierChainView) ?*const NotifierBlock {
+        var tail: ?*const NotifierBlock = null;
+        var it = self.iterator();
+        while (it.next()) |node| {
+            tail = node;
+        }
+        return tail;
+    }
+
     pub fn iterator(self: NotifierChainView) Iterator {
         return .{ .current = self.head };
     }
@@ -101,6 +110,7 @@ test "notifier chain view treats a null head as empty" {
     try std.testing.expect(view.isEmpty());
     try std.testing.expectEqual(@as(usize, 0), view.len());
     try std.testing.expectEqual(@as(?*const NotifierBlock, null), view.first());
+    try std.testing.expectEqual(@as(?*const NotifierBlock, null), view.last());
     try std.testing.expect(view.hasNonincreasingPriority());
     try std.testing.expectEqual(@as(?PriorityIncrease, null), view.firstPriorityIncrease());
 }
@@ -116,6 +126,7 @@ test "notifier chain view walks a single-node chain" {
     try std.testing.expect(!view.isEmpty());
     try std.testing.expectEqual(@as(usize, 1), view.len());
     try std.testing.expectEqual(@as(?*const NotifierBlock, &first), view.first());
+    try std.testing.expectEqual(@as(?*const NotifierBlock, &first), view.last());
     try std.testing.expect(view.hasNonincreasingPriority());
     try std.testing.expectEqual(@as(?PriorityIncrease, null), view.firstPriorityIncrease());
 
@@ -143,6 +154,7 @@ test "notifier chain view accepts equal and descending priorities" {
     const view = NotifierChainView.init(&first);
 
     try std.testing.expectEqual(@as(usize, 3), view.len());
+    try std.testing.expectEqual(@as(?*const NotifierBlock, &third), view.last());
     try std.testing.expect(view.hasNonincreasingPriority());
     try std.testing.expectEqual(@as(?PriorityIncrease, null), view.firstPriorityIncrease());
 }
@@ -171,6 +183,7 @@ test "notifier chain view reports the first priority increase witness" {
     const view = NotifierChainView.init(&first);
 
     try std.testing.expect(!view.hasNonincreasingPriority());
+    try std.testing.expectEqual(@as(?*const NotifierBlock, &fourth), view.last());
 
     const increase = view.firstPriorityIncrease().?;
     try std.testing.expectEqual(@as(usize, 2), increase.previous_index);
