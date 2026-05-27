@@ -22,6 +22,7 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"scripts/zigux/check-phase3-abi-support-packet.py"',
     '"scripts/zigux/check-phase3-wrapper-templates.py"',
     '"scripts/zigux/generate-phase3-check-wrappers.py"',
+    '"scripts/zigux/check-phase3-list-hlist.py"',
     '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
     '"python3 scripts/zigux/check-phase3-abi.py"',
     '"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"',
@@ -72,6 +73,8 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"python3 scripts/zigux/check-phase3-bitmap-cpumask.py"',
     '"python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test"',
     '"python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py"',
+    '"python3 scripts/zigux/check-phase3-list-hlist.py --self-test"',
+    '"python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc"',
     '"zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all"',
     '"zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig"',
     '"zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig"',
@@ -98,6 +101,7 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"make -C zigux phase3-low-level-wrappers-test"',
     '"zig build phase3-bitmap-cpumask-starter-packet --build-file zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig"',
     '"zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig"',
+    '"zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig"',
 )
 
 REQUIRED_MANIFEST_FIELDS = {
@@ -184,6 +188,11 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/phase3_list_hlist_starter_packet_build.zig",
     "zigux/tests/fixtures/phase3_list_hlist_manifest.json",
     "scripts/zigux/check-phase3-list-hlist-starter-packet.py",
+    "zigux/tests/phase3_list_hlist_dump.zig",
+    "zigux/tests/phase3_list_hlist_dump_build.zig",
+    "zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c",
+    "zigux/tests/fixtures/phase3_list_hlist/expected.json",
+    "scripts/zigux/check-phase3-list-hlist.py",
 )
 
 REQUIRED_REPLAY_ROUTES = (
@@ -239,6 +248,8 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-bitmap-cpumask.py",
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py",
+    "python3 scripts/zigux/check-phase3-list-hlist.py --self-test",
+    "python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc",
     "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all",
     "zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig",
     "zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
@@ -265,6 +276,7 @@ REQUIRED_REPLAY_ROUTES = (
     "make -C zigux phase3-low-level-wrappers-test",
     "zig build phase3-bitmap-cpumask-starter-packet --build-file zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig",
     "zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
+    "zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
 )
 
 
@@ -278,9 +290,7 @@ def _write(path: Path, text: str) -> None:
 
 
 def _append_duplicate_list_entry_issues(
-    label: str,
-    values: list[object],
-    issues: list[str],
+    label: str, values: list[object], issues: list[str]
 ) -> None:
     seen: dict[str, int] = {}
     for index, value in enumerate(values):
@@ -460,7 +470,7 @@ def run_self_test() -> int:
             issues = validate_repo(repo_root)
             _expect_issue(
                 issues,
-                f"phase3_abi_manifest.json missing replay route: {route}"
+                f"phase3_abi_manifest.json missing replay route: {route}",
             )
             cases += 1
 
