@@ -1,7 +1,7 @@
 {
-  "lane_key": "P13-L01",
+  "lane_key": "P13-Y01",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-25",
+  "surveyed_commit": "master-readback-2026-05-27",
   "anchor": "fs/libfs.c",
   "roadmap_destinations": [
     "fs/libfs.zig",
@@ -89,7 +89,7 @@
     },
     {
       "id": "phase13-build-gate",
-      "status": "missing_on_current_master",
+      "status": "blocked_on_shared_build_surface",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_build.zig",
       "why_now": "The older shared Phase 13 build route is still absent on current master, so the libfs packet remains focused rather than shared-build-backed."
