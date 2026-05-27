@@ -29,7 +29,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 ## Gates
 
 1. run the focused helper replay
-- `zigux/tests/phase6_checksum.zig` keeps the compute, partial, carry, replacement, folded and unfolded pseudo-header helpers, and aligned fast-path packet reviewable
+- `zigux/tests/phase6_checksum.zig` keeps the fixture-owned representative compute corpus, fixture-owned seeded split-composition corpus, partial, carry, replacement, folded and unfolded pseudo-header helpers, and aligned fast-path packet reviewable
 
 2. run the external checksum C-vs-Zig review hook when touching helper semantics
 - `python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test`
@@ -50,7 +50,9 @@ The current checksum helper surface exercised by this slice covers:
 
 The current tests and fixtures check:
 
-- empty, odd-length, even-length, and seeded partial accumulation
+- fixture-backed representative compute vectors through the committed `compute_cases` packet in `zigux/tests/fixtures/phase6_checksum_vectors.zig`
+- fixture-backed seeded partial accumulation and split-composition rows through the committed `seeded_cases` packet in `zigux/tests/fixtures/phase6_checksum_vectors.zig`
+- empty, odd-length, even-length, and seeded partial accumulation behavior beyond the representative fixture corpus
 - fixture-backed `add16` and `sub16` carry rows through the committed `carry16_cases` packet in `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - replacement and header-edit parity for payload words, IPv4 length edits, and IPv4 address edits
 - folded and unfolded pseudo-header accumulation parity for IPv4 and IPv6
