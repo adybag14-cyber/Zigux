@@ -64,7 +64,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "weak-object `V` and `v` classes still follow the current C header contract",
         "`make -C zigux phase8-kallsyms-test`",
         "`make -C zigux phase8-help-kallsyms-test`",
-        "the dedicated replay keeps the chunked-reader `startup_64\\r` witness visible",
+        "the dedicated replay now keeps the chunked-reader `startup_64` witness aligned with that helper-local CRLF normalization path",
     ),
     CHECKLIST: (
         "if the change touches the parked Phase 8 `help` packet",
@@ -152,7 +152,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'test "phase 8 kallsyms direct parser truncates oversized names"',
         'test "phase 8 kallsyms keeps weak object classes on the current header-backed path"',
         'test "phase 8 kallsyms chunked parser also truncates oversized names"',
-        'expectEqualStrings("startup_64\\r", symbols.items[0].name)',
+        'expectEqualStrings("startup_64", symbols.items[0].name)',
         'test "phase 8 kallsyms wrappers preserve the parked callback contract"',
     ),
     KALLSYMS_SOURCE: (
@@ -162,7 +162,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "pub fn forEachParsedPath(",
         'test "weak object symbol classes keep the current C helper classification" {',
         'test "parseLine truncates oversized names without keeping a parser-local error surface" {',
-        'test "reader, path, and callback wrappers preserve raw carriage returns before newline" {',
+        'test "reader, path, and callback wrappers normalize carriage returns before newline" {',
     ),
 }
 
