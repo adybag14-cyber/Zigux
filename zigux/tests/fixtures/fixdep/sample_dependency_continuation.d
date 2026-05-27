@@ -5,4 +5,9 @@ sample_dependency_continuation.o: zigux/tests/fixtures/fixdep/sample_dependency_
  zigux/tests/fixtures/fixdep/shared\#config.h \
  zigux/tests/fixtures/fixdep/escaped\ space-config.h \
  zigux/tests/fixtures/fixdep/shared\:config.h \
+ zigux/tests/fixtures/fixdep/sample_dependency_continuation_dep.so \
+ zigux/tests/fixtures/fixdep/shared\#config.h \
+ include/generated/autoconf.h \
+ zigux/tests/fixtures/fixdep/shared\:config.h \
+ zigux/tests/fixtures/fixdep/escaped\ space-config.h \
  zigux/tests/fixtures/fixdep/sample_dependency_continuation_dep.so
