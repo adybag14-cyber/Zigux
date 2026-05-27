@@ -619,7 +619,7 @@ static int check_boundary_header_relays(void)
         return __LINE__;
     if (!zigux_uapi_boundary_header_is_canonical(uapi_canonical))
         return __LINE__;
-    if (!zigux_uapiBoundary_header_is_compatible(uapi_canonical))
+    if (!zigux_uapi_boundary_header_is_compatible(uapi_canonical))
         return __LINE__;
     if (!zigux_export_status_ok(uapi_canonical_status))
         return __LINE__;
@@ -753,12 +753,15 @@ int main(void)
 }
 """
 
+
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
 
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
+
 
 def _compile_and_run(repo_root: Path, cc: str) -> list[str]:
     issues: list[str] = []
