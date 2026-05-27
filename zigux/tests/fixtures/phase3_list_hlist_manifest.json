@@ -3,12 +3,13 @@
   "lane": "abi-runtime",
   "slug": "phase3-list-hlist",
   "status": "starter_and_dump_packet_present",
-  "scope": "helper-local list_head and hlist starter packet plus fixture-backed dump parity",
-  "next_safe_step": "keep any future same-lane follow-through narrowed to shared validator-entrypoint alignment or another explicitly bounded helper-local replay route after rereading current master",
+  "scope": "helper-local list_head and hlist starter packet plus fixture-backed dump parity and a bounded shared notifier/list shape relay companion",
+  "next_safe_step": "keep any future same-lane follow-through narrowed to shared validator-entrypoint alignment, another explicitly bounded shared relay helper, or another explicitly bounded helper-local replay route after rereading current master",
   "packet_files": [
     "Documentation/zigux/phase3-list-hlist-slice.md",
     "zigux/helpers/list_view.zig",
     "zigux/helpers/hlist_view.zig",
+    "zigux/bindings/notifier_list_shape.zig",
     "zigux/tests/phase3_list_hlist_starter_packet.zig",
     "zigux/tests/phase3_list_hlist_starter_packet_build.zig",
     "scripts/zigux/check-phase3-list-hlist-starter-packet.py",
@@ -21,6 +22,7 @@
     "zigux/Makefile"
   ],
   "replay_routes": [
+    "zig test zigux/bindings/notifier_list_shape.zig",
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py",
     "zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
