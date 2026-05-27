@@ -147,6 +147,10 @@ def duplicate_archive_name(expected_filename: str) -> str:
     return f"{stem} (1).tar.xz"
 
 
+def duplicate_source_fixture_name(expected_filename: str) -> str:
+    return duplicate_archive_name(expected_filename)
+
+
 def archive_name_has_duplicate_suffix(path_name: str, expected_filename: str) -> bool:
     match = ARCHIVE_DUPLICATE_SUFFIX_RE.fullmatch(path_name)
     if match is None:
@@ -491,6 +495,29 @@ def run_self_test() -> int:
         assert input_mode == "source"
         case_count += 1
 
+    with tempfile.TemporaryDirectory(prefix="stage_archive_external_duplicate_source_pass_") as tmp_dir:
+        root, source = write_fixture(Path(tmp_dir))
+        expected_sha = compute_sha256(source)
+        write_policy(root, expected_sha)
+        metadata = load_policy(root)
+        source_with_duplicate_name = source.with_name(
+            duplicate_source_fixture_name(str(metadata["filename"]))
+        )
+        source.rename(source_with_duplicate_name)
+
+        _, status, actual_sha, destination, input_mode = stage_archive(
+            root,
+            source_with_duplicate_name,
+            parts_dir=None,
+            check_only=False,
+        )
+        assert status == "staged"
+        assert actual_sha == expected_sha
+        assert destination.name == metadata["filename"]
+        assert destination.read_bytes() == source_with_duplicate_name.read_bytes()
+        assert input_mode == "source"
+        case_count += 1
+
     with tempfile.TemporaryDirectory(prefix="stage_archive_parts_pass_") as tmp_dir:
         root, source = write_fixture(Path(tmp_dir))
         expected_sha = compute_sha256(source)
@@ -584,7 +611,7 @@ def run_self_test() -> int:
         check_only=False,
     )
     expect_failure(
-        mutator=lambda root, source, expected_sha, parts_dir: (root / TOOLCHAIN_POLICY).write_text(
+        mutator=lambda root, source, expected_sha, parts_dir: (root / TOOLCHAIN_POLICY).writeText(
             '{"phase":"Phase 2","phase":"Phase 3","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"'
             + expected_sha
             + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n',
