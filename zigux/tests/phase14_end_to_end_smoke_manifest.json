@@ -147,6 +147,7 @@
     "shared_manifest_records_skbuff_compile_route_checker": true,
     "phase14_validate_runs_ring_buffer_compile_route_checker": true,
     "shared_manifest_records_ring_buffer_compile_route_checker": true,
+    "phase14_validate_runs_rcu_compile_route_checker": true,
     "shared_manifest_records_rcu_compile_route_checker": true,
     "phase14_validate_runs_rcu_rollback_guardrail": true,
     "review_checklist_has_phase14_smoke_prompt": true,
