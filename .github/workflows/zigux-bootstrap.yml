@@ -304,12 +304,6 @@ jobs:
       - name: Check current Phase 2 required-make-routes packet
         run: python3 scripts/zigux/check-phase2-required-make-routes.py
 
-      - name: Self-test current Phase 2 bootstrap workflow-routes checker
-        run: python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py --self-test
-
-      - name: Check current Phase 2 bootstrap workflow-routes packet
-        run: python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py
-
       - name: Self-test current Phase 2 shared reminder checker
         run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test
 
@@ -378,6 +372,18 @@ jobs:
 
       - name: Check current Phase 1 find-bit review packet
         run: python3 scripts/zigux/check-phase1-find-bit-review-packet.py
+
+      - name: Self-test current Phase 1 bitmap direct-anchor checker
+        run: python3 scripts/zigux/check-phase1-bitmap-direct-anchors.py --self-test
+
+      - name: Check current Phase 1 bitmap direct-anchor packet
+        run: python3 scripts/zigux/check-phase1-bitmap-direct-anchors.py
+
+      - name: Self-test current Phase 1 rbtree review checker
+        run: python3 scripts/zigux/check-phase1-rbtree-review-packet.py --self-test
+
+      - name: Check current Phase 1 rbtree review packet
+        run: python3 scripts/zigux/check-phase1-rbtree-review-packet.py
 
       - name: Self-test current Phase 1 route summary checker
         run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test
