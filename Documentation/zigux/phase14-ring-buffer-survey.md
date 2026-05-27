@@ -4,7 +4,7 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 ## Status
 - `PHASE14_STATUS=study_only`
 - `PHASE14_SLICE=ring-buffer-survey-gap`
-- scope: the surviving Phase 14 ring-buffer survey note-plus-manifest packet, its returned survey and build replay companions through public raw readback, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
+- scope: the surviving Phase 14 ring-buffer survey note-plus-manifest packet, its returned survey replay companion, the shared smoke manifest's focused build-shard vocabulary, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
 - survey provenance refreshed against verified `master` head `99cd3249c4bab05b74227ed7ca3869284e818588`
 - product boundary:
   - `zigux/tests/phase14_ring_buffer_manifest.json`
@@ -24,8 +24,8 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `Documentation/trace/ring-buffer-design.rst` is present at 983 lines and documents the reserve, commit, reader, overwrite, and nested writer model in detail.
 - `Documentation/trace/ring-buffer-map.rst` is present at 106 lines and adds mmap-facing reader, sub-buffer, and tracefs limitation behavior that would be easy to understate in a premature Zig wrapper.
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
-- current contents-path readback used by some shared notes is still partial, but current public raw-file readback now recovers both `zigux/tests/phase14_ring_buffer_survey.zig` and `zigux/tests/phase14_build.zig`, so the highest-value non-overlapping ring-buffer step is a packet-local truthfulness repair that names the returned companions without turning them into a shared-smoke parity claim
-- the direct replay command `zig test zigux/tests/phase14_ring_buffer_survey.zig` and the shared build route `zig build test --build-file zigux/tests/phase14_build.zig --summary all` are therefore current ring-buffer-local replay vocabulary backed by public raw readback, while the missing dedicated `make -C zigux phase14` route and the still-partial contents-path readback keep this lane in maintenance-mode study-only posture instead of restoring a broader shared replay claim
+- current public raw-file readback now recovers `zigux/tests/phase14_ring_buffer_survey.zig`, while `zigux/tests/phase14_build.zig` still does not return through this lane's exact contents path, so the highest-value non-overlapping ring-buffer step is a packet-local truthfulness repair that keeps the returned survey companion explicit without turning the missing build shard into a shared-smoke parity claim
+- the direct replay command `zig test zigux/tests/phase14_ring_buffer_survey.zig` is therefore current ring-buffer-local replay vocabulary backed by public raw readback, while the shared smoke manifest still records that focused build-shard command as historical vocabulary only through `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig`, and the missing dedicated `make -C zigux phase14` route plus the still-partial contents-path readback keep this lane in maintenance-mode study-only posture instead of restoring a broader shared replay claim
 - the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, tracefs mapping limitations, and reader-page consume boundaries, and the current packet now also lands a read-page extraction audit around `ring_buffer_alloc_read_page()`, `ring_buffer_read_page()`, partial-copy versus page-swap behavior, the `resize_disabled` handoff, and a tracefs reader-serialization audit around `trace_access_lock()`, `tracing_buffers_read()`, `tracing_buffers_splice_read()`, and the read-versus-splice consumed-page lifetime split so later runs do not reinvent `kernel/trace/ring_buffer.zig` as a wrapper-first seam.
 
 ## Decision checklist
@@ -123,15 +123,16 @@ The tracefs helpers share the same serialization gate, but one path keeps a file
 
 ## Maintenance-Mode Handoff
 - current lane posture: `maintenance_mode`
-- current ring-buffer packet replay vocabulary, backed by public raw-file readback for the returned survey and build companions:
+- current ring-buffer packet replay vocabulary, backed by public raw-file readback for the returned survey companion:
   - `zig test zigux/tests/phase14_ring_buffer_survey.zig`
-  - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
-- keep those two routes as ring-buffer-local replay vocabulary only; current contents-path readback is still partial even though public raw-file readback now returns the dedicated survey companion and shared build companion, and that narrower recovery does not change the stay-in-C blocker on `kernel/trace/ring_buffer.zig`
+- shared smoke manifest vocabulary that still is not backed by a returned build file in this lane:
+  - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig`
+- keep the first route as returned ring-buffer-local replay vocabulary only, and keep the second route as shared-smoke manifest vocabulary only; current contents-path readback is still partial, the build shard itself still does not return through this lane's exact readback path, and that narrower recovery does not change the stay-in-C blocker on `kernel/trace/ring_buffer.zig`
 - reopen only when one of the packet-local conditions below becomes true:
   - the dedicated survey note or manifest drift on surveyed commit, blocked gap, last closed follow-up, replay-route wording, or returned executable-companion truthfulness
   - the directly coupled shared smoke or core traceability packet reintroduces a ring-buffer-specific owner-label or ready-next mismatch
   - genuinely narrower stay-in-C evidence appears around reserve or commit publication, remote-reader metadata, reader-page consume, read-page extraction, or tracefs reader serialization that could justify a new dedicated survey audit without implying `kernel/trace/ring_buffer.zig`
-- next future target: stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is ring-buffer-local, reread `Documentation/zigux/phase14-ring-buffer-survey.md`, `zigux/tests/phase14_ring_buffer_manifest.json`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, and `Documentation/zigux/phase14-core-boundary-traceability.md`; while the contents-path readback remains partial, keep the returned survey companion and shared build shard framed as public-raw-backed ring-buffer-local evidence instead of shared parity proof
+- next future target: stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is ring-buffer-local, reread `Documentation/zigux/phase14-ring-buffer-survey.md`, `zigux/tests/phase14_ring_buffer_manifest.json`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, and `Documentation/zigux/phase14-core-boundary-traceability.md`; while the contents-path readback remains partial, keep the returned survey companion explicit and treat the shared smoke manifest's focused build-shard command as historical vocabulary only until `zigux/tests/phase14_build.zig` itself returns through direct readback
 
 ## Attached Toolchain and Environment Guidance
 - current guidance status: `packet_local_only`
@@ -139,8 +140,8 @@ The tracefs helpers share the same serialization gate, but one path keeps a file
 - if a run only has GitHub readback plus the attached toolchain, record the toolchain as environment context and do not claim a fresh local replay for this packet
 - checkout-capable attached-toolchain command examples, kept as packet-local vocabulary rather than shared-smoke proof:
   - `/absolute/path/to/attached-zig/zig test zigux/tests/phase14_ring_buffer_survey.zig`
-  - `/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`
-- because the current `P14-L08` lane still depends on public-raw-backed recovery for the returned survey companion and the shared build shard, these examples stay subordinate to the same study-only, no-parity, no-wrapper-restoration posture recorded above
+  - `/absolute/path/to/attached-zig/zig build phase14-smoke --build-file zigux/tests/phase14_build.zig`
+- because the current `P14-L08` lane still depends on public-raw-backed recovery for the returned survey companion while the build shard remains shared-smoke manifest vocabulary only, these examples stay subordinate to the same study-only, no-parity, no-wrapper-restoration posture recorded above
 
 ## Recorded gaps
 The current lane state is:
@@ -173,11 +174,11 @@ This survey slice does not claim:
 Keep the returned replay vocabulary explicit without overstating the still-partial contents-path readback. Only treat the commands below as completed replay evidence when a checkout-capable tree and the attached Zig toolchain are available together in the same run; otherwise keep them as packet-local guidance only:
 1. dedicated ring-buffer survey replay, backed by current public raw-file readback
    - `zig test zigux/tests/phase14_ring_buffer_survey.zig`
-2. shared Phase 14 build bundle replay, backed by current public raw-file readback
-   - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
+2. focused shared-smoke build-shard vocabulary only, not returned ring-buffer-local evidence
+   - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig`
 
 ## Next bounded step
-Keep this ring-buffer lane parked unless the shared Phase 14 smoke packet, this survey note, the manifest, or the returned survey companions drift.
+Keep this ring-buffer lane parked unless the shared Phase 14 smoke packet, this survey note, the manifest, or the returned survey companion drifts.
 If a future same-packet reread changes `Documentation/zigux/phase14-end-to-end-smoke-survey.md` or `Documentation/zigux/phase14-core-boundary-traceability.md`, reconcile this note and `zigux/tests/phase14_ring_buffer_manifest.json` with those companions before restoring any stronger replay-backed wording.
-Because current public raw-file readback now restores `zigux/tests/phase14_ring_buffer_survey.zig` and `zigux/tests/phase14_build.zig` while the shared contents-path evidence remains narrower, keep this note and manifest aligned with that returned packet-local recovery before any cross-anchor lane widens the claim.
+Because current public raw-file readback now restores `zigux/tests/phase14_ring_buffer_survey.zig` while `zigux/tests/phase14_build.zig` still remains outside this lane's returned file set, keep this note and manifest aligned with that narrower packet-local recovery before any cross-anchor lane widens the claim.
 If it drifts without a real same-packet executable recovery, reopen only the smallest truthfulness repair inside `Documentation/zigux/phase14-ring-buffer-survey.md`, `zigux/tests/phase14_ring_buffer_manifest.json`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, or `Documentation/zigux/phase14-core-boundary-traceability.md` before anyone proposes `kernel/trace/ring_buffer.zig` again.
