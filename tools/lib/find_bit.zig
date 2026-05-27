@@ -1043,3 +1043,39 @@ test "Linux-style aliases mirror the primary find helpers, including andnot" {
     try std.testing.expectEqual(@as(usize, 0), find_next_clump8(&clump, &[_]Word{@as(Word, 1)}, 8, 0));
     try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
 }
+
+test "Linux-style next-or aliases clamp tail words and past-end starts" {
+    const nbits = bits_per_long + 5;
+    const lhs = [_]Word{ 0, (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
+    const rhs = [_]Word{ 0, @as(Word, 1) << 4 };
+
+    try std.testing.expectEqual(@as(usize, bits_per_long + 1), find_next_or_bit(&lhs, &rhs, nbits, bits_per_long + 1));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 4), find_next_or_bit(&lhs, &rhs, nbits, bits_per_long + 2));
+    try std.testing.expectEqual(@as(usize, nbits), find_next_or_bit(&lhs, &rhs, nbits, bits_per_long + 5));
+    try std.testing.expectEqual(@as(usize, 7), find_next_or_bit(&[_]Word{}, &[_]Word{}, 7, 7));
+
+    try std.testing.expectEqual(@as(usize, bits_per_long + 1), _find_next_or_bit(&lhs, &rhs, nbits, bits_per_long + 1));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 4), _find_next_or_bit(&lhs, &rhs, nbits, bits_per_long + 2));
+    try std.testing.expectEqual(@as(usize, nbits), _find_next_or_bit(&lhs, &rhs, nbits, bits_per_long + 5));
+    try std.testing.expectEqual(@as(usize, 7), _find_next_or_bit(&[_]Word{}, &[_]Word{}, 7, 11));
+}
+
+test "Linux-style clump aliases mask tail bytes and preserve exhausted caller bytes" {
+    const nbits = bits_per_long + 5;
+    const bitmap = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 6) };
+
+    var clump: u8 = 0;
+    try std.testing.expectEqual(@as(usize, bits_per_long), find_first_clump8(&clump, &bitmap, nbits));
+    try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);
+
+    clump = 0;
+    try std.testing.expectEqual(@as(usize, bits_per_long), _find_first_clump8(&clump, &bitmap, nbits));
+    try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);
+
+    clump = 0x5a;
+    try std.testing.expectEqual(@as(usize, nbits), find_next_clump8(&clump, &bitmap, nbits, bits_per_long + 5));
+    try std.testing.expectEqual(@as(u8, 0x5a), clump);
+
+    try std.testing.expectEqual(@as(usize, nbits), _find_next_clump8(&clump, &bitmap, nbits, bits_per_long + 9));
+    try std.testing.expectEqual(@as(u8, 0x5a), clump);
+}
