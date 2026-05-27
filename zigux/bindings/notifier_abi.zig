@@ -57,6 +57,49 @@ pub const HListPrevLinkBreak = extern struct {
     actual_pprev: usize,
 };
 
+pub const notifier_block_size = @sizeOf(NotifierBlock);
+pub const notifier_block_align = @alignOf(NotifierBlock);
+pub const notifier_block_notifier_call_offset = @offsetOf(NotifierBlock, "notifier_call");
+pub const notifier_block_next_offset = @offsetOf(NotifierBlock, "next");
+pub const notifier_block_priority_offset = @offsetOf(NotifierBlock, "priority");
+
+pub const notifier_chain_priority_increase_size = @sizeOf(NotifierChainPriorityIncrease);
+pub const notifier_chain_priority_increase_align = @alignOf(NotifierChainPriorityIncrease);
+pub const notifier_chain_priority_increase_previous_index_offset =
+    @offsetOf(NotifierChainPriorityIncrease, "previous_index");
+pub const notifier_chain_priority_increase_current_index_offset =
+    @offsetOf(NotifierChainPriorityIncrease, "current_index");
+pub const notifier_chain_priority_increase_previous_priority_offset =
+    @offsetOf(NotifierChainPriorityIncrease, "previous_priority");
+pub const notifier_chain_priority_increase_current_priority_offset =
+    @offsetOf(NotifierChainPriorityIncrease, "current_priority");
+
+pub const list_head_size = @sizeOf(ListHead);
+pub const list_head_align = @alignOf(ListHead);
+pub const list_head_next_offset = @offsetOf(ListHead, "next");
+pub const list_head_prev_offset = @offsetOf(ListHead, "prev");
+
+pub const hlist_head_size = @sizeOf(HListHead);
+pub const hlist_head_align = @alignOf(HListHead);
+pub const hlist_head_first_offset = @offsetOf(HListHead, "first");
+
+pub const hlist_node_size = @sizeOf(HListNode);
+pub const hlist_node_align = @alignOf(HListNode);
+pub const hlist_node_next_offset = @offsetOf(HListNode, "next");
+pub const hlist_node_pprev_offset = @offsetOf(HListNode, "pprev");
+
+pub const list_back_link_break_size = @sizeOf(ListBackLinkBreak);
+pub const list_back_link_break_align = @alignOf(ListBackLinkBreak);
+pub const list_back_link_break_current_index_offset = @offsetOf(ListBackLinkBreak, "current_index");
+pub const list_back_link_break_expected_prev_offset = @offsetOf(ListBackLinkBreak, "expected_prev");
+pub const list_back_link_break_actual_prev_offset = @offsetOf(ListBackLinkBreak, "actual_prev");
+
+pub const hlist_prev_link_break_size = @sizeOf(HListPrevLinkBreak);
+pub const hlist_prev_link_break_align = @alignOf(HListPrevLinkBreak);
+pub const hlist_prev_link_break_current_index_offset = @offsetOf(HListPrevLinkBreak, "current_index");
+pub const hlist_prev_link_break_expected_pprev_offset = @offsetOf(HListPrevLinkBreak, "expected_pprev");
+pub const hlist_prev_link_break_actual_pprev_offset = @offsetOf(HListPrevLinkBreak, "actual_pprev");
+
 pub fn resultFromInt(result: u32) ?NotifierResult {
     return switch (result) {
         @intFromEnum(NotifierResult.done) => .done,
@@ -226,60 +269,81 @@ test "notifier result helper surface stays explicit" {
     try std.testing.expect(resultStopsChain(.stop));
 }
 
-test "notifier block layout stays aligned with the exported ABI header" {
+test "notifier block layout constants stay aligned with the exported ABI header" {
     const expected_size = std.mem.alignForward(
         usize,
         (@sizeOf(usize) * 2) + @sizeOf(i32),
         @alignOf(NotifierBlock),
     );
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(NotifierBlock));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierBlock, "priority"));
-    try std.testing.expectEqual(expected_size, @sizeOf(NotifierBlock));
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), notifier_block_align);
+    try std.testing.expectEqual(@as(usize, 0), notifier_block_notifier_call_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), notifier_block_next_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), notifier_block_priority_offset);
+    try std.testing.expectEqual(expected_size, notifier_block_size);
+    try std.testing.expectEqual(notifier_block_size, @sizeOf(NotifierBlock));
+    try std.testing.expectEqual(notifier_block_align, @alignOf(NotifierBlock));
+}
 
-    const increase_expected_size = std.mem.alignForward(
+test "notifier priority increase layout constants stay aligned with the exported ABI header" {
+    const expected_size = std.mem.alignForward(
         usize,
         (@sizeOf(usize) * 2) + (@sizeOf(i32) * 2),
         @alignOf(NotifierChainPriorityIncrease),
     );
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(NotifierChainPriorityIncrease));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierChainPriorityIncrease, "previous_index"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierChainPriorityIncrease, "current_index"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierChainPriorityIncrease, "previous_priority"));
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), notifier_chain_priority_increase_align);
+    try std.testing.expectEqual(@as(usize, 0), notifier_chain_priority_increase_previous_index_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), notifier_chain_priority_increase_current_index_offset);
+    try std.testing.expectEqual(
+        @as(usize, @sizeOf(usize) * 2),
+        notifier_chain_priority_increase_previous_priority_offset,
+    );
     try std.testing.expectEqual(
         @as(usize, (@sizeOf(usize) * 2) + @sizeOf(i32)),
-        @offsetOf(NotifierChainPriorityIncrease, "current_priority"),
+        notifier_chain_priority_increase_current_priority_offset,
     );
-    try std.testing.expectEqual(increase_expected_size, @sizeOf(NotifierChainPriorityIncrease));
+    try std.testing.expectEqual(expected_size, notifier_chain_priority_increase_size);
+    try std.testing.expectEqual(notifier_chain_priority_increase_size, @sizeOf(NotifierChainPriorityIncrease));
+    try std.testing.expectEqual(notifier_chain_priority_increase_align, @alignOf(NotifierChainPriorityIncrease));
 }
 
-test "list and hlist layouts stay aligned with the exported ABI header" {
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ListHead));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ListHead, "next"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(ListHead, "prev"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @sizeOf(ListHead));
+test "list and hlist layout constants stay aligned with the exported ABI header" {
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), list_head_align);
+    try std.testing.expectEqual(@as(usize, 0), list_head_next_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), list_head_prev_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), list_head_size);
+    try std.testing.expectEqual(list_head_size, @sizeOf(ListHead));
+    try std.testing.expectEqual(list_head_align, @alignOf(ListHead));
 
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(HListHead));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(HListHead, "first"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @sizeOf(HListHead));
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), hlist_head_align);
+    try std.testing.expectEqual(@as(usize, 0), hlist_head_first_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), hlist_head_size);
+    try std.testing.expectEqual(hlist_head_size, @sizeOf(HListHead));
+    try std.testing.expectEqual(hlist_head_align, @alignOf(HListHead));
 
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(HListNode));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(HListNode, "next"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(HListNode, "pprev"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @sizeOf(HListNode));
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), hlist_node_align);
+    try std.testing.expectEqual(@as(usize, 0), hlist_node_next_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), hlist_node_pprev_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), hlist_node_size);
+    try std.testing.expectEqual(hlist_node_size, @sizeOf(HListNode));
+    try std.testing.expectEqual(hlist_node_align, @alignOf(HListNode));
+}
 
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ListBackLinkBreak));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ListBackLinkBreak, "current_index"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(ListBackLinkBreak, "expected_prev"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(ListBackLinkBreak, "actual_prev"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), @sizeOf(ListBackLinkBreak));
+test "list and hlist break layout constants stay aligned with the exported ABI header" {
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), list_back_link_break_align);
+    try std.testing.expectEqual(@as(usize, 0), list_back_link_break_current_index_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), list_back_link_break_expected_prev_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), list_back_link_break_actual_prev_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), list_back_link_break_size);
+    try std.testing.expectEqual(list_back_link_break_size, @sizeOf(ListBackLinkBreak));
+    try std.testing.expectEqual(list_back_link_break_align, @alignOf(ListBackLinkBreak));
 
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(HListPrevLinkBreak));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(HListPrevLinkBreak, "current_index"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(HListPrevLinkBreak, "expected_pprev"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(HListPrevLinkBreak, "actual_pprev"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), @sizeOf(HListPrevLinkBreak));
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), hlist_prev_link_break_align);
+    try std.testing.expectEqual(@as(usize, 0), hlist_prev_link_break_current_index_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), hlist_prev_link_break_expected_pprev_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), hlist_prev_link_break_actual_pprev_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), hlist_prev_link_break_size);
+    try std.testing.expectEqual(hlist_prev_link_break_size, @sizeOf(HListPrevLinkBreak));
+    try std.testing.expectEqual(hlist_prev_link_break_align, @alignOf(HListPrevLinkBreak));
 }
 
 test "notifier priority helper accepts empty chain" {
