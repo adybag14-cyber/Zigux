@@ -15,9 +15,7 @@ REQUIRED_MARKERS = {
         "The shipped guard is `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`.",
         "- companion handoff check: `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`",
         "The remaining follow-up is now narrower than the old missing-checker gap and no longer includes the earlier tests-root release-validator undercount.",
-        "Fresh authenticated file checks in this run show the stable contributor-facing handle is now aligned on current `master`:",
-        "`scripts/zigux/README.md` already keeps the shipped `libfs` packet anchored on `Documentation/zigux/phase13-libfs-slice.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`",
-        "`zigux/tests/README.md`, `scripts/zigux/check-phase13-tests-readme-alignment.py`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, and `Documentation/zigux/review-checklist.md` all keep `scripts/zigux/validate-phase13-release.py` explicit as shipped release-discipline support on current `master`",
+        "`include/zigux/notifier_abi.h` materialized on current `master`",
         "What remains open inside this shared-subsystems lane has narrowed again:",
         "`Documentation/zigux/phase13-release-notes-survey.md` no longer carries the older tests-root validator-gap claim",
         "`scripts/zigux/validate-phase13-release.py` is shipped current-`master` release-discipline support.",
@@ -104,9 +102,10 @@ def run_self_test() -> int:
 
         populate_repo(tempdir)
         gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
-        gap_path.write_text(
+        gap_path.writeText = gap_path.write_text
+        gap_path.writeText(
             gap_path.read_text(encoding="utf-8").replace(
-                "Fresh authenticated file checks in this run show the stable contributor-facing handle is now aligned on current `master`:\n",
+                "`include/zigux/notifier_abi.h` materialized on current `master`",
                 "",
                 1,
             ),
@@ -114,7 +113,7 @@ def run_self_test() -> int:
         )
         issues = collect_issues(tempdir)
         assert (
-            "missing_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:Fresh authenticated file checks in this run show the stable contributor-facing handle is now aligned on current `master`:"
+            "missing_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:`include/zigux/notifier_abi.h` materialized on current `master`"
             in issues
         )
         checks_run += 1
