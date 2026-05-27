@@ -36,12 +36,18 @@ pub fn constPointerAt(
     byte_offset: usize,
 ) PolicyError!*const volatile T {
     try validateTypedAccess(T, range, byte_offset);
-    return @ptrFromInt(try std.math.add(usize, range.base_addr, byte_offset));
+    const address = std.math.add(usize, range.base_addr, byte_offset) catch {
+        return error.InvalidInteropPolicy;
+    };
+    return @ptrFromInt(address);
 }
 
 pub fn pointerAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!*volatile T {
     try validateTypedAccess(T, range, byte_offset);
-    return @ptrFromInt(try std.math.add(usize, range.base_addr, byte_offset));
+    const address = std.math.add(usize, range.base_addr, byte_offset) catch {
+        return error.InvalidInteropPolicy;
+    };
+    return @ptrFromInt(address);
 }
 
 pub fn readAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!T {
