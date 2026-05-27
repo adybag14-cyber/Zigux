@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import tempfile
 from pathlib import Path
@@ -42,14 +43,30 @@ RETURN_TO_BLOCKED_MARKERS = [
     "- missing parity scorecard evidence, benchmark notes, or replay command in the active review packet",
     "- freeze-map, survey note, or dedicated-check drift that drops the blocked bridge disposition, the companion-readback warning, or the rollback owner",
 ]
-MANIFEST_REQUIRED_MARKERS = [
-    '"lane_key": "P14-L16"',
-    '"anchor": "kernel/rcu/tree.c"',
-    '"rollback_owner": "Repo Tooling Pod"',
-    '"phase14-rcu-tree-rollback-threshold-guardrail"',
-    '"Architecture Council reopen record linked from the reviewable packet"',
-    '"freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner"',
-]
+MANIFEST_REQUIRED_FIELDS = {
+    ("lane_key",): "P14-L16",
+    ("anchor",): "kernel/rcu/tree.c",
+    ("rollback_threshold", "status_bucket"): "freeze_in_c",
+    ("rollback_threshold", "review_blocker_status"): "blocked_on_stay_in_c_evidence",
+    ("rollback_threshold", "owner"): "Core-Adjacent Pod",
+    ("rollback_threshold", "rollback_owner"): "Repo Tooling Pod",
+}
+MANIFEST_REQUIRED_LISTS = {
+    ("rollback_threshold", "required_evidence"): [
+        "Architecture Council reopen record linked from the reviewable packet",
+        "parity scorecard evidence and benchmark notes attached to the same review packet",
+        "validation replay command and evidence archive path recorded beside the latest blocker disposition",
+    ],
+    ("rollback_threshold", "rollback_triggers"): [
+        "any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the Architecture Council reopen record",
+        "missing parity scorecard evidence, benchmark notes, or replay command in the active review packet",
+        "freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner",
+    ],
+}
+MANIFEST_REQUIRED_GAP_IDS = {
+    "phase14-rcu-tree-rollback-threshold-guardrail",
+    "phase14-rcu-tree-bridge-blocker",
+}
 
 
 def infer_repo_root() -> Path:
@@ -90,6 +107,53 @@ FORBIDDEN_MARKERS = [
 ]
 
 
+def lookup_path(payload: object, path: tuple[str, ...]) -> object:
+    current = payload
+    for key in path:
+        if not isinstance(current, dict) or key not in current:
+            raise KeyError(".".join(path))
+        current = current[key]
+    return current
+
+
+def require_manifest_fields(failures: list[str], manifest: object) -> None:
+    for path, expected in MANIFEST_REQUIRED_FIELDS.items():
+        try:
+            actual = lookup_path(manifest, path)
+        except KeyError:
+            failures.append(f"missing_manifest_key:{'.'.join(path)}")
+            continue
+        if actual != expected:
+            failures.append(
+                f"manifest_field_mismatch:{'.'.join(path)}:expected={expected!r}:actual={actual!r}"
+            )
+
+    for path, expected in MANIFEST_REQUIRED_LISTS.items():
+        try:
+            actual = lookup_path(manifest, path)
+        except KeyError:
+            failures.append(f"missing_manifest_key:{'.'.join(path)}")
+            continue
+        if actual != expected:
+            failures.append(
+                f"manifest_list_mismatch:{'.'.join(path)}:expected={expected!r}:actual={actual!r}"
+            )
+
+    if not isinstance(manifest, dict):
+        failures.append("manifest_not_object")
+        return
+
+    gaps = manifest.get("gaps")
+    if not isinstance(gaps, list):
+        failures.append("missing_manifest_key:gaps")
+        return
+
+    gap_ids = {entry.get("id") for entry in gaps if isinstance(entry, dict)}
+    for expected_gap_id in sorted(MANIFEST_REQUIRED_GAP_IDS):
+        if expected_gap_id not in gap_ids:
+            failures.append(f"missing_manifest_gap_id:{expected_gap_id}")
+
+
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
     note = root / NOTE_PATH
@@ -109,10 +173,13 @@ def validate(root: Path) -> list[str]:
         if marker in note_text:
             failures.append(f"forbidden_marker:{marker}")
 
-    manifest_text = manifest.read_text(encoding="utf-8")
-    for marker in MANIFEST_REQUIRED_MARKERS:
-        if marker not in manifest_text:
-            failures.append(f"missing_manifest_marker:{marker}")
+    try:
+        manifest_payload = json.loads(manifest.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        failures.append(f"invalid_json:{MANIFEST_PATH}:{exc.msg}")
+        return failures
+
+    require_manifest_fields(failures, manifest_payload)
     return failures
 
 
@@ -160,17 +227,27 @@ FIXTURE_MANIFEST = """{
   "lane_key": "P14-L16",
   "anchor": "kernel/rcu/tree.c",
   "rollback_threshold": {
+    "status_bucket": "freeze_in_c",
+    "review_blocker_status": "blocked_on_stay_in_c_evidence",
+    "owner": "Core-Adjacent Pod",
     "rollback_owner": "Repo Tooling Pod",
     "required_evidence": [
-      "Architecture Council reopen record linked from the reviewable packet"
+      "Architecture Council reopen record linked from the reviewable packet",
+      "parity scorecard evidence and benchmark notes attached to the same review packet",
+      "validation replay command and evidence archive path recorded beside the latest blocker disposition"
     ],
     "rollback_triggers": [
+      "any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the Architecture Council reopen record",
+      "missing parity scorecard evidence, benchmark notes, or replay command in the active review packet",
       "freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner"
     ]
   },
   "gaps": [
     {
       "id": "phase14-rcu-tree-rollback-threshold-guardrail"
+    },
+    {
+      "id": "phase14-rcu-tree-bridge-blocker"
     }
   ]
 }
@@ -237,26 +314,71 @@ def run_self_test() -> int:
                 f"missing_marker:{RETURN_TO_BLOCKED_MARKERS[0]}",
             ),
             (
-                "remove-manifest-lane-key",
+                "change-manifest-lane-key",
                 MANIFEST_PATH,
                 '"lane_key": "P14-L16"',
-                'missing_manifest_marker:"lane_key": "P14-L16"',
+                "manifest_field_mismatch:lane_key:expected='P14-L16':actual='P14-L12'",
             ),
             (
-                "remove-manifest-guardrail-id",
+                "change-manifest-status-bucket",
                 MANIFEST_PATH,
-                '"phase14-rcu-tree-rollback-threshold-guardrail"',
-                'missing_manifest_marker:"phase14-rcu-tree-rollback-threshold-guardrail"',
+                '"status_bucket": "freeze_in_c"',
+                "manifest_field_mismatch:rollback_threshold.status_bucket:expected='freeze_in_c':actual='study_only'",
+            ),
+            (
+                "change-manifest-owner",
+                MANIFEST_PATH,
+                '"owner": "Core-Adjacent Pod"',
+                "manifest_field_mismatch:rollback_threshold.owner:expected='Core-Adjacent Pod':actual='Repo Tooling Pod'",
+            ),
+            (
+                "drop-manifest-required-evidence",
+                MANIFEST_PATH,
+                '"required_evidence": [',
+                "manifest_list_mismatch:rollback_threshold.required_evidence:expected=['Architecture Council reopen record linked from the reviewable packet', 'parity scorecard evidence and benchmark notes attached to the same review packet', 'validation replay command and evidence archive path recorded beside the latest blocker disposition']:actual=['parity scorecard evidence and benchmark notes attached to the same review packet', 'validation replay command and evidence archive path recorded beside the latest blocker disposition']",
+            ),
+            (
+                "drop-manifest-rollback-trigger",
+                MANIFEST_PATH,
+                '"rollback_triggers": [',
+                "manifest_list_mismatch:rollback_threshold.rollback_triggers:expected=['any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the Architecture Council reopen record', 'missing parity scorecard evidence, benchmark notes, or replay command in the active review packet', 'freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner']:actual=['missing parity scorecard evidence, benchmark notes, or replay command in the active review packet', 'freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner']",
+            ),
+            (
+                "drop-manifest-bridge-gap",
+                MANIFEST_PATH,
+                '"id": "phase14-rcu-tree-bridge-blocker"',
+                "missing_manifest_gap_id:phase14-rcu-tree-bridge-blocker",
             ),
         ]
-        for _, rel_path, marker, expected in cases:
+        for name, rel_path, marker, expected in cases:
             write_text(base / NOTE_PATH, FIXTURE_NOTE)
             write_text(base / MANIFEST_PATH, FIXTURE_MANIFEST)
             target = base / rel_path
-            write_text(target, target.read_text(encoding="utf-8").replace(marker, "", 1))
+            text = target.read_text(encoding="utf-8")
+            if name == "change-manifest-lane-key":
+                updated = text.replace('"lane_key": "P14-L16"', '"lane_key": "P14-L12"', 1)
+            elif name == "change-manifest-status-bucket":
+                updated = text.replace('"status_bucket": "freeze_in_c"', '"status_bucket": "study_only"', 1)
+            elif name == "change-manifest-owner":
+                updated = text.replace('"owner": "Core-Adjacent Pod"', '"owner": "Repo Tooling Pod"', 1)
+            elif name == "drop-manifest-required-evidence":
+                updated = text.replace(
+                    '      "Architecture Council reopen record linked from the reviewable packet",\n',
+                    "",
+                    1,
+                )
+            elif name == "drop-manifest-rollback-trigger":
+                updated = text.replace(
+                    '      "any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the Architecture Council reopen record",\n',
+                    "",
+                    1,
+                )
+            else:
+                updated = text.replace(marker, "", 1)
+            write_text(target, updated)
             failures = validate(base)
             if expected not in failures:
-                raise SystemExit(f"expected {expected!r}, got {failures!r}")
+                raise SystemExit(f"case {name!r} expected {expected!r}, got {failures!r}")
 
         write_text(base / NOTE_PATH, FIXTURE_NOTE + "\n- current review packet:\n")
         write_text(base / MANIFEST_PATH, FIXTURE_MANIFEST)
@@ -279,7 +401,7 @@ def run_self_test() -> int:
             shutil.rmtree(note_and_manifest_missing, ignore_errors=True)
 
         print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass")
-        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST_CASE_COUNT=13")
+        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST_CASE_COUNT=17")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -311,7 +433,9 @@ def main() -> int:
 
     print("PHASE14_RCU_ROLLBACK_GUARDRAIL=pass")
     print(f"PHASE14_RCU_ROLLBACK_GUARDRAIL_MARKER_COUNT={len(REQUIRED_MARKERS)}")
-    print(f"PHASE14_RCU_ROLLBACK_GUARDRAIL_MANIFEST_MARKER_COUNT={len(MANIFEST_REQUIRED_MARKERS)}")
+    print(f"PHASE14_RCU_ROLLBACK_GUARDRAIL_MANIFEST_FIELD_COUNT={len(MANIFEST_REQUIRED_FIELDS)}")
+    print(f"PHASE14_RCU_ROLLBACK_GUARDRAIL_MANIFEST_LIST_COUNT={len(MANIFEST_REQUIRED_LISTS)}")
+    print(f"PHASE14_RCU_ROLLBACK_GUARDRAIL_MANIFEST_GAP_COUNT={len(MANIFEST_REQUIRED_GAP_IDS)}")
     print(f"PHASE14_RCU_ROLLBACK_GUARDRAIL_FORBIDDEN_COUNT={len(FORBIDDEN_MARKERS)}")
     return 0
 
