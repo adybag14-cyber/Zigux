@@ -39,7 +39,7 @@
   ],
   "survey_summary": {
     "virtio_ring_c_lines": 3940,
-    "preexisting_phase10_test_files": 9,
+    "preexisting_phase10_test_files": 10,
     "preexisting_virtio_core_zig_present": true,
     "preexisting_phase10_build_present": true,
     "preexisting_phase10_core_doc_present": false,
@@ -48,7 +48,8 @@
     "preexisting_ring_verify_present": true,
     "preexisting_ring_publish_readiness_present": true,
     "preexisting_ring_registration_summary_present": true,
-    "preexisting_ring_used_buffer_poll_present": true
+    "preexisting_ring_used_buffer_poll_present": true,
+    "preexisting_ring_queue_build_survey_present": true
   },
   "gaps": [
     {
@@ -78,6 +79,13 @@
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_ring_reset_readiness.zig",
       "why_now": "The dedicated reset-readiness replay now materializes on current master and keeps unpublished, outstanding, unpolled, and broken reset blockers reviewable beside the queue-local reset vocabulary."
+    },
+    {
+      "id": "phase10-ring-queue-build-survey",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_ring_queue_build_survey.zig",
+      "why_now": "The focused queue-build survey now materializes on current master and keeps the queue-handling packet reviewable against `zigux/tests/phase10_virtio_ring_queue_build.zig` without widening into MMIO-owned transport claims."
     },
     {
       "id": "phase10-virtio-ring-survey-gate",
