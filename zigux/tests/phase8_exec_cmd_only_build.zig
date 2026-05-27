@@ -27,4 +27,5 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run focused Phase 8 exec-cmd tests");
     test_step.dependOn(&run_exec_cmd_tests.step);
+    b.default_step.dependOn(test_step);
 }
