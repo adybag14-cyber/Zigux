@@ -169,6 +169,8 @@ EXPECTED_HELPER_SOURCE_EQUIVALENT_ANCHORS = {
 
 EXPECTED_HELPER_LOCAL_ONLY_ANCHORS = [
     'test "memchrInv keeps non-zero scans stable across the fast-path cutoff"',
+    'test "memchrInv finds a dirty byte in the unaligned prefix before the word fast path"',
+    'test "memchrInv keeps aligned word hits stable after consuming an unaligned prefix"',
 ]
 
 
@@ -338,11 +340,11 @@ EXPECTED_STRING_LANE_MARKERS = [
     ),
     (
         "lane_counted_search_match_or_nul",
-        "- The counted-search owner term here also covers the current `strnchrNul()` and `strnchrnul()` match-or-NUL boundary anchor already cataloged in `zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads should keep that helper-local boundary proof inside the same counted-search packet instead of treating it as an unowned follow-up beside `strnchr()`.",
+        "- The counted-search owner term here also covers the current `strnchrNul()` and `strnchrnul()` match-or-NUL boundary anchor already cataloged in `zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads should keep that helper-local boundary proof inside the same counted-search packet instead of treating it as an unowned follow-up beside `strnchr()`."",
     ),
     (
         "lane_counted_search_strspn",
-        "- the same counted-search packet now also keeps the direct `strspn()` accepted-prefix anchor review-visible on current `master`, so future string-only rereads should treat accepted-byte-prefix scanning as part of that helper-local search family instead of leaving it implicit beside `strpbrk()` and `strnchr()`.",
+        "- the same counted-search packet now also keeps the direct `strspn()` accepted-prefix anchor review-visible on current `master`, so future string-only rereads should treat accepted-byte-prefix scanning as part of that helper-local search family instead of leaving it implicit beside `strpbrk()` and `strnchr()`."",
     ),
 ]
 
@@ -583,6 +585,8 @@ def run_self_test() -> int:
         "fixture:invalid_json:Expecting property name enclosed in double quotes:line=2:column=1",
         "manifest:duplicate_json_key:review_anchors.tools/lib/string.zig.strlcat_review_anchors",
         "fixture:duplicate_json_key:string.replace_char",
+        'string_helper_local:test "memchrInv finds a dirty byte in the unaligned prefix before the word fast path":expected=1:actual=0',
+        'string_helper_local:test "memchrInv keeps aligned word hits stable after consuming an unaligned prefix":expected=1:actual=0',
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_string_review_") as tmp_dir:
@@ -709,6 +713,26 @@ def run_self_test() -> int:
         )
         if cases[13] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:fixture_duplicate_json_key")
+
+        build_sample_repo(tmp_root)
+        text = helper_path.read_text(encoding="utf-8").replace(
+            'test "memchrInv finds a dirty byte in the unaligned prefix before the word fast path"\n',
+            "",
+            1,
+        )
+        helper_path.write_text(text, encoding="utf-8")
+        if cases[14] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:memchr_unaligned_prefix_anchor")
+
+        build_sample_repo(tmp_root)
+        text = helper_path.read_text(encoding="utf-8").replace(
+            'test "memchrInv keeps aligned word hits stable after consuming an unaligned prefix"\n',
+            "",
+            1,
+        )
+        helper_path.write_text(text, encoding="utf-8")
+        if cases[15] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:memchr_aligned_word_hit_anchor")
 
     print("PHASE1_STRING_REVIEW_PACKET_SELF_TEST=pass")
     print(f"PHASE1_STRING_REVIEW_PACKET_SELF_TEST_CASE_COUNT={len(cases)}")
