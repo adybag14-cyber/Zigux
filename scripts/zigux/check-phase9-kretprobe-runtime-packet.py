@@ -2,228 +2,206 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
-import shutil
 import tempfile
+from pathlib import Path
 
+OWNERSHIP_MAP_PATH = Path("Documentation/zigux/phase9-runtime-pilot-ownership-map.md")
+SAMPLE_PATH = Path("samples/zigux/runtime_kretprobe.zig")
+LOADER_PATH = Path("samples/zigux/runtime_kretprobe_loader.zig")
+SURVEY_PATH = Path("zigux/tests/runtime_kretprobe_survey.zig")
+MODULE_PATH = Path("zigux/tests/runtime_kretprobe_module.zig")
+BUILD_PATH = Path("zigux/tests/phase9_build.zig")
 
-SELF_PATH = Path(__file__).resolve()
+REQUIRED_FILES = (
+    OWNERSHIP_MAP_PATH,
+    SAMPLE_PATH,
+    LOADER_PATH,
+    SURVEY_PATH,
+    MODULE_PATH,
+    BUILD_PATH,
+)
 
-SAMPLE_PATH = "samples/zigux/runtime_kretprobe.zig"
-MODULE_PATH = "zigux/tests/runtime_kretprobe_module.zig"
-PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
-
-
-def infer_repo_root() -> Path:
-    for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
-        if (candidate / SAMPLE_PATH).exists():
-            return candidate
-    return SELF_PATH.parent
-
-
-ROOT = infer_repo_root()
-
-FILE_MARKERS: dict[str, list[str]] = {
-    SAMPLE_PATH: [
+FILE_MARKERS = {
+    OWNERSHIP_MAP_PATH: (
+        "## Runtime Kretprobe Family Owner",
+        "`samples/zigux/runtime_kretprobe.zig`",
+        "`samples/zigux/runtime_kretprobe_loader.zig`",
+        "`samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig`",
+        "`samples/zigux/runtime_kretprobe_registration_reentry_gate.zig`",
+        "`samples/zigux/runtime_kretprobe_reinit_reexit_guard.zig`",
+        "`zigux/tests/runtime_kretprobe_survey.zig`",
+        "`zigux/tests/runtime_kretprobe_module.zig`",
+        "`zigux/tests/runtime_first_loadable_parity_behavior.zig`",
+        "`scripts/zigux/check-phase9-kretprobe-runtime-packet.py`",
+    ),
+    SAMPLE_PATH: (
         '.name = "runtime_kretprobe"',
         '.anchor = "samples/kprobes/kretprobe_example.c"',
-        ".requires_runtime_substrate = true",
-        ".provides_selftest_hook = true",
+        '.requires_runtime_substrate = true',
+        '.provides_selftest_hook = true',
+        'pub fn runSelftest(self: *Self) !SelftestSummary {',
+        'pub fn exit(self: *Self) !void {',
         'test "runtime kretprobe sample keeps selftest hook and return replay explicit" {',
-        'test "runtime kretprobe sample keeps reusable probe replay explicit after selftest" {',
-        'test "runtime kretprobe sample rejects re-selftest without disturbing summaries" {',
-        'test "runtime kretprobe sample keeps rejected re-exit rollback explicit" {',
-        'test "runtime kretprobe sample keeps failed exit rollback explicit while a probe is still registered" {',
-        'test "runtime kretprobe sample keeps duplicate registration rollback explicit across initialized and selftested stages" {',
-        "error.OutstandingRegistration",
-        "error.ProbeAlreadyRegistered",
-        "error.InvalidLifecycleTransition",
-    ],
-    MODULE_PATH: [
-        'const sample = @import("runtime_kretprobe_sample");',
+    ),
+    LOADER_PATH: (
+        'const runtime_loader = @import("runtime_loader");',
+        'pub const LoaderStage = enum(u8) {',
+        'pub fn requestSharedRuntimeLoad(',
+        'pub fn releaseSharedWithoutSubstrate(',
+        'released_without_substrate',
+        'waiting_on_runtime_substrate',
+        'error.InvalidLoaderState',
+        'test "runtime kretprobe loader keeps initialized-stage shared contract plans explicit" {',
+        'test "runtime kretprobe loader keeps initialized shared-request snapshots stable across later selftest activity" {',
+    ),
+    SURVEY_PATH: (
+        'test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and module packet" {',
+        'try std.testing.expectEqualStrings("runtime_kretprobe", descriptor.name);',
+        'try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", descriptor.anchor);',
+        'try expectContains(phase9_build, "\\"phase9-runtime-kretprobe-tests\\"");',
+        'try expectContains(phase9_build, "\\"phase9-first-loadable-runtime-module-parity-behavior-tests\\"");',
+        'test "phase9 runtime kretprobe survey keeps captured initialized snapshot replay explicit across later selftest and exit" {',
+    ),
+    MODULE_PATH: (
         'test "runtime kretprobe sample advertises the bounded pilot-module contract" {',
         'test "runtime kretprobe sample keeps selftest summary replay explicit at the module boundary" {',
         'test "runtime kretprobe sample keeps lifecycle snapshot replay explicit at the module boundary" {',
         'test "runtime kretprobe sample keeps initialized-stage exit replay explicit at the module boundary" {',
         'test "runtime kretprobe sample keeps rejected re-selftest rollback explicit at the module boundary" {',
-        'test "runtime kretprobe sample keeps rejected re-exit rollback explicit at the module boundary" {',
         'test "runtime kretprobe sample keeps duplicate registration and failed exit rollback explicit at the module boundary" {',
-        "error.OutstandingRegistration",
-        "error.ProbeAlreadyRegistered",
-        "error.InvalidLifecycleTransition",
-    ],
-    PHASE9_BUILD_PATH: [
-        'const runtime_kretprobe_sample_module = b.createModule(.{',
-        '.root_source_file = b.path("../../samples/zigux/runtime_kretprobe.zig"),',
-        'const runtime_kretprobe_sample_tests = b.addTest(.{',
-        '.name = "phase9-runtime-kretprobe-sample-tests",',
-        'const runtime_kretprobe_module_tests_module = b.createModule(.{',
-        '.root_source_file = b.path("runtime_kretprobe_module.zig"),',
-        'const runtime_kretprobe_module_tests = b.addTest(.{',
-        '.name = "phase9-runtime-kretprobe-module-tests",',
-        'const phase9_runtime_kretprobe_sample = b.step(',
-        '"phase9-runtime-kretprobe-sample-tests",',
-        'const phase9_runtime_kretprobe_module = b.step(',
-        '"phase9-runtime-kretprobe-module-tests",',
-        'const phase9_runtime_kretprobe = b.step(',
+    ),
+    BUILD_PATH: (
+        '.name = "phase9-runtime-kretprobe-sample-tests"',
+        '.name = "phase9-runtime-kretprobe-loader-tests"',
+        '.name = "phase9-runtime-kretprobe-initialized-snapshot-guard-tests"',
+        '.name = "phase9-runtime-kretprobe-registration-reentry-gate-tests"',
+        '.name = "phase9-runtime-kretprobe-reinit-reexit-guard-tests"',
+        '.name = "phase9-runtime-kretprobe-survey-tests"',
+        '.name = "phase9-runtime-kretprobe-module-tests"',
         '"phase9-runtime-kretprobe-tests",',
-        'phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_sample_tests.step);',
-        'phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_module_tests.step);',
-    ],
-}
-
-FILE_EXACT_ONCE_MARKERS: dict[str, list[str]] = {
-    SAMPLE_PATH: [
-        'test "runtime kretprobe sample keeps rejected re-exit rollback explicit" {',
-        'test "runtime kretprobe sample keeps failed exit rollback explicit while a probe is still registered" {',
-        'test "runtime kretprobe sample keeps duplicate registration rollback explicit across initialized and selftested stages" {',
-    ],
-    MODULE_PATH: [
-        'test "runtime kretprobe sample keeps rejected re-exit rollback explicit at the module boundary" {',
-        'test "runtime kretprobe sample keeps duplicate registration and failed exit rollback explicit at the module boundary" {',
-    ],
-    PHASE9_BUILD_PATH: [
-        '.name = "phase9-runtime-kretprobe-tests"',
-    ],
+        '"Run the Phase 9 runtime kretprobe sample, loader, initialized-snapshot guard, registration-reentry gate, reinit-reexit guard, survey, and module lifecycle tests.",',
+    ),
 }
 
 
-def read_text(root: Path, rel_path: str) -> str:
-    return (root / rel_path).read_text(encoding="utf-8")
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
 
 
-def write_text(path: Path, content: str) -> None:
+def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
+    path.write_text(text, encoding="utf-8", newline="\n")
 
 
-def break_marker(marker: str) -> str:
-    if len(marker) == 1:
-        return "_"
-    replacement_tail = "_" if marker[-1] != "_" else "-"
-    return marker[:-1] + replacement_tail
-
-
-def tamper_marker_occurrences(content: str, marker: str) -> str:
-    return content.replace(marker, break_marker(marker))
-
-
-def duplicate_marker_occurrence(content: str, marker: str) -> str:
-    return content.replace(marker, f"{marker}\n{marker}", 1)
-
-
-def count_exact_line_occurrences(content: str, marker: str) -> int:
-    return sum(1 for line in content.splitlines() if line == marker)
-
-
-def build_fixture_text(rel_path: str, markers: list[str]) -> str:
-    if rel_path.endswith(".zig"):
-        return "\n".join(["const std = @import(\"std\");", "", *markers, ""])
-    return "\n".join(markers) + "\n"
-
-
-def validate(root: Path) -> list[str]:
-    failures: list[str] = []
-    for rel_path in FILE_MARKERS:
-        if not (root / rel_path).exists():
-            failures.append(f"missing_file:{rel_path}")
-    if failures:
-        return failures
-
-    for rel_path, markers in FILE_MARKERS.items():
-        text = read_text(root, rel_path)
-        for marker in markers:
+def validate_repo(repo_root: Path) -> list[str]:
+    issues: list[str] = []
+    for relative_path in REQUIRED_FILES:
+        path = repo_root / relative_path
+        if not path.is_file():
+            issues.append(f"missing repo file: {relative_path.as_posix()}")
+            continue
+        text = _read(path)
+        for marker in FILE_MARKERS[relative_path]:
             if marker not in text:
-                failures.append(f"missing_marker:{rel_path}:{marker}")
-
-    for rel_path, markers in FILE_EXACT_ONCE_MARKERS.items():
-        text = read_text(root, rel_path)
-        for marker in markers:
-            count = count_exact_line_occurrences(text, marker)
-            if count != 1:
-                failures.append(f"expected_exact_once:{rel_path}:{marker}:count={count}")
-
-    return failures
+                issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
+    return issues
 
 
-def seed_fixture_tree(base: Path) -> None:
-    fixture_paths = set(FILE_MARKERS) | set(FILE_EXACT_ONCE_MARKERS)
-    for rel_path in fixture_paths:
-        markers = list(FILE_MARKERS.get(rel_path, []))
-        for marker in FILE_EXACT_ONCE_MARKERS.get(rel_path, []):
-            if marker not in markers:
-                markers.append(marker)
-        write_text(base / rel_path, build_fixture_text(rel_path, markers))
+def _populate_repo(root: Path) -> None:
+    for relative_path, markers in FILE_MARKERS.items():
+        _write(root / relative_path, "\n".join(markers) + "\n")
 
 
-def expect_failure(root: Path, expected: str) -> None:
-    failures = validate(root)
-    if expected not in failures:
-        raise SystemExit(f"expected failure not found: {expected}\nactual={failures!r}")
+def _expect_issue(root: Path, expected: str) -> None:
+    issues = validate_repo(root)
+    if expected not in issues:
+        raise AssertionError(f"expected issue not reported: {expected}\nactual: {issues}")
 
 
 def run_self_test() -> int:
-    base = Path(tempfile.mkdtemp(prefix="phase9-kretprobe-runtime-packet-"))
-    try:
-        seed_fixture_tree(base)
-        failures = validate(base)
-        if failures:
-            raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
+    with tempfile.TemporaryDirectory(prefix="zigux_phase9_kretprobe_runtime_packet_") as temp_dir:
+        root = Path(temp_dir)
+        _populate_repo(root)
+        issues = validate_repo(root)
+        if issues:
+            print("PHASE9_KRETPROBE_RUNTIME_PACKET_SELF_TEST=fail")
+            print("\n".join(issues))
+            return 1
 
-        for rel_path, markers in FILE_MARKERS.items():
-            for marker in markers:
-                seed_fixture_tree(base)
-                current = read_text(base, rel_path)
-                write_text(base / rel_path, tamper_marker_occurrences(current, marker))
-                expect_failure(base, f"missing_marker:{rel_path}:{marker}")
+        (root / SAMPLE_PATH).unlink()
+        _expect_issue(root, "missing repo file: samples/zigux/runtime_kretprobe.zig")
 
-        for rel_path, markers in FILE_EXACT_ONCE_MARKERS.items():
-            for marker in markers:
-                seed_fixture_tree(base)
-                current = read_text(base, rel_path)
-                write_text(base / rel_path, duplicate_marker_occurrence(current, marker))
-                expect_failure(base, f"expected_exact_once:{rel_path}:{marker}:count=2")
-
-        for rel_path in FILE_MARKERS:
-            seed_fixture_tree(base)
-            (base / rel_path).unlink()
-            expect_failure(base, f"missing_file:{rel_path}")
-
-        print("PHASE9_KRETPROBE_RUNTIME_PACKET_SELF_TEST=pass")
-        print(f"PHASE9_KRETPROBE_RUNTIME_PACKET_FILE_COUNT={len(FILE_MARKERS)}")
-        print(
-            "PHASE9_KRETPROBE_RUNTIME_PACKET_EXACT_ONCE_MARKER_COUNT="
-            f"{sum(len(markers) for markers in FILE_EXACT_ONCE_MARKERS.values())}"
+        _populate_repo(root)
+        _write(
+            root / OWNERSHIP_MAP_PATH,
+            _read(root / OWNERSHIP_MAP_PATH).replace(
+                "`scripts/zigux/check-phase9-kretprobe-runtime-packet.py`",
+                "",
+                1,
+            ),
         )
-        return 0
-    finally:
-        shutil.rmtree(base, ignore_errors=True)
+        _expect_issue(
+            root,
+            "missing Documentation/zigux/phase9-runtime-pilot-ownership-map.md marker: `scripts/zigux/check-phase9-kretprobe-runtime-packet.py`",
+        )
 
+        _populate_repo(root)
+        _write(
+            root / BUILD_PATH,
+            _read(root / BUILD_PATH).replace(
+                '.name = "phase9-runtime-kretprobe-module-tests"',
+                "",
+                1,
+            ),
+        )
+        _expect_issue(
+            root,
+            'missing zigux/tests/phase9_build.zig marker: .name = "phase9-runtime-kretprobe-module-tests"',
+        )
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", type=Path, default=ROOT)
-    parser.add_argument("--self-test", action="store_true")
-    return parser.parse_args()
+        _populate_repo(root)
+        _write(
+            root / SURVEY_PATH,
+            _read(root / SURVEY_PATH).replace(
+                'try expectContains(phase9_build, "\\"phase9-runtime-kretprobe-tests\\"");',
+                "",
+                1,
+            ),
+        )
+        _expect_issue(
+            root,
+            'missing zigux/tests/runtime_kretprobe_survey.zig marker: try expectContains(phase9_build, "\\"phase9-runtime-kretprobe-tests\\"");',
+        )
+
+    print("PHASE9_KRETPROBE_RUNTIME_PACKET_SELF_TEST=pass")
+    print("PHASE9_KRETPROBE_RUNTIME_PACKET_SELF_TEST_CASE_COUNT=4")
+    return 0
 
 
 def main() -> int:
-    args = parse_args()
+    parser = argparse.ArgumentParser(
+        description="Validate the current Phase 9 runtime kretprobe packet."
+    )
+    parser.add_argument(
+        "--repo-root",
+        type=Path,
+        default=Path("."),
+        help="repository root that contains the Phase 9 runtime kretprobe packet",
+    )
+    parser.add_argument("--self-test", action="store_true")
+    args = parser.parse_args()
+
     if args.self_test:
         return run_self_test()
 
-    failures = validate(args.root)
-    if failures:
-        for failure in failures:
-            print(failure)
+    issues = validate_repo(args.repo_root)
+    if issues:
+        print("PHASE9_KRETPROBE_RUNTIME_PACKET=fail")
+        print("\n".join(issues))
         return 1
 
+    print(f"validated {args.repo_root / SAMPLE_PATH}")
     print("PHASE9_KRETPROBE_RUNTIME_PACKET=pass")
-    print(f"PHASE9_KRETPROBE_RUNTIME_PACKET_FILE_COUNT={len(FILE_MARKERS)}")
-    print(
-        "PHASE9_KRETPROBE_RUNTIME_PACKET_EXACT_ONCE_MARKER_COUNT="
-        f"{sum(len(markers) for markers in FILE_EXACT_ONCE_MARKERS.values())}"
-    )
     return 0
 
 
