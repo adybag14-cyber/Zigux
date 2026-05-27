@@ -48,6 +48,55 @@ test "phase3 policy unsafe replay decodes shared policy records" {
     try testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), unsafe_policy.scopeFromInteropPolicy(rawPolicy()));
 }
 
+test "phase3 policy unsafe replay keeps ABI recognition aligned with helper decoders" {
+    const cases = [_]abi.InteropPolicy{
+        safePolicy(),
+        mmioPolicy(),
+        rawPolicy(),
+        .{ .panic_mode = 9, .allocator_mode = abi.ALLOC_CALLER_PROVIDED, .unsafe_scope = abi.UNSAFE_NONE, .reserved = 0 },
+        .{ .panic_mode = abi.PANIC_ABORT, .allocator_mode = 9, .unsafe_scope = abi.UNSAFE_NONE, .reserved = 0 },
+        .{ .panic_mode = abi.PANIC_ABORT, .allocator_mode = abi.ALLOC_CALLER_PROVIDED, .unsafe_scope = 9, .reserved = 0 },
+        .{ .panic_mode = abi.PANIC_WARN, .allocator_mode = abi.ALLOC_ARENA, .unsafe_scope = abi.UNSAFE_RAW_POINTER_BRIDGE, .reserved = 1 },
+    };
+
+    for (cases) |policy| {
+        const panic_known = panic_policy.modeFromInteropPolicy(policy) != null;
+        const allocator_known = allocator_policy.modeFromInteropPolicy(policy) != null;
+        const unsafe_known = unsafe_policy.scopeFromInteropPolicy(policy) != null;
+
+        try testing.expectEqual(abi.panicModeFromInteropPolicy(policy), panic_policy.modeFromInteropPolicy(policy));
+        try testing.expectEqual(abi.allocatorModeFromInteropPolicy(policy), allocator_policy.modeFromInteropPolicy(policy));
+        try testing.expectEqual(abi.unsafeScopeFromInteropPolicy(policy), unsafe_policy.scopeFromInteropPolicy(policy));
+        try testing.expectEqual(abi.interopPolicyIsRecognized(policy), panic_known and allocator_known and unsafe_known);
+        try testing.expectEqual(unsafe_policy.recognizesInteropPolicy(policy), narrow.recognizesInteropPolicy(policy));
+    }
+}
+
+test "phase3 policy unsafe replay keeps reserved-byte failures closed across helpers" {
+    const reserved_mmio = abi.InteropPolicy{
+        .panic_mode = abi.PANIC_BUG,
+        .allocator_mode = abi.ALLOC_KERNEL_HEAP,
+        .unsafe_scope = abi.UNSAFE_VOLATILE_MMIO,
+        .reserved = 1,
+    };
+
+    try testing.expect(!abi.interopPolicyReservedClear(reserved_mmio));
+    try testing.expectEqual(@as(?abi.PanicMode, null), abi.panicModeFromInteropPolicy(reserved_mmio));
+    try testing.expectEqual(@as(?abi.AllocatorMode, null), abi.allocatorModeFromInteropPolicy(reserved_mmio));
+    try testing.expectEqual(@as(?abi.UnsafeScope, null), abi.unsafeScopeFromInteropPolicy(reserved_mmio));
+    try testing.expect(!abi.interopPolicyIsRecognized(reserved_mmio));
+
+    try testing.expectEqual(@as(?abi.PanicMode, null), panic_policy.modeFromInteropPolicy(reserved_mmio));
+    try testing.expectEqual(@as(?abi.AllocatorMode, null), allocator_policy.modeFromInteropPolicy(reserved_mmio));
+    try testing.expectEqual(@as(?abi.UnsafeScope, null), unsafe_policy.scopeFromInteropPolicy(reserved_mmio));
+    try testing.expectEqual(@as(?unsafe_policy.AccessBoundary, null), unsafe_policy.accessBoundaryFromInteropPolicy(reserved_mmio));
+    try testing.expectEqual(@as(?narrow.Surface, null), narrow.surfaceFromInteropPolicy(reserved_mmio));
+    try testing.expect(!panic_policy.recognizesInteropPolicy(reserved_mmio));
+    try testing.expect(!allocator_policy.recognizesInteropPolicy(reserved_mmio));
+    try testing.expect(!unsafe_policy.recognizesInteropPolicy(reserved_mmio));
+    try testing.expect(!narrow.recognizesInteropPolicy(reserved_mmio));
+}
+
 test "phase3 policy unsafe replay keeps helper and narrow gates aligned" {
     const cases = [_]abi.InteropPolicy{
         safePolicy(),
