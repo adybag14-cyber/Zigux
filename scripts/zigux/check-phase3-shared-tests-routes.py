@@ -158,32 +158,52 @@ REQUIRED_DRIVER_MARKERS = (
 )
 
 REQUIRED_MAKEFILE_MARKERS = (
+    "phase3-export-uapi-layout:",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "phase3-export-uapi-layout-test:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "phase3-export-shim-test:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
+    "phase3-low-level-wrappers:",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
     "phase3-low-level-wrappers-test:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "phase3-policy-starter-packet-test:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "phase3-policy-dump:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
+    "phase3-test:",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-test --build-file zigux/tests/build.zig",
+    "phase3-dump:",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig",
     "phase3: phase3-validate phase3-export-uapi-layout phase3-low-level-wrappers phase3-test phase3-policy-dump phase3-dump",
 )
 
 REQUIRED_WORKFLOW_MARKERS = (
-    "- name: Self-test current Phase 3 low-level wrapper survey validator",
-    "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
-    "- name: Check current Phase 3 low-level wrapper survey packet",
-    "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "- name: Self-test current Phase 3 interop packet",
+    "run: python3 scripts/zigux/validate_phase3_selftest.py",
+    "- name: Check current Phase 3 interop packet",
+    "run: python3 scripts/zigux/run-phase3-checks.py",
     "- name: Run current Phase 3 export/UAPI layout replay",
     "run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    "- name: Run current Phase 3 export shim replay",
+    "run: zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
     "- name: Run current Phase 3 policy starter-packet replay",
     "run: make -C zigux phase3-policy-starter-packet-test",
     "- name: Run current Phase 3 policy dump replay",
     "run: zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
+    "- name: Run current Phase 3 policy dump make wrapper",
+    "run: make -C zigux phase3-policy-dump",
+    "- name: Self-test current Phase 3 low-level wrapper survey validator",
+    "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+    "- name: Check current Phase 3 low-level wrapper survey packet",
+    "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "- name: Run current Phase 3 low-level wrapper replay",
     "run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    "- name: Run current Phase 3 low-level wrapper make route",
+    "run: make -C zigux phase3-low-level-wrappers",
+    "- name: Run current Phase 3 focused low-level wrapper make route",
+    "run: make -C zigux phase3-low-level-wrappers-test",
     "- name: Run current Phase 3 shared tests-root packet",
     "run: zig build phase3-test --build-file zigux/tests/build.zig",
     "- name: Run current Phase 3 ABI dump replay",
@@ -370,6 +390,14 @@ SELF_TEST_CASES = (
     ),
     (
         MAKEFILE_PATH,
+        "phase3-export-uapi-layout:",
+    ),
+    (
+        MAKEFILE_PATH,
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
+    ),
+    (
+        MAKEFILE_PATH,
         "phase3-export-uapi-layout-test:",
     ),
     (
@@ -383,6 +411,14 @@ SELF_TEST_CASES = (
     (
         MAKEFILE_PATH,
         "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
+    ),
+    (
+        MAKEFILE_PATH,
+        "phase3-low-level-wrappers:",
+    ),
+    (
+        MAKEFILE_PATH,
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
     ),
     (
         MAKEFILE_PATH,
@@ -410,23 +446,39 @@ SELF_TEST_CASES = (
     ),
     (
         MAKEFILE_PATH,
+        "phase3-test:",
+    ),
+    (
+        MAKEFILE_PATH,
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-test --build-file zigux/tests/build.zig",
+    ),
+    (
+        MAKEFILE_PATH,
+        "phase3-dump:",
+    ),
+    (
+        MAKEFILE_PATH,
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig",
+    ),
+    (
+        MAKEFILE_PATH,
         "phase3: phase3-validate phase3-export-uapi-layout phase3-low-level-wrappers phase3-test phase3-policy-dump phase3-dump",
     ),
     (
         WORKFLOW_PATH,
-        "- name: Self-test current Phase 3 low-level wrapper survey validator",
+        "- name: Self-test current Phase 3 interop packet",
     ),
     (
         WORKFLOW_PATH,
-        "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+        "run: python3 scripts/zigux/validate_phase3_selftest.py",
     ),
     (
         WORKFLOW_PATH,
-        "- name: Check current Phase 3 low-level wrapper survey packet",
+        "- name: Check current Phase 3 interop packet",
     ),
     (
         WORKFLOW_PATH,
-        "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+        "run: python3 scripts/zigux/run-phase3-checks.py",
     ),
     (
         WORKFLOW_PATH,
@@ -435,6 +487,14 @@ SELF_TEST_CASES = (
     (
         WORKFLOW_PATH,
         "run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    ),
+    (
+        WORKFLOW_PATH,
+        "- name: Run current Phase 3 export shim replay",
+    ),
+    (
+        WORKFLOW_PATH,
+        "run: zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
     ),
     (
         WORKFLOW_PATH,
@@ -454,11 +514,51 @@ SELF_TEST_CASES = (
     ),
     (
         WORKFLOW_PATH,
+        "- name: Run current Phase 3 policy dump make wrapper",
+    ),
+    (
+        WORKFLOW_PATH,
+        "run: make -C zigux phase3-policy-dump",
+    ),
+    (
+        WORKFLOW_PATH,
+        "- name: Self-test current Phase 3 low-level wrapper survey validator",
+    ),
+    (
+        WORKFLOW_PATH,
+        "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+    ),
+    (
+        WORKFLOW_PATH,
+        "- name: Check current Phase 3 low-level wrapper survey packet",
+    ),
+    (
+        WORKFLOW_PATH,
+        "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    ),
+    (
+        WORKFLOW_PATH,
         "- name: Run current Phase 3 low-level wrapper replay",
     ),
     (
         WORKFLOW_PATH,
         "run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    ),
+    (
+        WORKFLOW_PATH,
+        "- name: Run current Phase 3 low-level wrapper make route",
+    ),
+    (
+        WORKFLOW_PATH,
+        "run: make -C zigux phase3-low-level-wrappers",
+    ),
+    (
+        WORKFLOW_PATH,
+        "- name: Run current Phase 3 focused low-level wrapper make route",
+    ),
+    (
+        WORKFLOW_PATH,
+        "run: make -C zigux phase3-low-level-wrappers-test",
     ),
     (
         WORKFLOW_PATH,
