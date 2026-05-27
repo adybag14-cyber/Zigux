@@ -124,6 +124,7 @@ pub fn build(b: *std.Build) void {
     const run_virtio_net_throughput_parity_tests = b.addRunArtifact(
         phase12_virtio_net_throughput_parity_tests,
     );
+    const throughput_parity_tests = run_virtio_net_throughput_parity_tests;
 
     const phase12_virtio_net_survey_tests = b.addTest(.{
         .name = "phase12-virtio-net-survey-tests",
@@ -155,9 +156,6 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_virtio_net_throughput_parity_tests.step);
     test_step.dependOn(&run_virtio_net_survey_tests.step);
 
-    const throughput_parity_step = b.step(
-        "phase12-virtio-net-throughput-parity",
-        "Run the Phase 12 virtio_net throughput-parity replay in isolation",
-    );
-    throughput_parity_step.dependOn(&run_virtio_net_throughput_parity_tests.step);
+    const throughput_parity_step = b.step("phase12-virtio-net-throughput-parity", "Run the Phase 12 virtio_net throughput parity checks");
+    throughput_parity_step.dependOn(&throughput_parity_tests.step);
 }
