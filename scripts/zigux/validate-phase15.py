@@ -9,6 +9,7 @@ from pathlib import Path
 READINESS_NOTE_PATH = Path("Documentation/zigux/phase15-readiness-gate-survey.md")
 MANIFEST_PATH = Path("zigux/tests/phase15_readiness_gate_manifest.json")
 CHECKER_PATH = Path("scripts/zigux/check-phase15-readiness-gate-packet.py")
+ARCHITECTURE_COUNCIL_CHECKER_PATH = Path("scripts/zigux/check-phase15-architecture-council-packet.py")
 SCRIPTS_CHECKER_PATH = Path("scripts/zigux/check-phase15-scripts-readme-alignment.py")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase15.py")
 BUILD_PATH = Path("zigux/tests/phase15_build.zig")
@@ -35,6 +36,7 @@ EXPECTED_DIRECT_PACKET_PATHS = [
     "scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
+    "scripts/zigux/check-phase15-architecture-council-packet.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
     "scripts/zigux/check-phase15-handoff-note-alignment.py",
@@ -69,11 +71,13 @@ EXPECTED_PHASE15_VALIDATE_CHECKERS = [
     "scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
+    "scripts/zigux/check-phase15-architecture-council-packet.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-shared-summary-gap.py",
 ]
 EXPECTED_REPO_EVIDENCE = {
     "phase15_readiness_packet_checker_present": True,
+    "phase15_architecture_council_packet_checker_present": True,
     "phase15_validator_script_present": True,
     "phase15_docs_readme_checker_present": True,
     "phase15_scripts_readme_checker_present": True,
@@ -100,7 +104,9 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
     "the governance packet is materially landed and reviewable",
     "the dedicated validator now exists as a directly readable maintenance gate",
+    "the dedicated Architecture Council packet checker now exists as a directly readable maintenance gate within the broader validator-first reminder family",
     "the dedicated shared-build companion is now directly readable current-master evidence",
+    "`scripts/zigux/check-phase15-architecture-council-packet.py`",
     "`scripts/zigux/validate-phase15.py`",
     "`zigux/tests/phase15_freeze_map_governance.zig`",
     "`zigux/tests/phase15_build.zig`",
@@ -155,7 +161,16 @@ def _workflow_has_phase15_route(root: Path) -> bool:
 
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
-    for rel in (READINESS_NOTE_PATH, MANIFEST_PATH, CHECKER_PATH, SCRIPTS_CHECKER_PATH, VALIDATOR_PATH, MAKEFILE_PATH, WORKFLOW_PATH):
+    for rel in (
+        READINESS_NOTE_PATH,
+        MANIFEST_PATH,
+        CHECKER_PATH,
+        ARCHITECTURE_COUNCIL_CHECKER_PATH,
+        SCRIPTS_CHECKER_PATH,
+        VALIDATOR_PATH,
+        MAKEFILE_PATH,
+        WORKFLOW_PATH,
+    ):
         if not (root / rel).exists():
             failures.append(f"missing_required_path:{rel}")
     if failures:
@@ -193,7 +208,9 @@ def collect_failures(root: Path) -> list[str]:
     for target in EXPECTED_BLOCKED_BROADER_ROUTES["missing_make_targets"]:
         if _makefile_has_target(root, target):
             failures.append(f"unexpected_make_target:{target}")
-    if _workflow_has_phase15_route(root) != (not EXPECTED_BLOCKED_BROADER_ROUTES["missing_workflow_phase15_route"]):
+    if _workflow_has_phase15_route(root) != (
+        not EXPECTED_BLOCKED_BROADER_ROUTES["missing_workflow_phase15_route"]
+    ):
         failures.append("unexpected_workflow_route")
 
     for marker in REQUIRED_NOTE_MARKERS:
@@ -222,9 +239,10 @@ This note records the current bounded readiness posture for the landed Phase 15 
 This survey keeps those four truths together:
 - the governance packet is materially landed and reviewable
 - the dedicated validator now exists as a directly readable maintenance gate
+- the dedicated Architecture Council packet checker now exists as a directly readable maintenance gate within the broader validator-first reminder family
 - the dedicated shared-build companion is now directly readable current-master evidence
-- the broader make-wrapper and workflow companions still block any claim that the larger Phase 15 replay route is one-command or shared-CI ready
 
+- `scripts/zigux/check-phase15-architecture-council-packet.py`
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_freeze_map_governance.zig`
 - `zigux/tests/phase15_build.zig`
@@ -254,7 +272,10 @@ def write_fixture_root(root: Path) -> None:
     _write(root / READINESS_NOTE_PATH, _sample_note())
     _write(root / MANIFEST_PATH, _sample_manifest())
     _write(root / MAKEFILE_PATH, "phase2-toolchain:\n\t@true\n")
-    _write(root / WORKFLOW_PATH, "name: zigux-bootstrap\njobs:\n  bootstrap:\n    steps:\n      - run: python3 scripts/zigux/check-phase15-readiness-gate-packet.py\n")
+    _write(
+        root / WORKFLOW_PATH,
+        "name: zigux-bootstrap\njobs:\n  bootstrap:\n    steps:\n      - run: python3 scripts/zigux/check-phase15-readiness-gate-packet.py\n",
+    )
 
     for rel in EXPECTED_DIRECT_PACKET_PATHS:
         if rel == str(MANIFEST_PATH):
@@ -290,14 +311,20 @@ def run_self_test() -> int:
 
         workflow_root = base / "workflow"
         write_fixture_root(workflow_root)
-        _write(workflow_root / WORKFLOW_PATH, "jobs:\n  bootstrap:\n    steps:\n      - run: make -C zigux phase15-validate\n")
+        _write(
+            workflow_root / WORKFLOW_PATH,
+            "jobs:\n  bootstrap:\n    steps:\n      - run: make -C zigux phase15-validate\n",
+        )
         failures = collect_failures(workflow_root)
         if failures != ["unexpected_workflow_route"]:
             raise AssertionError(f"unexpected workflow-route failure: {failures}")
 
         lane_root = base / "lane"
         write_fixture_root(lane_root)
-        _write(lane_root / MANIFEST_PATH, _sample_manifest().replace('"lane_key": "P15-L04"', '"lane_key": "P15-L99"', 1))
+        _write(
+            lane_root / MANIFEST_PATH,
+            _sample_manifest().replace('"lane_key": "P15-L04"', '"lane_key": "P15-L99"', 1),
+        )
         failures = collect_failures(lane_root)
         if failures != ["lane_key:'P15-L99'"]:
             raise AssertionError(f"unexpected lane drift failure: {failures}")
@@ -309,54 +336,40 @@ def run_self_test() -> int:
         if failures != [f"missing_required_path:{SCRIPTS_CHECKER_PATH}"]:
             raise AssertionError(f"unexpected scripts-checker failure: {failures}")
 
+        architecture_root = base / "architecture_checker"
+        write_fixture_root(architecture_root)
+        (architecture_root / ARCHITECTURE_COUNCIL_CHECKER_PATH).unlink()
+        failures = collect_failures(architecture_root)
+        if failures != [f"missing_required_path:{ARCHITECTURE_COUNCIL_CHECKER_PATH}"]:
+            raise AssertionError(f"unexpected architecture-checker failure: {failures}")
+
         validate_checkers_root = base / "validate_checkers"
         write_fixture_root(validate_checkers_root)
-        _write(
-            validate_checkers_root / MANIFEST_PATH,
-            _sample_manifest().replace(
-                '  "phase15_validate_checkers": [\n'
-                '    "scripts/zigux/check-phase15-docs-readme-alignment.py",\n'
-                '    "scripts/zigux/check-phase15-scripts-readme-alignment.py",\n'
-                '    "scripts/zigux/check-phase15-tests-readme-alignment.py",\n'
-                '    "scripts/zigux/check-phase15-review-process-handoff.py",\n'
-                '    "scripts/zigux/check-phase15-shared-summary-gap.py"\n'
-                "  ]\n",
-                '  "phase15_validate_checkers": [\n'
-                '    "scripts/zigux/check-phase15-scripts-readme-alignment.py",\n'
-                '    "scripts/zigux/check-phase15-tests-readme-alignment.py",\n'
-                '    "scripts/zigux/check-phase15-review-process-handoff.py",\n'
-                '    "scripts/zigux/check-phase15-shared-summary-gap.py"\n'
-                "  ]\n",
-                1,
-            ),
-        )
+        manifest_data = json.loads(_sample_manifest())
+        manifest_data["phase15_validate_checkers"] = [
+            checker
+            for checker in manifest_data["phase15_validate_checkers"]
+            if checker != str(ARCHITECTURE_COUNCIL_CHECKER_PATH)
+        ]
+        _write(validate_checkers_root / MANIFEST_PATH, json.dumps(manifest_data, indent=2) + "\n")
         failures = collect_failures(validate_checkers_root)
         if failures != ["phase15_validate_checkers"]:
             raise AssertionError(f"unexpected validate-checkers failure: {failures}")
 
         blocked_routes_root = base / "blocked_routes"
         write_fixture_root(blocked_routes_root)
-        _write(
-            blocked_routes_root / MANIFEST_PATH,
-            _sample_manifest().replace(
-                '    "missing_make_targets": [\n'
-                '      "phase15-validate",\n'
-                '      "phase15-test",\n'
-                '      "phase15"\n'
-                '    ],\n',
-                '    "missing_make_targets": [\n'
-                '      "phase15-validate",\n'
-                '      "phase15"\n'
-                '    ],\n',
-                1,
-            ),
-        )
+        manifest_data = json.loads(_sample_manifest())
+        manifest_data["blocked_broader_routes"]["missing_make_targets"] = [
+            "phase15-validate",
+            "phase15",
+        ]
+        _write(blocked_routes_root / MANIFEST_PATH, json.dumps(manifest_data, indent=2) + "\n")
         failures = collect_failures(blocked_routes_root)
         if failures != ["blocked_broader_routes"]:
             raise AssertionError(f"unexpected blocked-route failure: {failures}")
 
     print("PHASE15_VALIDATION_SELF_TEST=pass")
-    print("PHASE15_VALIDATION_SELF_TEST_CASES=7")
+    print("PHASE15_VALIDATION_SELF_TEST_CASES=8")
     return 0
 
 
@@ -381,7 +394,10 @@ def main() -> int:
     print("PHASE15_VALIDATION=pass")
     print(f"PHASE15_VALIDATION_DIRECT_PATH_COUNT={len(EXPECTED_DIRECT_PACKET_PATHS)}")
     print(f"PHASE15_VALIDATION_BLOCKED_PATH_COUNT={len(EXPECTED_MISSING_BROADER_PATHS)}")
-    print(f"PHASE15_VALIDATION_BLOCKED_ROUTE_COUNT={len(EXPECTED_BLOCKED_BROADER_ROUTES['missing_make_targets']) + int(EXPECTED_BLOCKED_BROADER_ROUTES['missing_workflow_phase15_route'])}")
+    print(
+        "PHASE15_VALIDATION_BLOCKED_ROUTE_COUNT="
+        f"{len(EXPECTED_BLOCKED_BROADER_ROUTES['missing_make_targets']) + int(EXPECTED_BLOCKED_BROADER_ROUTES['missing_workflow_phase15_route'])}"
+    )
     return 0
 
 
