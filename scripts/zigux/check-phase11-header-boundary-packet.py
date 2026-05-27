@@ -84,6 +84,7 @@ MATRIX_REQUIRED_MARKERS = (
     "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
     "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
     "`drivers/tty/hvc/hvc_console.h`",
+    "`drivers/tty/hvc/hvc_console.zig`",
     "returned `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
     "returned `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
     "keep the returned header-boundary checker framed as note-side evidence only",
@@ -227,6 +228,17 @@ def run_self_test() -> int:
         survey_unique_marker = "documentation-level continuity evidence"
         path.write_text(remove_marker(path.read_text(encoding="utf-8"), survey_unique_marker), encoding="utf-8")
         expect_failure(survey_missing, survey_unique_marker)
+        case_count += 1
+
+        matrix_hvc_module_missing = tmpdir / "matrix_hvc_module_missing"
+        shutil.copytree(fixture_root, matrix_hvc_module_missing, dirs_exist_ok=True)
+        path = matrix_hvc_module_missing / MATRIX_PATH
+        hvc_module_marker = "`drivers/tty/hvc/hvc_console.zig`"
+        path.write_text(
+            remove_marker(path.read_text(encoding="utf-8"), hvc_module_marker),
+            encoding="utf-8",
+        )
+        expect_failure(matrix_hvc_module_missing, hvc_module_marker)
         case_count += 1
 
         matrix_missing = tmpdir / "matrix_missing"
