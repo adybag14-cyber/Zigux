@@ -74,7 +74,7 @@
       "name": "defconfig",
       "mode": "defconfig",
       "kconfig": "Kconfig",
-      "config": "out/.config",
+      "config": "out/quoted\"debug\\.config",
       "arch": "arm64",
       "mode_arg": "arch/arm64/configs/defconfig",
       "expected": "defconfig_expected.json"
