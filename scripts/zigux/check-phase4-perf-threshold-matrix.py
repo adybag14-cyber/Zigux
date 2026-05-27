@@ -13,7 +13,7 @@ NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 LANE = Path("Documentation/zigux/phase4-validation-lane-sequencing.md")
 MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 PHASE4_BUILD = Path("zigux/tests/phase4_build.zig")
-EXPECTED_SELF_TEST_CASES = 19
+EXPECTED_SELF_TEST_CASES = 23
 
 SELF_TEST_MANIFEST = """{
   "atomic64": {
@@ -36,6 +36,10 @@ SELF_TEST_MANIFEST = """{
 SELF_TEST_MATRIX = """# Phase 4 Validation Matrix
 
 ## Local-Only Perf Promotion
+  * any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and rollback owner, and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners
+  * promotion rollback owner: `Validation and Perf Team`
+  * gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
+  * rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
   * `zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 8192` over `4` iterations with `7` monotonic samples
   * `zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 12288` over `4` iterations with `7` monotonic samples
 """
@@ -66,6 +70,13 @@ LANE_MARKERS = (
     "  - `scripts/zigux/check-phase4-perf-threshold-matrix.py`",
     "`scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-perf-threshold-matrix.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` remain directly readable adjacent evidence inside the perf-only lane rather than historical companions.",
     "Keep the Validation and Perf Team decision-owner and rollback-owner cue in the dedicated local-only perf packet, but leave the current cross-family coordination-owner split with the ABI and Runtime Team plus Shared Subsystems Pod in the shared exact-readback lane because that wording spans both landed rollback gates.",
+)
+
+MATRIX_OWNER_MARKERS = (
+    "any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and rollback owner, and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners",
+    "promotion rollback owner: `Validation and Perf Team`",
+    "gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
+    "rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
 )
 
 PHASE4_BUILD_MARKERS = (
@@ -149,6 +160,7 @@ def validate_root(root: Path) -> list[str]:
     if bitmap_line not in matrix_text:
         issues.append(f"matrix_line_missing:{bitmap_line}")
 
+    require_markers(matrix_text, MATRIX_OWNER_MARKERS, "matrix_owner_marker", issues)
     require_markers(read_text(note_path), NOTE_MARKERS, "note_marker", issues)
     require_markers(read_text(lane_path), LANE_MARKERS, "lane_marker", issues)
     require_markers(read_text(phase4_build_path), PHASE4_BUILD_MARKERS, "phase4_build_marker", issues)
@@ -262,6 +274,38 @@ def run_self_test() -> int:
             if not expect_failure(root, expected_prefix):
                 print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
                 print(f"bitmap drift case did not fail closed: {expected_prefix}")
+                return 1
+            cases += 1
+
+        matrix_owner_variants = (
+            (
+                "any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and rollback owner, and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners",
+                "any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner while shared ownership details are handled elsewhere",
+                "matrix_owner_marker:any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and rollback owner, and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners",
+            ),
+            (
+                "promotion rollback owner: `Validation and Perf Team`",
+                "promotion owner: `Validation and Perf Team`",
+                "matrix_owner_marker:promotion rollback owner: `Validation and Perf Team`",
+            ),
+            (
+                "gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
+                "gate owner: `ABI and Runtime Team`",
+                "matrix_owner_marker:gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
+            ),
+            (
+                "rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
+                "rollback owner: `ABI and Runtime Team`",
+                "matrix_owner_marker:rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
+            ),
+        )
+        for old, new, expected_prefix in matrix_owner_variants:
+            build_fixture_tree(root)
+            target = root / MATRIX
+            write_text(target, replace_once(read_text(target), old, new))
+            if not expect_failure(root, expected_prefix):
+                print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
+                print(f"matrix owner drift case did not fail closed: {expected_prefix}")
                 return 1
             cases += 1
 
