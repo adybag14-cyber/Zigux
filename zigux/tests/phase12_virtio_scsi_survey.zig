@@ -205,7 +205,7 @@ test "phase12 virtio scsi survey note stays aligned with rollback evidence" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L09") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "verified on: `2026-05-24`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no longer serves `drivers/scsi/virtio_scsi.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "throughput-parity, and survey-gate tests as support-bundle evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "throughput-parity, and survey-gate tests together with one bounded NVMe direct replay as support-bundle evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback-only split machine-checkable") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase12_virtio_scsi_survey_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase12_virtio_scsi_survey.zig") != null);
@@ -217,38 +217,39 @@ test "phase12 virtio scsi fallback catalog keeps archival replay distinct from c
 
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "PHASE12_STATUS=archival-raw-read-fallback") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "commit pin: `ee64eec272a352da1d967999c99bb3c3560c9b97`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "exact coverage evidence refreshed on `2026-05-25`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "authenticated contents view now returns this refreshed archival catalog body on current `master`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "public blob page and public raw `master` fallback now match the refreshed current-master body for this same path as of `2026-05-25`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "scripts/zigux/check-phase12-cross-compile-smoke.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "check-phase12-cross-compile-smoke.py --self-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "exact coverage evidence refreshed on `2026-05-27`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "authenticated contents view now returns this refreshed archival catalog body on current `master` with exact blob `46c4cc86cb2f164a9709ffbe46e1b8cd563a3259`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "public blob page and public raw `master` fallback now match this same `46c4cc86cb2f164a9709ffbe46e1b8cd563a3259` current-master catalog body as of `2026-05-27`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "`zigux/tests/phase12_virtio_scsi_survey_build.zig` `2d502aad14ed244c614095060be986dd4514652e`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "`zigux/tests/phase12_build.zig` `e0d297f50d2805948b93ca421ae9ec20ddfceafa`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "`scripts/zigux/check-phase12-libbpf-lane-marker.py` `7be88fe75bda8cc9d71eba627cb3309d8d6a0ccf`") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "current `master` no longer serves `drivers/scsi/virtio_scsi.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "archival commit-pinned history only") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "matching current-master archival evidence for this path") != null);
 }
 
-test "phase12 virtio scsi survey build boundary keeps the shared phase12 route virtio_net only" {
+test "phase12 virtio scsi survey build boundary keeps the shared phase12 route on support-bundle evidence only" {
     const phase12_build = try readFileAlloc("zigux/tests/phase12_build.zig", 32 * 1024);
     defer std.testing.allocator.free(phase12_build);
 
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "../../drivers/net/virtio_net_queue_resume.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_net_queue_resume.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_net_transmit_recycle.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_net_receive_refill_replay.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_net_post_reset_replay.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_net_throughput_parity.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_net_survey.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-virtio-net-queue-resume-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-virtio-net-transmit-recycle-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-virtio-net-receive-refill-replay-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-virtio-net-post-reset-replay-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-virtio-net-throughput-parity-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-virtio-net-survey-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "../../drivers/nvme/host/pci.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_nvme_pci.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-nvme-pci-direct-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "Run the Phase 12 virtio_net replay packet together with the bounded NVMe direct replay smoke tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "Run the Phase 12 virtio_net replay packet together with the bounded NVMe direct replay tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-virtio-net-throughput-parity") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_survey.zig") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_survey_build.zig") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-virtio-scsi-survey-tests") == null);
-    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "virtio_scsi") == null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi.zig") == null);
 }
 
 test "phase12 virtio scsi survey gate keeps present files present and missing files absent" {
