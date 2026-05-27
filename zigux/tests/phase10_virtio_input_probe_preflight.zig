@@ -116,3 +116,51 @@ test "phase10 virtio input probe preflight keeps identity helper ahead of queue 
     try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.identity_incomplete, summary.blocker.?);
     try std.testing.expect(!probe_preflight.readyForProbeHandoff(summary));
 }
+
+test "phase10 virtio input probe preflight revokes probe handoff until capability setup is restored after reset" {
+    var device = try virtio_input.VirtioInputLab.init("probe-reset-tablet", "serial-reset", 14, null);
+
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(4);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+    try device.configureConfigBitmap(.ev_bits, 0x02, &[_]u16{ 0x00, 0x01 });
+
+    var summary = probe_preflight.summarize(&device);
+    try std.testing.expect(probe_preflight.identityReady(summary));
+    try std.testing.expect(probe_preflight.queuePlanReady(summary));
+    try std.testing.expect(summary.device_ready);
+    try std.testing.expect(probe_preflight.capabilitySetupReady(summary));
+    try std.testing.expect(probe_preflight.multitouchSlotsReady(summary));
+    try std.testing.expectEqual(@as(?virtio_input.ProbePreflightBlocker, null), summary.blocker);
+    try std.testing.expect(!probe_preflight.waitingOnIdentity(summary));
+    try std.testing.expect(probe_preflight.readyForProbeHandoff(summary));
+
+    device.reset();
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(4);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+
+    summary = probe_preflight.summarize(&device);
+    try std.testing.expect(probe_preflight.identityReady(summary));
+    try std.testing.expect(probe_preflight.queuePlanReady(summary));
+    try std.testing.expect(summary.device_ready);
+    try std.testing.expect(!probe_preflight.capabilitySetupReady(summary));
+    try std.testing.expect(probe_preflight.multitouchSlotsReady(summary));
+    try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.capability_setup_incomplete, summary.blocker.?);
+    try std.testing.expect(!probe_preflight.waitingOnIdentity(summary));
+    try std.testing.expect(!probe_preflight.readyForProbeHandoff(summary));
+
+    try device.configureConfigBitmap(.ev_bits, 0x02, &[_]u16{ 0x00, 0x01 });
+
+    summary = probe_preflight.summarize(&device);
+    try std.testing.expect(probe_preflight.identityReady(summary));
+    try std.testing.expect(probe_preflight.queuePlanReady(summary));
+    try std.testing.expect(summary.device_ready);
+    try std.testing.expect(probe_preflight.capabilitySetupReady(summary));
+    try std.testing.expect(probe_preflight.multitouchSlotsReady(summary));
+    try std.testing.expectEqual(@as(?virtio_input.ProbePreflightBlocker, null), summary.blocker);
+    try std.testing.expect(!probe_preflight.waitingOnIdentity(summary));
+    try std.testing.expect(probe_preflight.readyForProbeHandoff(summary));
+}
