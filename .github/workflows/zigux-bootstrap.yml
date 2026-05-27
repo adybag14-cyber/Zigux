@@ -666,6 +666,9 @@ jobs:
       - name: Run current Phase 12 aggregate route
         run: make -C zigux phase12
 
+      - name: Run current Phase 12 virtio_net syntax-lab companion
+        run: make -C zigux phase12-virtio-net-syntax-lab-test
+
       - name: Self-test current Phase 14 shared smoke route checker
         run: python3 scripts/zigux/check-phase14-shared-smoke-route.py --self-test
 
