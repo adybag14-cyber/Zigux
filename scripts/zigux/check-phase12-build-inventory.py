@@ -541,7 +541,6 @@ def run_self_test() -> int:
             raise SystemExit(f"expected missing steps failure, got {failures!r}")
 
         write_fixture_root(base)
-        (base / BUILD_PATH).writeText = None
         (base / BUILD_PATH).write_text(
             (base / BUILD_PATH)
             .read_text(encoding="utf-8")
