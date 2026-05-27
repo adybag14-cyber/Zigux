@@ -603,6 +603,40 @@ test "phase8 file-path bridge keeps missing-map-name reuse planning explicit" {
     try std.testing.expect(!token_plan.should_attempt_token_open);
 }
 
+test "phase8 file-path bridge keeps retained-name dispositions and incomplete fdinfo gating explicit" {
+    const terminated_prefix = try summarizeReusedMapName("stats_map\x00shadow");
+    try std.testing.expectEqual(ReusedMapNameDisposition.terminated_prefix, terminated_prefix.disposition);
+    try std.testing.expectEqual(@as(?usize, 9), terminated_prefix.terminator_index);
+    try std.testing.expectEqualStrings("stats_map", terminated_prefix.name);
+
+    const fixed_width = try summarizeReusedMapName("stats_map");
+    try std.testing.expectEqual(ReusedMapNameDisposition.truncated_fixed_width, fixed_width.disposition);
+    try std.testing.expectEqual(@as(?usize, null), fixed_width.terminator_index);
+    try std.testing.expectEqualStrings("stats_map", fixed_width.name);
+
+    const parsed = try parseFdinfoMapInfo(
+        \\map_type: 14
+        \\key_size: 4
+        \\value_size: 8
+    );
+    const reuse_attempt = try resolveReusePinnedMapAttempt("stats_map\x00shadow", parsed);
+    try std.testing.expectEqual(
+        ReusePinnedMapAttemptDisposition.incomplete_fdinfo_map_info,
+        reuse_attempt.disposition,
+    );
+    try std.testing.expect(!reuse_attempt.should_attempt_reopen);
+    try std.testing.expectEqual(@as(usize, 3), reuse_attempt.fdinfo_summary.parsed_field_count);
+    try std.testing.expect(!reuse_attempt.fdinfo_summary.has_complete_legacy_fields);
+    try std.testing.expectEqualStrings("stats_map", reuse_attempt.retained_name.?);
+
+    const token_plan = planTokenPreparation(reuse_attempt);
+    try std.testing.expectEqual(
+        TokenPreparationDisposition.skip_token_open_attempt,
+        token_plan.disposition,
+    );
+    try std.testing.expect(!token_plan.should_attempt_token_open);
+}
+
 test "phase8 file-path bridge treats a leading NUL map name as missing" {
     const parsed = try parseFdinfoMapInfo(
         \\map_type: 14
