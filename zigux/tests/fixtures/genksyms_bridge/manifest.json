@@ -38,6 +38,8 @@
   ],
   "process_output_packet": [
     "abbreviated_version_expected.json",
+    "version_before_short_help_expected.json",
+    "version_before_long_help_expected.json",
     "ambiguous_long_option_expected.json",
     "invalid_option_expected.json",
     "missing_long_dump_types_argument_expected.json",
