@@ -142,6 +142,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const trace_events_payload_preview_contract_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/trace_events_payload_preview_contract.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const phase5_trace_events_string_formatting_companion_survey_module = b.createModule(.{
         .root_source_file = b.path("phase5_trace_events_string_formatting_companion_survey.zig"),
         .target = target,
@@ -376,6 +381,20 @@ pub fn build(b: *std.Build) void {
         &run_phase5_trace_events_callback_focus_companion_tests.step,
     );
 
+    const phase5_trace_events_payload_preview_companion_tests = b.addTest(.{
+        .name = "phase5-trace-events-payload-preview-companion-tests",
+        .root_module = trace_events_payload_preview_contract_module,
+    });
+    const run_phase5_trace_events_payload_preview_companion_tests =
+        b.addRunArtifact(phase5_trace_events_payload_preview_companion_tests);
+    const phase5_trace_events_payload_preview_companion_step = b.step(
+        "phase5-trace-events-payload-preview-companion",
+        "Run the Phase 5 trace-events payload-preview companion checks",
+    );
+    phase5_trace_events_payload_preview_companion_step.dependOn(
+        &run_phase5_trace_events_payload_preview_companion_tests.step,
+    );
+
     const test_step = b.step("test", "Run Phase 5 reference sample checks");
     test_step.dependOn(&run_phase5_bytestream_fifo_sample_selfcheck_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_window_contract_tests.step);
@@ -398,4 +417,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase5_trace_events_string_formatting_companion_tests.step);
     test_step.dependOn(&run_phase5_trace_events_string_formatting_companion_survey_tests.step);
     test_step.dependOn(&run_phase5_trace_events_callback_focus_companion_tests.step);
+    test_step.dependOn(&run_phase5_trace_events_payload_preview_companion_tests.step);
 }
