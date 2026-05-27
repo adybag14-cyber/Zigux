@@ -34,6 +34,16 @@ pub const BitmapView = struct {
         return (self.bit_len + (word_bits - 1)) / word_bits;
     }
 
+    fn maskedWord(self: BitmapView, index: usize) Word {
+        std.debug.assert(index < self.activeWordLen());
+
+        var masked = self.words[index];
+        if (index == self.activeWordLen() - 1) {
+            masked &= tailMask(self.bit_len);
+        }
+        return masked;
+    }
+
     pub fn isSet(self: BitmapView, bit_index: usize) bool {
         std.debug.assert(bit_index < self.bit_len);
         return (self.words[wordIndex(bit_index)] & bitMask(bit_index)) != 0;
@@ -43,22 +53,15 @@ pub const BitmapView = struct {
         if (self.bit_len == 0) return 0;
 
         var total: usize = 0;
-        for (self.words[0..self.activeWordLen()], 0..) |word, index| {
-            var masked = word;
-            if (index == self.activeWordLen() - 1) {
-                masked &= tailMask(self.bit_len);
-            }
-            total += @popCount(masked);
+        for (0..self.activeWordLen()) |index| {
+            total += @popCount(self.maskedWord(index));
         }
         return total;
     }
 
     pub fn firstSetBit(self: BitmapView) ?usize {
-        for (self.words[0..self.activeWordLen()], 0..) |word, index| {
-            var masked = word;
-            if (index == self.activeWordLen() - 1) {
-                masked &= tailMask(self.bit_len);
-            }
+        for (0..self.activeWordLen()) |index| {
+            const masked = self.maskedWord(index);
             if (masked == 0) continue;
 
             const base = index * word_bits;
@@ -70,11 +73,8 @@ pub const BitmapView = struct {
     pub fn firstClearBit(self: BitmapView) ?usize {
         if (self.bit_len == 0) return null;
 
-        for (self.words[0..self.activeWordLen()], 0..) |word, index| {
-            var masked = ~word;
-            if (index == self.activeWordLen() - 1) {
-                masked &= tailMask(self.bit_len);
-            }
+        for (0..self.activeWordLen()) |index| {
+            const masked = ~self.maskedWord(index) & tailMask(@min(self.bit_len, (index + 1) * word_bits));
             if (masked == 0) continue;
 
             const base = index * word_bits;
@@ -82,6 +82,24 @@ pub const BitmapView = struct {
             if (bit < self.bit_len) return bit;
         }
         return null;
+    }
+
+    pub fn isSubsetOf(self: BitmapView, other: BitmapView) bool {
+        std.debug.assert(self.bit_len == other.bit_len);
+
+        for (0..self.activeWordLen()) |index| {
+            if ((self.maskedWord(index) & ~other.maskedWord(index)) != 0) return false;
+        }
+        return true;
+    }
+
+    pub fn intersects(self: BitmapView, other: BitmapView) bool {
+        std.debug.assert(self.bit_len == other.bit_len);
+
+        for (0..self.activeWordLen()) |index| {
+            if ((self.maskedWord(index) & other.maskedWord(index)) != 0) return true;
+        }
+        return false;
     }
 };
 
@@ -128,4 +146,28 @@ test "bitmap view finds the first clear bit across word boundaries" {
     const view = BitmapView.init(words[0..], bit_len);
 
     try std.testing.expectEqual(@as(usize, word_bits + 2), view.firstClearBit().?);
+}
+
+test "bitmap view keeps subset and overlap checks bounded to active bits" {
+    const bit_len = word_bits + 2;
+    const base_words = [_]Word{
+        bitMask(1),
+        @as(Word, 1) << 2,
+    };
+    const superset_words = [_]Word{
+        bitMask(1),
+        @as(Word, 1) << 0,
+    };
+    const disjoint_words = [_]Word{
+        bitMask(3),
+        @as(Word, 1) << 2,
+    };
+
+    const base = BitmapView.init(base_words[0..], bit_len);
+    const superset = BitmapView.init(superset_words[0..], bit_len);
+    const disjoint = BitmapView.init(disjoint_words[0..], bit_len);
+
+    try std.testing.expect(base.isSubsetOf(superset));
+    try std.testing.expect(!superset.isSubsetOf(base));
+    try std.testing.expect(!base.intersects(disjoint));
 }
