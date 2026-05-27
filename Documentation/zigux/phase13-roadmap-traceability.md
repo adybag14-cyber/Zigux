@@ -1,6 +1,6 @@
 # Phase 13 Roadmap Traceability
 
-This note keeps the roadmap-to-repo owner map truthful for the active Phase 13 shared-helper packet on current `master`.
+This note restores the roadmap-to-repo owner map for the active Phase 13 shared-helper packet on current `master`.
 
 ## Roadmap Fit
 
@@ -24,19 +24,25 @@ When shared Phase 13 wording changes, keep these reminder surfaces aligned first
 - `scripts/zigux/check-phase13-tests-readme-alignment.py`
 - `scripts/zigux/validate-phase13-release.py`
 
-Keep `zigux/Makefile` distinct from the still-missing shared wrapper names `make -C zigux phase13-validate` and `make -C zigux phase13`.
+- stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+
+Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep `zigux/Makefile` distinct from the still-missing shared wrapper names `make -C zigux phase13-validate` and `make -C zigux phase13`.
 
 ## Anchor Map
 
 Current `master` maps the four roadmap anchors to these bounded packet states:
 - `fs/libfs.c`: bounded helper packet and reviewability work stay split between the shipped helper-local files and the still-missing `zigux/tests/phase13_libfs_addressability.zig` gap.
-- `lib/devres.c`: bounded helper packet and planner families stay split between the shipped DMA, iomap, iounmap, and scatterlist files and the still-missing direct replay, reviewability, and manifest companions.
+- `lib/devres.c`: bounded helper packet and planner families stay split between the shipped DMA, iomap, iounmap, and scatterlist files and the still-missing direct replay, reviewability, and manifest companions. Keep `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-iounmap-planner.md`, `Documentation/zigux/phase13-devres-iomap-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py`, `scripts/zigux/check-phase13-devres-iounmap-planner.py`, `scripts/zigux/check-phase13-devres-iomap-planner.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `scripts/zigux/check-phase13-devres-current-packet.py`, `scripts/zigux/check-phase13-devres-scatterlist-planner.py`, `lib/devres.zig`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig`, `zigux/tests/phase13_devres_iounmap_planner.zig`, `zigux/tests/phase13_devres_iounmap_planner_manifest.json`, `zigux/tests/phase13_devres_iomap_planner.zig`, and `zigux/tests/phase13_devres_iomap_planner_manifest.json` explicit as shipped current-`master` packet members while the older direct replay and manifest companions stay gap-only.
 - `security/landlock/ruleset.c`: bounded helper packet stays mapped through `security/landlock/ruleset.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, and `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, while the slice and ownership notes remain repo-reality gaps.
-- `security/landlock/syscalls.c`: current `master` materializes the helper-local packet plus the direct replay and direct reviewability companions through `security/landlock/syscalls.zig`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md`, `scripts/zigux/check-phase13-landlock-syscalls-packet.py`, `zigux/tests/phase13_landlock_syscalls.zig`, and `zigux/tests/phase13_landlock_syscalls_reviewability.zig`. The direct manifest companion `zigux/tests/phase13_landlock_syscalls_manifest.json` and the older shared `zigux/tests/phase13_build.zig` route remain repo-reality gaps.
+- `security/landlock/syscalls.c`: keep the helper-local packet explicit through `security/landlock/syscalls.zig`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, and `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md`, but keep `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` framed as repo-reality gaps until current `master` materializes them again.
 
 ## Adjacent Evidence
 
 Adjacent notifier evidence can support release-surface truthfulness, but it does not become a fifth roadmap anchor.
+
+## Release Discipline
+
+Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, still-missing direct Landlock syscall companions, older direct devres companions, and missing notifier-chain companion.
 
 ## Repo-Reality Gaps
 
