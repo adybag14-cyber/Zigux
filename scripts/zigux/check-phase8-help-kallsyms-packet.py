@@ -19,6 +19,7 @@ HELP_SLICE = Path("Documentation/zigux/phase8-help-slice.md")
 KALLSYMS_SLICE = Path("Documentation/zigux/phase8-kallsyms-slice.md")
 CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 VALIDATOR = Path("scripts/zigux/validate-phase8.py")
+SCRIPTS_README = Path("scripts/zigux/README.md")
 MAKEFILE = Path("zigux/Makefile")
 TESTS_README = Path("zigux/tests/README.md")
 HELP_KALLSYMS_BUILD = Path("zigux/tests/phase8_help_kallsyms_only_build.zig")
@@ -34,6 +35,7 @@ REQUIRED_FILES = (
     KALLSYMS_SLICE,
     CHECKLIST,
     VALIDATOR,
+    SCRIPTS_README,
     MAKEFILE,
     TESTS_README,
     HELP_KALLSYMS_BUILD,
@@ -76,6 +78,13 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     VALIDATOR: (
         'HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")',
         'HELP_KALLSYMS_BUILD_SHARD_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-build-shard.py")',
+    ),
+    SCRIPTS_README: (
+        "## Phase 8",
+        "scripts/zigux/check-phase8-help-kallsyms-packet.py",
+        "returned help, kallsyms, and broader libbpf-segment companions as public-tree-backed broader packet evidence instead of as missing routes or direct scripts-root anchors",
+        "current public-tree rereads plus the shared packet guards `scripts/zigux/check-phase8-help-kallsyms-packet.py` and `scripts/zigux/check-phase8-libbpf-shard-routes.py` rematerialize those broader help, kallsyms, and libbpf-segment companions on `master`",
+        "`Documentation/zigux/phase8-kallsyms-slice.md`, `tools/lib/symbol/kallsyms.zig`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig`",
     ),
     MAKEFILE: (
         "phase8-help-test:",
