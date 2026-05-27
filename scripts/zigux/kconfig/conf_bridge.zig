@@ -1,6 +1,8 @@
 const std = @import("std");
 const Io = std.Io;
 
+const mode_arg_literal_separator = "--";
+
 pub const Mode = enum {
     oldaskconfig,
     syncconfig,
@@ -180,6 +182,35 @@ fn validateModeArgument(mode: Mode, value: []const u8) ModeArgumentError![]const
     return value;
 }
 
+fn parseModeArgument(mode: Mode, args: []const []const u8, next_index: *usize) ModeArgumentError!?[]const u8 {
+    if (!modeRequiresArgument(mode)) {
+        if (next_index.* < args.len) {
+            if (std.mem.eql(u8, args[next_index.*], mode_arg_literal_separator)) {
+                return error.UnexpectedModeArgument;
+            }
+            if (!looksLikeBridgeOption(args[next_index.*])) {
+                return error.UnexpectedModeArgument;
+            }
+        }
+        return null;
+    }
+
+    if (next_index.* >= args.len) return error.MissingArgument;
+
+    if (std.mem.eql(u8, args[next_index.*], mode_arg_literal_separator)) {
+        next_index.* += 1;
+        if (next_index.* >= args.len) return error.MissingArgument;
+        const value = args[next_index.*];
+        if (value.len == 0) return error.MissingArgument;
+        next_index.* += 1;
+        return value;
+    }
+
+    const value = try validateModeArgument(mode, args[next_index.*]);
+    next_index.* += 1;
+    return value;
+}
+
 fn writeHexLower(writer: anytype, value: u8) !void {
     const digits = "0123456789abcdef";
     try writer.writeByte(digits[value >> 4]);
@@ -332,10 +363,10 @@ pub fn main(init: std.process.Init) !void {
     const io = init.io;
     const args = try init.minimal.args.toSlice(arena);
 
-    if (args.len < 5 or args.len > 9) {
-        var stderr_buffer: [220]u8 = undefined;
+    if (args.len < 5) {
+        var stderr_buffer: [280]u8 = undefined;
         var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg] [silent] [allconfig=<value>] [seed=<value>] [probability=<value>] [nosilentupdate=<value>]\n");
+        try stderr_writer.interface.writeAll("Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg|-- <literal-mode-arg>] [silent] [allconfig=<value>] [seed=<value>] [probability=<value>] [nosilentupdate=<value>]\n");
         try stderr_writer.interface.flush();
         std.process.exit(1);
     }
@@ -349,37 +380,16 @@ pub fn main(init: std.process.Init) !void {
     };
 
     var next_index: usize = 5;
-    const mode_arg = blk: {
-        if (!modeRequiresArgument(mode)) {
-            if (args.len > next_index and !looksLikeBridgeOption(args[next_index])) {
-                var stderr_buffer: [160]u8 = undefined;
-                var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-                try stderr_writer.interface.writeAll("Error: unexpected mode argument\n");
-                try stderr_writer.interface.flush();
-                std.process.exit(1);
-            }
-            break :blk null;
-        }
-        if (args.len == next_index) {
-            var stderr_buffer: [160]u8 = undefined;
-            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-            try stderr_writer.interface.writeAll(missingModeArgumentMessage(mode));
-            try stderr_writer.interface.flush();
-            std.process.exit(1);
-        }
-        const value = validateModeArgument(mode, args[next_index]) catch |err| {
-            var stderr_buffer: [160]u8 = undefined;
-            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-            const message = switch (err) {
-                error.MissingArgument => missingModeArgumentMessage(mode),
-                error.UnexpectedModeArgument => "Error: unexpected mode argument\n",
-            };
-            try stderr_writer.interface.writeAll(message);
-            try stderr_writer.interface.flush();
-            std.process.exit(1);
+    const mode_arg = parseModeArgument(mode, args, &next_index) catch |err| {
+        var stderr_buffer: [160]u8 = undefined;
+        var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+        const message = switch (err) {
+            error.MissingArgument => missingModeArgumentMessage(mode),
+            error.UnexpectedModeArgument => "Error: unexpected mode argument\n",
         };
-        next_index += 1;
-        break :blk value;
+        try stderr_writer.interface.writeAll(message);
+        try stderr_writer.interface.flush();
+        std.process.exit(1);
     };
 
     const options = parseBridgeOptions(mode, args[next_index..]) catch |err| {
@@ -581,7 +591,7 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     try std.testing.expect(std.mem.indexOf(u8, implicit_capture.list.items, "\"KCONFIG_ALLCONFIG\"") == null);
     try std.testing.expect(std.mem.indexOf(u8, implicit_capture.list.items, "\"allconfig_fallbacks\"") == null);
 
-    var explicit_capture = try TestCapture.init(std.testing.allocator, 224);
+    var explicit_capture = try TestCapture.init(std.testing.allocator, 160);
     defer explicit_capture.deinit();
 
     try runConfBridge(&explicit_capture, .{
@@ -596,7 +606,7 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     try std.testing.expect(std.mem.indexOf(u8, explicit_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, explicit_capture.list.items, "\"allconfig_fallbacks\":[\"allmod.config\",\"all.config\"]") != null);
 
-    var default_no_capture = try TestCapture.init(std.testing.allocator, 224);
+    var default_no_capture = try TestCapture.init(std.testing.allocator, 192);
     defer default_no_capture.deinit();
 
     try runConfBridge(&default_no_capture, .{
@@ -626,7 +636,7 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     try std.testing.expect(std.mem.indexOf(u8, path_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
     try std.testing.expect(std.mem.indexOf(u8, path_capture.list.items, "\"allconfig_fallbacks\"") == null);
 
-    var default_yes_capture = try TestCapture.init(std.testing.allocator, 224);
+    var default_yes_capture = try TestCapture.init(std.testing.allocator, 192);
     defer default_yes_capture.deinit();
 
     try runConfBridge(&default_yes_capture, .{
@@ -640,7 +650,7 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     try std.testing.expect(std.mem.indexOf(u8, default_yes_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, default_yes_capture.list.items, "\"allconfig_fallbacks\":[\"allyes.config\",\"all.config\"]") != null);
 
-    var empty_capture = try TestCapture.init(std.testing.allocator, 224);
+    var empty_capture = try TestCapture.init(std.testing.allocator, 192);
     defer empty_capture.deinit();
 
     try runConfBridge(&empty_capture, .{
@@ -710,7 +720,7 @@ test "conf bridge emits explicit randconfig allconfig override when present" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"allconfig_fallbacks\"") == null);
 
-    var empty_capture = try TestCapture.init(std.testing.allocator, 256);
+    var empty_capture = try TestCapture.init(std.testing.allocator, 224);
     defer empty_capture.deinit();
 
     try runConfBridge(&empty_capture, .{
@@ -832,6 +842,25 @@ test "mode argument validation accepts defconfig path that only starts with sile
 
 test "mode argument validation still accepts ordinary path text with equals" {
     try std.testing.expectEqualStrings("arch/x86/configs/debug=1_defconfig", try validateModeArgument(.defconfig, "arch/x86/configs/debug=1_defconfig"));
+}
+
+test "mode argument parser accepts literal bridge-option-shaped values via separator" {
+    var defconfig_index: usize = 0;
+    const defconfig_value = try parseModeArgument(.defconfig, &.{ "--", "silent" }, &defconfig_index);
+    try std.testing.expect(defconfig_value != null);
+    try std.testing.expectEqualStrings("silent", defconfig_value.?);
+    try std.testing.expectEqual(@as(usize, 2), defconfig_index);
+
+    var savedefconfig_index: usize = 0;
+    const savedefconfig_value = try parseModeArgument(.savedefconfig, &.{ "--", "allconfig=mini.config" }, &savedefconfig_index);
+    try std.testing.expect(savedefconfig_value != null);
+    try std.testing.expectEqualStrings("allconfig=mini.config", savedefconfig_value.?);
+    try std.testing.expectEqual(@as(usize, 2), savedefconfig_index);
+}
+
+test "mode argument parser requires a literal value after separator" {
+    var missing_index: usize = 0;
+    try std.testing.expectError(error.MissingArgument, parseModeArgument(.defconfig, &.{"--"}, &missing_index));
 }
 
 test "bridge options parser accepts explicit allconfig override for allmodconfig" {
