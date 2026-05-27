@@ -8,15 +8,31 @@ pub const MakeValueError = error{
     ValueWouldOverlapErrPtr,
 };
 
+pub const RejectedEncoding = enum {
+    alias_err_ptr,
+    wrap_low_value,
+};
+
+fn uncheckedRaw(value: usize) usize {
+    return (value *% 2) | value_tag_mask;
+}
+
 pub fn canRepresent(value: usize) bool {
     return value <= safe_inline_limit;
+}
+
+pub fn classifyRejectedEncoding(value: usize) ?RejectedEncoding {
+    if (canRepresent(value)) {
+        return null;
+    }
+    return if (err_ptr.isErrValue(uncheckedRaw(value))) .alias_err_ptr else .wrap_low_value;
 }
 
 pub fn makeValue(value: usize) MakeValueError!usize {
     if (!canRepresent(value)) {
         return error.ValueWouldOverlapErrPtr;
     }
-    return (value << 1) | value_tag_mask;
+    return uncheckedRaw(value);
 }
 
 pub fn isValue(raw: usize) bool {
@@ -63,11 +79,51 @@ test "highest representable inline value stays below the err_ptr floor" {
 
 test "first rejected inline value aliases the err_ptr floor" {
     const overlapping_value = safe_inline_limit + 1;
-    const raw = (overlapping_value << 1) | value_tag_mask;
+    const raw = uncheckedRaw(overlapping_value);
 
     try std.testing.expect(!canRepresent(overlapping_value));
     try std.testing.expectError(error.ValueWouldOverlapErrPtr, makeValue(overlapping_value));
     try std.testing.expectEqual(err_ptr.err_floor, raw);
     try std.testing.expect(err_ptr.isErrValue(raw));
     try std.testing.expect(!isValue(raw));
+}
+
+test "rejected inline values distinguish err-band aliases from wrapped low values" {
+    const first_alias_value = safe_inline_limit + 1;
+    const last_alias_value = std.math.maxInt(usize) >> 1;
+    const first_wrap_value = last_alias_value + 1;
+    const second_wrap_value = last_alias_value + 2;
+
+    try std.testing.expectEqual(
+        RejectedEncoding.alias_err_ptr,
+        classifyRejectedEncoding(first_alias_value).?,
+    );
+    try std.testing.expectEqual(
+        RejectedEncoding.alias_err_ptr,
+        classifyRejectedEncoding(last_alias_value).?,
+    );
+    try std.testing.expectEqual(err_ptr.fromErrorCode(-1), uncheckedRaw(last_alias_value));
+
+    try std.testing.expectEqual(
+        RejectedEncoding.wrap_low_value,
+        classifyRejectedEncoding(first_wrap_value).?,
+    );
+    try std.testing.expectEqual(
+        RejectedEncoding.wrap_low_value,
+        classifyRejectedEncoding(second_wrap_value).?,
+    );
+    try std.testing.expectEqual(@as(usize, 1), uncheckedRaw(first_wrap_value));
+    try std.testing.expectEqual(@as(usize, 3), uncheckedRaw(second_wrap_value));
+    try std.testing.expect(isValue(uncheckedRaw(first_wrap_value)));
+    try std.testing.expect(isValue(uncheckedRaw(second_wrap_value)));
+    try std.testing.expectError(error.ValueWouldOverlapErrPtr, makeValue(first_wrap_value));
+    try std.testing.expectError(error.ValueWouldOverlapErrPtr, makeValue(second_wrap_value));
+}
+
+test "representable values do not classify as rejected encodings" {
+    try std.testing.expectEqual(@as(?RejectedEncoding, null), classifyRejectedEncoding(0));
+    try std.testing.expectEqual(
+        @as(?RejectedEncoding, null),
+        classifyRejectedEncoding(safe_inline_limit),
+    );
 }
