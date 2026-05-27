@@ -541,6 +541,52 @@ test "nvme pci recovery reservation replay debt summary keeps controller and pla
     try testing.expectEqual(@as(usize, 0), planner_full.planner_remaining_io_slots);
 }
 
+test "nvme pci recovery reservation replay apply stays non-mutating when no controller queues are available" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const reservation = try lab.reserveIoQueues(4, 4);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+    _ = try lab.planAdminQueue(32, 64, false);
+
+    const before_recovery = lab.recoverySummary();
+    const before_retirement = lab.summarizeDroppedIoRetirement();
+    const before_rollback = lab.recoveryRollbackGateSummary();
+
+    try testing.expectError(error.NoControllerIoQueuesAvailable, lab.applyRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 0));
+
+    const after_recovery = lab.recoverySummary();
+    try testing.expectEqual(before_recovery.state, after_recovery.state);
+    try testing.expectEqual(before_recovery.reset_generation, after_recovery.reset_generation);
+    try testing.expectEqual(before_recovery.planned_io_queues, after_recovery.planned_io_queues);
+    try testing.expectEqual(before_recovery.last_admin_queue_depth, after_recovery.last_admin_queue_depth);
+
+    const after_retirement = lab.summarizeDroppedIoRetirement();
+    try testing.expectEqual(before_retirement.dropped_io_queue_count, after_retirement.dropped_io_queue_count);
+    try testing.expectEqual(before_retirement.rebuilt_io_queue_count, after_retirement.rebuilt_io_queue_count);
+    try testing.expectEqual(before_retirement.remaining_io_queue_count, after_retirement.remaining_io_queue_count);
+    try testing.expectEqual(before_retirement.queue_numbering_restarted, after_retirement.queue_numbering_restarted);
+    try testing.expectEqual(before_retirement.can_retire_dropped_io_backlog, after_retirement.can_retire_dropped_io_backlog);
+
+    const after_rollback = lab.recoveryRollbackGateSummary();
+    try testing.expectEqual(before_rollback.rollback_blocker, after_rollback.rollback_blocker);
+    try testing.expectEqual(before_rollback.rebuilt_io_queue_count, after_rollback.rebuilt_io_queue_count);
+    try testing.expectEqual(before_rollback.remaining_io_queue_count, after_rollback.remaining_io_queue_count);
+    try testing.expectEqual(before_rollback.rebuilt_io_host_dma_pages, after_rollback.rebuilt_io_host_dma_pages);
+    try testing.expectEqual(before_rollback.remaining_io_host_dma_pages, after_rollback.remaining_io_host_dma_pages);
+    try testing.expectEqual(before_rollback.can_clear_rollback_gate, after_rollback.can_clear_rollback_gate);
+
+    try testing.expectEqual(@as(u16, 1), lab.next_io_queue_id);
+}
+
 test "nvme pci recovery reservation replay debt summary keeps replay-ready stale reservation debt explicit before mutation" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
     _ = try lab.planAdminQueue(32, 64, false);
