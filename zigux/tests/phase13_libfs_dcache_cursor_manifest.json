@@ -1,0 +1,55 @@
+{
+  "lane_key": "P13-L01",
+  "phase": "Phase 13",
+  "surveyed_commit": "master-readback-2026-05-27",
+  "anchor": "fs/libfs.c",
+  "roadmap_destinations": [
+    "fs/libfs_dcache_cursor.zig",
+    "zigux/tests/phase13_libfs_dcache_cursor.zig",
+    "Documentation/zigux/phase13-libfs-dcache-cursor-planner.md",
+    "scripts/zigux/check-phase13-libfs-dcache-cursor-packet.py"
+  ],
+  "survey_summary": {
+    "current_dcache_cursor_helper_present": true,
+    "current_dcache_cursor_replay_present": true,
+    "current_dcache_cursor_packet_note_present": true,
+    "current_phase13_build_present": false
+  },
+  "gaps": [
+    {
+      "id": "phase13-libfs-dcache-dir-open-precondition-planner",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "fs/libfs_dcache_cursor.zig",
+      "why_now": "Current master now keeps dcache_dir_open preconditions explicit without claiming live cursor insertion side effects."
+    },
+    {
+      "id": "phase13-libfs-dcache-readdir-precondition-planner",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "fs/libfs_dcache_cursor.zig",
+      "why_now": "Current master now keeps dcache_readdir cursor gating explicit without claiming sibling traversal or lock ordering."
+    },
+    {
+      "id": "phase13-libfs-dcache-cursor-review-packet",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_libfs_dcache_cursor.zig",
+      "why_now": "The focused replay and packet checker keep this helper-first cursor packet reviewable on its own."
+    },
+    {
+      "id": "phase13-build-gate",
+      "status": "missing_on_current_master",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_build.zig",
+      "why_now": "The older shared Phase 13 build route is still absent, so this cursor packet remains focused rather than shared-build-backed."
+    },
+    {
+      "id": "phase13-libfs-live-cursor-traversal",
+      "status": "blocked_on_dcache_state",
+      "kind": "runtime_boundary",
+      "zigux_destination": "fs/libfs_dcache_cursor.zig",
+      "why_now": "This packet must not overclaim private cursor dentry traversal, sibling walking, or rename-side cursor relocation."
+    }
+  ]
+}
