@@ -7,7 +7,7 @@ pub const MemparseResult = cmdline.MemparseResult;
 
 const strscpy_e2big: isize = -7;
 
-pub fn memdup(allocator: std.mem.Allocator, src: []const u8) ![]const u8 {
+pub fn memdup(allocator: std.mem.Allocator, src: []const u8) ![]u8 {
     return allocator.dupe(u8, src);
 }
 
@@ -964,9 +964,11 @@ test "strncasecmp stops at embedded NULs and shorter prefixes" {
 }
 
 test "memdup and memchrInv preserve byte content" {
-    const dup = try memdup(std.testing.allocator, "abc");
+    var dup = try memdup(std.testing.allocator, "abc");
     defer std.testing.allocator.free(dup);
     try std.testing.expectEqualStrings("abc", dup);
+    dup[0] = 'z';
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'z', 'b', 'c' }, dup);
     try std.testing.expectEqual(@as(?usize, 2), memchrInv(&[_]u8{ 'x', 'x', 'y' }, 'x'));
 }
 
