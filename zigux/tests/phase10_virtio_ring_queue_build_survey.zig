@@ -32,7 +32,15 @@ test "phase10 virtio ring queue build keeps the focused queue packet explicit" {
     );
     try expectContains(
         build_file,
+        ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_notification_data.zig\"),",
+    );
+    try expectContains(
+        build_file,
         ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_registration_summary.zig\"),",
+    );
+    try expectContains(
+        build_file,
+        ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_reset_readiness.zig\"),",
     );
     try expectContains(
         build_file,
@@ -52,6 +60,10 @@ test "phase10 virtio ring queue build keeps the focused queue packet explicit" {
     );
     try expectContains(
         build_file,
+        ".root_source_file = b.path(\"phase10_virtio_ring_reset_readiness.zig\"),",
+    );
+    try expectContains(
+        build_file,
         ".root_source_file = b.path(\"phase10_virtio_ring_broken_queue_queue_discipline.zig\"),",
     );
     try expectContains(
@@ -64,11 +76,13 @@ test "phase10 virtio ring queue build keeps the focused queue packet explicit" {
     );
     try expectContains(build_file, ".name = \"phase10-virtio-ring-verify-tests\",");
     try expectContains(build_file, ".name = \"phase10-virtio-ring-publish-readiness-tests\",");
+    try expectContains(build_file, ".name = \"phase10-virtio-ring-notification-data-wrapper-tests\",");
     try expectContains(build_file, ".name = \"phase10-virtio-ring-registration-summary-tests\",");
     try expectContains(build_file, ".name = \"phase10-virtio-ring-notification-data-readiness-tests\",");
     try expectContains(build_file, ".name = \"phase10-virtio-ring-registration-replay-tests\",");
     try expectContains(build_file, ".name = \"phase10-virtio-ring-prepare-kick-idempotent-tests\",");
     try expectContains(build_file, ".name = \"phase10-virtio-ring-reset-reuse-tests\",");
+    try expectContains(build_file, ".name = \"phase10-virtio-ring-reset-readiness-tests\",");
     try expectContains(build_file, ".name = \"phase10-virtio-ring-broken-queue-queue-discipline-tests\",");
     try expectContains(build_file, ".name = \"phase10-virtio-ring-delayed-callback-budget-tests\",");
     try expectContains(build_file, ".name = \"phase10-virtio-ring-queue-build-survey-tests\",");
@@ -83,6 +97,10 @@ test "phase10 virtio ring queue build keeps the focused queue packet explicit" {
     );
     try expectContains(
         build_file,
+        "phase10_virtio_ring_queue_tests.dependOn(\n        &run_phase10_virtio_ring_notification_data_wrapper_tests.step,\n    );",
+    );
+    try expectContains(
+        build_file,
         "phase10_virtio_ring_queue_tests.dependOn(\n        &run_phase10_virtio_ring_registration_replay_tests.step,\n    );",
     );
     try expectContains(
@@ -91,11 +109,23 @@ test "phase10 virtio ring queue build keeps the focused queue packet explicit" {
     );
     try expectContains(
         build_file,
+        "phase10_virtio_ring_queue_tests.dependOn(\n        &run_phase10_virtio_ring_reset_readiness_tests.step,\n    );",
+    );
+    try expectContains(
+        build_file,
         "phase10_virtio_ring_queue_tests.dependOn(\n        &run_phase10_virtio_ring_queue_build_survey_tests.step,\n    );",
     );
     try expectContains(
         build_file,
+        "test_step.dependOn(&run_phase10_virtio_ring_notification_data_wrapper_tests.step);",
+    );
+    try expectContains(
+        build_file,
         "test_step.dependOn(&run_phase10_virtio_ring_registration_summary_tests.step);",
+    );
+    try expectContains(
+        build_file,
+        "test_step.dependOn(&run_phase10_virtio_ring_reset_readiness_tests.step);",
     );
     try expectContains(
         build_file,
