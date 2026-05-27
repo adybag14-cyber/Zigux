@@ -20,6 +20,7 @@ Current repo-first reads on `master` keep the Phase 12 PMO support packet explic
 
 - `scripts/zigux/validate-phase12.py`
 - `scripts/zigux/check-build-only-phase12-surface.py`
+- `scripts/zigux/check-phase12-build-inventory.py`
 - `scripts/zigux/check-phase12-release-readiness-packet.py`
 - `scripts/zigux/check-phase12-complex-driver-lane-packet.py`
 - `scripts/zigux/check-phase12-cross-compile-smoke.py`
