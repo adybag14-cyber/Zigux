@@ -123,6 +123,10 @@ test "phase12 virtio net survey manifest tracks the shared-build survey-gate cov
         "standalone syntax-lab compile-smoke pair",
     );
     try expectContains(
+        manifest.roadmap_gap_check.queueing_correctness.current_surface,
+        "phase12-virtio-net-syntax-lab-test",
+    );
+    try expectContains(
         manifest.roadmap_gap_check.throughput_and_recovery_parity.current_surface,
         "explicit receive-refill and transmit-recycle readiness booleans",
     );
@@ -149,6 +153,8 @@ test "phase12 virtio net survey manifest tracks the shared-build survey-gate cov
             try std.testing.expectEqualStrings("survey_present_shared_route_present", gap.status);
             try expectContains(gap.why_now, "`phase12-validate`");
             try expectContains(gap.why_now, "standalone syntax-lab compile-smoke pair");
+            try expectContains(gap.why_now, "phase12-virtio-net-syntax-lab-test");
+            try expectContains(gap.why_now, "direct build-file command");
             try expectContains(gap.why_now, "blocked runtime-data-path boundary");
         }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
@@ -174,16 +180,28 @@ test "phase12 virtio net survey note reflects the shared survey-gate route" {
     try expectContains(survey_note, "zigux/tests/phase12_virtio_net_syntax_lab_build.zig");
     try expectContains(survey_note, "throughput-parity, and `phase12_virtio_net_survey` gates reachable through the shared Phase 12 validate, smoke, and test routes");
     try expectContains(survey_note, "`phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper proof");
-    try expectContains(survey_note, "standalone syntax-lab companion remains compile-smoke evidence");
+    try expectContains(survey_note, "phase12-virtio-net-syntax-lab-test");
+    try expectContains(survey_note, "smoke still runs through the direct build-file command");
     try expectContains(survey_note, "explicit receive-refill and transmit-recycle readiness booleans");
     try expectContains(survey_note, "still does not claim live DMA-safe receive ownership");
     try expectContains(survey_note, "performance-risk wording refresh");
+}
+
+test "phase12 virtio net syntax lab note keeps the standalone wrapper and smoke split explicit" {
+    const syntax_lab_note = try readFileAlloc("Documentation/zigux/phase12-virtio-net-syntax-lab.md", 12 * 1024);
+    defer std.testing.allocator.free(syntax_lab_note);
+
+    try expectContains(syntax_lab_note, "PHASE12_STATUS=standalone-syntax-lab-smoke-present");
+    try expectContains(syntax_lab_note, "phase12-virtio-net-syntax-lab-test");
+    try expectContains(syntax_lab_note, "smoke remains the direct build-file route");
+    try expectContains(syntax_lab_note, "shared Phase 12 sextet stays unchanged");
 }
 
 test "phase12 virtio net survey gate keeps the present files and shared routes explicit" {
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_manifest.json"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_survey.zig"));
     try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-net-survey.md"));
+    try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-net-syntax-lab.md"));
     try std.testing.expect(try pathExists("drivers/net/virtio_net_queue_resume.zig"));
     try std.testing.expect(try pathExists("drivers/net/virtio_net_receive_refill_replay.zig"));
     try std.testing.expect(try pathExists("drivers/net/virtio_net_transmit_recycle.zig"));
@@ -223,5 +241,7 @@ test "phase12 virtio net survey gate keeps the present files and shared routes e
     try expectContains(makefile, "phase12-validate:");
     try expectContains(makefile, "phase12-smoke:");
     try expectContains(makefile, "phase12-test:");
+    try expectContains(makefile, "phase12-virtio-net-syntax-lab-test:");
     try expectContains(makefile, "phase12: phase12-validate phase12-smoke phase12-test");
+    try expectNotContains(makefile, "phase12-virtio-net-syntax-lab-smoke:");
 }
