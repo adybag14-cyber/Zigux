@@ -178,6 +178,12 @@ jobs:
       - name: Self-test current Zig installer helper
         run: python3 scripts/zigux/install-zig.py --self-test
 
+      - name: Self-test current Phase 2 toolchain installer retry checker
+        run: python3 scripts/zigux/check-phase2-toolchain-installer-retry-packet.py --self-test
+
+      - name: Check current Phase 2 toolchain installer retry packet
+        run: python3 scripts/zigux/check-phase2-toolchain-installer-retry-packet.py
+
       - name: Self-test current staged pinned Zig archive helper
         run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test
 
