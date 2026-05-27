@@ -140,12 +140,11 @@ def write_text(root: Path, relative_path: Path, content: str) -> None:
 
 
 def extract_python_list(source: str, name: str) -> list[str]:
-    pattern = rf"^{name}\s*=\s*\[(.*?)^\]$"
-    match = re.search(pattern, source, re.M | re.S)
+    match = re.search(rf"^{name}\s*=\s*(\[(?:.|\n)*?\])", source, re.M)
     if not match:
         raise ValidationError(f"missing checker list: {name}")
     try:
-        return list(ast.literal_eval("[" + match.group(1) + "]"))
+        return list(ast.literal_eval(match.group(1)))
     except (SyntaxError, ValueError) as exc:
         raise ValidationError(f"unable to parse checker list: {name}") from exc
 
