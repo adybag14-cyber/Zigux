@@ -61,6 +61,37 @@ test "first-loadable runtime pilot families keep descriptor parity explicit" {
     try std.testing.expect(kretprobe_descriptor.provides_selftest_hook);
 }
 
+test "first-loadable runtime pilot families keep cold-state selftest and exit rejection aligned" {
+    var atomic_module = RuntimeAtomic64Sample{};
+    var bitmap_module = RuntimeBitmapSample{};
+    var kretprobe_module = RuntimeKretprobeSample{};
+
+    const cold_atomic_snapshot = atomic_module.lifecycleSnapshot();
+    const cold_atomic_summary = atomic_module.summary();
+    const cold_bitmap_summary = bitmap_module.summary();
+    const cold_kretprobe_snapshot = kretprobe_module.lifecycleSnapshot();
+    try expectLifecycleCounts(&atomic_module, &bitmap_module, &kretprobe_module, .cold, 0, 0, 0);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, atomic_module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, bitmap_module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, kretprobe_module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, atomic_module.exit());
+    try std.testing.expectError(error.InvalidLifecycleTransition, bitmap_module.exit());
+    try std.testing.expectError(error.InvalidLifecycleTransition, kretprobe_module.exit());
+
+    try expectLifecycleCounts(&atomic_module, &bitmap_module, &kretprobe_module, .cold, 0, 0, 0);
+    try std.testing.expectEqual(cold_atomic_snapshot.allows_counter_ops, atomic_module.lifecycleSnapshot().allows_counter_ops);
+    try std.testing.expectEqual(cold_atomic_summary.counter_snapshot, atomic_module.summary().counter_snapshot);
+    try std.testing.expectEqual(cold_bitmap_summary.first_set, bitmap_module.summary().first_set);
+    try std.testing.expectEqual(cold_bitmap_summary.first_zero, bitmap_module.summary().first_zero);
+    try std.testing.expectEqual(cold_bitmap_summary.weight, bitmap_module.summary().weight);
+    try std.testing.expectEqual(cold_bitmap_summary.nbits, bitmap_module.summary().nbits);
+    try std.testing.expectEqual(cold_kretprobe_snapshot.registration_runs, kretprobe_module.lifecycleSnapshot().registration_runs);
+    try std.testing.expectEqual(cold_kretprobe_snapshot.unregistration_runs, kretprobe_module.lifecycleSnapshot().unregistration_runs);
+    try std.testing.expectEqual(cold_kretprobe_snapshot.completed_instances, kretprobe_module.lifecycleSnapshot().completed_instances);
+    try std.testing.expectEqual(cold_kretprobe_snapshot.last_retval, kretprobe_module.lifecycleSnapshot().last_retval);
+}
+
 test "first-loadable runtime pilot families keep init selftest and exit counts aligned" {
     var atomic_module = RuntimeAtomic64Sample{};
     var bitmap_module = RuntimeBitmapSample{};
