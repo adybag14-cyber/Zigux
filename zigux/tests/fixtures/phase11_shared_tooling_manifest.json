@@ -7,6 +7,7 @@
     "Documentation/zigux/phase11-shared-replay-contract.md",
     "Documentation/zigux/phase11-driver-lane-sequencing.md",
     "Documentation/zigux/phase11-validation-matrix-gap-survey.md",
+    "Documentation/zigux/phase11-watchdog-lifecycle-parity-gap.md",
     "Documentation/zigux/phase11-codegen-manifest-tooling-gap-survey.md"
   ],
   "shared_checkers": [
@@ -18,9 +19,12 @@
     "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
     "scripts/zigux/check-phase11-matrix-gap-survey.py",
     "scripts/zigux/check-phase11-validation-matrix-gap-survey.py",
+    "scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py",
     "scripts/zigux/check-phase11-header-boundary-packet.py",
     "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+    "scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py",
     "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+    "scripts/zigux/check-phase11-hvc-current-head-manifest.py",
     "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
     "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
     "scripts/zigux/check-phase11-shared-tooling-manifest.py"
