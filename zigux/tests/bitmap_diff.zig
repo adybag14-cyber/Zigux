@@ -230,12 +230,22 @@ test "phase4 bitmap diff gate keeps exact find_nth_bit and out-of-bounds rejecti
     try std.testing.expectError(error.OutOfBounds, bitmap.zeroRange(191, 2));
 }
 
+test "phase4 bitmap diff gate keeps exact 81-bit find_nth_bit window boundary explicit" {
+    var bitmap = Bitmap{};
+    try bitmap.fillPrefix(81);
+
+    try std.testing.expectEqual(@as(usize, 80), try bitmap.findNthBit(80));
+    try std.testing.expectError(error.NthBitOutOfBounds, bitmap.findNthBit(81));
+    try std.testing.expectEqual(@as(usize, 81), bitmap.firstZeroBit());
+}
+
 test "phase4 bitmap diff gate keeps manifest-backed source inventory explicit" {
     try expectMarker(manifest_source, "\"lane_key\": \"P4-L10\"");
     try expectMarker(manifest_source, "\"roadmap_target_path\": \"zigux/tests/bitmap_diff.zig\"");
     try expectMarker(manifest_source, "\"owner\": \"Shared Subsystems Pod\"");
     try expectMarker(manifest_source, "\"rollback_owner\": \"Shared Subsystems Pod\"");
     try expectMarker(manifest_source, "\"threshold_posture\": \"threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks\"");
+    try expectMarker(bitmap_diff_source, "phase4 bitmap diff gate keeps exact 81-bit find_nth_bit window boundary explicit");
     try expectManifestContainsGitBlobSha(manifest_source, "live_gate_blob_sha", bitmap_diff_source);
 }
 
