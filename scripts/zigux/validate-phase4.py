@@ -219,7 +219,7 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     "phase4-gate-evidence": (("phase4 gate evidence check passed", "phase4 gate evidence check passed"),),
     "phase4-perf-baseline-packet-self-test": (
         ("PHASE4_PERF_BASELINE_PACKET_SELF_TEST", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass"),
-        ("PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=38"),
+        ("PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=39"),
     ),
     "phase4-perf-baseline-packet": (("PHASE4_PERF_BASELINE_PACKET_CHECK", "PHASE4_PERF_BASELINE_PACKET_CHECK=pass"),),
     "phase4-perf-threshold-matrix-self-test": (
@@ -264,12 +264,10 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     ),
 }
 
-
 @dataclass(frozen=True)
 class CheckSpec:
     name: str
     command: tuple[str, ...]
-
 
 CHECKS = (
     CheckSpec("phase4-repo-reality-warning-self-test", ("python", "scripts/zigux/check-phase4-repo-reality-warning.py", "--self-test")),
@@ -300,53 +298,6 @@ CHECKS = (
     CheckSpec("phase4-build-test", ("zig", "build", "test", "--build-file", "zigux/tests/phase4_build.zig")),
 )
 
-REQUIRED_ARTIFACT_DOC_MARKERS = [
-    "Current Phase 4 use",
-    "scripts/zigux/check-artifact-diff-contract.py",
-    "scripts/zigux/check-phase4-artifact-diff-determinism.py",
-    "scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
-    "scripts/zigux/check-phase4-gate-evidence.py",
-    "zigux/tests/atomic64_diff.zig",
-    "zigux/tests/runtime_atomic64_diff.zig",
-    "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
-    "zigux/tests/bitmap_diff.zig",
-    "zigux/tests/phase4_bitmap_diff_survey.zig",
-    "zigux/tests/phase4_bitmap_live_helper_replay.zig",
-    "scripts/zigux/validate-phase4.py",
-    "Documentation/zigux/phase4-validation-matrix.md",
-    "ARTIFACT_DIFF_RESULT_LINES=ARTIFACT_DIFF,MODE,EXPECTED,ACTUAL[,SHA256|EXPECTED_EXISTS|ACTUAL_EXISTS|EXPECTED_JSON_ERROR|ACTUAL_JSON_ERROR]",
-    "ARTIFACT_DIFF_SELF_TEST_TEXT",
-    "ARTIFACT_DIFF_SELF_TEST_JSON",
-    "ARTIFACT_DIFF_SELF_TEST_JSON_INVALID",
-    "ARTIFACT_DIFF_SELF_TEST_MISSING",
-    "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT",
-    "ARTIFACT_DIFF_SELF_TEST_CASES",
-    "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT",
-    "ARTIFACT_DIFF_CONTRACT_BASE_CASES",
-    "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT",
-    "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES",
-    "ARTIFACT_DIFF_CONTRACT_CASE_COUNT",
-    "ARTIFACT_DIFF_CONTRACT_CASES",
-    "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT",
-    "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES",
-    "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT",
-    "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES",
-    "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT",
-    "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASES",
-    "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT",
-    "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT",
-]
-
-REQUIRED_ARTIFACT_MATRIX_MARKERS = ["`MODE=...`", "`EXPECTED_EXISTS=...`", "`ACTUAL_EXISTS=...`"]
-
-SAMPLE_PHASE4_VALIDATION_MATRIX_LINES = [
-    "# Phase 4 Validation Matrix",
-    "## Lab And CI Matrix",
-    "* `scripts/zigux/check-artifact-diff-contract.py` currently keeps the external artifact-diff replay exact.",
-    "* The existing external artifact-diff replay now names `MODE=...`, `EXPECTED_EXISTS=...`, and `ACTUAL_EXISTS=...` alongside the already-published JSON, SHA-256, and exit-code evidence.",
-]
-
-
 def command_for(spec: CheckSpec, root: Path) -> list[str]:
     command = list(spec.command)
     if command[0] == "python":
@@ -355,14 +306,11 @@ def command_for(spec: CheckSpec, root: Path) -> list[str]:
         return ["zig", *command[1:]]
     raise ValueError(f"unsupported command kind for {spec.name}: {command[0]}")
 
-
 def is_zig_check(spec: CheckSpec) -> bool:
     return spec.command[0] == "zig"
 
-
 def run_command(command: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(command, check=False, capture_output=True, text=True, cwd=cwd)
-
 
 def append_output(issues: list[str], prefix: str, completed: subprocess.CompletedProcess[str]) -> None:
     stdout = completed.stdout.strip()
@@ -372,13 +320,11 @@ def append_output(issues: list[str], prefix: str, completed: subprocess.Complete
     if stderr:
         issues.append(f"{prefix}:stderr={stderr}")
 
-
 def ensure_command_output_markers(spec: CheckSpec, completed: subprocess.CompletedProcess[str], issues: list[str]) -> None:
     stdout = completed.stdout
     for label, marker in REQUIRED_COMMAND_OUTPUT_MARKERS.get(spec.name, ()):  # pragma: no branch
         if marker not in stdout:
             issues.append(f"output_marker_missing:{spec.name}:{label}")
-
 
 def collect_issues(root: Path, *, skip_zig_builds: bool = False) -> list[str]:
     issues: list[str] = []
@@ -409,7 +355,6 @@ def collect_issues(root: Path, *, skip_zig_builds: bool = False) -> list[str]:
         ensure_command_output_markers(spec, completed, issues)
     return issues
 
-
 def run_check(root: Path, *, skip_zig_builds: bool = False) -> int:
     issues = collect_issues(root, skip_zig_builds=skip_zig_builds)
     if issues:
@@ -424,11 +369,9 @@ def run_check(root: Path, *, skip_zig_builds: bool = False) -> int:
     print(f"PHASE4_VALIDATION_CHECK_COUNT={len(CHECKS)}")
     return 0
 
-
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
-
 
 def build_stub_script(
     path: Path,
@@ -461,7 +404,6 @@ def build_stub_script(
     )
     os.chmod(path, 0o755)
 
-
 def build_fake_zig(path: Path, *, fail_build_file: str | None = None) -> None:
     write_text(
         path,
@@ -487,7 +429,6 @@ def build_fake_zig(path: Path, *, fail_build_file: str | None = None) -> None:
     )
     os.chmod(path, 0o755)
 
-
 def build_sample_repo(root: Path) -> None:
     for rel in REQUIRED_PATHS:
         path = root / rel
@@ -496,10 +437,8 @@ def build_sample_repo(root: Path) -> None:
         else:
             write_text(path, f"sample:{rel}\n")
 
-
 def write_matrix_fixture(root: Path) -> None:
     write_text(root / "Documentation/zigux/phase4-validation-matrix.md", "\n".join(SAMPLE_PHASE4_VALIDATION_MATRIX_LINES) + "\n")
-
 
 def configure_workflow_route_stub(root: Path) -> None:
     build_stub_script(
@@ -522,7 +461,6 @@ def configure_workflow_route_stub(root: Path) -> None:
             "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT=7",
         ),
     )
-
 
 def configure_phase4_output_stubs(root: Path) -> None:
     build_stub_script(
@@ -605,7 +543,7 @@ def configure_phase4_output_stubs(root: Path) -> None:
     )
     build_stub_script(
         root / "scripts/zigux/check-phase4-perf-baseline-packet.py",
-        self_test_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=38"),
+        self_test_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=39"),
         live_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_CHECK=pass",),
     )
     build_stub_script(
@@ -628,12 +566,10 @@ def configure_phase4_output_stubs(root: Path) -> None:
     )
     configure_workflow_route_stub(root)
 
-
 def write_artifact_diff_fixture(root: Path) -> None:
     lines = ["# Artifact Diff Policy", "", "Current Phase 4 use"]
     lines.extend(f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:])
     write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join(lines) + "\n")
-
 
 def build_validator_fixture_root(root: Path, *, fail_build_file: str | None = None) -> None:
     build_sample_repo(root)
@@ -641,7 +577,6 @@ def build_validator_fixture_root(root: Path, *, fail_build_file: str | None = No
     write_matrix_fixture(root)
     configure_phase4_output_stubs(root)
     build_fake_zig(root / "zig", fail_build_file=fail_build_file)
-
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase4-validate-self-test-") as tmp:
@@ -832,7 +767,6 @@ def run_self_test() -> int:
         print("PHASE4_VALIDATE_SELF_TEST=pass")
         print(f"PHASE4_VALIDATE_SELF_TEST_CASE_COUNT={cases}")
         return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser()
