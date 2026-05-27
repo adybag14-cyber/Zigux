@@ -33,7 +33,7 @@ REVERSIBLE_MARKERS = (
 
 REPO_WARNING_MARKERS = (
     'EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 32',
-    'EXPECTED_PIN_SELF_TEST_CASES = 19',
+    'EXPECTED_PIN_SELF_TEST_CASES = 20',
     'SEQUENCING_NOTE = Path("Documentation/zigux/phase4-validation-lane-sequencing.md")',
     'REMAINING_GAP_PACKET = (',
     '    "scripts/zigux/validate-phase4.py",',
