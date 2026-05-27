@@ -118,6 +118,17 @@ These files are the returned family-local kretprobe packet and should not be pro
 - `zigux/tests/runtime_kretprobe_module.zig`
 - `zigux/tests/runtime_first_loadable_parity_behavior.zig`
 - `scripts/zigux/check-phase9-kretprobe-runtime-packet.py`
+- bounded `phase9-runtime-kretprobe-sample-tests`
+- bounded `phase9-runtime-kretprobe-loader-tests`
+- bounded `phase9-runtime-kretprobe-initialized-snapshot-guard-tests`
+- bounded `phase9-runtime-kretprobe-registration-reentry-gate-tests`
+- bounded `phase9-runtime-kretprobe-reinit-reexit-guard-tests`
+- bounded `phase9-runtime-kretprobe-survey-tests`
+- bounded `phase9-runtime-kretprobe-module-tests`
+- bounded `phase9-runtime-kretprobe-tests`
+- bounded `phase9-first-loadable-runtime-module-parity-behavior-tests`
+
+Keep these rerun handles family-local too: they make the returned kretprobe packet reviewable on current `master`, but they still do not prove broader shared runtime-loader closure, blocked publication, depmod bridge, or install-root completion.
 
 ## Historical Wider-Family Vocabulary
 
