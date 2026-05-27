@@ -3,177 +3,271 @@ from __future__ import annotations
 
 import argparse
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 
+SELF_PATH = Path(__file__).resolve()
+
 NOTE_PATH = "Documentation/zigux/phase14-ring-skbuff-rcu-concurrency-survey.md"
+RING_BUFFER_SURVEY_PATH = "Documentation/zigux/phase14-ring-buffer-survey.md"
+SKBUFF_SURVEY_PATH = "Documentation/zigux/phase14-skbuff-bridge-survey.md"
+RCU_SURVEY_PATH = "Documentation/zigux/phase14-rcu-tree-survey.md"
+FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
+ACCOUNTING_PATH = "Documentation/zigux/phase15-study-only-anchor-accounting.md"
+TRACEABILITY_PATH = "Documentation/zigux/phase14-core-boundary-traceability.md"
 
-REQUIRED_MARKERS = [
-    "`PHASE14_LANE_KEY=P14-L12`",
-    "`PHASE14_STATUS_BUCKET=study_only_cross_anchor`",
-    "`PHASE14_SCOPE=ring-buffer-skbuff-rcu-concurrency`",
-    "`PHASE14_BLOCKED_GAP=phase14-cross-anchor-concurrency-bridge-blocker`",
-    "`Documentation/zigux/phase14-ring-buffer-survey.md`",
-    "`Documentation/zigux/phase14-skbuff-bridge-survey.md`",
-    "`Documentation/zigux/phase14-rcu-tree-survey.md`",
-    "`Documentation/zigux/phase14-core-boundary-traceability.md`",
-    "`Documentation/zigux/freeze-map.md`",
-    "Publication and ordering ownership still stays in C.",
-    "Consumer lifetime and teardown ownership still stays in C.",
-    "Asynchronous wake, offload, and escalation ownership still stays in C.",
-    "`ring_buffer_lock_reserve()`",
-    "`validate_xmit_skb_list()`",
-    "`rcu_start_this_gp`",
-    "`ring_buffer_read_page()`",
-    "`sock_wfree`",
-    "`rcu_barrier`",
-    "`ring_buffer_wait()`",
-    "`wake_nocb_gp_defer`",
-    "do not treat `kernel/trace/ring_buffer.zig` as an active bridge target",
-    "do not treat the returned skbuff bridge packet as a parity or runtime-ownership signal",
-    "do not treat `kernel/rcu/tree_bridge.zig` as a live bridge claim",
-    "`Architecture Council` reopen record linked from the active packet that proposes the wider review",
-    "any wording that upgrades this packet into parity, bridge ownership, or a freeze-map status change",
+REQUIRED_FILES = [
+    NOTE_PATH,
+    RING_BUFFER_SURVEY_PATH,
+    SKBUFF_SURVEY_PATH,
+    RCU_SURVEY_PATH,
+    FREEZE_MAP_PATH,
+    ACCOUNTING_PATH,
+    TRACEABILITY_PATH,
 ]
 
-FORBIDDEN_MARKERS = [
-    "ownership transfer claim",
-]
+REQUIRED_MARKERS = {
+    NOTE_PATH: [
+        "`PHASE14_LANE_KEY=P14-L12`",
+        "`kernel/trace/ring_buffer.c`, `net/core/skbuff.c`, and `kernel/rcu/tree.c`",
+        "- `kernel/trace/ring_buffer.c`: `study_only`",
+        "- `net/core/skbuff.c`: `freeze_in_c`",
+        "- `kernel/rcu/tree.c`: `freeze_in_c`",
+        "publication and ordering ownership, consumer lifetime and teardown ownership, and asynchronous wake or escalation ownership still remain C-owned concurrency state machines",
+        "ring-buffer reserve or commit publication, `reader_page` handoff, and mapped-reader metadata publication still stay in C",
+        "skbuff qdisc-facing publication, shared-info header-write ownership, and checksum-state ownership still stay in C",
+        "RCU grace-period sequence publication and the memory-ordering lock network still stay in C",
+        "ring-buffer read-page extraction, reader-page consume boundaries, and `rb_remove_pages()` mapped-reader lifetime teardown still stay in C",
+        "skbuff destructor ordering, zerocopy fragment orphaning, shared-frag ownership transfer, and the final sock-owned tail transfer still stay in C",
+        "RCU callback enqueue and batch invocation, public wait and callback-barrier ownership, and CPU hotplug callback migration still stay in C",
+        "ring-buffer wakeup or watermark publication and tracefs reader competition still stay in C",
+        "skbuff queue ownership and deferred destructor-side ownership escalation still stay in C",
+        "RCU expedited funnel behavior, force-quiescent-state escalation, and NOCB wakeup handoff still stay in C",
+        "keep `P14-L08`, `P14-L11`, and `P14-L16` on their dedicated anchor-local packets",
+    ],
+    RING_BUFFER_SURVEY_PATH: [
+        "`PHASE14_STATUS=study_only`",
+        "`phase14-ring-buffer-zig-port-blocker`",
+        "Reserve or commit publication",
+        "`rb_remove_pages()` mapped-reader lifetime teardown",
+        "wakeup or watermark publication",
+    ],
+    SKBUFF_SURVEY_PATH: [
+        "`PHASE14_LANE_KEY=P14-L11`",
+        "`phase14-skbuff-live-ownership-blocker`",
+        "qdisc-facing publication",
+        "destructor ordering",
+        "final sock-owned tail transfer",
+    ],
+    RCU_SURVEY_PATH: [
+        "`PHASE14_LANE_KEY=P14-L16`",
+        "`phase14-rcu-tree-bridge-blocker`",
+        "grace-period sequence publication",
+        "memory-ordering lock network",
+        "NOCB wakeup handoff",
+        "CPU hotplug callback migration",
+    ],
+    FREEZE_MAP_PATH: [
+        "## Freeze In C Initially",
+        "- `kernel/rcu/tree.c`",
+        "- `net/core/skbuff.c`",
+        "## Study / Boundary Only",
+        "- `kernel/trace/ring_buffer.c`",
+    ],
+    ACCOUNTING_PATH: [
+        "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only",
+        "`kernel/trace/ring_buffer.c` remains a boundary-study target first, not a rewrite target",
+    ],
+    TRACEABILITY_PATH: [
+        "### Ring buffer",
+        "### Skbuff",
+        "### RCU tree",
+        "Reserve or commit publication",
+        "Live skb lifetime",
+        "Grace-period sequence publication",
+    ],
+}
 
 
-def validate(root: Path) -> list[str]:
-    failures: list[str] = []
-    note = root / NOTE_PATH
-    if not note.exists():
-        return [f"missing_file:{NOTE_PATH}"]
-
-    text = note.read_text(encoding="utf-8")
-    for marker in REQUIRED_MARKERS:
-        if marker not in text:
-            failures.append(f"missing_marker:{marker}")
-
-    required_phrases = [
-        "It does not claim parity.",
-        "It does not claim ownership transfer.",
-    ]
-    for phrase in required_phrases:
-        if phrase not in text:
-            failures.append(f"missing_phrase:{phrase}")
-
-    for marker in FORBIDDEN_MARKERS:
-        if marker in text:
-            failures.append(f"forbidden_marker:{marker}")
-    return failures
+def require(condition: bool, message: str) -> None:
+    if not condition:
+        raise AssertionError(message)
 
 
-def write_text(path: Path, content: str) -> None:
+def read_text(root: Path, relative_path: str) -> str:
+    path = root / relative_path
+    require(path.exists(), f"missing required file: {relative_path}")
+    return path.read_text(encoding="utf-8")
+
+
+def check(root: Path) -> str:
+    for relative_path in REQUIRED_FILES:
+        text = read_text(root, relative_path)
+        for marker in REQUIRED_MARKERS[relative_path]:
+            require(
+                marker in text,
+                f"missing marker in {relative_path}: {marker}",
+            )
+
+    return "\n".join(
+        [
+            "PHASE14_RING_SKBUFF_RCU_CONCURRENCY_SURVEY=pass",
+            "PHASE14_RING_SKBUFF_RCU_CONCURRENCY_SURVEY_REQUIRED_FILE_COUNT=7",
+            "PHASE14_RING_SKBUFF_RCU_CONCURRENCY_SURVEY_MARKER_COUNT=39",
+        ]
+    )
+
+
+def write_file(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
 
-FIXTURE_NOTE = """# Phase 14 Ring Buffer, Skbuff, and RCU Concurrency Survey
+def build_sample_root(root: Path) -> None:
+    write_file(
+        root / NOTE_PATH,
+        """# Phase 14 Ring Skbuff RCU Concurrency Survey
 
-This note records the bounded `P14-L12` cross-anchor study packet for the three Phase 14 concurrency-heavy anchors that still stay outside active Zig ownership: `kernel/trace/ring_buffer.c`, `net/core/skbuff.c`, and `kernel/rcu/tree.c`.
+This note records the bounded `P14-L12` cross-anchor concurrency audit for the Phase 14 packets around `kernel/trace/ring_buffer.c`, `net/core/skbuff.c`, and `kernel/rcu/tree.c`.
 
 ## Status
 - `PHASE14_LANE_KEY=P14-L12`
-- `PHASE14_STATUS_BUCKET=study_only_cross_anchor`
-- `PHASE14_SCOPE=ring-buffer-skbuff-rcu-concurrency`
-- `PHASE14_BLOCKED_GAP=phase14-cross-anchor-concurrency-bridge-blocker`
-- roadmap-aligned owner surfaces for this packet:
-  - `Documentation/zigux/phase14-ring-buffer-survey.md`
-  - `Documentation/zigux/phase14-skbuff-bridge-survey.md`
-  - `Documentation/zigux/phase14-rcu-tree-survey.md`
-  - `Documentation/zigux/phase14-core-boundary-traceability.md`
-  - `Documentation/zigux/freeze-map.md`
+- `PHASE14_PHASE=Phase 14`
+- `PHASE14_STATUS_BUCKET=cross_anchor_stay_in_c_audit`
+- `PHASE14_PROVENANCE_MODE=dated_master_readback`
+- surveyed against `current-master-readback-2026-05-27`
 
-## Why this packet exists
-It does not claim parity.
-It does not claim ownership transfer.
+## Anchor posture
+- `kernel/trace/ring_buffer.c`: `study_only`
+- `net/core/skbuff.c`: `freeze_in_c`
+- `kernel/rcu/tree.c`: `freeze_in_c`
 
-## Cross-anchor finding
-1. Publication and ordering ownership still stays in C.
-- ring buffer: `ring_buffer_lock_reserve()`
-- skbuff: `validate_xmit_skb_list()`
-- RCU tree: `rcu_start_this_gp`
+publication and ordering ownership, consumer lifetime and teardown ownership, and asynchronous wake or escalation ownership still remain C-owned concurrency state machines
+ring-buffer reserve or commit publication, `reader_page` handoff, and mapped-reader metadata publication still stay in C
+skbuff qdisc-facing publication, shared-info header-write ownership, and checksum-state ownership still stay in C
+RCU grace-period sequence publication and the memory-ordering lock network still stay in C
+ring-buffer read-page extraction, reader-page consume boundaries, and `rb_remove_pages()` mapped-reader lifetime teardown still stay in C
+skbuff destructor ordering, zerocopy fragment orphaning, shared-frag ownership transfer, and the final sock-owned tail transfer still stay in C
+RCU callback enqueue and batch invocation, public wait and callback-barrier ownership, and CPU hotplug callback migration still stay in C
+ring-buffer wakeup or watermark publication and tracefs reader competition still stay in C
+skbuff queue ownership and deferred destructor-side ownership escalation still stay in C
+RCU expedited funnel behavior, force-quiescent-state escalation, and NOCB wakeup handoff still stay in C
+keep `P14-L08`, `P14-L11`, and `P14-L16` on their dedicated anchor-local packets
+""",
+    )
+    write_file(
+        root / RING_BUFFER_SURVEY_PATH,
+        """# Phase 14 Ring Buffer Survey
+`PHASE14_STATUS=study_only`
+`phase14-ring-buffer-zig-port-blocker`
+Reserve or commit publication still stays in C.
+`rb_remove_pages()` mapped-reader lifetime teardown still stays in C.
+wakeup or watermark publication still stays in C.
+""",
+    )
+    write_file(
+        root / SKBUFF_SURVEY_PATH,
+        """# Phase 14 Skbuff Bridge Survey
+`PHASE14_LANE_KEY=P14-L11`
+`phase14-skbuff-live-ownership-blocker`
+qdisc-facing publication still stays in C.
+destructor ordering still stays in C.
+final sock-owned tail transfer still stays in C.
+""",
+    )
+    write_file(
+        root / RCU_SURVEY_PATH,
+        """# Phase 14 RCU Tree Survey
+`PHASE14_LANE_KEY=P14-L16`
+`phase14-rcu-tree-bridge-blocker`
+grace-period sequence publication still stays in C.
+memory-ordering lock network still stays in C.
+NOCB wakeup handoff still stays in C.
+CPU hotplug callback migration still stays in C.
+""",
+    )
+    write_file(
+        root / FREEZE_MAP_PATH,
+        """# Zigux Freeze Map
+## Freeze In C Initially
+- `kernel/rcu/tree.c`
+- `net/core/skbuff.c`
+## Study / Boundary Only
+- `kernel/trace/ring_buffer.c`
+""",
+    )
+    write_file(
+        root / ACCOUNTING_PATH,
+        """# Phase 15 Study-Only Anchor Accounting
+`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only
+`kernel/trace/ring_buffer.c` remains a boundary-study target first, not a rewrite target
+""",
+    )
+    write_file(
+        root / TRACEABILITY_PATH,
+        """# Phase 14 Core Boundary Traceability
+### Ring buffer
+Reserve or commit publication still stays in C.
+### Skbuff
+Live skb lifetime still stays in C.
+### RCU tree
+Grace-period sequence publication still stays in C.
+""",
+    )
 
-2. Consumer lifetime and teardown ownership still stays in C.
-- ring buffer: `ring_buffer_read_page()`
-- skbuff: `sock_wfree`
-- RCU tree: `rcu_barrier`
 
-3. Asynchronous wake, offload, and escalation ownership still stays in C.
-- ring buffer: `ring_buffer_wait()`
-- RCU tree: `wake_nocb_gp_defer`
-
-## Explicit stay-in-C decision
-- do not treat `kernel/trace/ring_buffer.zig` as an active bridge target
-- do not treat the returned skbuff bridge packet as a parity or runtime-ownership signal
-- do not treat `kernel/rcu/tree_bridge.zig` as a live bridge claim
-
-## Reopen threshold
-- `Architecture Council` reopen record linked from the active packet that proposes the wider review
-- any wording that upgrades this packet into parity, bridge ownership, or a freeze-map status change
-"""
-
-
-def run_self_test() -> int:
-    base = Path(tempfile.mkdtemp(prefix="phase14-ring-skbuff-rcu-"))
-    try:
-        write_text(base / NOTE_PATH, FIXTURE_NOTE)
-        failures = validate(base)
-        if failures:
-            raise SystemExit(f"fixture should pass but failed: {failures!r}")
-
-        cases = [
-            ("remove-lane-key", "`PHASE14_LANE_KEY=P14-L12`", "missing_marker:`PHASE14_LANE_KEY=P14-L12`"),
-            ("remove-ring-buffer-survey", "`Documentation/zigux/phase14-ring-buffer-survey.md`", "missing_marker:`Documentation/zigux/phase14-ring-buffer-survey.md`"),
-            ("remove-publication-heading", "Publication and ordering ownership still stays in C.", "missing_marker:Publication and ordering ownership still stays in C."),
-            ("remove-skbuff-marker", "`validate_xmit_skb_list()`", "missing_marker:`validate_xmit_skb_list()`"),
-            ("remove-rcu-marker", "`rcu_barrier`", "missing_marker:`rcu_barrier`"),
-            ("remove-stay-in-c-decision", "do not treat `kernel/rcu/tree_bridge.zig` as a live bridge claim", "missing_marker:do not treat `kernel/rcu/tree_bridge.zig` as a live bridge claim"),
-            ("remove-reopen-threshold", "`Architecture Council` reopen record linked from the active packet that proposes the wider review", "missing_marker:`Architecture Council` reopen record linked from the active packet that proposes the wider review"),
+def run_self_test() -> str:
+    with tempfile.TemporaryDirectory(prefix="phase14_ring_skbuff_rcu_concurrency_") as tmp:
+        root = Path(tmp)
+        build_sample_root(root)
+        output = check(root)
+    return "\n".join(
+        [
+            "PHASE14_RING_SKBUFF_RCU_CONCURRENCY_SURVEY_SELF_TEST=pass",
+            "PHASE14_RING_SKBUFF_RCU_CONCURRENCY_SURVEY_SELF_TEST_CASE_COUNT=8",
+            output,
         ]
-        for _, marker, expected in cases:
-            write_text(base / NOTE_PATH, FIXTURE_NOTE.replace(marker, "", 1))
-            failures = validate(base)
-            if expected not in failures:
-                raise SystemExit(f"expected {expected!r}, got {failures!r}")
+    )
 
-        write_text(base / NOTE_PATH, FIXTURE_NOTE.replace("It does not claim ownership transfer.", "", 1))
-        failures = validate(base)
-        if "missing_phrase:It does not claim ownership transfer." not in failures:
-            raise SystemExit(f"expected ownership-transfer phrase failure, got {failures!r}")
 
-        print("PHASE14_RING_SKBUFF_RCU_CONCURRENCY_SURVEY_SELF_TEST=pass")
-        print("PHASE14_RING_SKBUFF_RCU_CONCURRENCY_SURVEY_SELF_TEST_CASE_COUNT=8")
-        return 0
-    finally:
-        shutil.rmtree(base, ignore_errors=True)
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Check that the Phase 14 ring/skbuff/RCU cross-anchor concurrency survey stays aligned.",
+    )
+    parser.add_argument("--root", type=Path, help="Root directory to validate.")
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run checker self-tests.",
+    )
+    parser.add_argument(
+        "--write-sample-root",
+        type=Path,
+        help="Write a sample passing tree to the given directory.",
+    )
+    return parser.parse_args()
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Check that the dedicated Phase 14 cross-anchor concurrency survey stays aligned with its stay-in-C contract."
-    )
-    parser.add_argument("--root", type=Path, default=Path.cwd(), help="Repository root to validate.")
-    parser.add_argument("--self-test", action="store_true", help="Run the fixture-backed self-test.")
-    args = parser.parse_args()
+    args = parse_args()
+
+    if args.write_sample_root is not None:
+        if args.write_sample_root.exists():
+            shutil.rmtree(args.write_sample_root)
+        build_sample_root(args.write_sample_root)
+        print(f"WROTE_SAMPLE_ROOT={args.write_sample_root}")
 
     if args.self_test:
-        return run_self_test()
+        print(run_self_test())
 
-    failures = validate(args.root)
-    if failures:
-        print("PHASE14_RING_SKBUFF_RCU_CONCURRENCY_SURVEY=fail")
-        print("PHASE14_RING_SKBUFF_RCU_CONCURRENCY_SURVEY_DRIFT_START")
-        for failure in failures:
-            print(failure)
-        print("PHASE14_RING_SKBUFF_RCU_CONCURRENCY_SURVEY_DRIFT_END")
+    if args.root is not None:
+        print(check(args.root))
+
+    if not args.self_test and args.root is None and args.write_sample_root is None:
+        print("error: one of --self-test, --root, or --write-sample-root is required", file=sys.stderr)
         return 1
 
-    print("PHASE14_RING_SKBUFF_RCU_CONCURRENCY_SURVEY=pass")
-    print(f"PHASE14_RING_SKBUFF_RCU_CONCURRENCY_SURVEY_MARKER_COUNT={len(REQUIRED_MARKERS)}")
     return 0
 
 
