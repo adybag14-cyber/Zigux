@@ -9,7 +9,6 @@ Fresh mixed readback on 2026-05-25 confirmed these current sample-root reminder-
 * `samples/zigux/README.md`
 * `samples/zigux/bytestream_fifo.zig`
 * `samples/zigux/bytestream_fifo_window_contract.zig`
-* `samples/zigux/kobject_example.zig`
 * `samples/zigux/kobject_example_attr_group_contract.zig`
 * `samples/zigux/kretprobe_example.zig`
 * `samples/zigux/kretprobe_example_instance_budget_contract.zig`
@@ -55,7 +54,7 @@ Keep that bytestream packet framed as the approved in-memory FIFO idiom for the 
 * `zig test samples/zigux/bytestream_fifo.zig`, `zig test samples/zigux/bytestream_fifo_window_contract.zig`, `zig test --dep bytestream_fifo_sample -Mroot=zigux/tests/phase5_bytestream_fifo.zig -Mbytestream_fifo_sample=samples/zigux/bytestream_fifo.zig`, and `zig test zigux/tests/phase5_bytestream_fifo_survey.zig` stay explicit as the sample-owned self-check, queue-window companion, focused replay, and survey guard routes, while `zigux/tests/phase5_build.zig` remains current directly readable shared build-route companion evidence that reruns the sample-owned self-checks, the queue-window companion, the focused replay packet, and the survey guard together
 * keep procfs, user-copy, locking, and loadable module registration parity out of scope
 
-Current `master` keeps the roadmap-backed `kobject` packet split explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract_survey.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are the current direct reminder or replay surfaces, while `samples/zigux/kobject_example.zig` remains the current shared-reminder-backed owner path and `zigux/tests/phase5_kobject_example_manifest.json` plus `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread proves broader direct authenticated proof again.
+Current `master` keeps the roadmap-backed `kobject` packet split explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract_survey.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are the current direct reminder or replay surfaces, while `zigux/tests/phase5_kobject_example_manifest.json` plus `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread proves broader direct authenticated proof again. The direct sample-root owner file `samples/zigux/kobject_example.zig` does not materialize on the current trusted read path, so keep that owner-path reminder historical rather than presenting it as a currently returned file.
 
 Keep that kobject packet framed as the approved in-memory ownership-and-lifetime idiom for the Phase 5 anchor:
 
