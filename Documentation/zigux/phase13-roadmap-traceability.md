@@ -13,6 +13,7 @@ Phase 13 in the Zigux roadmap is the shared-subsystem-helper tranche bounded to 
 ## Shared Reminder Surfaces
 
 When shared Phase 13 wording changes, keep these reminder surfaces aligned first:
+- `Documentation/zigux/README.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
@@ -28,7 +29,7 @@ When shared Phase 13 wording changes, keep these reminder surfaces aligned first
 
 Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep `zigux/Makefile` distinct from the still-missing shared wrapper names `make -C zigux phase13-validate` and `make -C zigux phase13`.
 
-Keep the stable contributor-facing handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` while `Documentation/zigux/README.md` still lacks a dedicated Phase 13 reminder block.
+Keep the stable contributor-facing handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` while the dedicated Phase 13 reminder block in `Documentation/zigux/README.md` stays aligned with that shared packet rather than being treated as a repo-reality gap.
 
 ## Anchor Map
 
@@ -49,8 +50,7 @@ Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, s
 ## Repo-Reality Gaps
 
 Keep the remaining current gaps explicit:
-- docs-root `Documentation/zigux/README.md` still lacks a dedicated Phase 13 reminder block
-- until that docs-root reminder returns, keep the stable contributor-facing handle anchored to `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` rather than promoting broader docs-root copy as the shared entrypoint
+- keep the dedicated Phase 13 reminder block in `Documentation/zigux/README.md` aligned with the stable contributor-facing handle instead of treating docs-root coverage as missing again
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 - `zigux/tests/phase13_build.zig`
