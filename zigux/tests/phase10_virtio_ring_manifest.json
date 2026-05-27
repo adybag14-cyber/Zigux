@@ -48,6 +48,7 @@
     "preexisting_ring_verify_present": true,
     "preexisting_ring_publish_readiness_present": true,
     "preexisting_ring_registration_summary_present": true,
+    "preexisting_ring_reset_readiness_present": true,
     "preexisting_ring_used_buffer_poll_present": true
   },
   "gaps": [
@@ -167,8 +168,8 @@
       "id": "phase10-queue-reset-readiness-helper",
       "status": "starter_landed",
       "kind": "queue_wrapper",
-      "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The reset-readiness helper is directly readable again through the restored queue-local ring helper."
+      "zigux_destination": "drivers/virtio/virtio_ring_reset_readiness.zig",
+      "why_now": "The dedicated reset-readiness wrapper keeps reset blockers, used-poll debt, rollover handling, and broken-queue fencing explicit as a first-class queue-local helper without widening into transport-backed reset execution."
     },
     {
       "id": "phase10-ring-publish-readiness-replay",
