@@ -26,6 +26,39 @@ const Fixture = struct {
             value: u64,
             rest: []const u8,
         },
+        signed_k: struct {
+            value: u64,
+            rest: []const u8,
+        },
+        saturated_positive_signed: struct {
+            value: u64,
+            rest: []const u8,
+        },
+        option_debug: bool,
+        option_empty_leading: bool,
+        option_empty_double_comma: bool,
+        option_empty_trailing: bool,
+        option_absent: bool,
+        first_arg: struct {
+            param: []const u8,
+            value: []const u8,
+            remaining: []const u8,
+        },
+        second_arg: struct {
+            param: []const u8,
+            value: []const u8,
+            remaining: []const u8,
+        },
+        quoted_arg: struct {
+            param: []const u8,
+            value: []const u8,
+            remaining: []const u8,
+        },
+        unterminated_arg: struct {
+            param: []const u8,
+            value: []const u8,
+            remaining: []const u8,
+        },
     },
     ctype: struct {
         isalpha_z: bool,
@@ -195,6 +228,40 @@ test "phase 1 helper ports match committed parity fixture" {
     const decimal_k = cmdline.memparse("64K rest");
     try std.testing.expectEqual(fixture.cmdline.decimal_k.value, decimal_k.value);
     try std.testing.expectEqualStrings(fixture.cmdline.decimal_k.rest, decimal_k.rest);
+
+    const signed_k = cmdline.memparse("-2K tail");
+    try std.testing.expectEqual(fixture.cmdline.signed_k.value, signed_k.value);
+    try std.testing.expectEqualStrings(fixture.cmdline.signed_k.rest, signed_k.rest);
+
+    const saturated_positive_signed = cmdline.memparse("+9223372036854775808");
+    try std.testing.expectEqual(fixture.cmdline.saturated_positive_signed.value, saturated_positive_signed.value);
+    try std.testing.expectEqualStrings(fixture.cmdline.saturated_positive_signed.rest, saturated_positive_signed.rest);
+
+    try std.testing.expectEqual(fixture.cmdline.option_debug, cmdline.parseOptionStr("quiet,debug,nohlt", "debug"));
+    try std.testing.expectEqual(fixture.cmdline.option_empty_leading, cmdline.parseOptionStr(",quiet", ""));
+    try std.testing.expectEqual(fixture.cmdline.option_empty_double_comma, cmdline.parseOptionStr("rootwait,,quiet", ""));
+    try std.testing.expectEqual(fixture.cmdline.option_empty_trailing, cmdline.parseOptionStr("quiet,", ""));
+    try std.testing.expectEqual(fixture.cmdline.option_absent, cmdline.parseOptionStr("quiet,debug,nohlt", "panic"));
+
+    const first_arg = cmdline.nextArg("console=ttyS0,115200 root=\"/dev/sda1 quiet\" panic=-1") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings(fixture.cmdline.first_arg.param, first_arg.param);
+    try std.testing.expectEqualStrings(fixture.cmdline.first_arg.value, first_arg.value.?);
+    try std.testing.expectEqualStrings(fixture.cmdline.first_arg.remaining, first_arg.remaining);
+
+    const second_arg = cmdline.nextArg(first_arg.remaining) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings(fixture.cmdline.second_arg.param, second_arg.param);
+    try std.testing.expectEqualStrings(fixture.cmdline.second_arg.value, second_arg.value.?);
+    try std.testing.expectEqualStrings(fixture.cmdline.second_arg.remaining, second_arg.remaining);
+
+    const quoted_arg = cmdline.nextArg("\"mode=fast path\" tail") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings(fixture.cmdline.quoted_arg.param, quoted_arg.param);
+    try std.testing.expectEqualStrings(fixture.cmdline.quoted_arg.value, quoted_arg.value.?);
+    try std.testing.expectEqualStrings(fixture.cmdline.quoted_arg.remaining, quoted_arg.remaining);
+
+    const unterminated_arg = cmdline.nextArg("mode=\"fast boot") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings(fixture.cmdline.unterminated_arg.param, unterminated_arg.param);
+    try std.testing.expectEqualStrings(fixture.cmdline.unterminated_arg.value, unterminated_arg.value.?);
+    try std.testing.expectEqualStrings(fixture.cmdline.unterminated_arg.remaining, unterminated_arg.remaining);
 
     try std.testing.expectEqual(fixture.ctype.isalpha_z, ctype.isalpha('z'));
     try std.testing.expectEqual(fixture.ctype.isdigit_7, ctype.isdigit('7'));
