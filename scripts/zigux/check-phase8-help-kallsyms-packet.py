@@ -65,6 +65,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`make -C zigux phase8-kallsyms-test`",
         "`make -C zigux phase8-help-kallsyms-test`",
         "the dedicated replay keeps the chunked-reader `startup_64` witness visible after CRLF normalization",
+        "empty scratch buffers now fail closed for the segmented reader wrapper too",
     ),
     CHECKLIST: (
         "if the change touches the parked Phase 8 `help` packet",
@@ -153,6 +154,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'test "phase 8 kallsyms keeps weak object classes on the current header-backed path"',
         'test "phase 8 kallsyms chunked parser also truncates oversized names"',
         'expectEqualStrings("startup_64", symbols.items[0].name)',
+        'test "phase 8 kallsyms reader wrappers fail closed when the scratch buffer is empty"',
+        'error.EmptyScratchBuffer,',
         'test "phase 8 kallsyms wrappers preserve the parked callback contract"',
     ),
     KALLSYMS_SOURCE: (
@@ -236,7 +239,7 @@ def run_self_test() -> int:
             path = root / relative_path
             original = _read(path)
             for marker in markers:
-                mutated = original.replace(marker, "", 1)
+                mutated = original.replace(marker, "")
                 if mutated == original:
                     raise AssertionError(f"expected marker in fixture: {relative_path}:{marker}")
                 path.write_text(mutated, encoding="utf-8")
