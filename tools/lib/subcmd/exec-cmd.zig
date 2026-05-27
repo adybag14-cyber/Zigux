@@ -218,10 +218,13 @@ pub fn setArgvExecPath(
     config: Config,
     exec_path: []const u8,
 ) !void {
+    const owned_path = try allocator.dupe(u8, exec_path);
+    errdefer allocator.free(owned_path);
+
     if (state.argv_exec_path) |previous| {
         allocator.free(previous);
     }
-    state.argv_exec_path = try allocator.dupe(u8, exec_path);
+    state.argv_exec_path = owned_path;
     try env.set(config.exec_path_env, exec_path);
 }
 
@@ -455,6 +458,35 @@ test "EnvMap owns inserted keys so later caller mutations cannot corrupt lookups
     value[0] = '.';
 
     try std.testing.expectEqualStrings("/bin", env.get("PATH").?);
+}
+
+test "setArgvExecPath keeps the previous path when allocation fails" {
+    var backing: std.heap.DebugAllocator(.{}) = .{};
+    defer std.testing.expect(backing.deinit() == .ok) catch @panic("leak");
+
+    var failing_state = std.testing.FailingAllocator.init(backing.allocator(), .{ .fail_index = 1 });
+    const failing_allocator = failing_state.allocator();
+
+    var env = EnvMap.init(failing_allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{
+        .argv_exec_path = try failing_allocator.dupe(u8, "old"),
+    };
+    defer state.deinit(failing_allocator);
+
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    try std.testing.expectError(
+        error.OutOfMemory,
+        setArgvExecPath(failing_allocator, &env, &state, config, "new-path"),
+    );
+    try std.testing.expectEqualStrings("old", state.argv_exec_path.?);
 }
 
 test "buildSearchPath rewrites relative entries against the working directory" {
