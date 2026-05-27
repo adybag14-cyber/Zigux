@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L16",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-26",
+  "surveyed_commit": "current-master-readback-2026-05-27",
   "surveyed_commit_mode": "dated_master_readback",
   "roadmap_requirement": "policy for code that remains in C indefinitely",
   "anchors": [
@@ -61,11 +61,16 @@
     },
     {
       "id": "indefinite-c-exception-path",
-      "summary": "There is no silent exception path; only a documented Architecture Council reopen request can revisit the retained stay-in-C outcome.",
+      "summary": "There is no silent exception path; only a documented Architecture Council reopen request or exact-head provenance exception may revisit the retained stay-in-C outcome, and both must keep the owner trio explicit.",
       "required_terms": [
         "no silent exception path",
         "Architecture Council reopen request",
-        "trigger-specific evidence refresh"
+        "trigger-specific evidence refresh",
+        "exact-head provenance exception note",
+        "lane owner",
+        "rollback owner",
+        "required approver set",
+        "dated master readback is insufficient"
       ]
     },
     {
@@ -142,11 +147,18 @@
       "why_now": "The direct lane-owner alignment replay already materializes on current master and should stay explicit beside the policy note so lane-owner and approver vocabulary do not drift into neighboring Phase 15 packets only."
     },
     {
+      "id": "phase15-indefinite-c-exact-head-exception-ownership-sync",
+      "status": "landed",
+      "kind": "companion_sync",
+      "zigux_destination": "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+      "why_now": "The stay-in-C exception path now needs one direct owner-trio reminder so exact-head provenance exceptions cannot bypass the same lane owner, rollback owner, and required approver set carried by the rest of the Phase 15 review packet."
+    },
+    {
       "id": "phase15-indefinite-c-current-reread-refresh",
       "status": "landed",
       "kind": "maintenance_reread",
       "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
-      "why_now": "The direct stay-in-C packet had to be reread against current 2026-05-26 master so the roadmap-required policy surface stays explicitly landed instead of drifting behind newer Phase 15 governance companions."
+      "why_now": "The direct stay-in-C packet had to be reread against current 2026-05-27 master so the roadmap-required policy surface stays aligned with the now-landed docs-root reminder, focused validator, and shared build companion instead of drifting behind newer Phase 15 governance companions."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
