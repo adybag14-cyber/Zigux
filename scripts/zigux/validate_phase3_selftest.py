@@ -226,6 +226,14 @@ SELFTEST_COMMANDS = (
             "PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST_CASE_COUNT=",
         ),
     ),
+    (
+        Path("scripts/zigux/check-phase3-list-hlist.py"),
+        ("--self-test",),
+        (
+            "PHASE3_LIST_HLIST_SELF_TEST=pass",
+            "PHASE3_LIST_HLIST_SELF_TEST_CASES=",
+        ),
+    ),
 )
 
 
@@ -460,7 +468,8 @@ def run_self_test() -> int:
             ("generate-phase3-check-wrappers.py", "expected wrapper-generator script omission was not reported"),
             ("check-phase3-selftest-surface.py", "expected selftest-surface script omission was not reported"),
             ("check-phase3-bitmap-cpumask.py", "expected bitmap-cpumask script omission was not reported"),
-            ("check-phase3-list-hlist-starter-packet.py", "expected list-hlist script omission was not reported"),
+            ("check-phase3-list-hlist-starter-packet.py", "expected list-hlist starter script omission was not reported"),
+            ("check-phase3-list-hlist.py", "expected full list-hlist script omission was not reported"),
         )
         for script_name, message in missing_cases:
             if _expect_missing(root, script_name, message) != 0:
@@ -796,27 +805,51 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_list_hlist_pass_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-list-hlist-starter-packet.py")][0]
+        missing_list_hlist_starter_pass_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-list-hlist-starter-packet.py")][0]
         _write_synthetic_script(
-            missing_list_hlist_pass_path,
+            missing_list_hlist_starter_pass_path,
             None,
             "PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST_CASE_COUNT=",
         )
         if run_packet(root) != 1:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
-            print("expected missing list-hlist pass marker to fail the packet")
+            print("expected missing list-hlist starter pass marker to fail the packet")
             return 1
 
         _populate_repo(root)
-        missing_list_hlist_count_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-list-hlist-starter-packet.py")][0]
+        missing_list_hlist_starter_count_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-list-hlist-starter-packet.py")][0]
         _write_synthetic_script(
-            missing_list_hlist_count_path,
+            missing_list_hlist_starter_count_path,
             "PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=pass",
             None,
         )
         if run_packet(root) != 1:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
-            print("expected missing list-hlist count marker to fail the packet")
+            print("expected missing list-hlist starter count marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_list_hlist_pass_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-list-hlist.py")][0]
+        _write_synthetic_script(
+            missing_list_hlist_pass_path,
+            None,
+            "PHASE3_LIST_HLIST_SELF_TEST_CASES=",
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing full list-hlist pass marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_list_hlist_count_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-list-hlist.py")][0]
+        _write_synthetic_script(
+            missing_list_hlist_count_path,
+            "PHASE3_LIST_HLIST_SELF_TEST=pass",
+            None,
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing full list-hlist count marker to fail the packet")
             return 1
 
         _populate_repo(root)
@@ -846,7 +879,7 @@ def run_self_test() -> int:
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     print(
         "PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT="
-        f"{len(missing_cases) + 32}"
+        f"{len(missing_cases) + 35}"
     )
     return 0
 
