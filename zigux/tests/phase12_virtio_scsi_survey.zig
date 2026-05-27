@@ -227,6 +227,30 @@ test "phase12 virtio scsi fallback catalog keeps archival replay distinct from c
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "matching current-master archival evidence for this path") != null);
 }
 
+test "phase12 virtio scsi survey build boundary keeps the shared phase12 route virtio_net only" {
+    const phase12_build = try readFileAlloc("zigux/tests/phase12_build.zig", 32 * 1024);
+    defer std.testing.allocator.free(phase12_build);
+
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_net_queue_resume.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_net_transmit_recycle.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_net_receive_refill_replay.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_net_post_reset_replay.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_net_throughput_parity.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_net_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-virtio-net-queue-resume-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-virtio-net-transmit-recycle-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-virtio-net-receive-refill-replay-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-virtio-net-post-reset-replay-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-virtio-net-throughput-parity-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-virtio-net-survey-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_survey.zig") == null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_survey_build.zig") == null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-virtio-scsi-survey-tests") == null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "virtio_scsi") == null);
+}
+
 test "phase12 virtio scsi survey gate keeps present files present and missing files absent" {
     try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-scsi-slice.md"));
     try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-scsi-survey.md"));
