@@ -13,6 +13,7 @@ The planner stays intentionally narrow:
 - exposes `scatterlistReleaseMatches(...)` as the helper-first exact-match check rather than folding that policy into broader runtime ownership
 - routes `planManagedScatterlistTableTeardown(...)` through initialized-table, release-record, and mapped-count gating so helper-first `sg_table` free eligibility stays reviewable without claiming live `sg_free_table()` side effects
 - records whether an initialized table becomes free-ready once mapped entries drain to zero and the release record is still present
+- records whether uninitialized tables stay neither free-ready nor unmap-requiring until table initialization is explicit
 - records whether mapped scatterlist state still requires unmap-before-free planning instead of claiming live table teardown
 - records whether missing release records or over-mapped counts warn rather than claiming live `sg_table` lifecycle mutation
 - keeps `sg_alloc_table()`, `sg_free_table()`, `sg_dma_address()`, `sg_dma_len()`, `dma_map_sg()`, `dma_unmap_sg()`, `dma_map_sgtable()`, and `sg_table` lifecycle ownership out of scope
@@ -28,7 +29,7 @@ The helper packet now consists of:
 - `scripts/zigux/check-phase13-devres-scatterlist-planner.py`
 
 Fixture governance stays helper-local:
-- `zigux/tests/phase13_devres_scatterlist.zig` owns the retained-release-record, freed-release-record, impossible-overmapped-request, missing-release-record, exact-release-match, warn-on-release-miss, free-ready-teardown, unmap-before-free, and overmapped-teardown-warning fixture coverage for `planManagedScatterlistMap(...)`, `scatterlistReleaseMatches(...)`, `planManagedScatterlistUnmap(...)`, and `planManagedScatterlistTableTeardown(...)`
+- `zigux/tests/phase13_devres_scatterlist.zig` owns the retained-release-record, freed-release-record, impossible-overmapped-request, missing-release-record, exact-release-match, warn-on-release-miss, free-ready-teardown, uninitialized-table-hold, unmap-before-free, and overmapped-teardown-warning fixture coverage for `planManagedScatterlistMap(...)`, `scatterlistReleaseMatches(...)`, `planManagedScatterlistUnmap(...)`, and `planManagedScatterlistTableTeardown(...)`
 - `Documentation/zigux/phase13-devres-scatterlist-slice.md` keeps the helper-local scope and non-goals aligned with this planner note, the manifest, and the replay
 - `zigux/tests/phase13_devres_scatterlist_build.zig` keeps the dedicated build shard aligned with the helper-first scatterlist replay
 - `scripts/zigux/check-phase13-devres-scatterlist-planner.py` is the packet-local validation guard for the helper, slice, note, manifest, build shard, and replay
