@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L16",
   "phase": "Phase 12",
-  "surveyed_commit": "78ec64c76598f6fc1262db823b4eb9e012785f8c",
+  "surveyed_commit": "09e1f3e8e7b9f9d9f2ed056c0bee7dd76d462bc1",
   "tracked_file_count": 4,
   "tracked_paths": [
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
@@ -26,15 +26,15 @@
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
-      "blob_sha": "4a01b04fba15a7fe80326d546373040e2117519f"
+      "blob_sha": "3c7827d8def0dac7e10804c329bc56a1d70e377a"
     },
     {
       "path": "Documentation/zigux/phase12-release-coordination-matrix.md",
-      "blob_sha": "1c088357068e7611cb1f41ee207527637b15f910"
+      "blob_sha": "fea4169987f439e238f56c5a9adf69d039291b15"
     }
   ],
   "verification_evidence": {
-    "checked_at_utc": "2026-05-27T19:45:30Z",
+    "checked_at_utc": "2026-05-27T20:08:46Z",
     "readback_mode": "github-contents-readback",
     "checker": {
       "path": "scripts/zigux/check-phase12-libbpf-snapshot.py",
@@ -53,11 +53,11 @@
       },
       {
         "path": "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
-        "blob_sha": "4a01b04fba15a7fe80326d546373040e2117519f"
+        "blob_sha": "3c7827d8def0dac7e10804c329bc56a1d70e377a"
       },
       {
         "path": "Documentation/zigux/phase12-release-coordination-matrix.md",
-        "blob_sha": "1c088357068e7611cb1f41ee207527637b15f910"
+        "blob_sha": "fea4169987f439e238f56c5a9adf69d039291b15"
       }
     ]
   }
