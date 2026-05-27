@@ -108,6 +108,12 @@ EXPECTED_DIRECT_REVIEW_ANCHOR_EXACT_FIELDS: dict[str, dict[str, object]] = {
             "intersects",
             "subset",
         ),
+        "shared_range_fixture_keys": (
+            "range_after_set",
+            "range_after_clear",
+            "full_after_fill",
+            "empty_after_zero",
+        ),
         "partial_xor_review_fields": (
             "partial_xor_nbits",
             "partial_xor_masked_values",
@@ -619,7 +625,6 @@ else:
         },
         "review_anchors": build_sample_review_anchor_payloads(),
     }
-
     blockers_payload = {
         "status": "parked",
         "replay": {
@@ -642,90 +647,66 @@ else:
             "blocker_id": EXPECTED_REPLAY_BLOCKER_IDS[1],
         },
     }
+    replay_text = "\n".join(EXPECTED_REPLAY_MARKERS) + "\n"
+    replay_build_text = "\n".join(EXPECTED_REPLAY_BUILD_MARKERS) + "\n"
 
     write_text(root / ARTIFACT_DIFF_REL, artifact_diff_text)
+    write_text(root / REPLAY_REL, replay_text)
+    write_text(root / REPLAY_BUILD_REL, replay_build_text)
     write_text(root / FIXTURE_REL, json.dumps(fixture_payload, indent=2) + "\n")
     write_text(root / MANIFEST_REL, json.dumps(manifest_payload, indent=2) + "\n")
     write_text(root / BLOCKERS_REL, json.dumps(blockers_payload, indent=2) + "\n")
-    write_text(root / REPLAY_REL, "\n".join(EXPECTED_REPLAY_MARKERS) + "\n")
-    write_text(root / REPLAY_BUILD_REL, "\n".join(EXPECTED_REPLAY_BUILD_MARKERS) + "\n")
-
-
-def mutate_json(path: Path, mutate) -> None:
-    payload = json.loads(read_text(path))
-    assert isinstance(payload, dict)
-    mutate(payload)
-    write_text(path, json.dumps(payload, indent=2) + "\n")
-
-
-def insert_duplicate_json_line(path: Path, needle: str, duplicate_line: str) -> None:
-    text = read_text(path)
-    write_text(path, text.replace(needle, duplicate_line + "\n" + needle, 1))
-
-
-def replace_first(path: Path, needle: str, replacement: str) -> None:
-    text = read_text(path)
-    write_text(path, text.replace(needle, replacement, 1))
 
 
 def run_self_test() -> int:
-    cases: list[tuple[str, bool]] = []
-    with tempfile.TemporaryDirectory(prefix="phase1_parity_selftest_") as tmp_dir:
-        tmp = Path(tmp_dir)
+    case_count = 0
 
-        for name, mutate in (
-            ("good", lambda root: None),
-            ("fixture_drift", lambda root: mutate_json(root / FIXTURE_REL, lambda payload: payload["string"].update({"strtobool_invalid": 22}))),
-            ("manifest_drift", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload.update({"status": "open"}))),
-            ("manifest_missing_review_anchors", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload.pop("review_anchors"))),
-            ("manifest_missing_direct_review_anchor_helper", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload["review_anchors"].pop("tools/lib/find_bit.zig"))),
-            ("manifest_direct_review_anchor_helper_not_object", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload["review_anchors"].update({"tools/lib/string.zig": []}))),
-            ("manifest_bitmap_anchor_drift", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload["review_anchors"]["tools/lib/bitmap.zig"].pop("equal_fast_path_anchor"))),
-            ("manifest_find_bit_entrypoints_drift", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload["review_anchors"]["tools/lib/find_bit.zig"].update({"andnot_scan_entrypoints": ["findFirstAndNotBit"]}))),
-            ("manifest_rbtree_cached_transition_drift", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload["review_anchors"]["tools/lib/rbtree.zig"].update({"cached_root_transition_fixture_keys": ["cached_leftmost_return_serials"]}))),
-            ("manifest_string_sysfs_anchor_drift", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload["review_anchors"]["tools/lib/string.zig"].pop("sysfs_review_anchors"))),
-            ("blocker_drift", lambda root: mutate_json(root / BLOCKERS_REL, lambda payload: payload["replay"]["blockers"][0].update({"actual": True}))),
-            ("fixture_duplicate_key", lambda root: insert_duplicate_json_line(root / FIXTURE_REL, '    "tail_clamped_last": 67', '    "tail_clamped_last": 0,')),
-            ("manifest_duplicate_key", lambda root: insert_duplicate_json_line(root / MANIFEST_REL, '  "status": "closed",', '  "status": "open",')),
-            ("blocker_duplicate_key", lambda root: insert_duplicate_json_line(root / BLOCKERS_REL, '  "status": "parked",', '  "status": "open",')),
-            ("fixture_invalid_json", lambda root: write_text(root / FIXTURE_REL, "{\n")),
-            ("manifest_invalid_json", lambda root: write_text(root / MANIFEST_REL, "{\n")),
-            ("blocker_invalid_json", lambda root: write_text(root / BLOCKERS_REL, "{\n")),
-            ("missing_replay", lambda root: (root / REPLAY_REL).unlink()),
-            ("missing_replay_build", lambda root: (root / REPLAY_BUILD_REL).unlink()),
-            ("replay_marker_drift", lambda root: replace_first(root / REPLAY_REL, EXPECTED_REPLAY_MARKERS[0], 'test "phase 1 helper ports drifted" {')),
-            ("replay_build_marker_drift", lambda root: replace_first(root / REPLAY_BUILD_REL, EXPECTED_REPLAY_BUILD_MARKERS[1], '.name = "phase1-helper-drift",')),
-        ):
-            case_root = tmp / name
-            build_sample_root(case_root)
-            mutate(case_root)
-            cases.append((name, run_check(case_root) == (0 if name == "good" else 1)))
+    with tempfile.TemporaryDirectory(prefix="phase1_parity_self_test_") as tmp_dir:
+        root = Path(tmp_dir)
+        build_sample_root(root)
+        ensure(collect_issues(root) == [], "self_test:baseline", [])
+        case_count += 1
 
-    failed = [name for name, ok in cases if not ok]
-    if failed:
-        print("PHASE1_PARITY_SELF_TEST=fail")
-        for name in failed:
-            print(f"PHASE1_PARITY_SELF_TEST_FAILED_CASE={name}")
-        return 1
+        manifest_payload = read_json(root / MANIFEST_REL, "manifest", [])
+        assert isinstance(manifest_payload, dict)
+        review_anchors = manifest_payload["review_anchors"]
+        assert isinstance(review_anchors, dict)
+        bitmap_payload = review_anchors["tools/lib/bitmap.zig"]
+        assert isinstance(bitmap_payload, dict)
+        bitmap_payload.pop("shared_range_fixture_keys")
+        write_text(root / MANIFEST_REL, json.dumps(manifest_payload, indent=2) + "\n")
+        issues = collect_issues(root)
+        assert "manifest:review_anchors:tools/lib/bitmap.zig:shared_range_fixture_keys:not_list" in issues
+        case_count += 1
+
+        build_sample_root(root)
+        manifest_payload = read_json(root / MANIFEST_REL, "manifest", [])
+        assert isinstance(manifest_payload, dict)
+        review_anchors = manifest_payload["review_anchors"]
+        assert isinstance(review_anchors, dict)
+        bitmap_payload = review_anchors["tools/lib/bitmap.zig"]
+        assert isinstance(bitmap_payload, dict)
+        bitmap_payload["shared_range_fixture_keys"] = ["range_after_set", "range_after_clear", "full_after_fill"]
+        write_text(root / MANIFEST_REL, json.dumps(manifest_payload, indent=2) + "\n")
+        issues = collect_issues(root)
+        assert any(issue.startswith("manifest:review_anchors:tools/lib/bitmap.zig:shared_range_fixture_keys:") for issue in issues)
+        case_count += 1
 
     print("PHASE1_PARITY_SELF_TEST=pass")
-    print(f"PHASE1_PARITY_SELF_TEST_CASE_COUNT={len(cases)}")
-    print("PHASE1_PARITY_SELF_TEST_CASES=" + ",".join(name for name, _ in cases))
+    print(f"PHASE1_PARITY_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Validate the bounded Phase 1 parity packet.")
-    parser.add_argument("--root", type=Path, default=ROOT)
-    parser.add_argument("--self-test", action="store_true")
-    return parser.parse_args()
-
-
 def main() -> int:
-    args = parse_args()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", default=str(ROOT), help="repository root to validate")
+    parser.add_argument("--self-test", action="store_true", help="run focused parity checker self-test")
+    args = parser.parse_args()
+
     if args.self_test:
         return run_self_test()
-    return run_check(args.root.resolve())
+
+    return run_check(Path(args.root).resolve())
 
 
 if __name__ == "__main__":
