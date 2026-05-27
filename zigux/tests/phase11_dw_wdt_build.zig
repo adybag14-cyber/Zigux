@@ -19,6 +19,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const verify_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/watchdog/dw_wdt_verify.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const registration_scaffold_tests = b.addTest(.{
         .name = "phase11-dw-wdt-registration-scaffold-tests",
@@ -38,11 +43,18 @@ pub fn build(b: *std.Build) void {
     });
     const run_restart_tests = b.addRunArtifact(restart_tests);
 
+    const verify_tests = b.addTest(.{
+        .name = "phase11-dw-wdt-verify-tests",
+        .root_module = verify_module,
+    });
+    const run_verify_tests = b.addRunArtifact(verify_tests);
+
     const test_step = b.step(
         "test",
-        "Run the focused Phase 11 DesignWare watchdog scaffold packet",
+        "Run the focused Phase 11 DesignWare watchdog scaffold and verify packet",
     );
     test_step.dependOn(&run_registration_scaffold_tests.step);
     test_step.dependOn(&run_pm_tests.step);
     test_step.dependOn(&run_restart_tests.step);
+    test_step.dependOn(&run_verify_tests.step);
 }
