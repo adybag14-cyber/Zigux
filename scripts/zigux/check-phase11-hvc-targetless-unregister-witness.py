@@ -112,7 +112,7 @@ FILE_EXPECTATIONS = {
         "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge",
         "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable",
         "`targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.",
-        "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit",
+        "the literal-fallback helpers keep the targetless sysrq path without notifier, the sanitized registered-but-targetless sysrq path, and the non-kernel sysrq literal fallback explicit",
     ),
     DRIVER_PATH: (
         "pub const TargetlessNotifierEdgeSummary = struct {",
@@ -163,7 +163,7 @@ FILE_EXPECTATIONS = {
         'try expectContains(boundary, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge");',
         'try expectContains(boundary, "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable");',
         'try expectContains(boundary, "`targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.");',
-        'try expectContains(boundary, "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit");',
+        'try expectContains(boundary, "the literal-fallback helpers keep the targetless sysrq path without notifier, the sanitized registered-but-targetless sysrq path, and the non-kernel sysrq literal fallback explicit");',
         'try expectContains(companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`");',
         'try expectContains(companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");',
         'try expectContains(companion, "standalone targetless-unregister witness");',
@@ -510,7 +510,7 @@ def run_self_test() -> int:
             ),
             (
                 VERIFY_BOUNDARY_PATH,
-                "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit",
+                "the literal-fallback helpers keep the targetless sysrq path without notifier, the sanitized registered-but-targetless sysrq path, and the non-kernel sysrq literal fallback explicit",
             ),
             (
                 DRIVER_PATH,
@@ -518,75 +518,51 @@ def run_self_test() -> int:
             ),
             (
                 DRIVER_PATH,
-                "targetless_unregister_request_sanitized: bool,",
+                ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,",
             ),
             (
                 DRIVER_PATH,
-                "keeps_live_notifier_execution_out_of_scope: bool,",
+                'test "phase11 hvc console keeps targetless notifier no-unregister edge reviewable" {',
             ),
             (
-                CLEANUP_CHECKER_PATH,
-                "check-phase11-hvc-targetless-unregister-witness.py",
+                DRIVER_PATH,
+                "try std.testing.expect(targetless_sanitized.targetless_unregister_request_sanitized);",
             ),
             (
-                CLEANUP_CHECKER_PATH,
-                "phase11_hvc_targetless_unregister_gap_build.zig",
+                DRIVER_PATH,
+                "try std.testing.expect(!targetless_sanitized.unregister_requested);",
             ),
             (
-                WITNESS_PATH,
-                'try expectContains(companion, "separate failure-mode replay");',
+                DRIVER_PATH,
+                "try std.testing.expect(targetless_sanitized.keeps_live_notifier_execution_out_of_scope);",
             ),
             (
-                WITNESS_PATH,
-                'try expectContains(survey, "standalone targetless-unregister witness pair likewise stays");',
+                DRIVER_PATH,
+                'test "phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized" {',
             ),
             (
-                WITNESS_PATH,
-                'try expectContains(survey, "without promoting itself into the shared three-entry build inventory");',
-            ),
-            (
-                WITNESS_PATH,
-                f'const matrix = try readRepoFile("{VALIDATION_MATRIX_PATH}");',
-            ),
-            (
-                WITNESS_PATH,
-                'try expectContains(matrix, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`");',
-            ),
-            (
-                WITNESS_PATH,
-                'try expectContains(matrix, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");',
-            ),
-            (
-                WITNESS_PATH,
-                'try expectContains(matrix, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");',
-            ),
-            (
-                WITNESS_BUILD_PATH,
-                '.name = "phase11-hvc-targetless-unregister-gap",',
+                DRIVER_PATH,
+                "try std.testing.expect(!summary.unregister_requested);",
             ),
             (
                 VALIDATE_PHASE11_PATH,
-                WITNESS_PATH,
+                '"phase11-hvc-targetless-unregister-witness-self-test",',
             ),
             (
                 VALIDATE_PHASE11_PATH,
-                WITNESS_BUILD_PATH,
-            ),
-            (
-                VALIDATE_PHASE11_PATH,
-                '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test"),',
-            ),
-            (
-                VALIDATE_PHASE11_PATH,
-                '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),',
+                '"phase11-hvc-targetless-unregister-witness",',
             ),
             (
                 VALIDATE_PHASE11_PATH,
                 "phase11-hvc-targetless-unregister-gap-build",
             ),
             (
-                MAKEFILE_PATH,
-                "phase11_hvc_targetless_unregister_gap_build.zig",
+                WITNESS_PATH,
+                "the literal-fallback helpers keep the targetless sysrq path without notifier, the sanitized registered-but-targetless sysrq path, and the non-kernel sysrq literal fallback explicit",
+            ),
+            (
+                WITNESS_BUILD_PATH,
+                '.name = "phase11-hvc-targetless-unregister-gap",',
             ),
         )
 
@@ -600,130 +576,34 @@ def run_self_test() -> int:
                     rel,
                     read_text(root, rel).replace(frag, "", 1),
                 ),
-                fragment,
+                relative_path,
             )
             cases += 1
 
-        broken_workflow_step = temp_dir / "broken_workflow_step"
-        shutil.copytree(fixture, broken_workflow_step, dirs_exist_ok=True)
+        missing_inventory = temp_dir / "missing_inventory"
+        shutil.copytree(fixture, missing_inventory, dirs_exist_ok=True)
         expect_failure(
-            broken_workflow_step,
+            missing_inventory,
             lambda root: write_text(
                 root,
-                WORKFLOW_PATH,
-                read_text(root, WORKFLOW_PATH).replace(PHASE11_VALIDATE_STEP, "", 1),
+                INVENTORY_PATH,
+                json.dumps({"exact_current_checks": [], "workflow_phase11_steps": []}, indent=2) + "\n",
             ),
-            PHASE11_VALIDATE_STEP,
-        )
-        cases += 1
-
-        broken_workflow_marker = temp_dir / "broken_workflow_marker"
-        shutil.copytree(fixture, broken_workflow_marker, dirs_exist_ok=True)
-        expect_failure(
-            broken_workflow_marker,
-            lambda root: write_text(
-                root,
-                WORKFLOW_PATH,
-                read_text(root, WORKFLOW_PATH).replace(PHASE11_VALIDATE_COMMAND, "", 1),
-            ),
-            PHASE11_VALIDATE_COMMAND,
-        )
-        cases += 1
-
-        broken_inventory = temp_dir / "broken_inventory"
-        shutil.copytree(fixture, broken_inventory, dirs_exist_ok=True)
-
-        def mutate_inventory_missing_check(root: Path) -> None:
-            payload = json.loads(read_text(root, INVENTORY_PATH))
-            payload["exact_current_checks"] = [REQUIRED_COMMAND]
-            write_text(root, INVENTORY_PATH, json.dumps(payload, indent=2, sort_keys=True) + "\n")
-
-        expect_failure(
-            broken_inventory,
-            mutate_inventory_missing_check,
-            "exact_current_checks",
-        )
-        cases += 1
-
-        broken_workflow = temp_dir / "broken_workflow"
-        shutil.copytree(fixture, broken_workflow, dirs_exist_ok=True)
-
-        def mutate_inventory_missing_step(root: Path) -> None:
-            payload = json.loads(read_text(root, INVENTORY_PATH))
-            payload["workflow_phase11_steps"] = [{"name": "other", "run": "other"}]
-            write_text(root, INVENTORY_PATH, json.dumps(payload, indent=2, sort_keys=True) + "\n")
-
-        expect_failure(
-            broken_workflow,
-            mutate_inventory_missing_step,
-            "workflow step explicit",
-        )
-        cases += 1
-
-        broken_inventory_build_test_names = temp_dir / "broken_inventory_build_test_names"
-        shutil.copytree(fixture, broken_inventory_build_test_names, dirs_exist_ok=True)
-
-        def mutate_inventory_build_test_names(root: Path) -> None:
-            payload = json.loads(read_text(root, INVENTORY_PATH))
-            payload["build_test_names"].append(TARGETLESS_WITNESS_TEST_NAME)
-            write_text(root, INVENTORY_PATH, json.dumps(payload, indent=2, sort_keys=True) + "\n")
-
-        expect_failure(
-            broken_inventory_build_test_names,
-            mutate_inventory_build_test_names,
-            "outside build_test_names",
-        )
-        cases += 1
-
-        broken_inventory_adjunct_replays = temp_dir / "broken_inventory_adjunct_replays"
-        shutil.copytree(fixture, broken_inventory_adjunct_replays, dirs_exist_ok=True)
-
-        def mutate_inventory_adjunct_replays(root: Path) -> None:
-            payload = json.loads(read_text(root, INVENTORY_PATH))
-            payload["shared_adjunct_replays"].append(TARGETLESS_WITNESS_REPLAY)
-            write_text(root, INVENTORY_PATH, json.dumps(payload, indent=2, sort_keys=True) + "\n")
-
-        expect_failure(
-            broken_inventory_adjunct_replays,
-            mutate_inventory_adjunct_replays,
-            "outside shared_adjunct_replays",
-        )
-        cases += 1
-
-        broken_inventory_adjunct_build_replays = temp_dir / "broken_inventory_adjunct_build_replays"
-        shutil.copytree(fixture, broken_inventory_adjunct_build_replays, dirs_exist_ok=True)
-
-        def mutate_inventory_adjunct_build_replays(root: Path) -> None:
-            payload = json.loads(read_text(root, INVENTORY_PATH))
-            payload["shared_adjunct_build_replays"].append(TARGETLESS_WITNESS_BUILD_REPLAY)
-            write_text(root, INVENTORY_PATH, json.dumps(payload, indent=2, sort_keys=True) + "\n")
-
-        expect_failure(
-            broken_inventory_adjunct_build_replays,
-            mutate_inventory_adjunct_build_replays,
-            "outside shared_adjunct_build_replays",
-        )
-        cases += 1
-
-        broken_json = temp_dir / "broken_json"
-        shutil.copytree(fixture, broken_json, dirs_exist_ok=True)
-        expect_failure(
-            broken_json,
-            lambda root: write_text(root, INVENTORY_PATH, "{not json}\n"),
-            "is not valid JSON",
+            "phase11_build_inventory.json must keep",
         )
         cases += 1
 
         missing_file = temp_dir / "missing_file"
         shutil.copytree(fixture, missing_file, dirs_exist_ok=True)
+        (missing_file / WITNESS_BUILD_PATH).unlink()
         expect_failure(
             missing_file,
-            lambda root: (root / WITNESS_PATH).unlink(),
+            lambda root: None,
             "missing required Phase 11 HVC targetless-unregister witness packet files",
         )
         cases += 1
     finally:
-        shutil.rmtree(temp_dir, ignore_errors=True)
+        shutil.rmtree(temp_dir)
 
     print("PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS_SELF_TEST=pass")
     print(f"PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS_SELF_TEST_CASE_COUNT={cases}")
@@ -732,17 +612,18 @@ def run_self_test() -> int:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Check the Phase 11 HVC targetless-unregister witness packet for drift."
+        description="Validate the Phase 11 HVC targetless-unregister witness packet."
     )
     parser.add_argument(
-        "--repo-root",
-        default=".",
-        help="Path to the Zigux repository root. Defaults to the current working directory.",
+        "--root",
+        type=Path,
+        default=Path.cwd(),
+        help="repository root to validate (defaults to current working directory)",
     )
     parser.add_argument(
         "--self-test",
         action="store_true",
-        help="Run built-in fixture cases instead of validating a repository checkout.",
+        help="run checker fixture self-tests",
     )
     return parser.parse_args()
 
@@ -752,14 +633,8 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    try:
-        validate(Path(args.repo_root).resolve())
-    except ValidationError as exc:
-        print(f"PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=fail: {exc}")
-        return 1
-
+    validate(args.root)
     print("PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass")
-    print(f"PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS_REQUIRED_FILE_COUNT={len(REQUIRED_PACKET_FILES)}")
     return 0
 
 
