@@ -10,6 +10,7 @@ This note keeps the shared Phase 9 delivery packet explicit without widening cur
 - `PHASE9_RUNTIME_PILOT_SCRIPTS_ROOT=scripts/zigux/README.md`
 - `PHASE9_RUNTIME_PILOT_SHARED_NOTE=Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 - `PHASE9_RUNTIME_PILOT_SHARED_BUILD=zigux/tests/phase9_build.zig`
+- `PHASE9_RUNTIME_PILOT_SHARED_LOADER_BUILD=zigux/tests/runtime_loader_allocator_init_flow_build.zig`
 
 ## Shared Owner Packet
 
@@ -27,6 +28,7 @@ These files describe the shared reminder, review, and rerun surfaces for the who
 - `zigux/tests/runtime_pilot_manifest.json`
 - `zigux/tests/README.md`
 - `zigux/tests/phase9_build.zig`
+- `zigux/tests/runtime_loader_allocator_init_flow_build.zig`
 
 ## Shared Runtime Loader Owner
 
@@ -36,7 +38,9 @@ These files remain shared-owner evidence for allocator/init-flow and command/env
 - `zigux/kernel/runtime_loader_contract.zig`
 - `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`
 - `zigux/tests/runtime_loader_allocator_init_flow.zig`
+- `zigux/tests/runtime_loader_allocator_init_flow_build.zig`
 - `samples/zigux/runtime_bitmap_loader.zig`
+- focused `zig build test --build-file zigux/tests/runtime_loader_allocator_init_flow_build.zig`
 - bounded `phase9-runtime-loader-allocator-init-flow-tests`
 - bounded `phase9-runtime-loader-shared-tests`
 - bounded `phase9-runtime-loader-command-env-boundary-guard-tests`
