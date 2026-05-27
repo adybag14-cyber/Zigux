@@ -63,9 +63,11 @@ TESTS_ROOT_REQUIRED_MARKERS = (
     "The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`.",
     "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
     "`drivers/virtio/virtio_input_queue_callback_preflight.zig`",
+    "`drivers/virtio/virtio_input_teardown_preflight.zig`",
     "`drivers/virtio/virtio_ring_publish_readiness.zig`",
+    "`zigux/tests/phase10_virtio_input_teardown_preflight.zig`",
     "`zigux/tests/phase10_virtio_input_teardown_observation.zig`",
-    "queue-callback-preflight, registration-preflight, status-drain, and teardown-observation replays explicit here",
+    "queue-callback-preflight, registration-preflight, teardown-preflight, status-drain, and teardown-observation replays explicit here",
     "`zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig`",
     "`zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig`",
     "without widening into lifecycle, IRQ-delivery, or DMA claims",
@@ -173,9 +175,11 @@ Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bou
 The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`.
 `Documentation/zigux/phase10-virtio-input-module-slice.md`
 `drivers/virtio/virtio_input_queue_callback_preflight.zig`
+`drivers/virtio/virtio_input_teardown_preflight.zig`
 `drivers/virtio/virtio_ring_publish_readiness.zig`
+`zigux/tests/phase10_virtio_input_teardown_preflight.zig`
 `zigux/tests/phase10_virtio_input_teardown_observation.zig`
-queue-callback-preflight, registration-preflight, status-drain, and teardown-observation replays explicit here
+queue-callback-preflight, registration-preflight, teardown-preflight, status-drain, and teardown-observation replays explicit here
 `zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig`
 `zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig`
 without widening into lifecycle, IRQ-delivery, or DMA claims
