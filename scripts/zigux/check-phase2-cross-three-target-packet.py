@@ -54,6 +54,8 @@ EXPECTED_FIXTURE = {
     ],
 }
 
+EXPECTED_SELF_TEST_CASE_COUNT = 8
+
 
 def read_text(path: Path) -> str:
     try:
@@ -216,6 +218,7 @@ def run_self_test() -> int:
                 raise AssertionError(f"missing primary file did not abort: {primary_path}")
             checks += 1
 
+    assert checks == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_CROSS_THREE_TARGET_PACKET_SELF_TEST=pass")
     print(f"PHASE2_CROSS_THREE_TARGET_PACKET_SELF_TEST_CASE_COUNT={checks}")
     return 0
