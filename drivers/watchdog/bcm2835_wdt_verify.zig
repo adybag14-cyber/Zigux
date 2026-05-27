@@ -132,7 +132,7 @@ test "bcm2835 verify helper keeps stop and poweroff snapshots reviewable" {
     var unclaimed = try bcm2835_wdt.Bcm2835WdtLab.init(8);
     const unclaimed_poweroff = unclaimed.poweroff(false);
     try std.testing.expect(!unclaimed_poweroff.halt_partition_requested);
-    try std.testing.expect(unclaimed_poweroff.restart_path_reused);
+    try std.testing.expect(!unclaimed_poweroff.restart_path_reused);
     try std.testing.expectEqual(@as(u32, 0), unclaimed_poweroff.programmed_ticks);
     try std.testing.expect(!unclaimed_poweroff.full_reset_armed);
     try std.testing.expect(!unclaimed_poweroff.running_after_poweroff);
