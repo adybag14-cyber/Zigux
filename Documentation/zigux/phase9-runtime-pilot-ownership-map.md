@@ -44,6 +44,18 @@ These files remain shared-owner evidence for allocator/init-flow and command/env
 
 Keep this packet shared-owner and metadata-only. It does not prove live runtime registration, blocked publication, depmod, or install-root closure.
 
+## Runtime Atomic64 Family Owner
+
+These files are the direct atomic64 runtime pilot packet and should stay atomic64-local:
+
+- `samples/zigux/runtime_atomic64.zig`
+- `samples/zigux/runtime_atomic64_loader.zig`
+- `zigux/tests/runtime_atomic64_diff.zig`
+- `zigux/tests/runtime_atomic64_module.zig`
+- bounded `phase9-runtime-atomic64-tests`
+
+Keep this packet framed as the first-loadable atomic64 pilot rooted in `lib/atomic64_test.c`. It does not prove broader shared runtime-loader closure, blocked publication, depmod, or install-root completion.
+
 ## Trace Events Family Owner
 
 These files are the shipped direct runtime pilot packet for the trace-events family:
