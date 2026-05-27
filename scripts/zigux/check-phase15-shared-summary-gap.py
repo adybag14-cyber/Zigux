@@ -20,6 +20,7 @@ STATUS_MARKERS = (
 MATERIALIZED_GOVERNANCE_PATHS = (
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+    "Documentation/zigux/phase15-architecture-council-decision-index.md",
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
@@ -70,6 +71,7 @@ REQUIRED_NOTE_MARKERS = (
     "`Documentation/zigux/phase15-freeze-map-governance.md`",
     "`Documentation/zigux/phase15-architecture-council-review-process.md`",
     "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+    "`Documentation/zigux/phase15-architecture-council-decision-index.md`",
     "`Documentation/zigux/phase15-indefinite-c-policy.md`",
     "`Documentation/zigux/phase15-parity-scorecard.md`",
     "`Documentation/zigux/phase15-parity-scorecard-survey.md`",
@@ -109,6 +111,7 @@ STALE_TEXT_MARKERS = (
 
 HANDOFF_STATUS_MARKER = "PHASE15_STATUS=handoff_next_steps_survey_landed"
 REQUIRED_WATCHPOINT_MARKERS = (
+    "`Documentation/zigux/phase15-architecture-council-decision-index.md`",
     "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
     "`Documentation/zigux/phase15-readiness-gate-survey.md`",
     "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
