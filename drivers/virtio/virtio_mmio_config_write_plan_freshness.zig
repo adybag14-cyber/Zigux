@@ -78,6 +78,41 @@ test "phase10 virtio mmio plan-freshness wrapper keeps generation drift visible 
     try std.testing.expect(planHasReviewableOffsets(summary));
 }
 
+test "phase10 virtio mmio plan-freshness wrapper recovers fresh review state after generation drift" {
+    var device = try virtio_mmio.VirtioMmioLab.init(97, &[_]u16{ 8, 16 });
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
+
+    const stale_plan = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0407);
+    device.bumpConfigGeneration();
+
+    var summary = summarizeConfigWritePlanFreshness(&device);
+    try std.testing.expectEqual(ConfigWritePlanAvailability.stale_generation, summary.availability);
+    try std.testing.expect(summary.plan_present);
+    try std.testing.expect(!summary.plan_matches_generation);
+    try std.testing.expectEqual(stale_plan.relative_offset, summary.relative_offset);
+    try std.testing.expectEqual(stale_plan.absolute_offset, summary.absolute_offset);
+    try std.testing.expectEqual(stale_plan.planned_value, summary.planned_value);
+    try std.testing.expectEqual(@as(u32, 0), summary.planned_generation);
+    try std.testing.expectEqual(@as(u32, 1), summary.current_generation);
+    try std.testing.expect(!planIsFresh(summary));
+    try std.testing.expect(planNeedsRefresh(summary));
+    try std.testing.expect(planHasReviewableOffsets(summary));
+
+    const refreshed_plan = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0409);
+    summary = summarizeConfigWritePlanFreshness(&device);
+    try std.testing.expectEqual(ConfigWritePlanAvailability.fresh, summary.availability);
+    try std.testing.expect(summary.plan_present);
+    try std.testing.expect(summary.plan_matches_generation);
+    try std.testing.expectEqual(refreshed_plan.relative_offset, summary.relative_offset);
+    try std.testing.expectEqual(refreshed_plan.absolute_offset, summary.absolute_offset);
+    try std.testing.expectEqual(refreshed_plan.planned_value, summary.planned_value);
+    try std.testing.expectEqual(@as(u32, 1), summary.planned_generation);
+    try std.testing.expectEqual(@as(u32, 1), summary.current_generation);
+    try std.testing.expect(planIsFresh(summary));
+    try std.testing.expect(!planNeedsRefresh(summary));
+    try std.testing.expect(planHasReviewableOffsets(summary));
+}
+
 test "phase10 virtio mmio plan-freshness wrapper clears restaged plans instead of reusing stale offsets" {
     var device = try virtio_mmio.VirtioMmioLab.init(96, &[_]u16{ 8, 16 });
     try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
