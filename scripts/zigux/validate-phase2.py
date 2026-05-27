@@ -24,6 +24,7 @@ GENKSYMS_PROCESS_OUTPUT_FIXTURES = (
     "zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json",
 )
 KCONFIG_CONFDATA_REPLAY_MARKERS = (
     'compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)',
