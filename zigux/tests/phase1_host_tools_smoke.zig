@@ -306,6 +306,12 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     try std.testing.expectEqual(@as(usize, 1), string.strnchrnul(&counted, counted.len, 'b'));
     try std.testing.expectEqual(@as(usize, 4), string.strspn("abba!", "ab"));
 
+    const terminator_clamped = [_]u8{ 'a', 0, 'b', 'c' };
+    try std.testing.expectEqual(@as(usize, 1), string.strchrNul(&terminator_clamped, 'z'));
+    try std.testing.expectEqual(@as(usize, 1), string.strchrnul(&terminator_clamped, 'z'));
+    try std.testing.expectEqual(@as(usize, 2), string.strchrNul("abcz", 'c'));
+    try std.testing.expectEqual(@as(usize, 2), string.strchrnul("abcz", 'c'));
+
     var tree_entries = [_]RbtreeSmokeEntry{
         .{ .key = 10, .serial = 0 },
         .{ .key = 20, .serial = 1 },
