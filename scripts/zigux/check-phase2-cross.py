@@ -43,7 +43,7 @@ EXPECTED_CROSS_TARGET_FIELDS = {
     "route",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 29
+EXPECTED_SELF_TEST_CASE_COUNT = 34
 
 
 class DuplicateJsonKeyError(ValueError):
@@ -120,37 +120,58 @@ def load_archive_sha256_targets(root: Path) -> list[str]:
 
 
 def load_archive_target_scope(root: Path) -> list[str]:
-    payload = read_json(resolve_path(root, TOOLCHAIN_POLICY))
+    policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+    payload = read_json(policy_path)
     if not isinstance(payload, dict):
-        raise SystemExit(f"invalid json shape in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
+        raise SystemExit(f"invalid json shape in required file: {policy_path}")
     upgrade_policy = payload.get("upgrade_policy")
     if not isinstance(upgrade_policy, dict):
-        raise SystemExit(f"invalid upgrade_policy in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
+        raise SystemExit(f"invalid upgrade_policy in required file: {policy_path}")
     archive_target_scope = upgrade_policy.get("archive_target_scope")
     if not isinstance(archive_target_scope, list) or not archive_target_scope:
-        raise SystemExit(
-            f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
-        )
+        raise SystemExit(f"invalid archive_target_scope in required file: {policy_path}")
     normalized: list[str] = []
     seen_targets: set[str] = set()
     for value in archive_target_scope:
-        if not isinstance(value, str) or not value.strip():
-            raise SystemExit(
-                f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
-            )
-        target = value.strip()
+        if not isinstance(value, str) or not value.strip() or value != value.strip():
+            raise SystemExit(f"invalid archive_target_scope in required file: {policy_path}")
+        target = value
         if target in seen_targets:
-            raise SystemExit(
-                f"duplicate archive_target_scope entry in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
-            )
+            raise SystemExit(f"duplicate archive_target_scope entry in required file: {policy_path}")
         if target not in SUPPORTED_CROSS_TARGETS:
-            raise SystemExit(
-                "unsupported archive_target_scope targets in required file: "
-                + target
-            )
+            raise SystemExit("unsupported archive_target_scope targets in required file: " + target)
         normalized.append(target)
         seen_targets.add(target)
     return normalized
+
+
+def collect_fixture_scope_issues(
+    fixture_scope: object, archive_target_scope: list[str]
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    if not isinstance(fixture_scope, list) or not fixture_scope:
+        return [("INVALID_FIXTURE_FIELD", "archive_target_scope")]
+
+    normalized_scope: list[str] = []
+    seen_targets: set[str] = set()
+    for index, value in enumerate(fixture_scope):
+        if not isinstance(value, str) or not value.strip():
+            issues.append(("INVALID_FIXTURE_ARCHIVE_SCOPE_ENTRY", f"index={index}"))
+            continue
+        if value != value.strip():
+            issues.append(("WHITESPACE_PADDED_FIXTURE_ARCHIVE_SCOPE", f"index={index}:{value}"))
+            continue
+        if value in seen_targets:
+            issues.append(("DUPLICATE_FIXTURE_ARCHIVE_SCOPE_TARGET", value))
+            continue
+        if value not in SUPPORTED_CROSS_TARGETS:
+            issues.append(("UNSUPPORTED_FIXTURE_ARCHIVE_SCOPE_TARGET", value))
+        normalized_scope.append(value)
+        seen_targets.add(value)
+
+    if normalized_scope != archive_target_scope:
+        issues.append(("ARCHIVE_SCOPE_MISMATCH", ",".join(archive_target_scope)))
+    return issues
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -198,9 +219,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if fixture.get("route") != ROUTE:
         issues.append(("INVALID_FIXTURE_FIELD", "route"))
 
-    fixture_scope = fixture.get("archive_target_scope")
-    if fixture_scope != archive_target_scope:
-        issues.append(("ARCHIVE_SCOPE_MISMATCH", ",".join(archive_target_scope)))
+    issues.extend(collect_fixture_scope_issues(fixture.get("archive_target_scope"), archive_target_scope))
 
     cross_targets = fixture.get("cross_targets")
     if not isinstance(cross_targets, list) or not cross_targets:
@@ -226,7 +245,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if not isinstance(target, str) or not target.strip():
             issues.append(("INVALID_CROSS_TARGET_ENTRY", f"index={index}:target"))
             continue
-        target = target.strip()
+        if target != target.strip():
+            issues.append(("WHITESPACE_PADDED_CROSS_TARGET", f"index={index}:{target}"))
+            continue
         if target in seen_targets:
             issues.append(("DUPLICATE_CROSS_TARGET", target))
         seen_targets.add(target)
@@ -239,8 +260,16 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         expected_review_status = EXPECTED_REVIEW_STATUS_BY_TARGET.get(target)
         if not isinstance(review_status, str) or not review_status.strip():
             issues.append(("INVALID_CROSS_TARGET_ENTRY", f"{target}:review_status"))
+        elif review_status != review_status.strip():
+            issues.append(("WHITESPACE_PADDED_CROSS_TARGET_REVIEW_STATUS", target))
         elif expected_review_status is not None and review_status != expected_review_status:
             issues.append(("INVALID_CROSS_TARGET_REVIEW_STATUS", f"{target}:{review_status}"))
+        if not isinstance(validation_mode, str) or not validation_mode:
+            issues.append(("INVALID_CROSS_TARGET_MODE", target))
+            continue
+        if validation_mode != validation_mode.strip():
+            issues.append(("WHITESPACE_PADDED_CROSS_TARGET_MODE", target))
+            continue
         if validation_mode not in ALLOWED_VALIDATION_MODES:
             issues.append(("INVALID_CROSS_TARGET_MODE", target))
             continue
@@ -374,6 +403,19 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, TOOLCHAIN_POLICY)
         policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["upgrade_policy"]["archive_target_scope"] = [" x86_64-linux "]
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid archive_target_scope" in str(exc)
+        else:
+            raise AssertionError("whitespace-padded archive_target_scope entry did not abort")
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
         policy["upgrade_policy"]["archive_target_scope"] = ["x86_64-linux", "x86_64-linux"]
         path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
         try:
@@ -502,6 +544,16 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, FIXTURE)
         fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["archive_target_scope"] = [" x86_64-linux "]
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("WHITESPACE_PADDED_FIXTURE_ARCHIVE_SCOPE", "index=0: x86_64-linux ") in issues
+        assert ("ARCHIVE_SCOPE_MISMATCH", "x86_64-linux") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
         fixture["archive_target_scope"] = ["aarch64-linux"]
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert ("ARCHIVE_SCOPE_MISMATCH", "x86_64-linux") in collect_issues(root)
@@ -558,6 +610,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, FIXTURE)
         fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"][0]["review_status"] = " pinned bootstrap archive "
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert ("WHITESPACE_PADDED_CROSS_TARGET_REVIEW_STATUS", "x86_64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
         fixture["cross_targets"][0]["review_status"] = "route contract only"
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert (
@@ -580,6 +640,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, FIXTURE)
         fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"][1]["validation_mode"] = " route_contract_only "
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert ("WHITESPACE_PADDED_CROSS_TARGET_MODE", "aarch64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
         fixture["cross_targets"][1]["validation_mode"] = "unexpected_mode"
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_MODE", "aarch64-linux") in collect_issues(root)
@@ -592,6 +660,17 @@ def run_self_test() -> int:
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert ("CROSS_TARGET_SET_MISMATCH", "x86_64-linux") in collect_issues(root)
         assert ("CROSS_TARGET_ORDER_MISMATCH", "x86_64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"][0]["target"] = " x86_64-linux "
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("WHITESPACE_PADDED_CROSS_TARGET", "index=0: x86_64-linux ") in issues
+        assert ("CROSS_TARGET_SET_MISMATCH", "aarch64-linux") in issues
+        assert ("CROSS_TARGET_ORDER_MISMATCH", "aarch64-linux") in issues
         checks_run += 1
 
         build_self_test_root(root)
