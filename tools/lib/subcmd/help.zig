@@ -159,8 +159,11 @@ pub fn trimCommandPrefix(entry_name: []const u8, prefix: []const u8) ?[]const u8
     }
 
     var trimmed = entry_name[prefix.len..];
-    if (hasExtension(trimmed, ".exe")) {
+    if (std.mem.endsWith(u8, trimmed, ".exe")) {
         trimmed = trimmed[0 .. trimmed.len - 4];
+    }
+    if (trimmed.len == 0) {
+        return null;
     }
 
     return trimmed;
@@ -299,9 +302,11 @@ test "computePrettyLayout falls back to the default width and one-column floor" 
     try std.testing.expectEqual(@as(usize, 14), narrow.space);
 }
 
-test "trimCommandPrefix strips the prefix and optional exe suffix" {
+test "trimCommandPrefix strips the prefix, optional exe suffix, and rejects empty command names" {
     try std.testing.expectEqualStrings("annotate", trimCommandPrefix("perf-annotate", default_command_prefix).?);
     try std.testing.expectEqualStrings("script", trimCommandPrefix("perf-script.exe", default_command_prefix).?);
+    try std.testing.expectEqual(@as(?[]const u8, null), trimCommandPrefix("perf-", default_command_prefix));
+    try std.testing.expectEqual(@as(?[]const u8, null), trimCommandPrefix("perf-.exe", default_command_prefix));
     try std.testing.expectEqual(@as(?[]const u8, null), trimCommandPrefix("trace2html", default_command_prefix));
 }
 
