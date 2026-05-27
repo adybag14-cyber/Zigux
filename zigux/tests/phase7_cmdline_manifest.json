@@ -1,7 +1,7 @@
 {
   "lane_key": "P7-L08",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-26T14:06:28Z",
+  "verified_on_utc": "2026-05-27T10:56:00Z",
   "anchor": "lib/cmdline.c",
   "current_master_state": "helper_slice_test_survey_manifest_checker_anchor",
   "review_surfaces": [
@@ -11,6 +11,7 @@
     "zigux/tests/phase7_cmdline.zig",
     "zigux/tests/phase7_cmdline_survey.zig",
     "zigux/tests/phase7_cmdline_manifest.json",
+    "zigux/tests/phase7_cmdline_survey_build.zig",
     "scripts/zigux/check-phase7-cmdline-packet.py",
     "samples/zigux/README.md"
   ],
@@ -33,6 +34,7 @@
     "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
     "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track",
     "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
+    "the dedicated `zig build phase7-cmdline-survey --build-file zigux/tests/phase7_cmdline_survey_build.zig` route keeps this helper-local survey replay runnable without widening into shared Phase 7 tests-root ownership",
     "the no-standalone-cmdline sample boundary stays explicit only while `samples/zigux/README.md` keeps `*cmdline*` listed among the no-extra-sample reminders"
   ],
   "next_bounded_step": "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof while shared-control routes stay parked outside this helper-local lane."
