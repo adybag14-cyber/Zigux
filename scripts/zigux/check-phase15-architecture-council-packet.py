@@ -20,7 +20,7 @@ CHECKER_PATH = Path("scripts/zigux/check-phase15-architecture-council-packet.py"
 
 EXPECTED_LANE_KEY = "P15-L08"
 EXPECTED_PHASE = "Phase 15"
-EXPECTED_SURVEYED_COMMIT = "current-master-readback-2026-05-26"
+EXPECTED_SURVEYED_COMMIT = "current-master-readback-2026-05-27"
 
 REQUIRED_NOTE_MARKERS = (
     "PHASE15_STATUS=architecture_council_review_process_landed",
@@ -38,6 +38,7 @@ DECISION_INDEX_REQUIRED_MARKERS = (
     "PHASE15_STATUS=architecture_council_decision_index_landed",
     "PHASE15_LANE_KEY=P15-L09",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
+    "surveyed against dated current-master readback marker `current-master-readback-2026-05-27`",
     "approved status-bucket changes recorded on current `master`: none",
     "stay-in-C closeout decision records recorded on current `master`: none",
     "no freeze-map anchor has an Architecture Council approval for a status change on current `master`",
@@ -100,8 +101,12 @@ def collect_failures(root: Path) -> list[str]:
         failures.append("review_process_note")
     if manifest.get("decision_record_template") != str(DECISION_RECORD_TEMPLATE_PATH):
         failures.append("decision_record_template")
+    if manifest.get("decision_index_note") != str(DECISION_INDEX_PATH):
+        failures.append("decision_index_note")
     if manifest.get("indefinite_c_policy_note") != str(INDEFINITE_C_POLICY_PATH):
         failures.append("indefinite_c_policy_note")
+    if manifest.get("checker") != "scripts/zigux/check-phase15-review-process-handoff.py":
+        failures.append("checker")
     if manifest.get("build_gate") != str(BUILD_GATE_PATH):
         failures.append("build_gate")
 
@@ -192,7 +197,9 @@ def _sample_manifest() -> str:
         "surveyed_commit_mode": "dated_master_readback",
         "review_process_note": str(REVIEW_PROCESS_PATH),
         "decision_record_template": str(DECISION_RECORD_TEMPLATE_PATH),
+        "decision_index_note": str(DECISION_INDEX_PATH),
         "indefinite_c_policy_note": str(INDEFINITE_C_POLICY_PATH),
+        "checker": "scripts/zigux/check-phase15-review-process-handoff.py",
         "build_gate": str(BUILD_GATE_PATH),
         "review_checklist_entry_prompt": "if a freeze-map anchor is entering Architecture Council status review",
         "review_checklist_stay_in_c_policy_boundary_rule": "`Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording",
@@ -225,6 +232,8 @@ def _sample_manifest() -> str:
             "trigger-specific evidence refresh",
             "parity scorecard link or blocker record",
             "indefinite-C policy link or explicit non-applicability note",
+            "governance lane sequencing link or explicit scope note",
+            "study-only anchor accounting link or explicit freeze-map-anchor confirmation",
             "explicit non-goals",
             "written rationale",
         ],
@@ -288,7 +297,7 @@ This note records the bounded Phase 15 review-policy packet for freeze-map ancho
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_SLICE=stay-in-c-review-field-inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-26`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-27`
 - `PHASE15_PACKET_OWNER=Architecture Council`
 - `PHASE15_PACKET_VALIDATION_GATE=python3 scripts/zigux/check-phase15-review-process-handoff.py && zig test zigux/tests/phase15_architecture_council_review_process.zig && zig build test --build-file zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `PHASE15_PACKET_ROLLBACK_OWNER=Architecture Council`
@@ -431,6 +440,7 @@ def _sample_decision_index() -> str:
 - `PHASE15_STATUS=architecture_council_decision_index_landed`
 - `PHASE15_LANE_KEY=P15-L09`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-27`
 
 ## Current decision inventory
 
@@ -510,7 +520,7 @@ def run_self_test() -> int:
         cases = (
             (REVIEW_PROCESS_PATH, "- roadmap phase\n", ["missing_review_process_required_field:roadmap phase"]),
             (DECISION_RECORD_TEMPLATE_PATH, "- next bounded step:\n", ["missing_decision_record_review_outcome_field:next bounded step"]),
-            (DECISION_INDEX_PATH, "- approved status-bucket changes recorded on current `master`: none\n", ["missing_decision_index_marker:approved status-bucket changes recorded on current `master`: none"]),
+            (DECISION_INDEX_PATH, "- surveyed against dated current-master readback marker `current-master-readback-2026-05-27`\n", ["missing_decision_index_marker:surveyed against dated current-master readback marker `current-master-readback-2026-05-27`"]),
             (INDEFINITE_C_POLICY_PATH, "parity scorecard link or blocker record", ["missing_indefinite_c_policy_marker:parity scorecard link or blocker record"]),
             (REVIEW_CHECKLIST_PATH, "retained blocker posture", ["missing_review_checklist_boundary_marker:`Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording", "missing_review_checklist_required_marker:retained blocker posture"]),
         )
@@ -532,6 +542,25 @@ def run_self_test() -> int:
             if failures != expected:
                 raise AssertionError(f"unexpected failures for {rel}: {failures}")
             case_count += 1
+
+        stale_manifest_root = root / f"case_{case_count}"
+        _write(stale_manifest_root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(stale_manifest_root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
+        _write(stale_manifest_root / DECISION_INDEX_PATH, _sample_decision_index())
+        _write(stale_manifest_root / INDEFINITE_C_POLICY_PATH, _sample_indefinite_c_policy())
+        _write(stale_manifest_root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
+        _write(
+            stale_manifest_root / MANIFEST_PATH,
+            _sample_manifest().replace("current-master-readback-2026-05-27", "current-master-readback-2026-05-26", 1),
+        )
+        _write(stale_manifest_root / TEST_PATH, _sample_test_file())
+        _write(stale_manifest_root / BUILD_GATE_PATH, _sample_build_gate())
+        _write(stale_manifest_root / CHECKER_PATH, "# fixture\n")
+        failures = collect_failures(stale_manifest_root)
+        expected = ["surveyed_commit:'current-master-readback-2026-05-26'"]
+        if failures != expected:
+            raise AssertionError(f"unexpected stale-manifest failure: {failures}")
+        case_count += 1
 
     print("PHASE15_ARCHITECTURE_COUNCIL_PACKET_SELF_TEST=pass")
     print(f"PHASE15_ARCHITECTURE_COUNCIL_PACKET_SELF_TEST_CASES={case_count}")
