@@ -150,6 +150,7 @@ EXPECTED_MANIFEST_PACKET = {
         "next_match_terminal_null",
     ],
     "cached_leftmost_fixture_keys": ["cached_leftmost_return_serials"],
+    "cached_root_transition_fixture_keys": ["cached_root_transition_serials"],
     "cached_root_direct_review_summary": "cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors, while the exact `cached_leftmost_return_serials` witness now stays aligned across the helper-local tests, the shared host-tools smoke replay, and the committed fixture",
     "ordered_alias_anchor": 'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
     "low_level_alias_anchor": 'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
@@ -184,6 +185,7 @@ EXPECTED_FIXTURE_VALUES = {
     "next_match_serials": [0, 2, 4],
     "match_iterator_serials": [0, 2, 4],
     "cached_leftmost_return_serials": [0, -1, 2, -1],
+    "cached_root_transition_serials": [0, 0, 4, 2],
     "next_match_terminal_null": True,
 }
 
@@ -217,7 +219,6 @@ def load_json_with_duplicate_tracking(text: str) -> object:
 
 def load_json(root: Path, relative_path: Path) -> object:
     return load_json_with_duplicate_tracking(load_text(root, relative_path))
-
 
 def load_json_failure(label: str, exc: json.JSONDecodeError) -> str:
     return f"{label}:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}"
@@ -518,7 +519,7 @@ def run_self_test() -> int:
             elif isinstance(target, tuple) and target[0] == "duplicate_json_text":
                 insert_duplicate_json_line(root, target[1], target[2], target[3])
             elif isinstance(target, tuple) and target[0] == "invalid_json":
-                (root / target[1]).write_text("{\n", encoding="utf-8")
+                (root / target[1]).writeText("{\n", encoding="utf-8")
             elif isinstance(target, tuple) and target[0] == "missing_file":
                 (root / target[1]).unlink()
             else:
