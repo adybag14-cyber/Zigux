@@ -24,7 +24,7 @@
     "run_virtio_net_survey_tests"
   ],
   "throughput_anchor_depend_steps": [
-    "run_virtio_net_throughput_parity_tests"
+    "throughput_parity_tests"
   ],
   "module_root_source_files": [
     {
@@ -139,7 +139,7 @@
     {
       "variable": "throughput_parity_step",
       "step": "phase12-virtio-net-throughput-parity",
-      "description": "Run the Phase 12 virtio_net throughput-parity replay in isolation"
+      "description": "Run the Phase 12 virtio_net throughput parity checks"
     }
   ]
 }
