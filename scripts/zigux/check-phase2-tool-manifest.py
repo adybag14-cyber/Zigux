@@ -70,6 +70,7 @@ KCONFIG_CONFDATA_INPUT_PACKET = (
     "zigux/tests/fixtures/kconfig_bridge/last_state_transitions.config",
     "zigux/tests/fixtures/kconfig_bridge/duplicate_assignments.config",
     "zigux/tests/fixtures/kconfig_bridge/duplicate_malformed_quoted_assignment.config",
+    "zigux/tests/fixtures/kconfig_bridge/explicit_empty_assignments.config",
 )
 
 KCONFIG_CONFDATA_EXPECTED_PACKET = (
@@ -88,6 +89,7 @@ KCONFIG_CONFDATA_EXPECTED_PACKET = (
     "zigux/tests/fixtures/kconfig_bridge/last_state_transitions_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/duplicate_assignments_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/duplicate_malformed_quoted_assignment_expected.json",
+    "zigux/tests/fixtures/kconfig_bridge/explicit_empty_assignments_expected.json",
 )
 
 def expected_make_wrappers(required_make_routes: tuple[str, ...]) -> tuple[str, ...]:
@@ -251,6 +253,7 @@ BASE_REQUIRED_PRESENT_SURFACES = {
         "zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json",
         "zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json",
         "zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json",
+        "zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json",
         "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json",
     ),
 }
