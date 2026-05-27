@@ -191,7 +191,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         '"why_now": "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."',
         '"slug": "file-path-and-handle-bridge",\n      "status": "deferred_high_risk",\n      "kind": "resource_boundary"',
         '"slug": "fdinfo-path-and-reuse-name-footholds",\n      "status": "starter_landed"',
-        '"why_now": "This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while keeping procfs reads, fdinfo parsing, and reuse comparison logic deferred."',
+        '"why_now": "This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while leaving direct procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, and descriptor ownership side effects to the deferred file-path-and-handle bridge boundary."',
     ),
     REVIEW_CHECKLIST: (
         "if the change touches the shared Phase 8 userspace-adjacent tooling packet",
