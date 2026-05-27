@@ -17,6 +17,7 @@ Current direct contents reads on `master` now rematerialize `drivers/tty/hvc/hvc
 - `NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable without claiming that notifier teardown has become live runtime behavior.
 - `targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.
 - `targetless_dispatch_with_notifier_sanitized` keeps registered-but-targetless sysrq fallback visible without implying notifier callbacks can still fire after the target disappears.
+- `SysrqLiteralFallbackSummary.literal_byte_retained` keeps the non-kernel sysrq literal fallback explicit instead of letting a plain byte path read like live sysrq execution.
 - the literal-fallback helpers keep the targetless sysrq path without notifier, the sanitized registered-but-targetless sysrq path, and the non-kernel sysrq literal fallback explicit without promoting the lane to live sysrq execution.
 
 ## Packet Relationship
