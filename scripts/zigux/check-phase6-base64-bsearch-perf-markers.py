@@ -10,12 +10,15 @@ from pathlib import Path
 
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
+PARITY_CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
 BSEARCH_PERF_PATH = Path("zigux/tests/phase6_bsearch_perf.zig")
+BSEARCH_C_PARITY_CHECKER_PATH = Path("scripts/zigux/check-phase6-bsearch-c-parity.py")
 CHECKER_PATH = Path("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")
+
 REQUIRED_SCRIPTS_SNIPPETS = [
     "## Phase 6",
     "`zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`",
@@ -30,6 +33,10 @@ REQUIRED_CATALOG_SNIPPETS = [
     "`scripts/zigux/check-phase6-bsearch-c-parity.py` now keeps 17 sorted lookup cases explicit across ascending and descending comparator-driven lookups",
     "- `make -C zigux phase6-base64-perf`",
     "- `make -C zigux phase6-bsearch-perf`",
+]
+
+REQUIRED_PARITY_CATALOG_SNIPPETS = [
+    "- direct C parity spot-check marker: `PHASE6_BSEARCH_C_PARITY_CASES=17`",
 ]
 
 REQUIRED_SURVEY_SNIPPETS = [
@@ -53,6 +60,11 @@ REQUIRED_BSEARCH_PERF_SNIPPETS = [
     "compareCountedDescending,",
     "compareCountedOpaqueDescending,",
     "for (descending_queries, descending_expected_hits) |query, expected_hit| {",
+]
+
+REQUIRED_BSEARCH_C_PARITY_CHECKER_SNIPPETS = [
+    "EXPECTED_CASE_COUNT = 17",
+    'print(f"PHASE6_BSEARCH_C_PARITY_CASES={len(c_lines)}")',
 ]
 
 REQUIRED_SHARED_REPLAYS = [
@@ -93,6 +105,7 @@ EXPECTED_BSEARCH_C_ABI_REPLAYS = [
 ]
 EXPECTED_BSEARCH_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
 EXPECTED_BSEARCH_BOUND_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
+EXPECTED_BSEARCH_DIRECT_C_PARITY_CASE_COUNT = 17
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
 EXPECTED_BASE64_ZIG_PERF_ROUTE = "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig"
 EXPECTED_BSEARCH_ZIG_PERF_ROUTE = "zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig"
@@ -100,7 +113,7 @@ EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 EXPECTED_EVIDENCE_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
 EXPECTED_PARITY_LANE_SCOPE = "shared helper-parity rows and machine-readable manifest only"
 
-SELF_TEST_CASE_COUNT = 53
+SELF_TEST_CASE_COUNT = 56
 
 
 class ValidationError(RuntimeError):
@@ -302,6 +315,8 @@ def validate_parity_manifest(path: Path) -> None:
     require_route(base64_routes, "base64", EXPECTED_SHARED_PERF_WRAPPER)
 
     require_checker_surfaces(bsearch, "bsearch", REQUIRED_BSEARCH_CHECKER_SURFACES)
+    if bsearch.get("direct_c_parity_case_count") != EXPECTED_BSEARCH_DIRECT_C_PARITY_CASE_COUNT:
+        raise ValidationError("bsearch direct C parity case count drifted")
     if bsearch_perf.get("budget_model") != "comparison_budget":
         raise ValidationError("bsearch budget model drifted")
     if bsearch_perf.get("cases") != EXPECTED_BSEARCH_CASES:
@@ -326,9 +341,14 @@ def validate_parity_manifest(path: Path) -> None:
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_SNIPPETS)
     require_snippets(repo_root / CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
+    require_snippets(repo_root / PARITY_CATALOG_PATH, REQUIRED_PARITY_CATALOG_SNIPPETS)
     require_snippets(repo_root / SURVEY_PATH, REQUIRED_SURVEY_SNIPPETS)
     require_snippets(repo_root / MAKEFILE_PATH, REQUIRED_MAKEFILE_SNIPPETS)
     require_snippets(repo_root / BSEARCH_PERF_PATH, REQUIRED_BSEARCH_PERF_SNIPPETS)
+    require_snippets(
+        repo_root / BSEARCH_C_PARITY_CHECKER_PATH,
+        REQUIRED_BSEARCH_C_PARITY_CHECKER_SNIPPETS,
+    )
     validate_evidence_manifest(repo_root / EVIDENCE_MANIFEST_PATH)
     validate_parity_manifest(repo_root / PARITY_MANIFEST_PATH)
 
@@ -341,9 +361,14 @@ def write(path: Path, content: str) -> None:
 def scaffold_repo(root: Path) -> None:
     write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_SNIPPETS) + "\n")
     write(root / CATALOG_PATH, "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n")
+    write(root / PARITY_CATALOG_PATH, "\n".join(REQUIRED_PARITY_CATALOG_SNIPPETS) + "\n")
     write(root / SURVEY_PATH, "\n".join(REQUIRED_SURVEY_SNIPPETS) + "\n")
     write(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
     write(root / BSEARCH_PERF_PATH, "\n".join(REQUIRED_BSEARCH_PERF_SNIPPETS) + "\n")
+    write(
+        root / BSEARCH_C_PARITY_CHECKER_PATH,
+        "\n".join(REQUIRED_BSEARCH_C_PARITY_CHECKER_SNIPPETS) + "\n",
+    )
     write(
         root / EVIDENCE_MANIFEST_PATH,
         json.dumps(
@@ -421,6 +446,7 @@ def scaffold_repo(root: Path) -> None:
                     {
                         "key": "bsearch",
                         "checker_surfaces": REQUIRED_BSEARCH_CHECKER_SURFACES,
+                        "direct_c_parity_case_count": EXPECTED_BSEARCH_DIRECT_C_PARITY_CASE_COUNT,
                         "current_perf_evidence": {
                             "budget_model": "comparison_budget",
                             "cases": EXPECTED_BSEARCH_CASES,
@@ -501,6 +527,18 @@ def run_self_test() -> None:
                 "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
             ),
             "check-phase6-bsearch-c-parity.py",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_CATALOG_PATH,
+                "PHASE6_BSEARCH_C_PARITY_CASES=17",
+                "PHASE6_BSEARCH_C_PARITY_CASES=16",
+            ),
+            "phase6-helper-parity-catalog.md",
         )
         cases_run += 1
         scaffold_repo(root)
@@ -609,6 +647,18 @@ def run_self_test() -> None:
                 "for (ascending_queries, ascending_expected_hits) |query, expected_hit| {",
             ),
             "descending_queries",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / BSEARCH_C_PARITY_CHECKER_PATH,
+                "EXPECTED_CASE_COUNT = 17",
+                "EXPECTED_CASE_COUNT = 16",
+            ),
+            "check-phase6-bsearch-c-parity.py",
         )
         cases_run += 1
         scaffold_repo(root)
@@ -1001,6 +1051,18 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / PARITY_MANIFEST_PATH,
+                '"direct_c_parity_case_count": 17',
+                '"direct_c_parity_case_count": 16',
+            ),
+            "bsearch direct C parity case count drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
                 "scripts/zigux/check-phase6-bsearch-c-parity.py",
                 "scripts/zigux/check-phase6-bsearch-review.py",
             ),
@@ -1025,7 +1087,7 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / PARITY_MANIFEST_PATH,
-                f'"cases": {json.dumps(EXPECTED_BSEARCH_CASES)}',
+                '"cases": [\n          {\n            "label": "len15",\n            "reps": 4000\n          },\n          {\n            "label": "len64",\n            "reps": 2000\n          },\n          {\n            "label": "len1024",\n            "reps": 250\n          }\n        ]',
                 '"cases": [{"label": "len15", "reps": 4000}, {"label": "len64", "reps": 2000}]',
             ),
             "bsearch perf cases drifted",
