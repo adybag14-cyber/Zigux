@@ -68,7 +68,14 @@ CATALOG_MARKERS = (
     "- `make -C zigux phase6-hexdump-test`",
 )
 
-SELF_TEST_CASE_COUNT = 26
+SELF_TEST_CASE_COUNT = (
+    len(MAKEFILE_MARKERS)
+    + len(BUILD_MARKERS)
+    + len(PERF_MARKERS)
+    + len(PERF_MATRIX_MARKERS)
+    + len(CATALOG_MARKERS)
+    + 1
+)
 
 
 def resolve(root: Path, relative: Path) -> Path:
@@ -139,35 +146,16 @@ def run_self_test() -> int:
         check_repo(root)
 
         cases_run = 0
-        for path, marker in (
-            (resolve(root, MAKEFILE), MAKEFILE_MARKERS[0]),
-            (resolve(root, MAKEFILE), MAKEFILE_MARKERS[1]),
-            (resolve(root, MAKEFILE), MAKEFILE_MARKERS[2]),
-            (resolve(root, MAKEFILE), MAKEFILE_MARKERS[3]),
-            (resolve(root, MAKEFILE), MAKEFILE_MARKERS[4]),
-            (resolve(root, MAKEFILE), MAKEFILE_MARKERS[5]),
-            (resolve(root, MAKEFILE), MAKEFILE_MARKERS[6]),
-            (resolve(root, MAKEFILE), MAKEFILE_MARKERS[7]),
-            (resolve(root, BUILD_FILE), BUILD_MARKERS[0]),
-            (resolve(root, BUILD_FILE), BUILD_MARKERS[1]),
-            (resolve(root, BUILD_FILE), BUILD_MARKERS[2]),
-            (resolve(root, BUILD_FILE), BUILD_MARKERS[3]),
-            (resolve(root, BUILD_FILE), BUILD_MARKERS[4]),
-            (resolve(root, BUILD_FILE), BUILD_MARKERS[5]),
-            (resolve(root, BUILD_FILE), BUILD_MARKERS[6]),
-            (resolve(root, BUILD_FILE), BUILD_MARKERS[7]),
-            (resolve(root, PERF_FILE), PERF_MARKERS[0]),
-            (resolve(root, PERF_FILE), PERF_MARKERS[2]),
-            (resolve(root, PERF_MATRIX_FILE), PERF_MATRIX_MARKERS[3]),
-            (resolve(root, PERF_MATRIX_FILE), PERF_MATRIX_MARKERS[7]),
-            (resolve(root, PERF_MATRIX_FILE), PERF_MATRIX_MARKERS[8]),
-            (resolve(root, CATALOG_FILE), CATALOG_MARKERS[0]),
-            (resolve(root, CATALOG_FILE), CATALOG_MARKERS[1]),
-            (resolve(root, CATALOG_FILE), CATALOG_MARKERS[4]),
-            (resolve(root, CATALOG_FILE), CATALOG_MARKERS[6]),
+        for path, markers in (
+            (resolve(root, MAKEFILE), MAKEFILE_MARKERS),
+            (resolve(root, BUILD_FILE), BUILD_MARKERS),
+            (resolve(root, PERF_FILE), PERF_MARKERS),
+            (resolve(root, PERF_MATRIX_FILE), PERF_MATRIX_MARKERS),
+            (resolve(root, CATALOG_FILE), CATALOG_MARKERS),
         ):
-            expect_failure(root, path, marker)
-            cases_run += 1
+            for marker in markers:
+                expect_failure(root, path, marker)
+                cases_run += 1
 
         scaffold_repo(root)
         resolve(root, PERF_MATRIX_FILE).unlink()
