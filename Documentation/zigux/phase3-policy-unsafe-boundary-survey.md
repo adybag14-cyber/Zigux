@@ -4,7 +4,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_SURVEY_PROVENANCE=connector-current-head-sha-unavailable-in-run`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=generic-layout-helper-plus-canonical-abi-notifier-list-and-chrdev-layout-asserts-consumed-by-both-the-shared-abi-replays-and-the-focused-policy-starter-packet`
-- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=86501c06acab43a9322d6ebb08b8f5aa89a7eccf`
+- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=2b17f9d48cfe4f3a6b22bd0aafed4fb614c3b20e`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-plus-escalation-and-byte-decoders`
 - `PHASE3_PANIC_POLICY_BLOB_SHA=7f73fdec1e748101921a1c00bf8f07fccb7a2fce`
@@ -15,12 +15,12 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_UNSAFE_POLICY_SCOPE=helper-local-unsafe-scope-relay-over-the-shared-narrow-decoder-plus-access-boundary-surface-and-permit-audit-aliases`
 - `PHASE3_UNSAFE_POLICY_BLOB_SHA=243c023c99d186ca0395d0f34c2d6258e3417bb9`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
-- `PHASE3_MMIO_BLOB_SHA=44c6072aec0eda7f405be84f619f5d16307923eb`
+- `PHASE3_MMIO_BLOB_SHA=5a0b8aa438f9f5716b2014702ca4e1ea43e02bab`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge-with-explicit-audit-gates`
 - `PHASE3_UNSAFE_BLOB_SHA=0a2bfa31a3fc061f9ec24bc0975cde8ce41e1f62`
 - `PHASE3_POLICY_SLICE_DOC_BLOB_SHA=07a0a34ed9b2d5b1794862a441e540c82302faf3`
-- `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_DOC_BLOB_SHA=04fb3b0ee90b0610fee58509c457d0c1c6370c51`
+- `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_DOC_BLOB_SHA=9d2a2c37b90fd180bc8b5550e975c6452d7e2015`
 - `PHASE3_POLICY_STARTER_PACKET_MANIFEST_PATH=zigux/tests/phase3_policy_starter_packet_manifest.json`
 - `PHASE3_POLICY_PACKET_GATE=python3 scripts/zigux/check-phase3-policy-starter-packet.py`
 - `PHASE3_POLICY_PACKET_TEST_GATE=zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig`
