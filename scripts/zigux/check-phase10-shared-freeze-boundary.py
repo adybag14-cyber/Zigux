@@ -11,6 +11,9 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 CHECK_COMMAND = "python3 scripts/zigux/check-phase10-shared-freeze-boundary.py"
+EXPECTED_FREEZE_BOUNDARY_GAP_SURVEY_DOC = (
+    "Documentation/zigux/phase10-freeze-boundary-gap-survey.md"
+)
 
 COMMON_DRIVER_MANIFEST_FILES = [
     "zigux/tests/phase10_virtio_ring_manifest.json",
@@ -22,6 +25,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase10-shared-freeze-boundary.py",
     "Documentation/zigux/README.md",
     "Documentation/zigux/freeze-map.md",
+    EXPECTED_FREEZE_BOUNDARY_GAP_SURVEY_DOC,
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
@@ -167,6 +171,15 @@ TEXT_MARKERS = {
         "`kernel/trace/ring_buffer.c`",
         "there is no silent exception path around the stay-in-C policy",
     ],
+    EXPECTED_FREEZE_BOUNDARY_GAP_SURVEY_DOC: [
+        "# Phase 10 Freeze-Boundary Gap Survey",
+        "`Documentation/zigux/freeze-map.md` explicit as the governing freeze source",
+        "`scripts/zigux/check-phase10-shared-freeze-boundary.py` explicit as the fail-closed review gate for freeze-boundary drift",
+        "Study-only anchors that remain outside Phase 10 delivery and stay parked in the separate Phase 14 family:",
+        "`kernel/workqueue.c`",
+        "`kernel/trace/ring_buffer.c`",
+        "It must not present them as active virtio closure evidence, bridge-readiness proof, or status-change candidates.",
+    ],
     "Documentation/zigux/phase10-closure-evidence.md": [
         "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain separate Phase 14 study-only anchors rather than Phase 10 closure evidence.",
     ],
@@ -269,6 +282,14 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     if closure_manifest.get("study_only_anchors") != STUDY_ONLY_ANCHORS:
         missing_markers.append("closure_manifest:study_only_anchors")
 
+    docs = closure_manifest.get("docs")
+    if not isinstance(docs, list):
+        missing_markers.append("closure_manifest:docs")
+    elif EXPECTED_FREEZE_BOUNDARY_GAP_SURVEY_DOC not in docs:
+        missing_markers.append(
+            "closure_manifest:docs:missing_phase10_freeze_boundary_gap_survey"
+        )
+
     phase14_boundary = closure_manifest.get("phase14_study_only_boundary")
     if not isinstance(phase14_boundary, dict):
         missing_markers.append("closure_manifest:phase14_study_only_boundary")
@@ -339,6 +360,7 @@ def build_fixture_manifest() -> str:
             "blocked_transport_gaps": EXPECTED_BLOCKED_TRANSPORT_GAPS,
             "freeze_in_c_anchors": FREEZE_IN_C_ANCHORS,
             "study_only_anchors": STUDY_ONLY_ANCHORS,
+            "docs": [EXPECTED_FREEZE_BOUNDARY_GAP_SURVEY_DOC],
             "phase14_study_only_boundary": {
                 "status": "separate_phase14_lane",
                 "anchors": STUDY_ONLY_ANCHORS,
@@ -371,6 +393,10 @@ def build_fixture_files() -> dict[str, str]:
         "Documentation/zigux/README.md": "\n".join(TEXT_MARKERS["Documentation/zigux/README.md"])
         + "\n",
         "Documentation/zigux/freeze-map.md": "\n".join(TEXT_MARKERS["Documentation/zigux/freeze-map.md"])
+        + "\n",
+        EXPECTED_FREEZE_BOUNDARY_GAP_SURVEY_DOC: "\n".join(
+            TEXT_MARKERS[EXPECTED_FREEZE_BOUNDARY_GAP_SURVEY_DOC]
+        )
         + "\n",
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(
             TEXT_MARKERS["Documentation/zigux/phase10-closure-evidence.md"]
@@ -486,6 +512,12 @@ def run_self_test() -> int:
                 "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues",
                 "`kernel/workqueue_bridge.zig` is Phase 9 runtime readiness evidence.",
                 "README.md:`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues",
+            ),
+            (
+                EXPECTED_FREEZE_BOUNDARY_GAP_SURVEY_DOC,
+                "`scripts/zigux/check-phase10-shared-freeze-boundary.py` explicit as the fail-closed review gate for freeze-boundary drift",
+                "`scripts/zigux/check-phase10-shared-freeze-boundary.py` is optional context",
+                "phase10-freeze-boundary-gap-survey.md:`scripts/zigux/check-phase10-shared-freeze-boundary.py` explicit as the fail-closed review gate for freeze-boundary drift",
             ),
             (
                 "Documentation/zigux/phase10-closure-evidence.md",
@@ -654,6 +686,14 @@ def run_self_test() -> int:
 
         run_manifest_case(
             root,
+            "docs",
+            [],
+            "closure_manifest:docs:missing_phase10_freeze_boundary_gap_survey",
+        )
+        reset_fixture(root)
+
+        run_manifest_case(
+            root,
             "survey_provenance",
             {
                 "source": "manual_note",
@@ -741,7 +781,7 @@ def run_self_test() -> int:
         reset_fixture(root)
 
     print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST=pass")
-    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=32")
+    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
@@ -764,7 +804,7 @@ if missing_markers:
     print("MISSING_PHASE10_SHARED_FREEZE_MARKERS_END")
     sys.exit(1)
 
-total_manifest_checks = 20 + sum(
+total_manifest_checks = 21 + sum(
     len(fields) for fields in EXPECTED_DRIVER_MANIFEST_FIELDS.values()
 )
 
