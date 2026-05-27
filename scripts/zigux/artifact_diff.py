@@ -288,9 +288,10 @@ def run_self_test() -> int:
 
         blob_a.write_bytes(b"zigux-artifact-diff")
         blob_b.write_bytes(b"zigux-artifact-diff")
+        expected_blob_digest = sha256_hex(blob_a)
         bytes_pass = compare("bytes", blob_a, blob_b)
         assert_case(
-            bytes_pass.ok and bytes_pass.extra_lines == ["SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576"],
+            bytes_pass.ok and bytes_pass.extra_lines == [f"SHA256={expected_blob_digest}"],
             "bytes_pass",
         )
         covered.append("bytes_pass")
@@ -299,7 +300,7 @@ def run_self_test() -> int:
         assert_case(
             compare("bytes", blob_a, blob_b).extra_lines
             == [
-                "EXPECTED_SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576",
+                f"EXPECTED_SHA256={expected_blob_digest}",
                 "ACTUAL_SHA256=bfc83f8f1f4369ce3cfabfdff0699ae3bf7a15b89f1702b690e56c6f35f1ee94",
             ],
             "bytes_drift",
@@ -346,6 +347,7 @@ def run_self_test() -> int:
         assert_case(legacy_alias.returncode == 0, "legacy_sha256_alias")
         assert_case("ARTIFACT_DIFF=pass" in legacy_alias.stdout, "legacy_sha256_alias")
         assert_case("MODE=bytes" in legacy_alias.stdout, "legacy_sha256_alias")
+        assert_case(f"SHA256={expected_blob_digest}" in legacy_alias.stdout, "legacy_sha256_alias")
         covered.append("legacy_sha256_alias")
 
         missing_mode_value = run_parser_probe(["--mode"])
