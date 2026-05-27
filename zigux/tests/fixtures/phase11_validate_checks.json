@@ -33,6 +33,14 @@
       "command": ["python", "scripts/zigux/check-phase11-validate-route-alignment.py"]
     },
     {
+      "name": "phase11-shared-tooling-manifest-self-test",
+      "command": ["python", "scripts/zigux/check-phase11-shared-tooling-manifest.py", "--self-test"]
+    },
+    {
+      "name": "phase11-shared-tooling-manifest",
+      "command": ["python", "scripts/zigux/check-phase11-shared-tooling-manifest.py"]
+    },
+    {
       "name": "phase11-build-inventory-self-test",
       "command": ["python", "scripts/zigux/check-phase11-build-inventory.py", "--self-test"]
     },
