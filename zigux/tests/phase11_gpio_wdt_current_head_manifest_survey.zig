@@ -34,6 +34,20 @@ test "phase11 gpio current-head manifest survey keeps the note packet aligned" {
     try expectNotContains(survey_note, "current authenticated contents readback still does not rematerialize the older wider replay and manifest route surfaces such as");
 }
 
+test "phase11 gpio current-head manifest survey keeps the module slice aligned" {
+    const module_slice = try readFile(std.testing.allocator, "Documentation/zigux/phase11-gpio-wdt-module-slice.md", 24 * 1024);
+    defer std.testing.allocator.free(module_slice);
+
+    try expectContains(module_slice, "drivers/watchdog/gpio_wdt_verify.zig");
+    try expectContains(module_slice, "registrationIntentCheckpointSummary()");
+    try expectContains(module_slice, "zigux/tests/phase11_gpio_wdt_registration_intent_review.zig");
+    try expectContains(module_slice, "platformCleanupCheckpointSummary()");
+    try expectContains(module_slice, "zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig");
+    try expectContains(module_slice, "zigux/tests/phase11_gpio_wdt_current_head_manifest.json");
+    try expectContains(module_slice, "zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig");
+    try expectContains(module_slice, "zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig");
+}
+
 test "phase11 gpio current-head manifest survey keeps the validation matrix aligned" {
     const matrix = try readFile(std.testing.allocator, "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md", 24 * 1024);
     defer std.testing.allocator.free(matrix);
