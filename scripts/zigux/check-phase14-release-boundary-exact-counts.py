@@ -7,9 +7,9 @@ This guard keeps the release-boundary packet honest around the exact manifest-
 backed compile-shard counts, the dedicated compile-shard matrix survey, the
 returned manifest posture in the shared smoke survey, the dedicated validator-side
 skbuff stay-in-C and compile-route packets, the dedicated ring-buffer compile-route
-packet, the dedicated RCU rollback packet, and the still-unreadable build-side or
-broader executable-layer gap while cross-reading the shared smoke survey markers
-that define the current Phase 14 route split.
+packet, the dedicated RCU compile-route and rollback packets, and the still-unreadable
+build-side or broader executable-layer gap while cross-reading the shared smoke
+survey markers that define the current Phase 14 route split.
 """
 
 from __future__ import annotations
@@ -34,6 +34,7 @@ SKBUFF_COMPILE_ROUTE_CHECKER_PATH = Path(
 RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH = Path(
     "scripts/zigux/check-phase14-ring-buffer-compile-route.py"
 )
+RCU_COMPILE_ROUTE_CHECKER_PATH = Path("scripts/zigux/check-phase14-rcu-compile-route.py")
 
 EXACT_COUNT_MARKERS = [
     "- `PHASE14_COMPILE_SHARD_TOTAL=6`",
@@ -64,9 +65,10 @@ COMPILE_SHARD_MATRIX_MARKERS = [
     "- checker: `scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
     "- skbuff compile-route checker: `scripts/zigux/check-phase14-skbuff-compile-route.py`",
     "- ring-buffer compile-route checker: `scripts/zigux/check-phase14-ring-buffer-compile-route.py`",
+    "- rcu compile-route checker: `scripts/zigux/check-phase14-rcu-compile-route.py`",
     "- shared survey shard: `phase14-end-to-end-smoke-tests` (`focused_and_full_bundle`)",
     "- `scripts/zigux/check-phase14-ring-buffer-compile-route.py` now fail-closes on the shared-manifest row together with the note's returned ring-buffer-local replay wording even while the lane remains study-only and maintenance-scoped",
-    "- the manifest-backed compile row is present, but it still has no dedicated compile-route checker and the focused replay remains partial through this lane's exact contents path, so the anchor stays freeze-in-C initially",
+    "- the manifest-backed compile row is present, and `scripts/zigux/check-phase14-rcu-compile-route.py` now fail-closes on the shared-manifest row, the dedicated build-shard wiring, and the survey note's public-fallback replay wording while the anchor stays freeze-in-C initially",
 ]
 
 SURVEY_EXACT_LINE_SNIPPETS = [
@@ -104,6 +106,8 @@ REQUIRED_MANIFEST_VALUES = {
     ("survey_summary", "phase14_validate_runs_skbuff_stay_in_c_guardrail"): True,
     ("survey_summary", "phase14_validate_runs_skbuff_compile_route_checker"): True,
     ("survey_summary", "shared_manifest_records_skbuff_compile_route_checker"): True,
+    ("survey_summary", "phase14_validate_runs_rcu_compile_route_checker"): True,
+    ("survey_summary", "shared_manifest_records_rcu_compile_route_checker"): True,
     ("survey_summary", "phase14_validate_runs_rcu_rollback_guardrail"): True,
 }
 
@@ -233,6 +237,7 @@ def check(root: Path) -> list[str]:
         MANIFEST_PATH,
         SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
         RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
+        RCU_COMPILE_ROUTE_CHECKER_PATH,
     ]
     for rel in required_paths:
         if not (root / rel).exists():
@@ -318,6 +323,8 @@ def fixture_manifest() -> str:
             "phase14_validate_runs_skbuff_stay_in_c_guardrail": True,
             "phase14_validate_runs_skbuff_compile_route_checker": True,
             "shared_manifest_records_skbuff_compile_route_checker": True,
+            "phase14_validate_runs_rcu_compile_route_checker": True,
+            "shared_manifest_records_rcu_compile_route_checker": True,
             "phase14_validate_runs_rcu_rollback_guardrail": True,
         },
         "compile_shards": [
@@ -347,6 +354,11 @@ def write_fixture_tree(root: Path) -> None:
     write_text(
         root,
         RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
+        "# present for shared-packet file checks\n",
+    )
+    write_text(
+        root,
+        RCU_COMPILE_ROUTE_CHECKER_PATH,
         "# present for shared-packet file checks\n",
     )
 
@@ -445,6 +457,19 @@ def run_self_test() -> int:
         remove_line(
             base,
             COMPILE_SHARD_MATRIX_SURVEY_PATH,
+            "- rcu compile-route checker: `scripts/zigux/check-phase14-rcu-compile-route.py`",
+        )
+        if not any(
+            "rcu compile-route checker" in error for error in check(base)
+        ):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected rcu compile-route checker marker drift to fail")
+            return 1
+
+        write_fixture_tree(base)
+        remove_line(
+            base,
+            COMPILE_SHARD_MATRIX_SURVEY_PATH,
             "- `scripts/zigux/check-phase14-ring-buffer-compile-route.py` now fail-closes on the shared-manifest row together with the note's returned ring-buffer-local replay wording even while the lane remains study-only and maintenance-scoped",
         )
         if not any(
@@ -452,6 +477,19 @@ def run_self_test() -> int:
         ):
             print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
             print("expected ring-buffer row-guard marker drift to fail")
+            return 1
+
+        write_fixture_tree(base)
+        remove_line(
+            base,
+            COMPILE_SHARD_MATRIX_SURVEY_PATH,
+            "- the manifest-backed compile row is present, and `scripts/zigux/check-phase14-rcu-compile-route.py` now fail-closes on the shared-manifest row, the dedicated build-shard wiring, and the survey note's public-fallback replay wording while the anchor stays freeze-in-C initially",
+        )
+        if not any(
+            "public-fallback replay wording" in error for error in check(base)
+        ):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected rcu row-guard marker drift to fail")
             return 1
 
         write_fixture_tree(base)
@@ -492,6 +530,30 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"]["phase14_validate_runs_rcu_compile_route_checker"] = False
+        write_manifest_payload(base, manifest)
+        if not any(
+            error.startswith("manifest_value_mismatch:survey_summary.phase14_validate_runs_rcu_compile_route_checker")
+            for error in check(base)
+        ):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected RCU compile-route manifest drift to fail")
+            return 1
+
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"]["shared_manifest_records_rcu_compile_route_checker"] = False
+        write_manifest_payload(base, manifest)
+        if not any(
+            error.startswith("manifest_value_mismatch:survey_summary.shared_manifest_records_rcu_compile_route_checker")
+            for error in check(base)
+        ):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected shared manifest RCU compile-route drift to fail")
+            return 1
+
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
         manifest["survey_summary"]["phase14_validate_runs_rcu_rollback_guardrail"] = False
         write_manifest_payload(base, manifest)
         if not any(
@@ -527,7 +589,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-        print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=12")
+        print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=16")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
