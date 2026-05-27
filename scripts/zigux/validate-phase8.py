@@ -164,10 +164,12 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`tools/lib/bpf/zigux_segments/manifest.json`",
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
+        "`tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig`",
         "`tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig`",
         "`zigux/tests/phase8_build.zig`",
         "`zigux/tests/phase8_verify_routing_gap.zig`",
         "`zigux/tests/phase8_verify_routing_gap_only_build.zig`",
+        "bounded wait-budget normalization",
         "Current authenticated helper readback in this runtime now serves only the narrow bridge-side reminder packet directly: the helper set above stays the exact authenticated helper anchor, while the same contents path now returns `tools/lib/bpf/zigux_segments/manifest.json`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` on current `master`. The broader bridge helper and focused build-route companions, including `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` and `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, remain public-tree-backed reminder vocabulary until the same authenticated contents path serves them directly again. Keep those bridge-facing paths explicit without folding them back into the exact helper set or promoting the deferred resource boundary into helper-first proof.",
         "`tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig` now keeps wait classification, poll summary, execution summary, and impossible-summary fail-closed outputs explicit beside that same stable-output helper packet.",
         "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet.",
@@ -299,6 +301,13 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "../../tools/lib/bpf/zigux_segments/verify.zig",
         "phase8_libbpf_segments.zig",
         "phase8_verify_routing_gap.zig",
+    ),
+    PERF_BUFFER_WAIT_BUDGET_SEGMENT: (
+        "pub const WaitBudgetSummary = struct {",
+        "pub fn summarizeWaitBudget(",
+        "pub fn summarizeWaitBudgetFromPollSummary(",
+        'test "phase8 perf-buffer wait budget normalizes bounded waits into ms and ns budgets" {',
+        'test "phase8 perf-buffer wait budget rejects invalid negative waits" {',
     ),
 }
 
