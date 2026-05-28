@@ -10,17 +10,17 @@ from pathlib import Path
 DOC_PATH = Path("Documentation/zigux/phase3-rbtree-anchor-gap.md")
 ABI_HEADER_PATH = Path("include/zigux/abi.h")
 ABI_BINDING_PATH = Path("zigux/bindings/abi.zig")
+EXPORT_SHIM_PATH = Path("zigux/kernel/export_shim.zig")
 ABI_TEST_PATH = Path("zigux/tests/phase3_abi.zig")
 ABI_DUMP_PATH = Path("zigux/tests/phase3_abi_dump_current.zig")
 
 REQUIRED_DOC_MARKERS = (
-    "- `PHASE3_ROADMAP_ANCHOR=lib/rbtree.c`",
-    "- `PHASE3_SHARED_ABI_HEADER=include/zigux/abi.h`",
-    "- `PHASE3_SHARED_ABI_BINDING=zigux/bindings/abi.zig`",
-    "- `PHASE3_SHARED_ABI_REPLAY=zigux/tests/phase3_abi.zig`",
-    "- `PHASE3_RBTREE_GAP=the roadmap anchor lib/rbtree.c is only represented today through the shared RbtreeRootView ABI surface`",
-    "- `PHASE3_RBTREE_GAP_DETAIL=no dedicated bounded rbtree interop packet is present on current master`",
-    "- `PHASE3_RBTREE_NEXT_STEP=add one bounded rbtree root-view starter packet with a focused checker, manifest entry, and replay build before claiming broader Phase 3 anchor closure`",
+    "- the Phase 3 roadmap names `lib/rbtree.c` as one of the permanent C/Zigux boundary anchors beside `rust/exports.c`, `lib/bitmap.c`, and `lib/cpumask.c`",
+    "- `include/zigux/abi.h` already exposes `zigux_rbtree_root_view`, `zigux_rbtree_root_view_is_cached()`, `zigux_rbtree_root_view_has_leftmost()`, `zigux_rbtree_root_view_is_valid()`, and `zigux_rbtree_root_view_canonicalize()`",
+    "- `zigux/bindings/abi.zig` already mirrors that shared ABI surface through `RbtreeRootView`, `rbtreeRootViewIsCached()`, `rbtreeRootViewHasLeftmost()`, `rbtreeRootViewIsValid()`, and `canonicalizeRbtreeRootView()`",
+    "- `zigux/kernel/export_shim.zig` already keeps the runtime status relay explicit through `validateRbtreeRootView()`",
+    "Current `master` carries shared `RbtreeRootView` ABI and validation evidence, but it does not yet carry a dedicated manifest-backed `lib/rbtree.c` boundary packet comparable to the landed bitmap/cpumask and list/hlist survey slices.",
+    "- add a dedicated `phase3-rbtree` survey packet that reuses the existing `RbtreeRootView` ABI surface, keeps the scope at boundary and layout validation, and does not widen into broader runtime-core delivery",
 )
 
 REQUIRED_REPO_MARKERS = {
@@ -33,6 +33,10 @@ REQUIRED_REPO_MARKERS = {
         "pub const RbtreeRootView = extern struct {",
         "pub const rbtree_root_view_root_offset = @offsetOf(RbtreeRootView, \"root\");",
         "pub const rbtree_root_view_cached_leftmost_offset = @offsetOf(RbtreeRootView, \"cached_leftmost\");",
+        "pub fn canonicalizeRbtreeRootView(view: RbtreeRootView) RbtreeRootView {",
+    ),
+    EXPORT_SHIM_PATH: (
+        "pub fn validateRbtreeRootView(view: abi.RbtreeRootView) abi.ExportStatus {",
     ),
 }
 
@@ -103,6 +107,10 @@ def _populate_self_test_repo(root: Path) -> None:
     _write(
         root / ABI_BINDING_PATH,
         "\n".join(REQUIRED_REPO_MARKERS[ABI_BINDING_PATH]) + "\n",
+    )
+    _write(
+        root / EXPORT_SHIM_PATH,
+        "\n".join(REQUIRED_REPO_MARKERS[EXPORT_SHIM_PATH]) + "\n",
     )
     _write(root / ABI_TEST_PATH, "// shared abi replay placeholder\n")
     _write(root / ABI_DUMP_PATH, "// shared abi dump placeholder\n")
