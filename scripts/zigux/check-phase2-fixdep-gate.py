@@ -83,6 +83,7 @@ FIXDEP_DIFF_REQUIRED_EXACT_LINES = (
     'ZIG_FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"',
     'EXPECTED_ZIG_FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"',
     "validate_tool_source(ZIG_FIXDEP)",
+    "EXPECTED_FIXTURE_FILES = frozenset(",
     "EXPECTED_SELF_TEST_CASE_COUNT = 16",
     'print("FIXDEP_SELF_TEST=pass")',
     'print("FIXDEP_DIFF=pass")',
@@ -242,6 +243,64 @@ REQUIRED_FIXDEP_EXPECTED_CASES = {
     },
 }
 
+REQUIRED_FIXDEP_EXPECTED_FIXTURE_FILES = (
+    "cases.json",
+    "dep:colon.so",
+    "dep\\ name.rmeta",
+    "escaped\\ space-config.h",
+    "sample-config.h",
+    "sample.c",
+    "sample.d",
+    "sample.h",
+    "sample.rmeta",
+    "sample2-config.h",
+    "sample2.c",
+    "sample2.so",
+    "sample_comment_continuation.d",
+    "sample_comment_continuation_dep.so",
+    "sample_comment_continuation_expected.txt",
+    "sample_comment_continuation_source.c",
+    "sample_comment_continuation_source.rmeta",
+    "sample_comment_only.d",
+    "sample_comment_only_expected.stderr.txt",
+    "sample_comment_only_expected.txt",
+    "sample_concatenated.d",
+    "sample_concatenated_dep.h",
+    "sample_concatenated_expected.txt",
+    "sample_concatenated_source.c",
+    "sample_concatenated_temp.c",
+    "sample_concatenated_temp_dep.h",
+    "sample_dependency_continuation.d",
+    "sample_dependency_continuation_dep.so",
+    "sample_dependency_continuation_expected.txt",
+    "sample_dependency_continuation_source.c",
+    "sample_dependency_continuation_source.rmeta",
+    "sample_double_backslash_comment.d",
+    "sample_double_backslash_comment_expected.stderr.txt",
+    "sample_double_backslash_comment_expected.txt",
+    "sample_double_backslash_comment_source.rmeta",
+    "sample_escaped_colon.d",
+    "sample_escaped_colon_expected.txt",
+    "sample_escaped_colon_source.c",
+    "sample_escaped_colon_source.rmeta",
+    "sample_escaped_space.d",
+    "sample_escaped_space_expected.txt",
+    "sample_escaped_space_source.c",
+    "sample_escaped_space_source.rmeta",
+    "sample_expected.txt",
+    "sample_missing_dep.d",
+    "sample_missing_dep_expected.stderr.txt",
+    "sample_missing_dep_expected.txt",
+    "sample_missing_dep_source.c",
+    "sample_multi_target.d",
+    "sample_multi_target_expected.txt",
+    "sample_output_write_expected.stderr.txt",
+    "sample_output_write_expected.txt",
+    "shared#config.h",
+    "shared:config.h",
+)
+REQUIRED_FIXDEP_DIFF_SELF_TEST_CASE_COUNT = 16
+
 CLOSURE_REQUIRED_MARKERS = (
     "`Documentation/zigux/phase2-closure.md`",
     "`zigux/Makefile`",
@@ -368,6 +427,53 @@ def extract_fixdep_diff_expected_cases(text: str) -> dict[str, dict[str, object]
     return normalized
 
 
+def extract_fixdep_diff_contract_literals(text: str) -> dict[str, object]:
+    try:
+        module = ast.parse(text)
+    except SyntaxError as exc:
+        raise ValueError(f"fixdep diff syntax parse failed: {exc}") from exc
+
+    values: dict[str, object] = {}
+    for node in module.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        for target in node.targets:
+            if not isinstance(target, ast.Name):
+                continue
+            name = target.id
+            if name == "EXPECTED_FIXTURE_FILES":
+                value = node.value
+                if (
+                    not isinstance(value, ast.Call)
+                    or not isinstance(value.func, ast.Name)
+                    or value.func.id != "frozenset"
+                    or len(value.args) != 1
+                ):
+                    raise ValueError("EXPECTED_FIXTURE_FILES literal parse failed: expected frozenset(...) literal")
+                try:
+                    raw_value = ast.literal_eval(value.args[0])
+                except Exception as exc:
+                    raise ValueError(f"EXPECTED_FIXTURE_FILES literal parse failed: {exc}") from exc
+                if not isinstance(raw_value, set):
+                    raise ValueError("EXPECTED_FIXTURE_FILES literal parse failed: expected set literal body")
+                if not all(isinstance(entry, str) and entry for entry in raw_value):
+                    raise ValueError("EXPECTED_FIXTURE_FILES literal parse failed: expected non-empty string entries")
+                values[name] = raw_value
+            elif name == "EXPECTED_SELF_TEST_CASE_COUNT":
+                try:
+                    raw_value = ast.literal_eval(node.value)
+                except Exception as exc:
+                    raise ValueError(f"EXPECTED_SELF_TEST_CASE_COUNT literal parse failed: {exc}") from exc
+                if not isinstance(raw_value, int):
+                    raise ValueError("EXPECTED_SELF_TEST_CASE_COUNT literal parse failed: expected int literal")
+                values[name] = raw_value
+
+    missing = [name for name in ("EXPECTED_FIXTURE_FILES", "EXPECTED_SELF_TEST_CASE_COUNT") if name not in values]
+    if missing:
+        raise ValueError(f"fixdep diff contract assignment missing: {missing[0]}")
+    return values
+
+
 def collect_fixdep_diff_expected_case_issues(text: str) -> list[tuple[str, str]]:
     try:
         actual_cases = extract_fixdep_diff_expected_cases(text)
@@ -406,6 +512,34 @@ def collect_fixdep_diff_expected_case_issues(text: str) -> list[tuple[str, str]]
                         f"{name}:{key}={actual_value!r}:expected={expected_value!r}",
                     )
                 )
+    return issues
+
+
+def collect_fixdep_diff_contract_issues(text: str) -> list[tuple[str, str]]:
+    try:
+        literals = extract_fixdep_diff_contract_literals(text)
+    except ValueError as exc:
+        return [("INVALID_FIXDEP_DIFF_CONTRACT_LITERAL", str(exc))]
+
+    issues: list[tuple[str, str]] = []
+    actual_fixtures = literals["EXPECTED_FIXTURE_FILES"]
+    assert isinstance(actual_fixtures, set)
+    for name in REQUIRED_FIXDEP_EXPECTED_FIXTURE_FILES:
+        if name not in actual_fixtures:
+            issues.append(("MISSING_FIXDEP_DIFF_EXPECTED_FIXTURE", name))
+    for name in sorted(actual_fixtures):
+        if name not in REQUIRED_FIXDEP_EXPECTED_FIXTURE_FILES:
+            issues.append(("UNEXPECTED_FIXDEP_DIFF_EXPECTED_FIXTURE", name))
+
+    actual_self_test_case_count = literals["EXPECTED_SELF_TEST_CASE_COUNT"]
+    assert isinstance(actual_self_test_case_count, int)
+    if actual_self_test_case_count != REQUIRED_FIXDEP_DIFF_SELF_TEST_CASE_COUNT:
+        issues.append(
+            (
+                "FIXDEP_DIFF_SELF_TEST_CASE_COUNT_MISMATCH",
+                f"actual={actual_self_test_case_count}:expected={REQUIRED_FIXDEP_DIFF_SELF_TEST_CASE_COUNT}",
+            )
+        )
     return issues
 
 
@@ -514,6 +648,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
     )
     issues.extend(collect_fixdep_diff_expected_case_issues(fixdep_diff_text))
+    issues.extend(collect_fixdep_diff_contract_issues(fixdep_diff_text))
     issues.extend(
         collect_required_exact_lines(
             validate_phase2_text,
@@ -575,19 +710,29 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
     return 1
 
 
+def render_required_fixdep_expected_fixture_assignment() -> str:
+    lines = ["EXPECTED_FIXTURE_FILES = frozenset(", "    {"]
+    for name in REQUIRED_FIXDEP_EXPECTED_FIXTURE_FILES:
+        lines.append(f"        {name!r},")
+    lines.extend(("    }", ")"))
+    return "\n".join(lines)
+
+
 def build_self_test_root(root: Path) -> None:
     write_text(resolve(root, FIXDEP_REL), "\n".join(FIXDEP_REQUIRED_EXACT_LINES) + "\n")
     write_text(
         resolve(root, FIXDEP_DIFF_REL),
         "\n".join(
             (
-                *FIXDEP_DIFF_REQUIRED_EXACT_LINES,
+                *tuple(marker for marker in FIXDEP_DIFF_REQUIRED_EXACT_LINES if marker not in {"EXPECTED_FIXTURE_FILES = frozenset(", "EXPECTED_SELF_TEST_CASE_COUNT = 16"}),
                 "EXPECTED_CASES = " + repr(REQUIRED_FIXDEP_EXPECTED_CASES),
                 "EXPECTED_CASE_ORDER = list(EXPECTED_CASES)",
+                render_required_fixdep_expected_fixture_assignment(),
+                f"EXPECTED_SELF_TEST_CASE_COUNT = {REQUIRED_FIXDEP_DIFF_SELF_TEST_CASE_COUNT}",
                 *tuple(
                     marker
                     for marker in FIXDEP_DIFF_CONTRACT_EXACT_LINES
-                    if marker != "EXPECTED_CASE_ORDER = list(EXPECTED_CASES)"
+                    if marker not in {"EXPECTED_FIXTURE_FILES = frozenset(", "EXPECTED_CASE_ORDER = list(EXPECTED_CASES)"}
                 ),
             )
         )
@@ -656,6 +801,43 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        path = resolve(root, FIXDEP_DIFF_REL)
+        original = read_text(path)
+        path.write_text(original.replace("        'sample_expected.txt',\n", "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_FIXDEP_DIFF_EXPECTED_FIXTURE", "sample_expected.txt") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, FIXDEP_DIFF_REL)
+        original = read_text(path)
+        path.write_text(
+            original.replace("    }\n)", "        'unexpected-extra.txt',\n    }\n)", 1),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("UNEXPECTED_FIXDEP_DIFF_EXPECTED_FIXTURE", "unexpected-extra.txt") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, FIXDEP_DIFF_REL)
+        original = read_text(path)
+        path.write_text(
+            original.replace(
+                f"EXPECTED_SELF_TEST_CASE_COUNT = {REQUIRED_FIXDEP_DIFF_SELF_TEST_CASE_COUNT}",
+                f"EXPECTED_SELF_TEST_CASE_COUNT = {REQUIRED_FIXDEP_DIFF_SELF_TEST_CASE_COUNT - 1}",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "FIXDEP_DIFF_SELF_TEST_CASE_COUNT_MISMATCH",
+            f"actual={REQUIRED_FIXDEP_DIFF_SELF_TEST_CASE_COUNT - 1}:expected={REQUIRED_FIXDEP_DIFF_SELF_TEST_CASE_COUNT}",
+        ) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
         path = resolve(root, FIXDEP_CASES_REL)
         original_cases = json.loads(read_text(path))
         original_cases[0]["target"] = "sample-renamed.o"
@@ -721,6 +903,8 @@ def main() -> int:
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_CASE_COUNT={len(REQUIRED_FIXDEP_CASE_NAMES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_EXPECTED_CASE_COUNT={len(REQUIRED_FIXDEP_EXPECTED_CASES)}")
+    print(f"PHASE2_FIXDEP_GATE_REQUIRED_EXPECTED_FIXTURE_COUNT={len(REQUIRED_FIXDEP_EXPECTED_FIXTURE_FILES)}")
+    print(f"PHASE2_FIXDEP_GATE_REQUIRED_DIFF_SELF_TEST_CASE_COUNT={REQUIRED_FIXDEP_DIFF_SELF_TEST_CASE_COUNT}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_MAKEFILE_LINE_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
     return 0
