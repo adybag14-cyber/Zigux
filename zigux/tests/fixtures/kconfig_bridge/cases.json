@@ -31,7 +31,6 @@
       "kconfig": "Kconfig",
       "config": "none/.config",
       "arch": "arm64",
-      "allconfig": "mini-all.config",
       "expected": "allnoconfig_expected.json"
     },
     {
@@ -40,7 +39,6 @@
       "kconfig": "Kconfig",
       "config": "yes/.config",
       "arch": "arm64",
-      "allconfig": "",
       "expected": "allyesconfig_expected.json"
     },
     {
