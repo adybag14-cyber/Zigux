@@ -47,6 +47,17 @@ struct phase7_rbtree_reverse_alias_detached_case {
     bool detached_prev_is_null;
 };
 
+struct phase7_rbtree_cached_churn_invariants_case {
+    int leftmost_checkpoints[6];
+    size_t leftmost_checkpoint_count;
+    int promoted_leftmost_after_erase;
+    int replacement_leftmost;
+    int leftmost_after_detach;
+    int leftmost_after_new_minimum;
+    bool root_stays_black;
+    bool invariants_hold_after_each_step;
+};
+
 struct phase7_rbtree_c_harness {
     const char *packet;
     const char *anchor;
@@ -58,6 +69,7 @@ struct phase7_rbtree_c_harness {
     struct phase7_rbtree_plain_erase_init_reseed_case plain_erase_init_reseed;
     struct phase7_rbtree_postorder_null_stop_case postorder_null_stop;
     struct phase7_rbtree_reverse_alias_detached_case reverse_alias_detached;
+    struct phase7_rbtree_cached_churn_invariants_case cached_churn_invariants;
 };
 
 const struct phase7_rbtree_c_harness phase7_rbtree_c_harness = {
@@ -101,5 +113,15 @@ const struct phase7_rbtree_c_harness phase7_rbtree_c_harness = {
         .reverse_order = { 4, 3, 2, 1 },
         .reverse_order_count = 4,
         .detached_prev_is_null = true,
+    },
+    .cached_churn_invariants = {
+        .leftmost_checkpoints = { 1, 5, 5, 5, 7, 0 },
+        .leftmost_checkpoint_count = 6,
+        .promoted_leftmost_after_erase = 5,
+        .replacement_leftmost = 5,
+        .leftmost_after_detach = 7,
+        .leftmost_after_new_minimum = 0,
+        .root_stays_black = true,
+        .invariants_hold_after_each_step = true,
     },
 };
