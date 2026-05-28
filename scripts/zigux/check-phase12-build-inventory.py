@@ -106,7 +106,7 @@ def validate(root: Path) -> list[str]:
         failures.append("phase12_build_inventory_smoke_depend_step_count_mismatch")
     if len(actual["build_test_names"]) != len(actual["shared_test_depend_steps"]):
         failures.append("phase12_build_inventory_test_depend_step_count_mismatch")
-    if len(actual["throughput_anchor_depend_steps"]) != 1:
+    if actual["throughput_anchor_depend_steps"] != expected.get("throughput_anchor_depend_steps"):
         failures.append("phase12_build_inventory_throughput_anchor_depend_step_mismatch")
     for marker in REQUIRED_MAKEFILE_MARKERS:
         if marker not in makefile_text:
@@ -199,6 +199,19 @@ def run_self_test() -> int:
             raise SystemExit("expected build mismatch")
 
         write_fixture_root(base)
+        (base / BUILD_PATH).write_text(
+            (base / BUILD_PATH).read_text(encoding="utf-8").replace(
+                "throughput_parity_step.dependOn(&throughput_parity_tests.step);",
+                "throughput_parity_step.dependOn(&run_virtio_net_survey_tests.step);",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate(base)
+        if "phase12_build_inventory_throughput_anchor_depend_step_mismatch" not in failures:
+            raise SystemExit("expected throughput-anchor dependency mismatch")
+
+        write_fixture_root(base)
         (base / SYNTAX_SOURCE_PATH).unlink()
         failures = validate(base)
         if f"missing_file:{SYNTAX_SOURCE_PATH.as_posix()}" not in failures:
@@ -240,7 +253,7 @@ def run_self_test() -> int:
             raise SystemExit("expected forbidden syntax-lab aggregation marker")
 
         print("PHASE12_BUILD_INVENTORY_SELF_TEST=pass")
-        print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=8")
+        print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=9")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
