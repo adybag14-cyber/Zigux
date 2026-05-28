@@ -842,6 +842,22 @@ pub fn build(b: *std.Build) void {
         optimize,
     );
     const phase7_argv_split_survey = addPhase7ArgvSplitSurvey(b, target, optimize);
+    const phase8_exec_cmd_subcmd_alpha = b.addRunArtifact(b.addTest(.{
+        .name = "phase8-exec-cmd-subcmd-alpha",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("../../tools/lib/subcmd/exec-cmd.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    }));
+    const phase8_help_subcmd_alpha = b.addRunArtifact(b.addTest(.{
+        .name = "phase8-help-subcmd-alpha",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("../../tools/lib/subcmd/help.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    }));
     const phase10_virtio_core_survey = addSurveyTest(
         b,
         "phase10-virtio-core-survey",
@@ -999,6 +1015,13 @@ pub fn build(b: *std.Build) void {
     );
     phase7_step.dependOn(&phase7_argv_split_survey.step);
 
+    const phase8_host_tools_alpha_step = b.step(
+        "phase8-host-tools-alpha",
+        "Run the shared Phase 8 host-tools alpha replay for tools/lib/subcmd",
+    );
+    phase8_host_tools_alpha_step.dependOn(&phase8_exec_cmd_subcmd_alpha.step);
+    phase8_host_tools_alpha_step.dependOn(&phase8_help_subcmd_alpha.step);
+
     const phase10_step = b.step(
         "phase10-virtio-core-survey",
         "Run the Phase 10 virtio core survey anchor from the shared tests root",
@@ -1044,6 +1067,7 @@ pub fn build(b: *std.Build) void {
     smoke_step.dependOn(phase3_test_step);
     smoke_step.dependOn(&phase4_runtime_atomic64_diff_survey.step);
     smoke_step.dependOn(&phase7_argv_split_survey.step);
+    smoke_step.dependOn(phase8_host_tools_alpha_step);
     smoke_step.dependOn(&phase10_virtio_core_survey.step);
     smoke_step.dependOn(&phase10_virtio_ring_survey.step);
     smoke_step.dependOn(&phase10_virtio_input_survey.step);
@@ -1059,6 +1083,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(phase3_test_step);
     test_step.dependOn(&phase4_runtime_atomic64_diff_survey.step);
     test_step.dependOn(&phase7_argv_split_survey.step);
+    test_step.dependOn(phase8_host_tools_alpha_step);
     test_step.dependOn(&phase10_virtio_core_survey.step);
     test_step.dependOn(&phase10_virtio_ring_survey.step);
     test_step.dependOn(&phase10_virtio_input_survey.step);
