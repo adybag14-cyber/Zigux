@@ -20,7 +20,7 @@ It is shared validation substrate wiring that makes those live helpers reviewabl
 ## Bounded contract
 
 - `phase7_leaf_libraries_starter_packet.zig` keeps one cross-helper replay path explicit instead of treating the four live ports as unrelated islands.
-- The starter packet checks borrowed command-line parsing, owned argv splitting, string-helper duplication and quoting, bounded integer-option expansion, and cached rbtree ordering.
+- The starter packet checks borrowed command-line parsing, owned argv splitting, string-helper duplication and quoting, bounded integer-option expansion, cached rbtree ordering, and duplicate-key match iteration.
 - `phase7_leaf_libraries_starter_packet_build.zig` gives the lane a focused replay route without widening the shared top-level `zigux/tests/build.zig` bundle yet.
 - `phase7_leaf_libraries_manifest.json` makes the packet inventory and replay routes explicit so later runs can detect drift without inventing broader closure than the repo has earned.
 - `check-phase7-leaf-libraries.py` fail-closes the doc, packet, build entry, and manifest so the lane can advance with a reviewable boundary.
