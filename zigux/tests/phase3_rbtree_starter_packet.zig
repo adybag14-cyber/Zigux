@@ -69,3 +69,53 @@ test "rbtree view keeps leftmost and rightmost traversal reviewable" {
     try testing.expectEqual(@as(?*const rbtree_view.RBNode, &left), view.leftmost());
     try testing.expectEqual(@as(?*const rbtree_view.RBNode, &right), view.rightmost());
 }
+
+test "rbtree view keeps inorder successors reviewable" {
+    var root_node = rbtree_view.RBNode{
+        .__rb_parent_color = @intFromEnum(rbtree_view.Color.black),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+    var left = rbtree_view.RBNode{
+        .__rb_parent_color = @intFromPtr(&root_node) | @intFromEnum(rbtree_view.Color.red),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+    var right = rbtree_view.RBNode{
+        .__rb_parent_color = @intFromPtr(&root_node) | @intFromEnum(rbtree_view.Color.red),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+
+    root_node.rb_left = @intFromPtr(&left);
+    root_node.rb_right = @intFromPtr(&right);
+
+    try testing.expectEqual(@as(?*const rbtree_view.RBNode, &root_node), left.next());
+    try testing.expectEqual(@as(?*const rbtree_view.RBNode, &right), root_node.next());
+    try testing.expectEqual(@as(?*const rbtree_view.RBNode, null), right.next());
+}
+
+test "rbtree view keeps inorder predecessors reviewable" {
+    var root_node = rbtree_view.RBNode{
+        .__rb_parent_color = @intFromEnum(rbtree_view.Color.black),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+    var left = rbtree_view.RBNode{
+        .__rb_parent_color = @intFromPtr(&root_node) | @intFromEnum(rbtree_view.Color.red),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+    var right = rbtree_view.RBNode{
+        .__rb_parent_color = @intFromPtr(&root_node) | @intFromEnum(rbtree_view.Color.red),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+
+    root_node.rb_left = @intFromPtr(&left);
+    root_node.rb_right = @intFromPtr(&right);
+
+    try testing.expectEqual(@as(?*const rbtree_view.RBNode, null), left.prev());
+    try testing.expectEqual(@as(?*const rbtree_view.RBNode, &left), root_node.prev());
+    try testing.expectEqual(@as(?*const rbtree_view.RBNode, &root_node), right.prev());
+}
