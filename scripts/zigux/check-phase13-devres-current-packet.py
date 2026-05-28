@@ -92,6 +92,7 @@ HELPER_MARKERS = [
     "pub fn planDeviceTreeIomapCleanupHandoff(",
     "pub fn planManagedIounmapCleanup(",
     "pub fn planManagedArchPhysWcAdd(",
+    "pub fn planManagedArchPhysWcDetachCleanup(",
 ]
 
 SCATTERLIST_HELPER_MARKERS = [
@@ -356,6 +357,22 @@ def run_self_test() -> int:
             validate(root),
             ["survey:missing_marker:helper-local arch-WC add and detach-cleanup footholds"],
             "missing_arch_wc_survey_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / HELPER_PATH,
+            "\n".join(
+                marker
+                for marker in HELPER_MARKERS
+                if marker != "pub fn planManagedArchPhysWcDetachCleanup("
+            ) + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["helper:missing_marker:pub fn planManagedArchPhysWcDetachCleanup("],
+            "missing_arch_wc_detach_helper_marker_failed",
         )
         case_count += 1
 
