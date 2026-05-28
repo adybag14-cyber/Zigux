@@ -2,6 +2,22 @@ const std = @import("std");
 
 const manifest_json = @embedFile("fixtures/phase1_helper_manifest.json");
 
+const expected_all_helpers = [_][]const u8{
+    "tools/lib/argv_split.zig",
+    "tools/lib/bitmap.zig",
+    "tools/lib/cmdline.zig",
+    "tools/lib/ctype.zig",
+    "tools/lib/find_bit.zig",
+    "tools/lib/hweight.zig",
+    "tools/lib/list_sort.zig",
+    "tools/lib/rbtree.zig",
+    "tools/lib/slab.zig",
+    "tools/lib/str_error_r.zig",
+    "tools/lib/string.zig",
+    "tools/lib/vsprintf.zig",
+    "tools/lib/zalloc.zig",
+};
+
 const expected_direct_helpers = [_][]const u8{
     "tools/lib/bitmap.zig",
     "tools/lib/find_bit.zig",
@@ -61,6 +77,8 @@ test "phase1 manifest keeps the host-tools lane partition stable" {
     defer parsed.deinit();
 
     const root = try expectObject(parsed.value);
+    const phase = try expectString(try getField(root, "phase"));
+    const status = try expectString(try getField(root, "status"));
     const helper_count = try expectInteger(try getField(root, "helper_count"));
     const helpers = try expectArray(try getField(root, "helpers"));
 
@@ -68,7 +86,9 @@ test "phase1 manifest keeps the host-tools lane partition stable" {
     const parked = try expectArray(try getField(lane_sequencing, "shared_replay_parked_helpers"));
     const direct = try expectArray(try getField(lane_sequencing, "direct_anchor_followup_helpers"));
 
-    try std.testing.expectEqual(@as(i64, 13), helper_count);
+    try std.testing.expectEqualStrings("Phase 1", phase);
+    try std.testing.expectEqualStrings("closed", status);
+    try std.testing.expectEqual(@as(i64, expected_all_helpers.len), helper_count);
     try std.testing.expectEqual(@as(usize, @intCast(helper_count)), helpers.items.len);
     try std.testing.expectEqual(@as(usize, 9), parked.items.len);
     try std.testing.expectEqual(@as(usize, expected_direct_helpers.len), direct.items.len);
@@ -79,6 +99,10 @@ test "phase1 manifest keeps the host-tools lane partition stable" {
     defer parked_set.deinit();
     var direct_set = try stringSetFromArray(std.testing.allocator, direct);
     defer direct_set.deinit();
+
+    for (expected_all_helpers) |helper| {
+        try std.testing.expect(helper_set.contains(helper));
+    }
 
     for (expected_direct_helpers) |helper| {
         try std.testing.expect(direct_set.contains(helper));
