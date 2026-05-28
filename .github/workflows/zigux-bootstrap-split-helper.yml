@@ -39,13 +39,19 @@ jobs:
           python-version: '3.x'
 
       - name: Compile current split-helper packet scripts
-        run: python3 -m py_compile scripts/zigux/split-pinned-zig-archive.py scripts/zigux/check-lane05-split-helper-selftest.py scripts/zigux/check-lane05-split-helper-workflow.py
+        run: python3 -m py_compile scripts/zigux/split-pinned-zig-archive.py scripts/zigux/check-lane05-split-helper-selftest.py scripts/zigux/check-lane05-split-helper-workflow.py scripts/zigux/check-lane05-split-helper-archive-packet-contract.py
 
       - name: Self-test current split pinned Zig archive helper
         run: python3 scripts/zigux/split-pinned-zig-archive.py --self-test
 
       - name: Self-test current Lane 05 split helper selftest checker
         run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test
+
+      - name: Self-test current Lane 05 split helper archive-packet contract checker
+        run: python3 scripts/zigux/check-lane05-split-helper-archive-packet-contract.py --self-test
+
+      - name: Check current Lane 05 split helper archive-packet contract
+        run: python3 scripts/zigux/check-lane05-split-helper-archive-packet-contract.py
 
       - name: Self-test current Lane 05 split-helper workflow checker
         run: python3 scripts/zigux/check-lane05-split-helper-workflow.py --self-test
