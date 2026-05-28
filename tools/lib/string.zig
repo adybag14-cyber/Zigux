@@ -368,6 +368,14 @@ pub fn memchr_inv(buf: []const u8, value: u8) ?usize {
     return memchrInv(buf, value);
 }
 
+pub fn memIsZero(buf: []const u8) bool {
+    return memchrInv(buf, 0) == null;
+}
+
+pub fn mem_is_zero(buf: []const u8) bool {
+    return memIsZero(buf);
+}
+
 fn cStringLen(buf: []const u8) usize {
     for (buf, 0..) |ch, idx| {
         if (ch == 0) {
@@ -1075,6 +1083,27 @@ test "memchrInv keeps non-zero scans stable across the fast-path cutoff" {
     var long = [_]u8{7} ** (@sizeOf(usize) * 2);
     long[long.len - 1] = 9;
     try std.testing.expectEqual(@as(?usize, long.len - 1), memchrInv(long[0..], 7));
+}
+
+test "memIsZero returns true only when the entire buffer is zero-filled" {
+    try std.testing.expect(memIsZero(&[_]u8{}));
+    try std.testing.expect(memIsZero(&[_]u8{ 0, 0, 0, 0 }));
+    try std.testing.expect(!memIsZero(&[_]u8{ 0, 0, 3, 0 }));
+}
+
+test "memIsZero stays aligned with memchrInv across prefix offsets and long buffers" {
+    for (0..@sizeOf(usize)) |offset| {
+        var backing = [_]u8{0} ** 48;
+        try std.testing.expect(memIsZero(backing[offset .. offset + 32]));
+        backing[offset + 17] = 1;
+        try std.testing.expectEqual(@as(?usize, 17), memchrInv(backing[offset .. offset + 32], 0));
+        try std.testing.expect(!memIsZero(backing[offset .. offset + 32]));
+    }
+}
+
+test "mem_is_zero mirrors memIsZero" {
+    try std.testing.expectEqual(memIsZero(&[_]u8{ 0, 0, 0 }), mem_is_zero(&[_]u8{ 0, 0, 0 }));
+    try std.testing.expectEqual(memIsZero(&[_]u8{ 0, 1, 0 }), mem_is_zero(&[_]u8{ 0, 1, 0 }));
 }
 
 test "memparse handles decimal hexadecimal octal and suffixes" {
