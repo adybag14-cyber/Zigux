@@ -1,0 +1,10 @@
+{
+  "string": {
+    "strlcat_len": 6,
+    "strlcat_buffer": "abc",
+    "strlcat_unterminated_len": 6,
+    "strlcat_zero_dest_len": 3,
+    "strlcat_embedded_nul_src_len": 3,
+    "strlcat_embedded_nul_src_bytes": [97, 98, 99, 0]
+  }
+}
