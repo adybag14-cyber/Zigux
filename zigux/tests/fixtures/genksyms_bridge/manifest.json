@@ -4,10 +4,11 @@
   "mode": "bounded wrapper-first dual-implementation bridge",
   "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
   "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
-  "case_count": 10,
+  "case_count": 11,
   "cases": [
     "minimal",
     "debug_reference_types",
+    "inline_short_option_arguments",
     "long_options",
     "abbreviated_long_options",
     "quiet_overrides_warning",
@@ -20,6 +21,7 @@
   "bridge_expected_packet": [
     "minimal_expected.json",
     "debug_reference_types_expected.json",
+    "inline_short_option_arguments_expected.json",
     "long_options_expected.json",
     "abbreviated_long_options_expected.json",
     "quiet_overrides_warning_expected.json",
@@ -34,7 +36,8 @@
   ],
   "standalone_proof_packet": [
     "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
-    "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig"
+    "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
+    "scripts/zigux/genksyms_inline_short_option_argument_test.zig"
   ],
   "process_output_packet": [
     "abbreviated_version_expected.json",
