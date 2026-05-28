@@ -56,7 +56,8 @@ REQUIRED_MARKERS = {
         "Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`",
         "`devres` stays mapped through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, the shipped DMA-boundary checker pair `scripts/zigux/check-phase13-devres-dma-boundary.py` and the historically named `scripts/zigux/check-phase13-devres-mmio-packet.py`",
         "Keep the helper-owned wording tightly scoped to descriptor-backed create-ruleset planning",
-        "`Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` framed as repo-reality gaps until current `master` materializes them again",
+        "current `master` materializes the helper-local packet plus the direct replay and direct reviewability companions through `zigux/tests/phase13_landlock_syscalls.zig` and `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, while `zigux/tests/phase13_landlock_syscalls_manifest.json`, the older shared `zigux/tests/phase13_build.zig` companion, and the live file-descriptor installation, credential replacement, and ruleset-state surfaces stay repo-reality gaps on current `master`.",
+        "Current `master` also now materializes `scripts/zigux/check-phase13-roadmap-traceability.py`, so keep that checker explicit as the note-level guard for this roadmap-to-repo owner map rather than treating traceability as a reminder-only surface with no dedicated replay.",
         "`scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py`",
     ],
     "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md": [
@@ -288,6 +289,38 @@ def run_self_test() -> int:
         expect_issue(
             collect_issues(tempdir),
             "missing_marker:Documentation/zigux/phase13-release-coordination-matrix.md:Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support beside the shared-summary guard and tests-root alignment companion instead of carrying it in the repo-reality-gap bucket.",
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        roadmap_path = tempdir / "Documentation/zigux/phase13-roadmap-traceability.md"
+        roadmap_path.write_text(
+            roadmap_path.read_text(encoding="utf-8").replace(
+                "Current `master` also now materializes `scripts/zigux/check-phase13-roadmap-traceability.py`, so keep that checker explicit as the note-level guard for this roadmap-to-repo owner map rather than treating traceability as a reminder-only surface with no dedicated replay.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:Current `master` also now materializes `scripts/zigux/check-phase13-roadmap-traceability.py`, so keep that checker explicit as the note-level guard for this roadmap-to-repo owner map rather than treating traceability as a reminder-only surface with no dedicated replay.",
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        roadmap_path = tempdir / "Documentation/zigux/phase13-roadmap-traceability.md"
+        roadmap_path.write_text(
+            roadmap_path.read_text(encoding="utf-8").replace(
+                "current `master` materializes the helper-local packet plus the direct replay and direct reviewability companions through `zigux/tests/phase13_landlock_syscalls.zig` and `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, while `zigux/tests/phase13_landlock_syscalls_manifest.json`, the older shared `zigux/tests/phase13_build.zig` companion, and the live file-descriptor installation, credential replacement, and ruleset-state surfaces stay repo-reality gaps on current `master`.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:current `master` materializes the helper-local packet plus the direct replay and direct reviewability companions through `zigux/tests/phase13_landlock_syscalls.zig` and `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, while `zigux/tests/phase13_landlock_syscalls_manifest.json`, the older shared `zigux/tests/phase13_build.zig` companion, and the live file-descriptor installation, credential replacement, and ruleset-state surfaces stay repo-reality gaps on current `master`.",
         )
         checks_run += 1
 
