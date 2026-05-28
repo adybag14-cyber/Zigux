@@ -1,0 +1,31 @@
+{
+  "phase": "Phase 3",
+  "lane": "helper-interop",
+  "slug": "phase3-ida-alloc",
+  "status": "starter_and_dump_packet_present",
+  "scope": "helper-local ida allocation window selection plus fixture-backed dump parity",
+  "packet_files": [
+    "Documentation/zigux/phase3-ida-alloc-slice.md",
+    "zigux/helpers/ida_bitmap_view.zig",
+    "zigux/helpers/ida_alloc_view.zig",
+    "zigux/tests/phase3_ida_alloc_starter_packet.zig",
+    "zigux/tests/phase3_ida_alloc_starter_packet_build.zig",
+    "scripts/zigux/check-phase3-ida-alloc-starter-packet.py",
+    "zigux/tests/phase3_ida_alloc_dump.zig",
+    "zigux/tests/phase3_ida_alloc_dump_build.zig",
+    "zigux/tests/fixtures/phase3_ida_alloc/phase3_ida_alloc_c_harness.c",
+    "zigux/tests/fixtures/phase3_ida_alloc/expected.json",
+    "zigux/tests/fixtures/phase3_ida_alloc_manifest.json",
+    "scripts/zigux/check-phase3-ida-alloc.py"
+  ],
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase3-ida-alloc-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-ida-alloc-starter-packet.py",
+    "zig build phase3-ida-alloc-starter-packet-test --build-file zigux/tests/phase3_ida_alloc_starter_packet_build.zig",
+    "python3 scripts/zigux/check-phase3-ida-alloc.py --self-test",
+    "python3 scripts/zigux/check-phase3-ida-alloc.py --repo-root . --zig zig --cc gcc",
+    "zig build phase3-ida-alloc-dump --build-file zigux/tests/phase3_ida_alloc_dump_build.zig"
+  ],
+  "repo_reality_gaps": [],
+  "next_safe_step": "keep the helper-local ida allocation packet honest with dump parity before widening into ida range or ida policy follow-through"
+}
