@@ -1,0 +1,73 @@
+[
+  {
+    "name": "clamped_floor_partial",
+    "summary": {
+      "window": {
+        "first_id": 1024,
+        "last_id": 1027,
+        "first_relative_bit": 0,
+        "last_relative_bit": 3,
+        "span_len": 4
+      },
+      "allocated_bits": 3,
+      "first_allocated": {
+        "id": 1024,
+        "relative_bit": 0
+      },
+      "first_free": {
+        "id": 1025,
+        "relative_bit": 1
+      },
+      "fully_allocated": false,
+      "fully_free": false
+    }
+  },
+  {
+    "name": "clamped_ceiling_full",
+    "summary": {
+      "window": {
+        "first_id": 3070,
+        "last_id": 3071,
+        "first_relative_bit": 1022,
+        "last_relative_bit": 1023,
+        "span_len": 2
+      },
+      "allocated_bits": 2,
+      "first_allocated": {
+        "id": 3070,
+        "relative_bit": 1022
+      },
+      "first_free": null,
+      "fully_allocated": true,
+      "fully_free": false
+    }
+  },
+  {
+    "name": "clear_middle_window",
+    "summary": {
+      "window": {
+        "first_id": 8,
+        "last_id": 11,
+        "first_relative_bit": 8,
+        "last_relative_bit": 11,
+        "span_len": 4
+      },
+      "allocated_bits": 0,
+      "first_allocated": null,
+      "first_free": {
+        "id": 8,
+        "relative_bit": 8
+      },
+      "fully_allocated": false,
+      "fully_free": true
+    }
+  },
+  {
+    "name": "disjoint_window",
+    "summary": null
+  },
+  {
+    "name": "unordered_window",
+    "summary": null
+  }
+]
