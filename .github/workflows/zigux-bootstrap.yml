@@ -349,6 +349,12 @@ jobs:
       - name: Validate current Phase 2 tool packet
         run: python3 scripts/zigux/validate-phase2.py
 
+      - name: Self-test current Phase 2 closure validator
+        run: python3 scripts/zigux/validate-phase2-closure.py --self-test
+
+      - name: Check current Phase 2 closure packet
+        run: python3 scripts/zigux/validate-phase2-closure.py
+
       - name: Self-test current Phase 1 direct-owner checker
         run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test
 
