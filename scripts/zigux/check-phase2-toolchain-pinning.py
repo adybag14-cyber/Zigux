@@ -113,6 +113,7 @@ SURFACE_PATHS = (
     "scripts/zigux/check-phase2-artifact-tools-manifest.py",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+    "scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/stage-pinned-zig-archive.py",
     POLICY,
@@ -198,6 +199,7 @@ MANIFEST_CHECKS = {
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
         "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+        "scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py",
         "scripts/zigux/check-phase2-kbuild-routes.py",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
         "scripts/zigux/check-phase2-cross.py",
@@ -220,6 +222,65 @@ MANIFEST_CHECKS = {
     "cross_route_support": [
         "scripts/zigux/check-phase2-cross.py",
         "zigux/tests/fixtures/phase2_cross_targets.json",
+    ],
+    "fixdep_support": [
+        "scripts/zigux/check-phase2-fixdep-gate.py",
+        "scripts/zigux/check-fixdep-diff.py",
+        "scripts/zigux/fixdep.zig",
+        "zigux/tests/fixtures/fixdep/cases.json",
+        "zigux/tests/fixtures/fixdep/dep:colon.so",
+        "zigux/tests/fixtures/fixdep/dep\\ name.rmeta",
+        "zigux/tests/fixtures/fixdep/escaped\\ space-config.h",
+        "zigux/tests/fixtures/fixdep/sample-config.h",
+        "zigux/tests/fixtures/fixdep/sample.c",
+        "zigux/tests/fixtures/fixdep/sample.d",
+        "zigux/tests/fixtures/fixdep/sample.h",
+        "zigux/tests/fixtures/fixdep/sample.rmeta",
+        "zigux/tests/fixtures/fixdep/sample2-config.h",
+        "zigux/tests/fixtures/fixdep/sample2.c",
+        "zigux/tests/fixtures/fixdep/sample2.so",
+        "zigux/tests/fixtures/fixdep/sample_comment_continuation.d",
+        "zigux/tests/fixtures/fixdep/sample_comment_continuation_dep.so",
+        "zigux/tests/fixtures/fixdep/sample_comment_continuation_expected.txt",
+        "zigux/tests/fixtures/fixdep/sample_comment_continuation_source.c",
+        "zigux/tests/fixtures/fixdep/sample_comment_continuation_source.rmeta",
+        "zigux/tests/fixtures/fixdep/sample_comment_only.d",
+        "zigux/tests/fixtures/fixdep/sample_comment_only_expected.stderr.txt",
+        "zigux/tests/fixtures/fixdep/sample_comment_only_expected.txt",
+        "zigux/tests/fixtures/fixdep/sample_concatenated.d",
+        "zigux/tests/fixtures/fixdep/sample_concatenated_dep.h",
+        "zigux/tests/fixtures/fixdep/sample_concatenated_expected.txt",
+        "zigux/tests/fixtures/fixdep/sample_concatenated_source.c",
+        "zigux/tests/fixtures/fixdep/sample_concatenated_temp.c",
+        "zigux/tests/fixtures/fixdep/sample_concatenated_temp_dep.h",
+        "zigux/tests/fixtures/fixdep/sample_dependency_continuation.d",
+        "zigux/tests/fixtures/fixdep/sample_dependency_continuation_dep.so",
+        "zigux/tests/fixtures/fixdep/sample_dependency_continuation_expected.txt",
+        "zigux/tests/fixtures/fixdep/sample_dependency_continuation_source.c",
+        "zigux/tests/fixtures/fixdep/sample_dependency_continuation_source.rmeta",
+        "zigux/tests/fixtures/fixdep/sample_double_backslash_comment.d",
+        "zigux/tests/fixtures/fixdep/sample_double_backslash_comment_expected.stderr.txt",
+        "zigux/tests/fixtures/fixdep/sample_double_backslash_comment_expected.txt",
+        "zigux/tests/fixtures/fixdep/sample_double_backslash_comment_source.rmeta",
+        "zigux/tests/fixtures/fixdep/sample_escaped_colon.d",
+        "zigux/tests/fixtures/fixdep/sample_escaped_colon_expected.txt",
+        "zigux/tests/fixtures/fixdep/sample_escaped_colon_source.c",
+        "zigux/tests/fixtures/fixdep/sample_escaped_colon_source.rmeta",
+        "zigux/tests/fixtures/fixdep/sample_escaped_space.d",
+        "zigux/tests/fixtures/fixdep/sample_escaped_space_expected.txt",
+        "zigux/tests/fixtures/fixdep/sample_escaped_space_source.c",
+        "zigux/tests/fixtures/fixdep/sample_escaped_space_source.rmeta",
+        "zigux/tests/fixtures/fixdep/sample_expected.txt",
+        "zigux/tests/fixtures/fixdep/sample_missing_dep.d",
+        "zigux/tests/fixtures/fixdep/sample_missing_dep_expected.stderr.txt",
+        "zigux/tests/fixtures/fixdep/sample_missing_dep_expected.txt",
+        "zigux/tests/fixtures/fixdep/sample_missing_dep_source.c",
+        "zigux/tests/fixtures/fixdep/sample_multi_target.d",
+        "zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt",
+        "zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt",
+        "zigux/tests/fixtures/fixdep/sample_output_write_expected.txt",
+        "zigux/tests/fixtures/fixdep/shared#config.h",
+        "zigux/tests/fixtures/fixdep/shared:config.h",
     ],
     "make_wrappers": [
         "zigux/Makefile",
@@ -248,7 +309,7 @@ MANIFEST_CHECKS = {
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 126
+EXPECTED_SELF_TEST_CASE_COUNT = 128
 
 
 def read(path: Path) -> str:
@@ -510,6 +571,14 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
+        manifest_path = root / TOOL_MANIFEST
+        manifest = json.loads(read(manifest_path))
+        manifest["present_surfaces"]["fixdep_support"].pop()
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert any(code == "TOOL_MANIFEST_BUCKET_MISMATCH" and value.startswith("fixdep_support:") for code, value in collect_issues(root))
+        checks += 1
+
+        build_self_test_root(root)
         policy_path = root / POLICY
         policy = json.loads(read(policy_path))
         policy["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain"]
@@ -525,6 +594,11 @@ def run_self_test() -> int:
         build_self_test_root(root)
         (root / "scripts/zigux/check-phase2-tool-manifest.py").unlink()
         assert ("MISSING_SURFACE_PATHS", "scripts/zigux/check-phase2-tool-manifest.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py").unlink()
+        assert ("MISSING_SURFACE_PATHS", "scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
