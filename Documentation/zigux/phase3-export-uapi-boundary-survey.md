@@ -36,14 +36,14 @@ Phase 3 calls for the permanent C/Zigux boundary: explicit export shims, curated
 The landed boundary is still narrow and reviewable:
 
 - `zigux/kernel/export_shim.zig` exposes boundary-header, version, and `dev_t` validation relays plus focused interop-policy and rbtree-root status helpers instead of widening into a larger runtime surface.
-- `include/zigux/abi.h` and `include/linux/zigux.h` hold the public C-facing header contract and the Linux-facing UAPI aliases for the same starter packet.
+- `include/zigux/abi.h` and `include/linux/zigux.h` hold the public C-facing header contract and the Linux-facing UAPI aliases for the same starter packet, with `include/linux/zigux.h` now carrying thin interop-policy predicate relays and starter rbtree-view predicate relays that stay anchored in the canonical ABI header.
 - `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, `zigux/bindings/version.zig`, `zigux/bindings/dev_t.zig`, and `zigux/bindings/header_family.zig` provide the curated Zig-side view of that same boundary.
 - `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_export_shim_build.zig`, and `zigux/tests/phase3_export_uapi_c_header_smoke.c` keep the packet replayable from both Zig and C-facing entry points, while `.github/workflows/zigux-bootstrap.yml` now runs the direct C smoke route as its own Phase 3 bootstrap step.
 - `zigux/tests/build.zig` and `zigux/Makefile` now keep a shared `phase3-abi-export` replay route visible alongside the focused export-shim and export/UAPI layout replays so this packet can be rerun as one bounded gate.
 
 ## Current Boundary Gap
 
-The remaining gap in this lane is not a missing starter packet. The current gap is that the export/UAPI boundary is still limited to the starter header-family, version, and `dev_t` UAPI packet plus focused interop-policy and rbtree-root status relays.
+The remaining gap in this lane is not a missing starter packet. The current gap is that the export/UAPI boundary is still limited to the starter header-family, version, and `dev_t` UAPI packet plus focused interop-policy and rbtree-root relays rather than a broader curated family.
 
 Current `master` does not yet turn this lane into:
 
@@ -51,7 +51,7 @@ Current `master` does not yet turn this lane into:
 - a wider export-shim surface beyond the landed boundary-header, version, `dev_t`, interop-policy, and rbtree-root relays
 - full Phase 3 closure for policy, low-level wrapper, or other interop slices that live on adjacent lanes
 
-`PHASE3_EXPORT_UAPI_GAP=broader curated UAPI families and wider export-shim coverage beyond the landed starter packet and focused runtime relays remain open`
+`PHASE3_EXPORT_UAPI_GAP=broader curated UAPI families and wider export-shim coverage beyond the landed starter packet, Linux-facing starter predicates, and focused runtime relays remain open`
 
 ## Verification Routes
 
