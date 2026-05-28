@@ -76,6 +76,8 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view 
 };
 typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view
     zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view;
+typedef zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view
+    zigux_chrdev_notify_delivery_window_view;
 
 struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary {
     uint32_t applied;
@@ -84,6 +86,8 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summa
 };
 typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary
     zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary;
+typedef zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary
+    zigux_chrdev_notify_delivery_window_summary;
 
 struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view {
     uint32_t budget;
@@ -92,6 +96,8 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budge
 };
 typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view
     zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view;
+typedef zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view
+    zigux_chrdev_notify_delivery_window_budget_view;
 
 struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary {
     uint32_t attempted;
@@ -100,6 +106,8 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budge
 };
 typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary
     zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary;
+typedef zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary
+    zigux_chrdev_notify_delivery_window_budget_summary;
 
 struct zigux_notifier_block {
     uintptr_t notifier_call;
