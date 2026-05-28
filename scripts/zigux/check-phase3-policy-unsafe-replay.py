@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import tempfile
@@ -12,6 +13,7 @@ from pathlib import Path
 REPLAY_PATH = Path("zigux/tests/phase3_policy_unsafe.zig")
 BUILD_PATH = Path("zigux/tests/phase3_policy_unsafe_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
+MANIFEST_PATH = Path("zigux/tests/phase3_policy_starter_packet_manifest.json")
 ABI_BINDINGS_PATH = Path("zigux/bindings/abi.zig")
 PANIC_POLICY_PATH = Path("zigux/helpers/panic_policy.zig")
 ALLOCATOR_POLICY_PATH = Path("zigux/helpers/allocator_policy.zig")
@@ -43,6 +45,15 @@ REQUIRED_MARKERS = {
         "phase3-policy-unsafe-test:",
         "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
     ),
+    MANIFEST_PATH: (
+        '"zigux/tests/phase3_policy_unsafe.zig"',
+        '"zigux/tests/phase3_policy_unsafe_build.zig"',
+        '"scripts/zigux/check-phase3-policy-unsafe-replay.py"',
+        '"python3 scripts/zigux/check-phase3-policy-unsafe-replay.py --self-test"',
+        '"python3 scripts/zigux/check-phase3-policy-unsafe-replay.py"',
+        '"zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig"',
+        '"make -C zigux phase3-policy-unsafe-test"',
+    ),
     ABI_BINDINGS_PATH: (
         "pub fn interopPolicyIsRecognized(policy: InteropPolicy) bool {",
         "pub fn unsafeScopeFromInteropPolicy(policy: InteropPolicy) ?UnsafeScope {",
@@ -65,6 +76,19 @@ REQUIRED_MARKERS = {
     ),
 }
 
+REQUIRED_PACKET_FILES = (
+    REPLAY_PATH.as_posix(),
+    BUILD_PATH.as_posix(),
+    "scripts/zigux/check-phase3-policy-unsafe-replay.py",
+)
+
+REQUIRED_REPLAY_ROUTES = (
+    "python3 scripts/zigux/check-phase3-policy-unsafe-replay.py --self-test",
+    "python3 scripts/zigux/check-phase3-policy-unsafe-replay.py",
+    "zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
+    "make -C zigux phase3-policy-unsafe-test",
+)
+
 SELF_TEST_CASES = (
     (REPLAY_PATH, REQUIRED_MARKERS[REPLAY_PATH][0]),
     (BUILD_PATH, REQUIRED_MARKERS[BUILD_PATH][-2]),
@@ -73,6 +97,7 @@ SELF_TEST_CASES = (
     (ALLOCATOR_POLICY_PATH, REQUIRED_MARKERS[ALLOCATOR_POLICY_PATH][0]),
     (UNSAFE_POLICY_PATH, REQUIRED_MARKERS[UNSAFE_POLICY_PATH][0]),
     (NARROW_PATH, REQUIRED_MARKERS[NARROW_PATH][0]),
+    (MANIFEST_PATH, REQUIRED_MARKERS[MANIFEST_PATH][2]),
 )
 
 
@@ -103,6 +128,38 @@ def validate_repo(repo_root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
+
+    manifest_path = repo_root / MANIFEST_PATH
+    try:
+        manifest = json.loads(_read(manifest_path))
+    except FileNotFoundError:
+        return issues
+    except json.JSONDecodeError as exc:
+        issues.append(f"invalid JSON in {MANIFEST_PATH.as_posix()}: {exc}")
+        return issues
+
+    packet_files = manifest.get("packet_files")
+    if not isinstance(packet_files, list):
+        issues.append("phase3_policy_starter_packet_manifest.json packet_files is not a list")
+    else:
+        for entry in REQUIRED_PACKET_FILES:
+            if entry not in packet_files:
+                issues.append(
+                    "phase3_policy_starter_packet_manifest.json missing packet_files entry: "
+                    + entry
+                )
+
+    replay_routes = manifest.get("replay_routes")
+    if not isinstance(replay_routes, list):
+        issues.append("phase3_policy_starter_packet_manifest.json replay_routes is not a list")
+    else:
+        for entry in REQUIRED_REPLAY_ROUTES:
+            if entry not in replay_routes:
+                issues.append(
+                    "phase3_policy_starter_packet_manifest.json missing replay route: "
+                    + entry
+                )
+
     return issues
 
 
@@ -131,6 +188,12 @@ def _populate_repo(root: Path) -> None:
     for relative_path, markers in REQUIRED_MARKERS.items():
         _write(root / relative_path, "\n".join(markers) + "\n")
 
+    manifest = {
+        "packet_files": list(REQUIRED_PACKET_FILES),
+        "replay_routes": list(REQUIRED_REPLAY_ROUTES),
+    }
+    _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_policy_unsafe_replay_") as temp_dir:
@@ -154,8 +217,39 @@ def run_self_test() -> int:
                 print(f"expected missing marker was not reported: {expected}")
                 return 1
 
+        _populate_repo(root)
+        manifest_path = root / MANIFEST_PATH
+        manifest = json.loads(_read(manifest_path))
+        manifest["packet_files"].remove("scripts/zigux/check-phase3-policy-unsafe-replay.py")
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected = (
+            "phase3_policy_starter_packet_manifest.json missing packet_files entry: "
+            "scripts/zigux/check-phase3-policy-unsafe-replay.py"
+        )
+        if expected not in issues:
+            print("PHASE3_POLICY_UNSAFE_REPLAY_SELF_TEST=fail")
+            print("expected manifest packet-file drift was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["replay_routes"].remove(
+            "python3 scripts/zigux/check-phase3-policy-unsafe-replay.py"
+        )
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected = (
+            "phase3_policy_starter_packet_manifest.json missing replay route: "
+            "python3 scripts/zigux/check-phase3-policy-unsafe-replay.py"
+        )
+        if expected not in issues:
+            print("PHASE3_POLICY_UNSAFE_REPLAY_SELF_TEST=fail")
+            print("expected manifest replay-route drift was not reported")
+            return 1
+
     print("PHASE3_POLICY_UNSAFE_REPLAY_SELF_TEST=pass")
-    print(f"PHASE3_POLICY_UNSAFE_REPLAY_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 1}")
+    print(f"PHASE3_POLICY_UNSAFE_REPLAY_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 3}")
     return 0
 
 
@@ -183,6 +277,7 @@ def main() -> int:
     print(f"validated {args.repo_root / REPLAY_PATH}")
     print(f"validated {args.repo_root / BUILD_PATH}")
     print(f"validated {args.repo_root / MAKEFILE_PATH}")
+    print(f"validated {args.repo_root / MANIFEST_PATH}")
     if not args.skip_exec:
         print(f"verified replay {args.repo_root / BUILD_PATH}")
     print("PHASE3_POLICY_UNSAFE_REPLAY=pass")
