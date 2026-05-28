@@ -38,7 +38,7 @@ REQUIRED_FILES = (
 SURVEY_REQUIRED_MARKERS = (
     "Phase 2 roadmap still keeps `scripts/basic/fixdep.c` and `scripts/zigux/fixdep.zig` inside the selected dual-implementation tranche.",
     "bounded thirteen-case external fixdep packet",
-    "PermissionDenied",
+    "Current `scripts/zigux/fixdep.zig` already captures `error.PermissionDenied` on the dedicated `fixdep: error opening file:` path, and the live helper also carries a focused regression test for that branch.",
     "Exact-path authenticated contents reads still return missing for `scripts/basic/fixdep.c`",
     "Those same shared reminder surfaces still do not enumerate `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md` alongside the genksyms survey",
 )
@@ -60,6 +60,7 @@ FIXDEP_REQUIRED_EXACT_LINES = (
     'test "exact read size helper rejects short reads" {',
     'test "path error wording keeps the dedicated fstat prefix" {',
     'test "open dependency file classification keeps input-output failures on the C-style path" {',
+    'test "open dependency file classification keeps PermissionDenied on the C-style path" {',
     'test "open dependency file classification preserves unrelated open failures" {',
     'test "read failure wording matches C perror prefix" {',
     'test "output write failure uses C-style wording" {',
@@ -344,7 +345,7 @@ def extract_fixdep_diff_expected_cases(text: str) -> dict[str, dict[str, object]
     payload = text[start + len(start_marker) : end].strip()
     try:
         value = ast.literal_eval(payload)
-    except Exception as exc:  # pragma: no cover - exercised by self-test
+    except Exception as exc:
         raise ValueError(f"EXPECTED_CASES literal parse failed: {exc}") from exc
 
     if not isinstance(value, dict):
