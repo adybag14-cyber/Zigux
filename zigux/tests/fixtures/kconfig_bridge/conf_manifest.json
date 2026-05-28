@@ -52,10 +52,11 @@
   "syncconfig_env_packet": [
     "syncconfig_expected.json"
   ],
-  "allconfig_sentinel_packet": [],
-  "allconfig_override_packet": [
+  "allconfig_sentinel_packet": [
     "allnoconfig_expected.json",
-    "allyesconfig_expected.json",
+    "allyesconfig_expected.json"
+  ],
+  "allconfig_override_packet": [
     "allmodconfig_expected.json",
     "alldefconfig_expected.json",
     "randconfig_expected.json"
