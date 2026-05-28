@@ -49,6 +49,9 @@ CROSS_COMPILE_CHECKER_PATH = "scripts/zigux/check-phase12-cross-compile-smoke.py
 VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH = (
     "scripts/zigux/check-phase12-virtio-scsi-rollback-coverage.py"
 )
+VIRTIO_SCSI_LIBBPF_BOUNDARY_CHECKER_PATH = (
+    "scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py"
+)
 LIBBPF_SNAPSHOT_CHECKER_PATH = "scripts/zigux/check-phase12-libbpf-snapshot.py"
 LIBBPF_LANE_MARKER_CHECKER_PATH = (
     "scripts/zigux/check-phase12-libbpf-lane-marker.py"
@@ -71,6 +74,7 @@ CHECKER_PATHS = (
     NVME_PACKET_COHERENCE_CHECKER_PATH,
     CROSS_COMPILE_CHECKER_PATH,
     VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH,
+    VIRTIO_SCSI_LIBBPF_BOUNDARY_CHECKER_PATH,
     LIBBPF_SNAPSHOT_CHECKER_PATH,
     LIBBPF_LANE_MARKER_CHECKER_PATH,
     LIBBPF_HEAVY_CONSUMER_CHECKER_PATH,
@@ -166,6 +170,7 @@ REQUIRED_MARKERS = {
         "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase12-release-readiness-packet.py",
         "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase12-complex-driver-lane-packet.py",
         "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase12-cross-compile-smoke.py",
+        "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase12-virtio-scsi-libbpf-boundary.py",
         "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase12-libbpf-snapshot.py",
         "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase12-libbpf-lane-marker.py",
         "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase12-libbpf-heavy-consumer-packet.py",
@@ -203,6 +208,7 @@ REQUIRED_MARKERS = {
         VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH,
         NVME_PACKET_COHERENCE_CHECKER_PATH,
         VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH,
+        VIRTIO_SCSI_LIBBPF_BOUNDARY_CHECKER_PATH,
         VIRTIO_NET_FALLBACK_PATH,
         "Validate the current Phase 12 shared PMO packet, fallback packet, current-master virtio_net fallback companion, scripts-root reminder, tests-root reminder, driver-local NVMe boundary packet, and returned wrapper contract.",
     ],
