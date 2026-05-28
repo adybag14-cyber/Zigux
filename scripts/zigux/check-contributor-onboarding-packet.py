@@ -13,6 +13,7 @@ REQUIRED_MARKERS = {
     "CONTRIBUTING.md": [
         "`Documentation/zigux/contributor-entrypoints.md`",
         "`Documentation/zigux/contributor-workflow.md`",
+        "For docs-only reminder, checklist, or contributor workflow guidance changes, use `Documentation/zigux/developer-enablement-contributor-workflow.md` and rerun `python3 scripts/zigux/check-developer-enablement-workflow.py`.",
         "Top-level onboarding guard: `python3 scripts/zigux/check-contributor-onboarding-packet.py`",
         "If you update the top-level contributor onboarding packet, rerun `python3 scripts/zigux/check-contributor-onboarding-packet.py` so the start-here entrypoint, onboarding guide, and routine workflow note stay aligned.",
         "any top-level onboarding wording still agrees across `CONTRIBUTING.md`, `Documentation/zigux/contributor-entrypoints.md`, and `Documentation/zigux/contributor-workflow.md`",
@@ -26,7 +27,7 @@ REQUIRED_MARKERS = {
         "if the change touches top-level onboarding wording, keep `CONTRIBUTING.md`, `Documentation/zigux/contributor-entrypoints.md`, and `Documentation/zigux/contributor-workflow.md` aligned and rerun `python3 scripts/zigux/check-contributor-onboarding-packet.py`",
     ],
     "Documentation/zigux/contributor-workflow.md": [
-        "Use it with `CONTRIBUTING.md`, `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`, `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/contributor-entrypoints.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.",
+        "Use it with `CONTRIBUTING.md`, `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`, `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/contributor-entrypoints.md`, `Documentation/zigux/developer-enablement-contributor-workflow.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.",
         "for top-level contributor onboarding changes, rerun `python3 scripts/zigux/check-contributor-onboarding-packet.py` so `CONTRIBUTING.md`, `Documentation/zigux/contributor-entrypoints.md`, and this workflow note stay aligned",
         "- `CONTRIBUTING.md`: top-level contributor starting map and bounded onboarding reminders",
         "- `Documentation/zigux/contributor-entrypoints.md`: bounded guide selection for docs, checklist, and workflow work",
@@ -110,6 +111,22 @@ def run_self_test() -> int:
         expect_issue(
             collect_issues(tempdir),
             "missing_file:scripts/zigux/check-contributor-onboarding-packet.py",
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        path = tempdir / "CONTRIBUTING.md"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "For docs-only reminder, checklist, or contributor workflow guidance changes, use `Documentation/zigux/developer-enablement-contributor-workflow.md` and rerun `python3 scripts/zigux/check-developer-enablement-workflow.py`.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:CONTRIBUTING.md:For docs-only reminder, checklist, or contributor workflow guidance changes, use `Documentation/zigux/developer-enablement-contributor-workflow.md` and rerun `python3 scripts/zigux/check-developer-enablement-workflow.py`.",
         )
         checks_run += 1
 
