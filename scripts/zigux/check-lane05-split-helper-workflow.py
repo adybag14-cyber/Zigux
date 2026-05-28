@@ -13,7 +13,8 @@ PUSH_BRANCH = "branches: [ master ]"
 SCRIPTS_PATH = "- 'scripts/zigux/**'"
 THIRD_PARTY_PATH = "- 'third_party/**'"
 WORKFLOW_PATH_FILTER = "- '.github/workflows/zigux-bootstrap-split-helper.yml'"
-CHECKOUT_STEP = "- name: Checkout"
+PERMISSIONS = "contents: read"
+CHECKOUT_STEP = "- name: Checkout workspace snapshot"
 PYTHON_STEP = "- name: Setup Python"
 COMPILE_STEP = "- name: Compile current split-helper packet scripts"
 COMPILE_CMD = (
@@ -69,6 +70,7 @@ def check_workflow(text: str) -> None:
         (SCRIPTS_PATH, "scripts path filter"),
         (THIRD_PARTY_PATH, "third-party path filter"),
         (WORKFLOW_PATH_FILTER, "workflow path filter"),
+        (PERMISSIONS, "contents permission"),
         (CHECKOUT_STEP, "checkout step"),
         (PYTHON_STEP, "python setup step"),
         (COMPILE_STEP, "compile step"),
@@ -89,6 +91,7 @@ def check_workflow(text: str) -> None:
         (SCRIPTS_PATH, "scripts path filter"),
         (THIRD_PARTY_PATH, "third-party path filter"),
         (WORKFLOW_PATH_FILTER, "workflow path filter"),
+        (PERMISSIONS, "contents permission"),
         (f"run: {COMPILE_CMD}", "compile command"),
         (f"run: {HELPER_SELF_TEST_CMD}", "helper self-test command"),
         (f"run: {SELFTEST_CHECKER_CMD}", "selftest checker command"),
@@ -98,6 +101,7 @@ def check_workflow(text: str) -> None:
         require_exact_line(text, line, label)
 
     for line, label in (
+        (CHECKOUT_STEP, "checkout step"),
         (COMPILE_STEP, "compile step"),
         (HELPER_SELF_TEST_STEP, "helper self-test step"),
         (SELFTEST_CHECKER_STEP, "selftest checker step"),
@@ -144,6 +148,9 @@ on:
       - '.github/workflows/zigux-bootstrap-split-helper.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -152,10 +159,17 @@ jobs:
   split-helper:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6.0.2
-        with:
-          fetch-depth: 1
+      - name: Checkout workspace snapshot
+        run: |
+          set -euxo pipefail
+          tmpdir="$(mktemp -d)"
+          archive="$tmpdir/source.tar.gz"
+          curl -L --fail "https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${GITHUB_SHA}" -o "$archive"
+          tar -xzf "$archive" -C "$tmpdir"
+          src_dir="$(find "$tmpdir" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          find "$GITHUB_WORKSPACE" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+          shopt -s dotglob
+          mv "$src_dir"/* "$GITHUB_WORKSPACE"/
 
       - name: Setup Python
         uses: actions/setup-python@v6.2.0
@@ -181,6 +195,32 @@ jobs:
     case_count = 1
 
     for broken_text, expected in (
+        (
+            good_workflow.replace(
+                "permissions:\n  contents: read\n\n",
+                "",
+                1,
+            ),
+            PERMISSIONS,
+        ),
+        (
+            good_workflow.replace(
+                "      - name: Checkout workspace snapshot\n"
+                "        run: |\n"
+                "          set -euxo pipefail\n"
+                "          tmpdir=\"$(mktemp -d)\"\n"
+                "          archive=\"$tmpdir/source.tar.gz\"\n"
+                "          curl -L --fail \"https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${GITHUB_SHA}\" -o \"$archive\"\n"
+                "          tar -xzf \"$archive\" -C \"$tmpdir\"\n"
+                "          src_dir=\"$(find \"$tmpdir\" -mindepth 1 -maxdepth 1 -type d | head -n 1)\"\n"
+                "          find \"$GITHUB_WORKSPACE\" -mindepth 1 -maxdepth 1 -exec rm -rf {} +\n"
+                "          shopt -s dotglob\n"
+                "          mv \"$src_dir\"/* \"$GITHUB_WORKSPACE\"/\n\n",
+                "",
+                1,
+            ),
+            CHECKOUT_STEP,
+        ),
         (
             good_workflow.replace(
                 "      - name: Compile current split-helper packet scripts\n"
