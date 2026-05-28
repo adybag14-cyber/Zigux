@@ -488,6 +488,18 @@ test "phase3 low-level wrappers keep MMIO range helpers and width aliases explic
     try std.testing.expectEqual(@as(u32, 16), scoped_range.length);
     try std.testing.expectEqual(@as(u32, 4), scoped_range.stride);
 
+    const direct_const_ptr = try mmio.constPointerAt(u32, scoped_range, 4);
+    try std.testing.expectEqual(@as(*const volatile u32, @ptrFromInt(base_addr + 4)), direct_const_ptr);
+    try mmio.writeAt(u32, scoped_range, 4, 0x1122_3344);
+    try std.testing.expectEqual(@as(u32, 0x1122_3344), try mmio.readAt(u32, scoped_range, 4));
+    try std.testing.expectEqual(@as(u32, 0x1122_3344), try mmio.exchangeAt(u32, scoped_range, 4, 0x5566_7788));
+    try std.testing.expectEqual(@as(u32, 0x5533_4488), try mmio.writeMaskedAt(u32, scoped_range, 4, 0x00FF_FF00, 0x0033_4400));
+    const direct_ptr = try mmio.pointerAt(u32, scoped_range, 4);
+    direct_ptr.* = 0xCAFE_BABE;
+    try std.testing.expectEqual(@as(u32, 0xCAFE_BABE), try mmio.readAt(u32, scoped_range, 4));
+    try std.testing.expectError(error.InvalidInteropPolicy, mmio.constPointerAt(u16, scoped_range, 2));
+    try std.testing.expectError(error.InvalidInteropPolicy, mmio.writeAt(u32, scoped_range, 2, 1));
+
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.rangeInteropPolicy(base_addr, 16, 4, raw_policy));
     const policy_range = try mmio.rangeInteropPolicy(base_addr, 16, 4, mmio_policy);
     try std.testing.expectEqual(scoped_range.base_addr, policy_range.base_addr);
