@@ -59,6 +59,16 @@
     "duplicate_malformed_quoted_assignment_expected.json",
     "explicit_empty_assignments_expected.json"
   ],
+  "auto_conf_packet": [
+    "sample_expected.auto.conf",
+    "escaped_strings_expected.auto.conf",
+    "explicit_empty_assignments_expected.auto.conf"
+  ],
+  "autoconf_header_packet": [
+    "sample_expected.autoconf.h",
+    "escaped_strings_expected.autoconf.h",
+    "explicit_empty_assignments_expected.autoconf.h"
+  ],
   "helper_local_anchors": [
     "confdata bridge parses bounded config states",
     "confdata bridge emits bounded json output",
