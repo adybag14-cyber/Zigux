@@ -134,7 +134,6 @@ def run_self_test() -> int:
             errors = collect_errors(root)
             if len(errors) != 1 or needle.strip() not in errors[0]:
                 raise AssertionError(f"expected one missing-line error for {needle!r}, got {errors}")
-            (root / ROADMAP_PATH).writeText = None
             (root / ROADMAP_PATH).write_text(roadmap, encoding="utf-8")
             case_count += 1
 
