@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Compare bounded `genksyms` CRC outputs from the C and Zig helpers."""
+
 from __future__ import annotations
 
 import argparse
@@ -12,12 +14,14 @@ import tempfile
 
 
 def repo_root_from(script_path: Path, explicit: str | None) -> Path:
+    """Return the repository root derived from the script path or override."""
     if explicit:
         return Path(explicit).resolve()
     return script_path.resolve().parents[2]
 
 
 def fixture_paths(root: Path) -> tuple[Path, Path, Path, Path]:
+    """Return the helper, harness, input, and expected fixture paths."""
     fixture_dir = root / "zigux" / "tests" / "fixtures" / "genksyms_crc"
     return (
         root / "scripts" / "zigux" / "genksyms_crc.zig",
@@ -28,22 +32,26 @@ def fixture_paths(root: Path) -> tuple[Path, Path, Path, Path]:
 
 
 def required_paths(refresh: bool, zig_tool: Path, harness: Path, inputs: Path, expected: Path) -> tuple[Path, ...]:
+    """Return the exact files required for the requested execution mode."""
     if refresh:
         return (zig_tool, harness, inputs)
     return (zig_tool, harness, inputs, expected)
 
 
 def ensure_required_files_exist(paths: tuple[Path, ...]) -> None:
+    """Fail fast when any required path is missing or is not a regular file."""
     for path in paths:
         if not path.is_file():
             raise SystemExit(f"missing required file: {path}")
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
+    """Run a subprocess and require it to exit successfully."""
     return subprocess.run(cmd, check=True, text=True, **kwargs)
 
 
 def run_checked(label: str, cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
+    """Run a subprocess and normalize launch and exit failures into SystemExit."""
     try:
         return run(cmd, **kwargs)
     except FileNotFoundError as exc:
@@ -56,6 +64,7 @@ def run_checked(label: str, cmd: list[str], **kwargs) -> subprocess.CompletedPro
 
 
 def resolve_tool(candidate: str, missing_message: str) -> str:
+    """Resolve an executable name or path and fail with a caller-provided message."""
     resolved = shutil.which(candidate)
     if resolved:
         return resolved
@@ -63,6 +72,7 @@ def resolve_tool(candidate: str, missing_message: str) -> str:
 
 
 def find_compiler(explicit: str | None) -> str:
+    """Locate the C compiler from an override, environment, or common defaults."""
     if explicit:
         return resolve_tool(explicit, f"C compiler not found or not executable: {explicit}")
     compiler = os.environ.get("CC")
@@ -75,6 +85,7 @@ def find_compiler(explicit: str | None) -> str:
 
 
 def find_zig(explicit: str | None, root: Path) -> str:
+    """Locate Zig from an override, environment, PATH, or the attached fallback."""
     if explicit:
         return resolve_tool(explicit, f"zig not found or not executable: {explicit}")
     env = os.environ.get("ZIG")
@@ -90,6 +101,7 @@ def find_zig(explicit: str | None, root: Path) -> str:
 
 
 def validate_case_packet_shape(data: object, label: str) -> None:
+    """Reject JSON packets that drift from the exact `{\"cases\": [...]}` schema."""
     if not isinstance(data, dict):
         raise SystemExit(f"{label} invalid shape: top-level value must be an object")
     if "cases" not in data:
@@ -117,12 +129,14 @@ def validate_case_packet_shape(data: object, label: str) -> None:
 
 
 def canonicalize_json(text: str, label: str = "json") -> str:
+    """Parse, validate, and canonically serialize a case packet."""
     data = json.loads(text)
     validate_case_packet_shape(data, label)
     return json.dumps(data, sort_keys=True, separators=(",", ":"))
 
 
 def canonicalize_json_file(path: Path, label: str) -> str:
+    """Read, validate, and canonicalize a JSON case-packet file."""
     try:
         return canonicalize_json(path.read_text(encoding="utf-8"), label)
     except json.JSONDecodeError as exc:
@@ -130,6 +144,7 @@ def canonicalize_json_file(path: Path, label: str) -> str:
 
 
 def summarize_mismatch(left: str, right: str) -> str:
+    """Describe the earliest difference between two canonical JSON strings."""
     shared_prefix = 0
     for shared_prefix, (left_char, right_char) in enumerate(zip(left, right)):
         if left_char != right_char:
@@ -149,6 +164,7 @@ def summarize_mismatch(left: str, right: str) -> str:
 
 
 def compare_json(label: str, left: Path, right: Path) -> None:
+    """Assert that two JSON packet files have identical canonical content."""
     left_canonical = canonicalize_json_file(left, label)
     right_canonical = canonicalize_json_file(right, label)
     if left_canonical != right_canonical:
@@ -157,6 +173,7 @@ def compare_json(label: str, left: Path, right: Path) -> None:
 
 
 def compile_run_c(root: Path, tmp_dir: Path, harness: Path, inputs: Path, actual: Path, compiler: str) -> None:
+    """Build the C harness, run it, and persist its JSON output."""
     exe = tmp_dir / "genksyms-crc-c"
     run_checked("compile C harness", [compiler, "-std=c11", "-Wall", "-Wextra", "-o", str(exe), str(harness)], cwd=str(root))
     result = run_checked("run C harness", [str(exe), str(inputs)], cwd=str(root), capture_output=True)
@@ -164,6 +181,7 @@ def compile_run_c(root: Path, tmp_dir: Path, harness: Path, inputs: Path, actual
 
 
 def compile_run_zig(root: Path, tmp_dir: Path, zig_tool: Path, inputs: Path, actual: Path, zig: str) -> None:
+    """Build the Zig helper, run it, and persist its JSON output."""
     exe = tmp_dir / "genksyms-crc-zig"
     run_checked("build Zig CRC helper", [zig, "build-exe", str(zig_tool), "-femit-bin=" + str(exe)], cwd=str(root))
     result = run_checked("run Zig CRC helper", [str(exe), str(inputs)], cwd=str(root), capture_output=True)
@@ -171,6 +189,7 @@ def compile_run_zig(root: Path, tmp_dir: Path, zig_tool: Path, inputs: Path, act
 
 
 def write_fake_executable(path: Path, body: str = "#!/bin/sh\nexit 0\n") -> Path:
+    """Create a tiny executable file for tool-discovery self-tests."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(body, encoding="utf-8", newline="\n")
     path.chmod(path.stat().st_mode | stat.S_IXUSR)
@@ -178,6 +197,7 @@ def write_fake_executable(path: Path, body: str = "#!/bin/sh\nexit 0\n") -> Path
 
 
 def expect_system_exit_contains(callback, needle: str) -> None:
+    """Assert that a callback exits with a message containing the expected text."""
     try:
         callback()
     except SystemExit as exc:
@@ -188,6 +208,7 @@ def expect_system_exit_contains(callback, needle: str) -> None:
 
 
 def run_self_test() -> int:
+    """Exercise the checker's schema, tool, and comparison guards without building helpers."""
     sample_a = canonicalize_json('{"cases":[{"crc_hex":"0x1451dab1","input":"int"}]}')
     sample_b = canonicalize_json('{\n  "cases": [ { "input": "int", "crc_hex": "0x1451dab1" } ]\n}')
     if sample_a != sample_b:
@@ -458,6 +479,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
+    """Parse CLI flags and run refresh, self-test, or cross-implementation comparison."""
     parser = argparse.ArgumentParser(description="Compare bounded genksyms CRC C and Zig outputs.")
     parser.add_argument("--cc", help="C compiler to use")
     parser.add_argument("--zig", help="Path to Zig executable")
