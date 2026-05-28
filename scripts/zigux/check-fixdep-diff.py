@@ -120,7 +120,7 @@ EXPECTED_CASES = {
     },
 }
 EXPECTED_CASE_ORDER = list(EXPECTED_CASES)
-EXPECTED_FIXTURE_FILES = frozenset(
+SUPPORT_FIXTURE_FILES = frozenset(
     {
         "cases.json",
         "dep:colon.so",
@@ -128,57 +128,50 @@ EXPECTED_FIXTURE_FILES = frozenset(
         "escaped\\ space-config.h",
         "sample-config.h",
         "sample.c",
-        "sample.d",
         "sample.h",
         "sample.rmeta",
         "sample2-config.h",
         "sample2.c",
         "sample2.so",
-        "sample_comment_continuation.d",
         "sample_comment_continuation_dep.so",
-        "sample_comment_continuation_expected.txt",
         "sample_comment_continuation_source.c",
         "sample_comment_continuation_source.rmeta",
-        "sample_comment_only.d",
-        "sample_comment_only_expected.stderr.txt",
-        "sample_comment_only_expected.txt",
-        "sample_concatenated.d",
         "sample_concatenated_dep.h",
-        "sample_concatenated_expected.txt",
         "sample_concatenated_source.c",
         "sample_concatenated_temp.c",
         "sample_concatenated_temp_dep.h",
-        "sample_dependency_continuation.d",
         "sample_dependency_continuation_dep.so",
-        "sample_dependency_continuation_expected.txt",
         "sample_dependency_continuation_source.c",
         "sample_dependency_continuation_source.rmeta",
-        "sample_double_backslash_comment.d",
-        "sample_double_backslash_comment_expected.stderr.txt",
-        "sample_double_backslash_comment_expected.txt",
         "sample_double_backslash_comment_source.rmeta",
-        "sample_escaped_colon.d",
-        "sample_escaped_colon_expected.txt",
         "sample_escaped_colon_source.c",
         "sample_escaped_colon_source.rmeta",
-        "sample_escaped_space.d",
-        "sample_escaped_space_expected.txt",
         "sample_escaped_space_source.c",
         "sample_escaped_space_source.rmeta",
-        "sample_expected.txt",
-        "sample_missing_dep.d",
-        "sample_missing_dep_expected.stderr.txt",
-        "sample_missing_dep_expected.txt",
         "sample_missing_dep_source.c",
-        "sample_multi_target.d",
-        "sample_multi_target_expected.txt",
-        "sample_output_write_expected.stderr.txt",
-        "sample_output_write_expected.txt",
         "shared#config.h",
         "shared:config.h",
     }
 )
 EXPECTED_SELF_TEST_CASE_COUNT = 16
+
+
+def build_expected_fixture_files(
+    expected_cases: dict[str, dict[str, object]] = EXPECTED_CASES,
+    support_fixtures: frozenset[str] = SUPPORT_FIXTURE_FILES,
+) -> frozenset[str]:
+    fixture_files = set(support_fixtures)
+    fixture_files.add(CASES_PATH.name)
+    for case in expected_cases.values():
+        fixture_files.add(str(case["depfile"]))
+        fixture_files.add(str(case.get("expected_stdout", case["expected"])))
+        expected_stderr = case.get("expected_stderr")
+        if expected_stderr is not None:
+            fixture_files.add(str(expected_stderr))
+    return frozenset(fixture_files)
+
+
+EXPECTED_FIXTURE_FILES = build_expected_fixture_files()
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
