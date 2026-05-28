@@ -19,6 +19,7 @@ UNSAFE_POLICY_PATH = Path("zigux/helpers/unsafe_policy.zig")
 MMIO_PATH = Path("zigux/helpers/mmio.zig")
 NARROW_PATH = Path("zigux/unsafe/narrow.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 POLICY_STARTER_PACKET_PATH = Path("zigux/tests/phase3_policy_starter_packet.zig")
 POLICY_STARTER_PACKET_BUILD_PATH = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
 POLICY_STARTER_PACKET_MANIFEST_PATH = Path("zigux/tests/phase3_policy_starter_packet_manifest.json")
@@ -57,11 +58,13 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE3_POLICY_DUMP_MAKE_GATE=make -C zigux phase3-policy-dump",
     "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "PHASE3_LOW_LEVEL_WRAPPER_TEST_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    "PHASE3_POLICY_UNSAFE_REPLAY_MAKE_GATE=make -C zigux phase3-policy-unsafe-test",
     "PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-layout-assert-panic-policy-allocator-policy-unsafe-policy-mmio-or-narrow-helper-surfaces-or-the-dedicated-policy-unsafe-survey-gate-drift-again",
     "The blob markers above are therefore the authoritative current boundary evidence for this directly coupled policy-and-unsafe packet.",
     "PHASE3_POLICY_UNSAFE_REPLAY_PATH=zigux/tests/phase3_policy_unsafe.zig",
     "PHASE3_POLICY_UNSAFE_REPLAY_BUILD_PATH=zigux/tests/phase3_policy_unsafe_build.zig",
     "PHASE3_POLICY_UNSAFE_REPLAY_TEST_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
+    "Current `master` also keeps `zigux/Makefile` plus `.github/workflows/zigux-bootstrap.yml` explicit with both the direct `zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig` replay and the returned `make -C zigux phase3-policy-unsafe-test` wrapper, so this survey should treat those support routes as current bounded packet evidence rather than leaving the dedicated policy-unsafe replay implicit behind the Zig-only route.",
 )
 
 REQUIRED_FILE_MARKERS = {
@@ -124,6 +127,14 @@ REQUIRED_FILE_MARKERS = {
         "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
         "phase3-policy-dump:",
         "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
+        "phase3-policy-unsafe-test:",
+        "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
+    ),
+    WORKFLOW_PATH: (
+        "name: Run current Phase 3 policy unsafe replay",
+        "run: zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
+        "name: Run current Phase 3 policy unsafe make route",
+        "run: make -C zigux phase3-policy-unsafe-test",
     ),
     POLICY_STARTER_PACKET_PATH: (
         'test "policy starter packet keeps narrow byte and denial symmetry explicit" {',
@@ -198,10 +209,11 @@ REQUIRED_FILE_MARKERS = {
 SELF_TEST_CASES = (
     ("missing survey gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[7], "marker"),
     ("missing low-level wrapper test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[15], "marker"),
-    ("missing next-step marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[16], "marker"),
-    ("missing dedicated replay path marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[18], "marker"),
-    ("missing dedicated replay build marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[19], "marker"),
-    ("missing dedicated replay test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[20], "marker"),
+    ("missing policy-unsafe make gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[16], "marker"),
+    ("missing next-step marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[17], "marker"),
+    ("missing dedicated replay path marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[19], "marker"),
+    ("missing dedicated replay build marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[20], "marker"),
+    ("missing policy-unsafe workflow paragraph", NOTE_PATH, REQUIRED_NOTE_MARKERS[22], "marker"),
     (
         "layout assert blob drift",
         LAYOUT_ASSERT_PATH,
@@ -234,6 +246,18 @@ SELF_TEST_CASES = (
         "marker",
     ),
     (
+        "missing policy-unsafe make route",
+        MAKEFILE_PATH,
+        REQUIRED_FILE_MARKERS[MAKEFILE_PATH][5],
+        "marker",
+    ),
+    (
+        "missing policy-unsafe workflow route",
+        WORKFLOW_PATH,
+        REQUIRED_FILE_MARKERS[WORKFLOW_PATH][1],
+        "marker",
+    ),
+    (
         "missing policy dump raw-bridge line",
         POLICY_DUMP_EXPECTED_PATH,
         REQUIRED_FILE_MARKERS[POLICY_DUMP_EXPECTED_PATH][1],
@@ -251,6 +275,7 @@ SAMPLE_FILE_TEXT = {
     MMIO_PATH: "\n".join(REQUIRED_FILE_MARKERS[MMIO_PATH]) + "\n",
     NARROW_PATH: "\n".join(REQUIRED_FILE_MARKERS[NARROW_PATH]) + "\n",
     MAKEFILE_PATH: "\n".join(REQUIRED_FILE_MARKERS[MAKEFILE_PATH]) + "\n",
+    WORKFLOW_PATH: "\n".join(REQUIRED_FILE_MARKERS[WORKFLOW_PATH]) + "\n",
     POLICY_STARTER_PACKET_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_PATH]) + "\n",
     POLICY_STARTER_PACKET_BUILD_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_BUILD_PATH]) + "\n",
     POLICY_STARTER_PACKET_MANIFEST_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_MANIFEST_PATH]) + "\n",
