@@ -28,6 +28,8 @@ REQUIRED_MARKERS = {
         "This packet stays intentionally small:",
         "inorder successor, inorder predecessor, and empty-root decoding explicit",
         "leftmost/rightmost traversal, and inorder successor/predecessor traversal visible",
+        "child-subtree descent, and empty-root decoding explicit",
+        "child-subtree successor/predecessor descent visible",
     ),
     HELPER_PATH: (
         "pub const Color = enum(u1) {",
@@ -52,9 +54,13 @@ REQUIRED_MARKERS = {
         'test "rbtree view keeps leftmost and rightmost traversal reviewable" {',
         'test "rbtree view keeps inorder successors reviewable" {',
         'test "rbtree view keeps inorder predecessors reviewable" {',
+        'test "rbtree view descends into the right subtree for the next inorder node" {',
+        'test "rbtree view descends into the left subtree for the previous inorder node" {',
         "try testing.expectEqual(@as(usize, 0x1), child.parentTagBits());",
         "try testing.expectEqual(@as(?*const rbtree_view.RBNode, &root_node), left.next());",
         "try testing.expectEqual(@as(?*const rbtree_view.RBNode, &root_node), right.prev());",
+        "try testing.expectEqual(@as(?*const rbtree_view.RBNode, &right_left), root_node.next());",
+        "try testing.expectEqual(@as(?*const rbtree_view.RBNode, &left_right), root_node.prev());",
     ),
     BUILD_PATH: (
         '.root_source_file = b.path("../helpers/rbtree_view.zig"),',
@@ -108,6 +114,8 @@ SELF_TEST_CASES = (
     (HELPER_PATH, "pub const RBTreeView = struct {"),
     (TEST_PATH, 'test "rbtree view keeps inorder successors reviewable" {'),
     (TEST_PATH, 'test "rbtree view keeps inorder predecessors reviewable" {'),
+    (TEST_PATH, 'test "rbtree view descends into the right subtree for the next inorder node" {'),
+    (TEST_PATH, 'test "rbtree view descends into the left subtree for the previous inorder node" {'),
     (BUILD_PATH, '"phase3-rbtree-starter-packet-test"'),
 )
 
