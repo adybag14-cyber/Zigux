@@ -26,6 +26,8 @@ REQUIRED_MARKERS = {
         "- `zigux/helpers/rbtree_view.zig`",
         "- `zigux/tests/phase3_rbtree_starter_packet.zig`",
         "This packet stays intentionally small:",
+        "inorder successor, inorder predecessor, and empty-root decoding explicit",
+        "leftmost/rightmost traversal, and inorder successor/predecessor traversal visible",
     ),
     HELPER_PATH: (
         "pub const Color = enum(u1) {",
@@ -36,15 +38,23 @@ REQUIRED_MARKERS = {
         "pub const RBTreeView = struct {",
         "pub fn leftmost(self: RBTreeView) ?*const RBNode {",
         "pub fn rightmost(self: RBTreeView) ?*const RBNode {",
+        "pub fn next(self: *const RBNode) ?*const RBNode {",
+        "pub fn prev(self: *const RBNode) ?*const RBNode {",
         'test "rbtree view treats a null root as empty" {',
         'test "rbtree view decodes parent pointers without losing the color bit" {',
+        'test "rbtree view walks inorder successors across a bounded tree" {',
+        'test "rbtree view walks inorder predecessors across a bounded tree" {',
     ),
     TEST_PATH: (
         'test "rbtree view keeps empty roots explicit" {',
         'test "rbtree view preserves root color without inventing a parent" {',
         'test "rbtree view keeps parent pointers and black color bits aligned" {',
         'test "rbtree view keeps leftmost and rightmost traversal reviewable" {',
+        'test "rbtree view keeps inorder successors reviewable" {',
+        'test "rbtree view keeps inorder predecessors reviewable" {',
         "try testing.expectEqual(@as(usize, 0x1), child.parentTagBits());",
+        "try testing.expectEqual(@as(?*const rbtree_view.RBNode, &root_node), left.next());",
+        "try testing.expectEqual(@as(?*const rbtree_view.RBNode, &root_node), right.prev());",
     ),
     BUILD_PATH: (
         '.root_source_file = b.path("../helpers/rbtree_view.zig"),',
@@ -96,7 +106,8 @@ SAMPLE_FILES = {
 
 SELF_TEST_CASES = (
     (HELPER_PATH, "pub const RBTreeView = struct {"),
-    (TEST_PATH, 'test "rbtree view keeps empty roots explicit" {'),
+    (TEST_PATH, 'test "rbtree view keeps inorder successors reviewable" {'),
+    (TEST_PATH, 'test "rbtree view keeps inorder predecessors reviewable" {'),
     (BUILD_PATH, '"phase3-rbtree-starter-packet-test"'),
 )
 
