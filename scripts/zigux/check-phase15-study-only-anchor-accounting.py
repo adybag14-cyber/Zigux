@@ -5,77 +5,82 @@ import argparse
 import tempfile
 from pathlib import Path
 
-STUDY_ONLY_PATH = Path("Documentation/zigux/phase15-study-only-anchor-accounting.md")
-FREEZE_MAP_PATH = Path("Documentation/zigux/freeze-map.md")
-REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
-LANE_SEQ_PATH = Path("Documentation/zigux/phase15-governance-lane-sequencing.md")
-HANDOFF_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
-SHARED_GAP_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
-PARITY_SCORECARD_PATH = Path("Documentation/zigux/phase15-parity-scorecard.md")
 
-STATUS_MARKERS = (
-    "PHASE15_STATUS=study_only_accounting_slice_landed",
-    "PHASE15_LANE_KEY=P15-L05",
-    "PHASE15_SLICE=study-only-anchor-accounting",
-    "PHASE15_PROVENANCE_MODE=dated_master_readback",
-    "current-master-readback-2026-05-25",
+FREEZE_MAP_REL = "Documentation/zigux/freeze-map.md"
+STUDY_ONLY_REL = "Documentation/zigux/phase15-study-only-anchor-accounting.md"
+REVIEW_CHECKLIST_REL = "Documentation/zigux/review-checklist.md"
+LANE_SEQ_REL = "Documentation/zigux/phase15-governance-lane-sequencing.md"
+HANDOFF_REL = "Documentation/zigux/phase15-handoff-next-steps-survey.md"
+SHARED_GAP_REL = "Documentation/zigux/phase15-shared-summary-gap.md"
+TESTS_README_REL = "zigux/tests/README.md"
+VALIDATOR_REL = "scripts/zigux/validate-phase15.py"
+
+REQUIRED_FILES = (
+    FREEZE_MAP_REL,
+    STUDY_ONLY_REL,
+    REVIEW_CHECKLIST_REL,
+    LANE_SEQ_REL,
+    HANDOFF_REL,
+    SHARED_GAP_REL,
+    TESTS_README_REL,
+    VALIDATOR_REL,
 )
 
-ANCHORS = (
-    "`kernel/workqueue.c`",
-    "`kernel/trace/ring_buffer.c`",
-)
+EXPECTED_STUDY_ONLY_ANCHORS = [
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c",
+]
 
-STUDY_ONLY_REQUIRED_MARKERS = (
-    "tracked outside the freeze-in-C scorecard and outside blocked status-change rows",
-    "keep the two study-only anchors explicit beside the freeze map, the Phase 15 freeze-map governance note, the parity scorecard, the governance-lane sequencing note, the handoff-next-steps survey, the shared-summary gap note, and the landed validator-first maintenance gate",
-    "the current Phase 15 parity scorecard still records `study-only anchors tracked outside this scorecard: 2`",
-    "the current Phase 15 governance-lane sequencing note keeps the study-only inventory explicitly parked behind the owner packets and the remaining dedicated-build gap",
-    "the current Phase 15 handoff-next-steps survey keeps the same two study-only anchors parked beside the existing governance packet",
-    "the current Phase 15 shared-summary gap note and landed tests-root governance reminder keep docs-root, checklist, scripts-root, tests-root, and validator-first wording drift framed as truthfulness follow-through rather than study-only status-change evidence",
-    "this note is an inventory and handoff surface, not an approval record",
-    "if the study-only anchor set changes in `Documentation/zigux/freeze-map.md`, this note must change with it",
-)
-
-FREEZE_MAP_REQUIRED_MARKERS = (
+FREEZE_MAP_MARKERS = (
     "## Study / Boundary Only",
     "`kernel/workqueue.c`",
     "`kernel/trace/ring_buffer.c`",
     "shared reminder surfaces that summarize freeze posture",
-    "must keep the same study-only anchor inventory and route back to `Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+    "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "study-only anchor maintenance must stay aligned with `Documentation/zigux/phase15-study-only-anchor-accounting.md`",
 )
 
-REVIEW_CHECKLIST_REQUIRED_MARKERS = (
-    "if a shared reminder surface summarizes the study-only freeze-map anchors",
-    "`Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`",
-    "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context rather than runtime-substrate or bridge-readiness evidence",
+STUDY_ONLY_MARKERS = (
+    "PHASE15_STATUS=study_only_accounting_slice_landed",
+    "PHASE15_SLICE=study-only-anchor-accounting",
+    "PHASE15_PROVENANCE_MODE=dated_master_readback",
+    "boundary-study target first, not a rewrite target",
+    "tracked outside the freeze-in-C scorecard",
+    "this note is an inventory and handoff surface, not an approval record",
+    "if the study-only anchor set changes in `Documentation/zigux/freeze-map.md`, this note must change with it",
+    "no Architecture Council approval is currently recorded for a deep-core status change",
+    "a direct Zigux bridge for `kernel/workqueue.c`",
+    "a direct Zigux bridge for `kernel/trace/ring_buffer.c`",
 )
 
-LANE_SEQ_REQUIRED_MARKERS = (
-    "`Documentation/zigux/phase15-study-only-anchor-accounting.md` owns the explicit two-anchor study-only inventory that stays outside the freeze-in-C scorecard and blocked status-change rows",
+REVIEW_CHECKLIST_MARKERS = (
+    "if a shared reminder surface summarizes the study-only freeze-map anchors, does it route that summary back through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` so `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context rather than runtime-substrate or bridge-readiness evidence?",
+)
+
+LANE_SEQ_MARKERS = (
+    "`Documentation/zigux/phase15-study-only-anchor-accounting.md` owns the explicit two-anchor study-only inventory",
     "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` are shared reminder surfaces that may summarize the parked packet, but they do not own freeze-map status decisions themselves",
 )
 
-HANDOFF_REQUIRED_MARKERS = (
+HANDOFF_MARKERS = (
     "keep the two roadmap study-only anchors parked: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`",
+    "if future work touches `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, keep it study-only unless a smaller-than-boundary seam is explicitly recorded in the governance packet",
+)
+
+SHARED_GAP_MARKERS = (
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+    "if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, the Architecture Council decision index, the deep-core blocker survey, the Architecture Council packet checker, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts",
 )
 
-SHARED_GAP_REQUIRED_MARKERS = (
-    "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
-    "the checklist-specific study-only anchor summary boundary",
+TESTS_README_MARKERS = (
+    "Keep the current bounded Phase 9 reminder packet explicit through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, and `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`.",
+    "keep the freeze-map boundary explicit here too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than runtime-substrate readiness proof in the tests root",
 )
 
-PARITY_SCORECARD_REQUIRED_MARKERS = (
-    "study-only anchors tracked outside this scorecard: `2`",
-    "study-only anchors remain outside this scorecard until a lane asks for a status-bucket review",
-)
-
-FORBIDDEN_MARKERS = (
-    "an Architecture Council approval for any study-only anchor to leave its current posture",
-    "a direct Zigux bridge for `kernel/workqueue.c`",
-    "a direct Zigux bridge for `kernel/trace/ring_buffer.c`",
+VALIDATOR_MARKERS = (
+    "\"Documentation/zigux/phase15-study-only-anchor-accounting.md\"",
+    "\"scripts/zigux/check-phase15-review-checklist-study-only-alignment.py\"",
+    "\"phase15_review_checklist_study_only_alignment_checker_present\": True",
 )
 
 
@@ -88,227 +93,241 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def _ensure_present(source: str, markers: tuple[str, ...], label: str, failures: list[str]) -> None:
-    for marker in markers:
-        if marker not in source:
-            failures.append(f"{label}:missing:{marker}")
+def _extract_listed_anchors(text: str, heading: str, prefix: str) -> list[str]:
+    anchors: list[str] = []
+    in_section = False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped == heading:
+            in_section = True
+            continue
+        if in_section and stripped.startswith("## "):
+            break
+        if in_section and stripped.startswith(prefix) and stripped.endswith("`"):
+            anchors.append(stripped[len(prefix) : -1])
+    return anchors
 
 
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
-    required_paths = (
-        STUDY_ONLY_PATH,
-        FREEZE_MAP_PATH,
-        REVIEW_CHECKLIST_PATH,
-        LANE_SEQ_PATH,
-        HANDOFF_PATH,
-        SHARED_GAP_PATH,
-        PARITY_SCORECARD_PATH,
-    )
-    for rel in required_paths:
+    for rel in REQUIRED_FILES:
         if not (root / rel).exists():
-            failures.append(f"missing_required_path:{rel}")
+            failures.append(f"missing_file:{rel}")
     if failures:
         return failures
 
-    study_only = _read(root / STUDY_ONLY_PATH)
-    freeze_map = _read(root / FREEZE_MAP_PATH)
-    review_checklist = _read(root / REVIEW_CHECKLIST_PATH)
-    lane_seq = _read(root / LANE_SEQ_PATH)
-    handoff = _read(root / HANDOFF_PATH)
-    shared_gap = _read(root / SHARED_GAP_PATH)
-    parity_scorecard = _read(root / PARITY_SCORECARD_PATH)
+    for rel, markers in (
+        (FREEZE_MAP_REL, FREEZE_MAP_MARKERS),
+        (STUDY_ONLY_REL, STUDY_ONLY_MARKERS),
+        (REVIEW_CHECKLIST_REL, REVIEW_CHECKLIST_MARKERS),
+        (LANE_SEQ_REL, LANE_SEQ_MARKERS),
+        (HANDOFF_REL, HANDOFF_MARKERS),
+        (SHARED_GAP_REL, SHARED_GAP_MARKERS),
+        (TESTS_README_REL, TESTS_README_MARKERS),
+        (VALIDATOR_REL, VALIDATOR_MARKERS),
+    ):
+        text = _read(root / rel)
+        for marker in markers:
+            if marker not in text:
+                failures.append(f"missing_marker:{rel}:{marker}")
 
-    _ensure_present(study_only, STATUS_MARKERS, "study_only", failures)
-    _ensure_present(study_only, ANCHORS, "study_only", failures)
-    _ensure_present(study_only, STUDY_ONLY_REQUIRED_MARKERS, "study_only", failures)
-    _ensure_present(freeze_map, FREEZE_MAP_REQUIRED_MARKERS, "freeze_map", failures)
-    _ensure_present(review_checklist, REVIEW_CHECKLIST_REQUIRED_MARKERS, "review_checklist", failures)
-    _ensure_present(lane_seq, LANE_SEQ_REQUIRED_MARKERS, "lane_seq", failures)
-    _ensure_present(handoff, HANDOFF_REQUIRED_MARKERS, "handoff", failures)
-    _ensure_present(shared_gap, SHARED_GAP_REQUIRED_MARKERS, "shared_gap", failures)
-    _ensure_present(parity_scorecard, PARITY_SCORECARD_REQUIRED_MARKERS, "parity_scorecard", failures)
+    freeze_map_anchors = _extract_listed_anchors(
+        _read(root / FREEZE_MAP_REL), "## Study / Boundary Only", "- `"
+    )
+    if freeze_map_anchors != EXPECTED_STUDY_ONLY_ANCHORS:
+        failures.append(
+            f"study_only_anchor_mismatch:{FREEZE_MAP_REL}:{freeze_map_anchors!r}"
+        )
 
-    for marker in FORBIDDEN_MARKERS:
-        if marker in study_only:
-            failures.append(f"study_only:unexpected:{marker}")
+    study_only_anchors = _extract_listed_anchors(
+        _read(root / STUDY_ONLY_REL), "## Study-Only Anchor Inventory", "### `"
+    )
+    if study_only_anchors != EXPECTED_STUDY_ONLY_ANCHORS:
+        failures.append(
+            f"study_only_anchor_mismatch:{STUDY_ONLY_REL}:{study_only_anchors!r}"
+        )
 
     return failures
 
 
-def _sample_study_only() -> str:
-    return """# Phase 15 Study-Only Anchor Accounting
-
-- `PHASE15_STATUS=study_only_accounting_slice_landed`
-- `PHASE15_LANE_KEY=P15-L05`
-- `PHASE15_SLICE=study-only-anchor-accounting`
-- `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-25`
-- scope: keep the two study-only anchors explicit beside the freeze map, the Phase 15 freeze-map governance note, the parity scorecard, the governance-lane sequencing note, the handoff-next-steps survey, the shared-summary gap note, and the landed validator-first maintenance gate
-
-- the current Phase 15 parity scorecard still records `study-only anchors tracked outside this scorecard: 2`
-- the current Phase 15 governance-lane sequencing note keeps the study-only inventory explicitly parked behind the owner packets and the remaining dedicated-build gap
-- the current Phase 15 handoff-next-steps survey keeps the same two study-only anchors parked beside the existing governance packet
-- the current Phase 15 shared-summary gap note and landed tests-root governance reminder keep docs-root, checklist, scripts-root, tests-root, and validator-first wording drift framed as truthfulness follow-through rather than study-only status-change evidence
-
-### `kernel/workqueue.c`
-- current Phase 15 role: tracked outside the freeze-in-C scorecard and outside blocked status-change rows
-
-### `kernel/trace/ring_buffer.c`
-- current Phase 15 role: tracked outside the freeze-in-C scorecard and outside blocked status-change rows
-
-- this note is an inventory and handoff surface, not an approval record
-- if the study-only anchor set changes in `Documentation/zigux/freeze-map.md`, this note must change with it
-"""
-
-
-def _sample_freeze_map() -> str:
-    return """# Zigux Freeze Map
+def write_sample_root(root: Path) -> None:
+    _write(
+        root / FREEZE_MAP_REL,
+        """# Zigux Freeze Map
 
 ## Study / Boundary Only
 - `kernel/workqueue.c`
 - `kernel/trace/ring_buffer.c`
 
-- shared reminder surfaces that summarize freeze posture
-- must keep the same study-only anchor inventory and route back to `Documentation/zigux/phase15-study-only-anchor-accounting.md`
-- study-only anchor maintenance must stay aligned with `Documentation/zigux/phase15-study-only-anchor-accounting.md`
-"""
+## Governance For Freeze-Map Changes
+- shared reminder surfaces that summarize freeze posture, especially `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md`, must keep the same study-only anchor inventory and route back to `Documentation/zigux/phase15-study-only-anchor-accounting.md` when they summarize that boundary set
+- study-only anchor maintenance must stay aligned with `Documentation/zigux/phase15-study-only-anchor-accounting.md` so the `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` inventory does not drift from this file
+""",
+    )
+    _write(
+        root / STUDY_ONLY_REL,
+        """# Phase 15 Study-Only Anchor Accounting
 
+## Status
 
-def _sample_review_checklist() -> str:
-    return """# Zigux Review Checklist
+- `PHASE15_STATUS=study_only_accounting_slice_landed`
+- `PHASE15_SLICE=study-only-anchor-accounting`
+- `PHASE15_PROVENANCE_MODE=dated_master_readback`
+- roadmap rule: boundary-study target first, not a rewrite target
+- current role: tracked outside the freeze-in-C scorecard
+
+## Study-Only Anchor Inventory
+
+### `kernel/workqueue.c`
+- posture: `study_only`
+
+### `kernel/trace/ring_buffer.c`
+- posture: `study_only`
+
+## Accounting Rules
+
+- this note is an inventory and handoff surface, not an approval record
+- if the study-only anchor set changes in `Documentation/zigux/freeze-map.md`, this note must change with it
+- no Architecture Council approval is currently recorded for a deep-core status change
+
+## Non-Goals
+
+- a direct Zigux bridge for `kernel/workqueue.c`
+- a direct Zigux bridge for `kernel/trace/ring_buffer.c`
+""",
+    )
+    _write(
+        root / REVIEW_CHECKLIST_REL,
+        """# Zigux Review Checklist
 
 - if a shared reminder surface summarizes the study-only freeze-map anchors, does it route that summary back through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` so `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context rather than runtime-substrate or bridge-readiness evidence?
-"""
-
-
-def _sample_lane_seq() -> str:
-    return """# Phase 15 Governance Lane Sequencing
+""",
+    )
+    _write(
+        root / LANE_SEQ_REL,
+        """# Phase 15 Governance Lane Sequencing
 
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md` owns the explicit two-anchor study-only inventory that stays outside the freeze-in-C scorecard and blocked status-change rows
 - `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` are shared reminder surfaces that may summarize the parked packet, but they do not own freeze-map status decisions themselves
-"""
+""",
+    )
+    _write(
+        root / HANDOFF_REL,
+        """# Phase 15 Handoff Next Steps Survey
 
-
-def _sample_handoff() -> str:
-    return """# Phase 15 Handoff Next Steps Survey
+## Current governance posture to preserve
 
 - keep the two roadmap study-only anchors parked: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`
+
+## Next bounded future targets
+
+- if future work touches `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, keep it study-only unless a smaller-than-boundary seam is explicitly recorded in the governance packet
+""",
+    )
+    _write(
+        root / SHARED_GAP_REL,
+        """# Phase 15 Shared Summary Gap
+
+## Current shared-summary watchpoints
+
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
-"""
 
+## Recovery rule
 
-def _sample_shared_gap() -> str:
-    return """# Phase 15 Shared Summary Gap
+- if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, the Architecture Council decision index, the deep-core blocker survey, the Architecture Council packet checker, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
+""",
+    )
+    _write(
+        root / TESTS_README_REL,
+        """# zigux/tests
 
-- `Documentation/zigux/phase15-study-only-anchor-accounting.md`
-- the checklist-specific study-only anchor summary boundary
-"""
-
-
-def _sample_parity_scorecard() -> str:
-    return """# Phase 15 Parity Scorecard
-
-- study-only anchors tracked outside this scorecard: `2`
-- study-only anchors remain outside this scorecard until a lane asks for a status-bucket review
-"""
-
-
-def _seed_repo(root: Path) -> None:
-    _write(root / STUDY_ONLY_PATH, _sample_study_only())
-    _write(root / FREEZE_MAP_PATH, _sample_freeze_map())
-    _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
-    _write(root / LANE_SEQ_PATH, _sample_lane_seq())
-    _write(root / HANDOFF_PATH, _sample_handoff())
-    _write(root / SHARED_GAP_PATH, _sample_shared_gap())
-    _write(root / PARITY_SCORECARD_PATH, _sample_parity_scorecard())
+- Keep the current bounded Phase 9 reminder packet explicit through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, and `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`.
+- keep the freeze-map boundary explicit here too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than runtime-substrate readiness proof in the tests root
+""",
+    )
+    _write(
+        root / VALIDATOR_REL,
+        """#!/usr/bin/env python3
+EXPECTED_DIRECT_PACKET_PATHS = [
+    \"Documentation/zigux/phase15-study-only-anchor-accounting.md\",
+]
+EXPECTED_PHASE15_VALIDATE_CHECKERS = [
+    \"scripts/zigux/check-phase15-review-checklist-study-only-alignment.py\",
+]
+EXPECTED_REPO_EVIDENCE = {
+    \"phase15_review_checklist_study_only_alignment_checker_present\": True,
+}
+""",
+    )
 
 
 def run_self_test() -> int:
     case_count = 0
-    with tempfile.TemporaryDirectory(prefix="phase15_study_only_accounting_") as tmp_dir:
-        root = Path(tmp_dir)
+    with tempfile.TemporaryDirectory(
+        prefix="phase15_study_only_anchor_accounting_"
+    ) as tmpdir:
+        root = Path(tmpdir)
+        write_sample_root(root)
 
-        baseline = root / "baseline"
-        _seed_repo(baseline)
-        failures = collect_failures(baseline)
+        failures = collect_failures(root)
         if failures:
-            raise AssertionError(f"baseline fixture should pass: {failures}")
+            raise AssertionError(f"baseline sample should pass: {failures}")
         case_count += 1
 
-        missing_anchor = root / "missing_anchor"
-        _seed_repo(missing_anchor)
-        _write(
-            missing_anchor / STUDY_ONLY_PATH,
-            _sample_study_only().replace("### `kernel/trace/ring_buffer.c`\n", "", 1),
+        cases = (
+            (STUDY_ONLY_REL, STUDY_ONLY_MARKERS[5]),
+            (REVIEW_CHECKLIST_REL, REVIEW_CHECKLIST_MARKERS[0]),
+            (LANE_SEQ_REL, LANE_SEQ_MARKERS[0]),
+            (TESTS_README_REL, TESTS_README_MARKERS[1]),
+            (VALIDATOR_REL, VALIDATOR_MARKERS[2]),
         )
-        failures = collect_failures(missing_anchor)
-        expected = ["study_only:missing:`kernel/trace/ring_buffer.c`"]
-        if failures != expected:
-            raise AssertionError(f"unexpected missing-anchor failure: {failures}")
-        case_count += 1
+        for rel, marker in cases:
+            case_root = root / f"case_{case_count}"
+            write_sample_root(case_root)
+            text = _read(case_root / rel)
+            _write(case_root / rel, text.replace(marker, "", 1))
+            failures = collect_failures(case_root)
+            expected = [f"missing_marker:{rel}:{marker}"]
+            if failures != expected:
+                raise AssertionError(
+                    f"unexpected failures for {rel}: {failures} != {expected}"
+                )
+            case_count += 1
 
-        missing_freeze_route = root / "missing_freeze_route"
-        _seed_repo(missing_freeze_route)
-        _write(
-            missing_freeze_route / FREEZE_MAP_PATH,
-            _sample_freeze_map().replace(
-                "- must keep the same study-only anchor inventory and route back to `Documentation/zigux/phase15-study-only-anchor-accounting.md`\n",
-                "",
-                1,
-            ),
-        )
-        failures = collect_failures(missing_freeze_route)
-        expected = [
-            "freeze_map:missing:must keep the same study-only anchor inventory and route back to `Documentation/zigux/phase15-study-only-anchor-accounting.md`"
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected missing-freeze-route failure: {failures}")
-        case_count += 1
-
-        missing_review_prompt = root / "missing_review_prompt"
-        _seed_repo(missing_review_prompt)
-        _write(
-            missing_review_prompt / REVIEW_CHECKLIST_PATH,
-            "# Zigux Review Checklist\n\n",
-        )
-        failures = collect_failures(missing_review_prompt)
-        expected = [
-            "review_checklist:missing:if a shared reminder surface summarizes the study-only freeze-map anchors",
-            "review_checklist:missing:`Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`",
-            "review_checklist:missing:`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context rather than runtime-substrate or bridge-readiness evidence",
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected missing-review-prompt failure: {failures}")
-        case_count += 1
-
-        unexpected_bridge = root / "unexpected_bridge"
-        _seed_repo(unexpected_bridge)
-        _write(
-            unexpected_bridge / STUDY_ONLY_PATH,
-            _sample_study_only() + "- a direct Zigux bridge for `kernel/workqueue.c`\n",
-        )
-        failures = collect_failures(unexpected_bridge)
-        expected = ["study_only:unexpected:a direct Zigux bridge for `kernel/workqueue.c`"]
-        if failures != expected:
-            raise AssertionError(f"unexpected bridge failure: {failures}")
-        case_count += 1
-
-    print("PHASE15_STUDY_ONLY_ACCOUNTING_SELF_TEST=pass")
-    print(f"PHASE15_STUDY_ONLY_ACCOUNTING_SELF_TEST_CASES={case_count}")
+    print("PHASE15_STUDY_ONLY_ANCHOR_ACCOUNTING_SELF_TEST=pass")
+    print(f"PHASE15_STUDY_ONLY_ANCHOR_ACCOUNTING_SELF_TEST_CASES={case_count}")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Verify that the Phase 15 study-only anchor accounting note stays aligned with the freeze-boundary governance packet."
+        description="Verify the Phase 15 study-only anchor accounting packet."
     )
-    parser.add_argument("--root", type=Path, default=Path.cwd(), help="repository root")
-    parser.add_argument("--self-test", action="store_true", help="run synthetic fixture checks")
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=Path.cwd(),
+        help="repository root containing the Zigux governance docs",
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="run synthetic fixture coverage for the study-only accounting checker",
+    )
+    parser.add_argument(
+        "--write-sample-root",
+        type=Path,
+        help="write a sample current-like tree for focused replay validation",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
+
+    if args.write_sample_root is not None:
+        write_sample_root(args.write_sample_root)
+        print(f"PHASE15_STUDY_ONLY_ANCHOR_ACCOUNTING_SAMPLE_ROOT={args.write_sample_root}")
+        return 0
 
     failures = collect_failures(args.root)
     if failures:
@@ -316,7 +335,11 @@ def main() -> int:
             print(f"ERROR: {failure}")
         return 1
 
-    print("PHASE15_STUDY_ONLY_ACCOUNTING=pass")
+    print("PHASE15_STUDY_ONLY_ANCHOR_ACCOUNTING=pass")
+    print(
+        "PHASE15_STUDY_ONLY_ANCHOR_ACCOUNTING_ANCHOR_COUNT="
+        f"{len(EXPECTED_STUDY_ONLY_ANCHORS)}"
+    )
     return 0
 
 
