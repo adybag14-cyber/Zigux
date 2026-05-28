@@ -345,6 +345,114 @@ static int check_interop_policy_relays(void)
     return 0;
 }
 
+static int check_uapi_policy_and_rbtree_relays(void)
+{
+    struct zigux_interop_policy safe = zigux_default_interop_policy();
+    struct zigux_interop_policy mmio = {
+        .panic_mode = ZIGUX_PANIC_BUG,
+        .allocator_mode = ZIGUX_ALLOC_KERNEL_HEAP,
+        .unsafe_scope = ZIGUX_UNSAFE_VOLATILE_MMIO,
+        .reserved = 0u,
+    };
+    struct zigux_interop_policy reserved = {
+        .panic_mode = ZIGUX_PANIC_WARN,
+        .allocator_mode = ZIGUX_ALLOC_ARENA,
+        .unsafe_scope = ZIGUX_UNSAFE_RAW_POINTER_BRIDGE,
+        .reserved = 1u,
+    };
+    struct zigux_interop_policy unknown = {
+        .panic_mode = 9u,
+        .allocator_mode = 9u,
+        .unsafe_scope = 9u,
+        .reserved = 0u,
+    };
+    zigux_rbtree_root_view cached = {
+        .root = (uintptr_t)0x1000u,
+        .cached_leftmost = (uintptr_t)0x0800u,
+        .flags = (uint32_t)(ZIGUX_RBTREE_ROOT_VIEW_FLAG_CACHED |
+            ZIGUX_RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID),
+    };
+    zigux_rbtree_root_view malformed = {
+        .root = (uintptr_t)0x1000u,
+        .cached_leftmost = (uintptr_t)0,
+        .flags = (uint32_t)(ZIGUX_RBTREE_ROOT_VIEW_FLAG_CACHED |
+            ZIGUX_RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID),
+    };
+    zigux_rbtree_root_view canonicalized =
+        zigux_uapi_rbtree_root_view_canonicalize(malformed);
+    struct zigux_export_status safe_status = zigux_uapi_validate_interop_policy(safe);
+    struct zigux_export_status mmio_status = zigux_uapi_validate_interop_policy(mmio);
+    struct zigux_export_status reserved_status = zigux_uapi_validate_interop_policy(reserved);
+    struct zigux_export_status unknown_status = zigux_uapi_validate_interop_policy(unknown);
+    struct zigux_export_status cached_status = zigux_uapi_validate_rbtree_root_view(cached);
+    struct zigux_export_status malformed_status = zigux_uapi_validate_rbtree_root_view(malformed);
+
+    if (!zigux_uapi_interop_policy_is_recognized(safe))
+        return __LINE__;
+    if (!zigux_uapi_interop_policy_is_recognized(mmio))
+        return __LINE__;
+    if (zigux_uapi_interop_policy_is_recognized(reserved))
+        return __LINE__;
+    if (zigux_uapi_interop_policy_is_recognized(unknown))
+        return __LINE__;
+
+    if (!zigux_export_status_ok(safe_status))
+        return __LINE__;
+    if (!zigux_export_status_ok(mmio_status))
+        return __LINE__;
+    if (safe_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (mmio_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (safe_status.flags != 0u)
+        return __LINE__;
+    if (mmio_status.flags != 0u)
+        return __LINE__;
+    if (zigux_export_status_ok(reserved_status))
+        return __LINE__;
+    if (zigux_export_status_ok(unknown_status))
+        return __LINE__;
+    if (reserved_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)
+        return __LINE__;
+    if (unknown_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)
+        return __LINE__;
+    if (reserved_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (unknown_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (reserved_status.flags != (uint16_t)ZIGUX_STATUS_FLAG_ERROR)
+        return __LINE__;
+    if (unknown_status.flags != (uint16_t)ZIGUX_STATUS_FLAG_ERROR)
+        return __LINE__;
+
+    if (!zigux_uapi_rbtree_root_view_is_valid(cached))
+        return __LINE__;
+    if (zigux_uapi_rbtree_root_view_is_valid(malformed))
+        return __LINE__;
+    if (!zigux_export_status_ok(cached_status))
+        return __LINE__;
+    if (zigux_export_status_ok(malformed_status))
+        return __LINE__;
+    if (cached_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (malformed_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (cached_status.flags != 0u)
+        return __LINE__;
+    if (malformed_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)
+        return __LINE__;
+    if (malformed_status.flags != (uint16_t)ZIGUX_STATUS_FLAG_ERROR)
+        return __LINE__;
+    if (!zigux_uapi_rbtree_root_view_is_valid(canonicalized))
+        return __LINE__;
+    if (canonicalized.flags != 0u)
+        return __LINE__;
+    if (canonicalized.cached_leftmost != (uintptr_t)0)
+        return __LINE__;
+
+    return 0;
+}
+
 static int check_chrdev_notify_window_relays(void)
 {
     struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view view = {
@@ -481,6 +589,10 @@ int main(void)
         return rc;
 
     rc = check_interop_policy_relays();
+    if (rc != 0)
+        return rc;
+
+    rc = check_uapi_policy_and_rbtree_relays();
     if (rc != 0)
         return rc;
 
