@@ -165,3 +165,56 @@ test "phase10 virtio ring publish-readiness wrapper falls back to queue-full aft
     try std.testing.expect(!queueCanPublish(summary));
     try std.testing.expect(!queueHasPublishCapacity(summary));
 }
+
+test "phase10 virtio ring publish-readiness wrapper preserves capacity accounting across avail-index rollover" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(7, 8, .split, true, false);
+
+    for (0..8191) |_| {
+        for (0..8) |_| {
+            try ring.publishDescriptorChain(7);
+        }
+        _ = try ring.prepareKick(7);
+        try ring.recordUsedChains(7, 8);
+        _ = try ring.pollUsedBuffers(7);
+    }
+
+    for (0..7) |_| {
+        try ring.publishDescriptorChain(7);
+    }
+    _ = try ring.prepareKick(7);
+    try ring.recordUsedChains(7, 7);
+    _ = try ring.pollUsedBuffers(7);
+
+    var summary = try summarizePublishReadiness(&ring, 7);
+    try std.testing.expectEqual(@as(u16, std.math.maxInt(u16)), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 0), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 8), summary.available_descriptor_count);
+    try std.testing.expect(summary.blocker == null);
+    try std.testing.expect(queueCanPublish(summary));
+    try std.testing.expect(queueHasPublishCapacity(summary));
+
+    try ring.publishDescriptorChain(7);
+    summary = try summarizePublishReadiness(&ring, 7);
+    try std.testing.expectEqual(@as(u16, 0), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 1), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), summary.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 7), summary.available_descriptor_count);
+    try std.testing.expect(summary.blocker == null);
+    try std.testing.expect(queueCanPublish(summary));
+    try std.testing.expect(queueHasPublishCapacity(summary));
+
+    _ = try ring.prepareKick(7);
+    try ring.recordUsedChains(7, 1);
+    _ = try ring.pollUsedBuffers(7);
+
+    summary = try summarizePublishReadiness(&ring, 7);
+    try std.testing.expectEqual(@as(u16, 0), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 0), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 8), summary.available_descriptor_count);
+    try std.testing.expect(summary.blocker == null);
+    try std.testing.expect(queueCanPublish(summary));
+    try std.testing.expect(queueHasPublishCapacity(summary));
+}
