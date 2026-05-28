@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 HERE = Path(__file__).resolve()
-ROOT = HERE.parents[3] if len(HERE.parents) > 3 else Path.cwd()
+ROOT = HERE.parents[2] if len(HERE.parents) > 2 else Path.cwd()
 
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE = Path("zigux/Makefile")
