@@ -10,6 +10,18 @@ from pathlib import Path
 
 PHASE3_CATALOG_PHASE = "Phase 3"
 PHASE3_CATALOG_SCOPE = "abi-runtime"
+PHASE3_CATALOG_SLUG = "phase3-abi-packet"
+PHASE3_CATALOG_STATUS = "shared_abi_and_header_family_binding_surface_present"
+PHASE3_CATALOG_MANIFEST_SCOPE = (
+    "shared ABI bindings, directly coupled helper decoding, header-family "
+    "follow-through, notifier layouts, export-status layout, and "
+    "header-compatibility replay"
+)
+PHASE3_CATALOG_NEXT_SAFE_STEP = (
+    "keep the shared Phase 3 policy, export/UAPI, and low-level wrapper packet "
+    "aligned with the dedicated replay routes and only reopen this manifest if the "
+    "checker, focused builds, or reminder surfaces drift again"
+)
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 
 EXPECTED_PACKET_FILES = (
@@ -190,10 +202,6 @@ EXPECTED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py",
     "python3 scripts/zigux/check-phase3-xarray-slot.py --self-test",
     "python3 scripts/zigux/check-phase3-xarray-slot.py",
-    "python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --self-test",
-    "python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --repo-root .",
-    "python3 scripts/zigux/check-phase3-idr-slot.py --self-test",
-    "python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc",
     "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py --self-test",
     "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
     "python3 scripts/zigux/check-phase3-bitmap-cpumask.py --self-test",
@@ -344,6 +352,26 @@ def validate_repo(repo_root: Path) -> list[str]:
             "phase3_abi_manifest.json wrong lane: "
             f"{manifest.get('lane')!r} != {PHASE3_CATALOG_SCOPE!r}"
         )
+    if manifest.get("slug") != PHASE3_CATALOG_SLUG:
+        issues.append(
+            "phase3_abi_manifest.json wrong slug: "
+            f"{manifest.get('slug')!r} != {PHASE3_CATALOG_SLUG!r}"
+        )
+    if manifest.get("status") != PHASE3_CATALOG_STATUS:
+        issues.append(
+            "phase3_abi_manifest.json wrong status: "
+            f"{manifest.get('status')!r} != {PHASE3_CATALOG_STATUS!r}"
+        )
+    if manifest.get("scope") != PHASE3_CATALOG_MANIFEST_SCOPE:
+        issues.append(
+            "phase3_abi_manifest.json wrong scope: "
+            f"{manifest.get('scope')!r} != {PHASE3_CATALOG_MANIFEST_SCOPE!r}"
+        )
+    if manifest.get("next_safe_step") != PHASE3_CATALOG_NEXT_SAFE_STEP:
+        issues.append(
+            "phase3_abi_manifest.json wrong next_safe_step: "
+            f"{manifest.get('next_safe_step')!r} != {PHASE3_CATALOG_NEXT_SAFE_STEP!r}"
+        )
 
     try:
         packet_files = _packet_paths(manifest)
@@ -428,13 +456,13 @@ def _manifest_payload() -> dict[str, object]:
     return {
         "phase": PHASE3_CATALOG_PHASE,
         "lane": PHASE3_CATALOG_SCOPE,
-        "slug": "phase3-abi-packet",
-        "status": "shared_abi_and_header_family_binding_surface_present",
-        "scope": "shared ABI bindings, directly coupled helper decoding, xarray-backed idr slot starter coverage, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
+        "slug": PHASE3_CATALOG_SLUG,
+        "status": PHASE3_CATALOG_STATUS,
+        "scope": PHASE3_CATALOG_MANIFEST_SCOPE,
         "packet_files": list(EXPECTED_PACKET_FILES),
         "replay_routes": list(EXPECTED_REPLAY_ROUTES),
         "repo_reality_gaps": [],
-        "next_safe_step": "keep the shared Phase 3 policy, export/UAPI, low-level wrapper, and idr slot packet aligned with the dedicated replay routes and only reopen this manifest if the checker, focused builds, or reminder surfaces drift again",
+        "next_safe_step": PHASE3_CATALOG_NEXT_SAFE_STEP,
     }
 
 
@@ -559,8 +587,27 @@ def run_self_test() -> int:
             print("expected untracked replay-route drift was not reported")
             return 1
 
+        _write(root / MANIFEST_PATH, json.dumps({**_manifest_payload(), "scope": "stale scope"}, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected_scope_issue = "phase3_abi_manifest.json wrong scope: 'stale scope' != "
+        if not any(issue.startswith(expected_scope_issue) for issue in issues):
+            print("PHASE3_CATALOG_SELF_TEST=fail")
+            print("expected stale scope drift was not reported")
+            return 1
+
+        _write(
+            root / MANIFEST_PATH,
+            json.dumps({**_manifest_payload(), "next_safe_step": "stale next step"}, indent=2) + "\n",
+        )
+        issues = validate_repo(root)
+        expected_next_step_issue = "phase3_abi_manifest.json wrong next_safe_step: 'stale next step' != "
+        if not any(issue.startswith(expected_next_step_issue) for issue in issues):
+            print("PHASE3_CATALOG_SELF_TEST=fail")
+            print("expected stale next-safe-step drift was not reported")
+            return 1
+
     print("PHASE3_CATALOG_SELF_TEST=pass")
-    print("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=9")
+    print("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
