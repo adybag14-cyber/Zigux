@@ -488,7 +488,12 @@ jobs:
     try:
         check_workflow(missing_stage_helper_call)
     except SystemExit as exc:
-        assert "stage helper" in str(exc) or STAGE_HELPER_CMD in str(exc)
+        assert (
+            "workflow local-first marker" in str(exc)
+            or STAGE_HELPER_CMD in str(exc)
+            or STAGE_HELPER_ROOT_ARG in str(exc)
+            or STAGE_HELPER_PARTS_ARG in str(exc)
+        )
         case_count += 1
     else:
         raise AssertionError("expected missing stage helper call failure")
