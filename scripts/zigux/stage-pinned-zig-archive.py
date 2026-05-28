@@ -501,7 +501,7 @@ def run_self_test() -> int:
         write_policy(root, expected_sha)
         metadata = load_policy(root)
         source_with_duplicate_name = source.with_name(
-            duplicate_source_fixture_name(str(metadata["filename"])
+            duplicate_source_fixture_name(str(metadata["filename"]))
         )
         source.rename(source_with_duplicate_name)
 
