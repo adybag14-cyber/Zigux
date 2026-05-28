@@ -2,6 +2,7 @@ const std = @import("std");
 
 const RepoEvidence = struct {
     phase15_readiness_packet_checker_present: bool,
+    phase15_architecture_council_packet_checker_present: bool,
     phase15_validator_script_present: bool,
     phase15_docs_readme_checker_present: bool,
     phase15_scripts_readme_checker_present: bool,
@@ -13,6 +14,7 @@ const RepoEvidence = struct {
     phase15_handoff_manifest_present: bool,
     phase15_review_process_build_replay_present: bool,
     phase15_build_zig_present: bool,
+    phase15_gap_matrix_present: bool,
     phase15_indefinite_c_lane_owner_alignment_present: bool,
     phase15_makefile_present: bool,
     phase15_validate_target_present: bool,
@@ -70,7 +72,7 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
         manifest.readiness_packet_checker,
     );
     try std.testing.expectEqual(@as(usize, 41), manifest.direct_packet_paths.len);
-    try std.testing.expectEqual(@as(usize, 6), manifest.phase15_validate_checkers.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.phase15_validate_checkers.len);
     try std.testing.expectEqual(@as(usize, 0), manifest.still_missing_broader_paths.len);
 
     try expectSliceContains(manifest.direct_packet_paths, "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py");
@@ -85,9 +87,12 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_readiness_gap_matrix.json");
 
     try expectSliceContains(manifest.phase15_validate_checkers, "scripts/zigux/check-phase15-docs-readme-alignment.py");
+    try expectSliceContains(manifest.phase15_validate_checkers, "scripts/zigux/check-phase15-architecture-council-packet.py");
+    try expectSliceContains(manifest.phase15_validate_checkers, "scripts/zigux/check-phase15-handoff-note-alignment.py");
     try expectSliceContains(manifest.phase15_validate_checkers, "scripts/zigux/check-phase15-shared-summary-gap.py");
 
     try std.testing.expect(manifest.repo_evidence.phase15_readiness_packet_checker_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_architecture_council_packet_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_validator_script_present);
     try std.testing.expect(manifest.repo_evidence.phase15_docs_readme_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_scripts_readme_checker_present);
@@ -99,6 +104,7 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
     try std.testing.expect(manifest.repo_evidence.phase15_handoff_manifest_present);
     try std.testing.expect(manifest.repo_evidence.phase15_review_process_build_replay_present);
     try std.testing.expect(manifest.repo_evidence.phase15_build_zig_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_gap_matrix_present);
     try std.testing.expect(manifest.repo_evidence.phase15_indefinite_c_lane_owner_alignment_present);
     try std.testing.expect(manifest.repo_evidence.phase15_makefile_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_validate_target_present);
