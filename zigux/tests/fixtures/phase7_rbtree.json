@@ -42,6 +42,16 @@
       "key": "reverse_alias_detached",
       "reverse_order": [4, 3, 2, 1],
       "detached_prev_is_null": true
+    },
+    {
+      "key": "cached_churn_invariants",
+      "leftmost_checkpoints": [1, 5, 5, 5, 7, 0],
+      "promoted_leftmost_after_erase": 5,
+      "replacement_leftmost": 5,
+      "leftmost_after_detach": 7,
+      "leftmost_after_new_minimum": 0,
+      "root_stays_black": true,
+      "invariants_hold_after_each_step": true
     }
   ]
 }
