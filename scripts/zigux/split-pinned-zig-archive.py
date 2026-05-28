@@ -12,7 +12,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")
-DEFAULT_CHUNK_BYTES = 786_432
+DEFAULT_CHUNK_BYTES = 786_429
+MAX_SHARD_TEXT_BYTES = 1_048_576
 EXPECTED_ARCHIVE_SIZES = {
     "x86_64-linux": 58_159_088,
 }
@@ -197,6 +198,10 @@ def split_archive(
 ) -> tuple[int, Path]:
     if chunk_bytes <= 0:
         raise ValueError("chunk_bytes must be positive")
+    if (4 * math.ceil(chunk_bytes / 3)) + 1 > MAX_SHARD_TEXT_BYTES:
+        raise ValueError(
+            f"chunk_bytes {chunk_bytes} would emit base64 shard text larger than {MAX_SHARD_TEXT_BYTES} bytes"
+        )
 
     validate_archive(source, expected_size=expected_size, expected_sha=expected_sha)
     ensure_clean_output_dir(output_dir)
@@ -293,6 +298,7 @@ def run_self_test() -> int:
         EXPECTED_ARCHIVE_SIZES["x86_64-linux"] = size
 
     payload = (b"lane05-archive-payload-" * 64)[:4097]
+    assert ((4 * math.ceil(DEFAULT_CHUNK_BYTES / 3)) + 1) <= MAX_SHARD_TEXT_BYTES
     with tempfile.TemporaryDirectory(prefix="split_archive_pass_") as tmp_dir:
         root, source = write_fixture(Path(tmp_dir), payload)
         expected_sha = hashlib.sha256(payload).hexdigest()
@@ -314,7 +320,7 @@ def run_self_test() -> int:
         assert rebuilt["sha256"] == expected_sha
         case_count += 1
 
-    def expect_split_failure(mutator, expected_substring: str) -> None:
+    def expect_split_failure(mutator, expected_substring: str, chunk_bytes: int = 1024) -> None:
         nonlocal case_count
         with tempfile.TemporaryDirectory(prefix="split_archive_fail_") as tmp_dir:
             root, source = write_fixture(Path(tmp_dir), payload)
@@ -330,7 +336,7 @@ def run_self_test() -> int:
                     expected_size=int(metadata["size"]),
                     expected_sha=str(metadata["sha256"]),
                     filename=str(metadata["filename"]),
-                    chunk_bytes=1024,
+                    chunk_bytes=chunk_bytes,
                 )
             except ValueError as exc:
                 assert expected_substring in str(exc), str(exc)
@@ -366,6 +372,26 @@ def run_self_test() -> int:
             case_count += 1
         else:
             raise AssertionError("expected non-positive chunk_bytes failure")
+
+    with tempfile.TemporaryDirectory(prefix="split_archive_oversize_chunk_bytes_") as tmp_dir:
+        root, source = write_fixture(Path(tmp_dir), payload)
+        expected_sha = hashlib.sha256(payload).hexdigest()
+        write_policy(root, expected_sha, len(payload))
+        metadata = load_policy(root)
+        try:
+            split_archive(
+                source,
+                root / "out",
+                expected_size=int(metadata["size"]),
+                expected_sha=str(metadata["sha256"]),
+                filename=str(metadata["filename"]),
+                chunk_bytes=786_432,
+            )
+        except ValueError as exc:
+            assert "chunk_bytes 786432 would emit base64 shard text larger than 1048576 bytes" in str(exc), str(exc)
+            case_count += 1
+        else:
+            raise AssertionError("expected oversized shard text failure")
 
     with tempfile.TemporaryDirectory(prefix="split_archive_manifest_") as tmp_dir:
         root, source = write_fixture(Path(tmp_dir), payload)
