@@ -14,8 +14,12 @@ REQUIRED_MARKERS = {
         "stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
         "`zigux/Makefile` is present on current `master`, but it still does not expose `make -C zigux phase13-validate` or `make -C zigux phase13`, so keep the file itself distinct from those missing Phase 13 route names and keep only the route names recorded as repo-reality gaps until the shared build handle returns.",
         "Keep `zigux/tests/phase13_landlock_syscalls_manifest.json` and `zigux/tests/phase13_build.zig` recorded as repo-reality gaps until they rematerialize on current `master`, while the direct replay and reviewability companions stay explicit as shipped current-`master` evidence.",
-        "Contributor quick-start loop: open the workflow-guide, scripts-root, and tests-root trio first, keep the change to one shared reminder surface plus the smallest helper-local note, rerun the shared-summary, tests-root, and release-validator trio, and leave missing routes or helpers in the repo-reality-gap bucket.",
-        "Shared contributor edit loop: reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together first, update at most one shared reminder surface plus the smallest helper-local packet note in the same change, rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`, `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`, and `python3 scripts/zigux/validate-phase13-release.py`, and keep any absent route, replay, or helper recorded as a repo-reality gap instead of promoted shipped evidence.",
+        "Keep `Documentation/zigux/phase13-release-packet-index.md` and `Documentation/zigux/phase12-phase13-release-handoff.md` aligned as PMO coordination companions when shared contributor wording also changes release-facing or cross-phase wording rather than treating either note as a replacement for the stable contributor-facing handle.",
+        "Release-facing companion rule: reread `Documentation/zigux/phase13-release-packet-index.md` and `Documentation/zigux/phase12-phase13-release-handoff.md` beside the workflow-guide, scripts-root, and tests-root trio when release-facing or cross-phase wording moves, and keep those two notes as PMO coordination companions rather than as the contributor-facing handle.",
+        "Contributor quick-start loop: open the workflow-guide, scripts-root, and tests-root trio first, reread the packet index plus the Phase 12 to Phase 13 handoff note when release-facing wording moves, keep the change to one shared reminder surface plus the smallest helper-local note, rerun the shared-summary, tests-root, and release-validator trio, and leave missing routes or helpers in the repo-reality-gap bucket.",
+        "Shared contributor edit loop: reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together first, reread `Documentation/zigux/phase13-release-packet-index.md` and `Documentation/zigux/phase12-phase13-release-handoff.md` when release-facing or cross-phase wording moves, update at most one shared reminder surface plus the smallest helper-local packet note in the same change, rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`, `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`, and `python3 scripts/zigux/validate-phase13-release.py`, and keep any absent route, replay, or helper recorded as a repo-reality gap instead of promoted shipped evidence.",
+        "`Documentation/zigux/phase13-release-packet-index.md`",
+        "`Documentation/zigux/phase12-phase13-release-handoff.md`",
         "`scripts/zigux/check-phase13-devres-scatterlist-planner.py`",
     ],
     "Documentation/zigux/phase13-release-coordination-matrix.md": [
@@ -184,7 +188,7 @@ def run_self_test() -> int:
         contributor_guide_path = tempdir / "Documentation/zigux/phase13-contributor-workflow-guide.md"
         contributor_guide_path.write_text(
             contributor_guide_path.read_text(encoding="utf-8").replace(
-                "Contributor quick-start loop: open the workflow-guide, scripts-root, and tests-root trio first, keep the change to one shared reminder surface plus the smallest helper-local note, rerun the shared-summary, tests-root, and release-validator trio, and leave missing routes or helpers in the repo-reality-gap bucket.\n",
+                "Keep `Documentation/zigux/phase13-release-packet-index.md` and `Documentation/zigux/phase12-phase13-release-handoff.md` aligned as PMO coordination companions when shared contributor wording also changes release-facing or cross-phase wording rather than treating either note as a replacement for the stable contributor-facing handle.\n",
                 "",
                 1,
             ),
@@ -192,7 +196,7 @@ def run_self_test() -> int:
         )
         expect_issue(
             collect_issues(tempdir),
-            "missing_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:Contributor quick-start loop: open the workflow-guide, scripts-root, and tests-root trio first, keep the change to one shared reminder surface plus the smallest helper-local note, rerun the shared-summary, tests-root, and release-validator trio, and leave missing routes or helpers in the repo-reality-gap bucket.",
+            "missing_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:Keep `Documentation/zigux/phase13-release-packet-index.md` and `Documentation/zigux/phase12-phase13-release-handoff.md` aligned as PMO coordination companions when shared contributor wording also changes release-facing or cross-phase wording rather than treating either note as a replacement for the stable contributor-facing handle.",
         )
         checks_run += 1
 
@@ -200,7 +204,7 @@ def run_self_test() -> int:
         contributor_guide_path = tempdir / "Documentation/zigux/phase13-contributor-workflow-guide.md"
         contributor_guide_path.write_text(
             contributor_guide_path.read_text(encoding="utf-8").replace(
-                "Shared contributor edit loop: reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together first, update at most one shared reminder surface plus the smallest helper-local packet note in the same change, rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`, `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`, and `python3 scripts/zigux/validate-phase13-release.py`, and keep any absent route, replay, or helper recorded as a repo-reality gap instead of promoted shipped evidence.\n",
+                "Release-facing companion rule: reread `Documentation/zigux/phase13-release-packet-index.md` and `Documentation/zigux/phase12-phase13-release-handoff.md` beside the workflow-guide, scripts-root, and tests-root trio when release-facing or cross-phase wording moves, and keep those two notes as PMO coordination companions rather than as the contributor-facing handle.\n",
                 "",
                 1,
             ),
@@ -208,7 +212,39 @@ def run_self_test() -> int:
         )
         expect_issue(
             collect_issues(tempdir),
-            "missing_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:Shared contributor edit loop: reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together first, update at most one shared reminder surface plus the smallest helper-local packet note in the same change, rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`, `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`, and `python3 scripts/zigux/validate-phase13-release.py`, and keep any absent route, replay, or helper recorded as a repo-reality gap instead of promoted shipped evidence.",
+            "missing_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:Release-facing companion rule: reread `Documentation/zigux/phase13-release-packet-index.md` and `Documentation/zigux/phase12-phase13-release-handoff.md` beside the workflow-guide, scripts-root, and tests-root trio when release-facing or cross-phase wording moves, and keep those two notes as PMO coordination companions rather than as the contributor-facing handle.",
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        contributor_guide_path = tempdir / "Documentation/zigux/phase13-contributor-workflow-guide.md"
+        contributor_guide_path.write_text(
+            contributor_guide_path.read_text(encoding="utf-8").replace(
+                "Contributor quick-start loop: open the workflow-guide, scripts-root, and tests-root trio first, reread the packet index plus the Phase 12 to Phase 13 handoff note when release-facing wording moves, keep the change to one shared reminder surface plus the smallest helper-local note, rerun the shared-summary, tests-root, and release-validator trio, and leave missing routes or helpers in the repo-reality-gap bucket.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:Contributor quick-start loop: open the workflow-guide, scripts-root, and tests-root trio first, reread the packet index plus the Phase 12 to Phase 13 handoff note when release-facing wording moves, keep the change to one shared reminder surface plus the smallest helper-local note, rerun the shared-summary, tests-root, and release-validator trio, and leave missing routes or helpers in the repo-reality-gap bucket.",
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        contributor_guide_path = tempdir / "Documentation/zigux/phase13-contributor-workflow-guide.md"
+        contributor_guide_path.write_text(
+            contributor_guide_path.read_text(encoding="utf-8").replace(
+                "Shared contributor edit loop: reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together first, reread `Documentation/zigux/phase13-release-packet-index.md` and `Documentation/zigux/phase12-phase13-release-handoff.md` when release-facing or cross-phase wording moves, update at most one shared reminder surface plus the smallest helper-local packet note in the same change, rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`, `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`, and `python3 scripts/zigux/validate-phase13-release.py`, and keep any absent route, replay, or helper recorded as a repo-reality gap instead of promoted shipped evidence.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:Shared contributor edit loop: reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together first, reread `Documentation/zigux/phase13-release-packet-index.md` and `Documentation/zigux/phase12-phase13-release-handoff.md` when release-facing or cross-phase wording moves, update at most one shared reminder surface plus the smallest helper-local packet note in the same change, rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`, `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`, and `python3 scripts/zigux/validate-phase13-release.py`, and keep any absent route, replay, or helper recorded as a repo-reality gap instead of promoted shipped evidence.",
         )
         checks_run += 1
 
