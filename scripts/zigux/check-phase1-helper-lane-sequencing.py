@@ -9,6 +9,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve()
 ROOT = HERE.parent
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
 
 EXPECTED_DIRECT_HELPERS = (
     "tools/lib/bitmap.zig",
@@ -17,9 +18,55 @@ EXPECTED_DIRECT_HELPERS = (
     "tools/lib/string.zig",
 )
 
+LIST_SORT_HELPER = "tools/lib/list_sort.zig"
+
+EXPECTED_LIST_SORT_HELPER_TEST_ANCHORS = [
+    'test "list sort keeps stable ordering for tri-state comparator"',
+    'test "list sort accepts boolean-style comparator"',
+    'test "list sort honors comparator context"',
+    'test "list sort can reorder the same circular list twice"',
+    'test "list sort keeps reverse links aligned after reordering"',
+    'test "list sort preserves sorted unique input"',
+    'test "list sort preserves stable bucket order across parity groups"',
+    'test "list sort preserves stable modulo bucket order across a longer merge path"',
+    'test "list sort preserves input order when every comparison ties"',
+    'test "list sort handles empty and singleton lists"',
+]
+
+EXPECTED_LIST_SORT_REVIEW_PACKET_SUMMARY = (
+    "keep list_sort parked in the shared-replay helper family for fixture ownership, "
+    "but reread the helper-local proof packet before reopening the lane: current "
+    "master already names direct witnesses for comparator-context ordering, repeat-sort "
+    "circular integrity, reverse-link alignment, sorted-input idempotence, parity-bucket "
+    "stability, longer modulo-bucket stability, all-ties stability, and empty-or-singleton "
+    "handling beside the committed parity keys"
+)
+
+EXPECTED_LIST_SORT_NEXT_SAFE_STEP_NOTE = (
+    "If this helper lane reopens, keep list_sort parked unless a fresh reread finds drift "
+    "in the committed `tri_sorted_*` or `bool_sorted_*` fixture keys, or in the current "
+    "helper-local anchors for comparator-context ordering, repeat-sort circular integrity, "
+    "reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer "
+    "modulo-bucket stability, all-ties stability, or empty-or-singleton handling; do not "
+    "widen into the missing shared replay stack by default."
+)
+
+EXPECTED_LIST_SORT_LANE_NOTE_LINE = (
+    "- `PHASE1_LIST_SORT_NEXT_SAFE_STEP=list_sort reopens only for shared replay or "
+    "reminder-surface drift in the committed tri_sorted_* or bool_sorted_* fixture keys, "
+    "or for drift in the helper-local comparator-context, repeat-sort, reverse-link, "
+    "sorted-input, parity-bucket, modulo-bucket, all-ties, non-unit comparator, signed "
+    "subtractive comparator, repeated reorder, or empty-or-singleton anchors; do not "
+    "widen into neighboring shared-replay parked helpers by default.`"
+)
+
 
 def read_json(path: Path) -> object:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
 
 
 def ensure(condition: bool, issue: str, issues: list[str]) -> None:
@@ -49,10 +96,16 @@ def require_list_of_strings(
     return strings
 
 
+def require_exact_occurrence(text: str, needle: str, issue: str, issues: list[str]) -> None:
+    ensure(text.count(needle) == 1, issue, issues)
+
+
 def collect_issues(root: Path) -> list[str]:
     issues: list[str] = []
     manifest_path = root / MANIFEST_REL
+    lane_note_path = root / LANE_NOTE_REL
     ensure(manifest_path.exists(), f"missing:{MANIFEST_REL.as_posix()}", issues)
+    ensure(lane_note_path.exists(), f"missing:{LANE_NOTE_REL.as_posix()}", issues)
     if issues:
         return issues
 
@@ -60,6 +113,14 @@ def collect_issues(root: Path) -> list[str]:
     ensure(isinstance(manifest, dict), "manifest:not_object", issues)
     if not isinstance(manifest, dict):
         return issues
+
+    lane_note_text = read_text(lane_note_path)
+    require_exact_occurrence(
+        lane_note_text,
+        EXPECTED_LIST_SORT_LANE_NOTE_LINE,
+        "lane_note:list_sort_next_safe_step",
+        issues,
+    )
 
     ensure(manifest.get("phase") == "Phase 1", "manifest:phase", issues)
     helpers = require_list_of_strings(manifest, "helpers", "manifest", issues)
@@ -93,6 +154,7 @@ def collect_issues(root: Path) -> list[str]:
     ensure(parked_set.isdisjoint(direct_set), "manifest:lane_sequencing:helper_overlap", issues)
     ensure(parked_set | direct_set == helper_set, "manifest:lane_sequencing:helper_partition", issues)
     ensure(tuple(direct) == EXPECTED_DIRECT_HELPERS, "manifest:lane_sequencing:direct_helper_order", issues)
+    ensure(LIST_SORT_HELPER in parked_set, "manifest:lane_sequencing:list_sort_not_parked", issues)
 
     review_anchors = manifest.get("review_anchors")
     ensure(isinstance(review_anchors, dict), "manifest:review_anchors:not_object", issues)
@@ -127,18 +189,35 @@ def collect_issues(root: Path) -> list[str]:
                 issues,
             )
 
+        if helper == LIST_SORT_HELPER:
+            ensure(
+                helper_test_anchors == EXPECTED_LIST_SORT_HELPER_TEST_ANCHORS,
+                f"{issue_prefix}:helper_test_anchors:stale_exact_packet",
+                issues,
+            )
+            ensure(
+                review_packet_summary == EXPECTED_LIST_SORT_REVIEW_PACKET_SUMMARY,
+                f"{issue_prefix}:review_packet_summary:stale_exact_packet",
+                issues,
+            )
+            ensure(
+                next_safe_step_note == EXPECTED_LIST_SORT_NEXT_SAFE_STEP_NOTE,
+                f"{issue_prefix}:next_safe_step_note:stale_exact_packet",
+                issues,
+            )
+
     return issues
 
 
 def build_sample_manifest() -> dict[str, object]:
     helpers = [
-        "tools/lib/argv_split.zig",
+        LIST_SORT_HELPER,
         "tools/lib/bitmap.zig",
         "tools/lib/find_bit.zig",
         "tools/lib/rbtree.zig",
         "tools/lib/string.zig",
     ]
-    parked = ["tools/lib/argv_split.zig"]
+    parked = [LIST_SORT_HELPER]
     direct = [
         "tools/lib/bitmap.zig",
         "tools/lib/find_bit.zig",
@@ -146,20 +225,19 @@ def build_sample_manifest() -> dict[str, object]:
         "tools/lib/string.zig",
     ]
 
-    review_anchors: dict[str, object] = {}
-    for helper in helpers:
-        if helper in direct:
-            review_anchors[helper] = {
-                "helper_test_anchors": ["test direct helper anchor"],
-                "review_packet_summary": "direct helper-local packet stays visible in review",
-                "next_safe_step_note": "If this direct helper lane reopens, keep the helper-local packet bounded.",
-            }
-        else:
-            review_anchors[helper] = {
-                "helper_test_anchors": ["test parked helper anchor"],
-                "review_packet_summary": "the shared Phase 1 replay still owns this parked helper packet",
-                "next_safe_step_note": "If this parked helper lane reopens, keep it parked unless shared replay drifts.",
-            }
+    review_anchors: dict[str, object] = {
+        LIST_SORT_HELPER: {
+            "helper_test_anchors": EXPECTED_LIST_SORT_HELPER_TEST_ANCHORS,
+            "review_packet_summary": EXPECTED_LIST_SORT_REVIEW_PACKET_SUMMARY,
+            "next_safe_step_note": EXPECTED_LIST_SORT_NEXT_SAFE_STEP_NOTE,
+        }
+    }
+    for helper in direct:
+        review_anchors[helper] = {
+            "helper_test_anchors": ["test direct helper anchor"],
+            "review_packet_summary": "direct helper-local packet stays visible in review",
+            "next_safe_step_note": "If this direct helper lane reopens, keep the direct helper-local packet bounded.",
+        }
 
     return {
         "phase": "Phase 1",
@@ -176,9 +254,18 @@ def build_sample_manifest() -> dict[str, object]:
 
 
 def write_sample_root(root: Path, manifest: dict[str, object]) -> None:
-    path = root / MANIFEST_REL
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    manifest_path = root / MANIFEST_REL
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+    lane_note_path = root / LANE_NOTE_REL
+    lane_note_path.parent.mkdir(parents=True, exist_ok=True)
+    lane_note_path.write_text(
+        "# Phase 1 Host-Helper Lane Sequencing\n\n"
+        + EXPECTED_LIST_SORT_LANE_NOTE_LINE
+        + "\n",
+        encoding="utf-8",
+    )
 
 
 def run_self_test() -> int:
@@ -192,15 +279,16 @@ def run_self_test() -> int:
         assert "manifest:lane_sequencing:direct_helper_order" not in issues
         assert "manifest:lane_sequencing:helper_overlap" not in issues
         assert "manifest:review_anchors:key_partition" not in issues
+        assert "manifest:review_anchors:tools/lib/list_sort.zig:helper_test_anchors:stale_exact_packet" not in issues
+        assert "manifest:review_anchors:tools/lib/list_sort.zig:review_packet_summary:stale_exact_packet" not in issues
+        assert "manifest:review_anchors:tools/lib/list_sort.zig:next_safe_step_note:stale_exact_packet" not in issues
+        assert "lane_note:list_sort_next_safe_step" not in issues
         case_count += 1
 
         overlap = build_sample_manifest()
         overlap_lane = overlap["lane_sequencing"]
         assert isinstance(overlap_lane, dict)
-        overlap_lane["shared_replay_parked_helpers"] = [
-            "tools/lib/argv_split.zig",
-            "tools/lib/bitmap.zig",
-        ]
+        overlap_lane["shared_replay_parked_helpers"] = [LIST_SORT_HELPER, "tools/lib/bitmap.zig"]
         write_sample_root(root, overlap)
         issues = collect_issues(root)
         assert "manifest:lane_sequencing:helper_overlap" in issues
@@ -215,15 +303,45 @@ def run_self_test() -> int:
         assert "manifest:review_anchors:key_partition" in issues
         case_count += 1
 
-        missing_direct_scope = build_sample_manifest()
-        missing_direct_review = missing_direct_scope["review_anchors"]
-        assert isinstance(missing_direct_review, dict)
-        bitmap_anchor = missing_direct_review["tools/lib/bitmap.zig"]
-        assert isinstance(bitmap_anchor, dict)
-        bitmap_anchor["review_packet_summary"] = "direct packet stays visible in review"
-        write_sample_root(root, missing_direct_scope)
+        stale_list_sort_review = build_sample_manifest()
+        stale_list_sort_review_anchors = stale_list_sort_review["review_anchors"]
+        assert isinstance(stale_list_sort_review_anchors, dict)
+        list_sort_anchor = stale_list_sort_review_anchors[LIST_SORT_HELPER]
+        assert isinstance(list_sort_anchor, dict)
+        list_sort_anchor["review_packet_summary"] = "drifted parked summary"
+        write_sample_root(root, stale_list_sort_review)
         issues = collect_issues(root)
-        assert "manifest:review_anchors:tools/lib/bitmap.zig:direct_missing_helper_local_summary" in issues
+        assert f"manifest:review_anchors:{LIST_SORT_HELPER}:review_packet_summary:stale_exact_packet" in issues
+        case_count += 1
+
+        stale_list_sort_next_step = build_sample_manifest()
+        stale_list_sort_next_step_anchors = stale_list_sort_next_step["review_anchors"]
+        assert isinstance(stale_list_sort_next_step_anchors, dict)
+        list_sort_next_step_anchor = stale_list_sort_next_step_anchors[LIST_SORT_HELPER]
+        assert isinstance(list_sort_next_step_anchor, dict)
+        list_sort_next_step_anchor["next_safe_step_note"] = "drifted parked next step"
+        write_sample_root(root, stale_list_sort_next_step)
+        issues = collect_issues(root)
+        assert f"manifest:review_anchors:{LIST_SORT_HELPER}:next_safe_step_note:stale_exact_packet" in issues
+        case_count += 1
+
+        stale_list_sort_anchor_list = build_sample_manifest()
+        stale_list_sort_anchor_list_anchors = stale_list_sort_anchor_list["review_anchors"]
+        assert isinstance(stale_list_sort_anchor_list_anchors, dict)
+        list_sort_anchor_list = stale_list_sort_anchor_list_anchors[LIST_SORT_HELPER]
+        assert isinstance(list_sort_anchor_list, dict)
+        list_sort_anchor_list["helper_test_anchors"] = EXPECTED_LIST_SORT_HELPER_TEST_ANCHORS[:-1]
+        write_sample_root(root, stale_list_sort_anchor_list)
+        issues = collect_issues(root)
+        assert f"manifest:review_anchors:{LIST_SORT_HELPER}:helper_test_anchors:stale_exact_packet" in issues
+        case_count += 1
+
+        stale_lane_note = build_sample_manifest()
+        write_sample_root(root, stale_lane_note)
+        lane_note_path = root / LANE_NOTE_REL
+        lane_note_path.write_text("# Phase 1 Host-Helper Lane Sequencing\n\n- drifted list_sort note\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert "lane_note:list_sort_next_safe_step" in issues
         case_count += 1
 
     print("PHASE1_HELPER_LANE_SEQUENCING_SELF_TEST=pass")
