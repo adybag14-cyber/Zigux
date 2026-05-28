@@ -53,6 +53,8 @@ REQUIRED_MARKERS = {
         "PHASE3_C_HEADER_SMOKE_PATH=zigux/tests/phase3_export_uapi_c_header_smoke.c",
         "PHASE3_C_HEADER_SMOKE_WORKFLOW_ROUTE=.github/workflows/zigux-bootstrap.yml",
         "PHASE3_C_HEADER_SMOKE_WORKFLOW_GATE=.github/workflows/zigux-bootstrap.yml -> Run current Phase 3 export/UAPI C header smoke",
+        "PHASE3_ABI_EXPORT_SHARED_GATE=zig build phase3-abi-export --build-file zigux/tests/build.zig",
+        "PHASE3_ABI_EXPORT_MAKE_ROUTE=make -C zigux phase3-abi-export",
         "PHASE3_EXPORT_UAPI_GAP=broader curated UAPI families and wider export-shim coverage beyond the landed starter packet and focused runtime relays remain open",
         "Do not use this lane to claim broader Phase 3 completion.",
     ),
@@ -124,10 +126,17 @@ REQUIRED_MARKERS = {
     ),
     TESTS_BUILD_PATH: (
         'const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);',
+        'const phase3_abi_export_step = b.step(',
+        '"phase3-abi-export"',
+        'phase3_abi_export_step.dependOn(&phase3_abi_core_packet.step);',
+        'phase3_abi_export_step.dependOn(&phase3_export_shim.step);',
+        'phase3_abi_export_step.dependOn(&phase3_export_uapi_layout.step);',
         'root_module.addImport("header_family_binding", header_family_binding);',
         'root_module.addImport("export_shim", export_shim);',
     ),
     MAKEFILE_PATH: (
+        "phase3-abi-export:",
+        "$(ZIG) build phase3-abi-export --build-file zigux/tests/build.zig",
         "phase3-export-uapi-layout:",
         "phase3-export-uapi-layout-test:",
         "phase3-export-shim-test:",
@@ -554,6 +563,11 @@ def run_self_test() -> int:
                 "expected export/UAPI workflow gate marker removal to fail validation",
             ),
             (
+                SURVEY_PATH,
+                "PHASE3_ABI_EXPORT_SHARED_GATE=zig build phase3-abi-export --build-file zigux/tests/build.zig",
+                "expected shared abi-export survey gate marker removal to fail validation",
+            ),
+            (
                 EXPORT_SHIM_PATH,
                 "pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {",
                 "expected export shim boundary-header marker removal to fail validation",
@@ -592,6 +606,16 @@ def run_self_test() -> int:
                 LAYOUT_TEST_PATH,
                 'test "export shim reuses the canonical boundary header contract" {',
                 "expected export/UAPI layout canonical-boundary replay removal to fail validation",
+            ),
+            (
+                TESTS_BUILD_PATH,
+                'const phase3_abi_export_step = b.step(',
+                "expected shared tests build abi-export step removal to fail validation",
+            ),
+            (
+                MAKEFILE_PATH,
+                "phase3-abi-export:",
+                "expected makefile abi-export route removal to fail validation",
             ),
             (
                 MANIFEST_PATH,
