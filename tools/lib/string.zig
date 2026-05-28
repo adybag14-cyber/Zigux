@@ -368,6 +368,14 @@ pub fn memchr_inv(buf: []const u8, value: u8) ?usize {
     return memchrInv(buf, value);
 }
 
+pub fn memzeroExplicit(buf: []u8) void {
+    std.crypto.secureZero(u8, buf);
+}
+
+pub fn memzero_explicit(buf: []u8) void {
+    memzeroExplicit(buf);
+}
+
 fn cStringLen(buf: []const u8) usize {
     for (buf, 0..) |ch, idx| {
         if (ch == 0) {
@@ -1082,6 +1090,34 @@ test "memchrInv keeps non-zero scans stable across the fast-path cutoff" {
     var long = [_]u8{7} ** (@sizeOf(usize) * 2);
     long[long.len - 1] = 9;
     try std.testing.expectEqual(@as(?usize, long.len - 1), memchrInv(long[0..], 7));
+}
+
+test "memzeroExplicit clears short and long buffers" {
+    var short = [_]u8{ 7, 7, 7 };
+    memzeroExplicit(short[0..]);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, 0, 0 }, short[0..]);
+
+    var long = [_]u8{9} ** 32;
+    memzeroExplicit(long[0..]);
+    try std.testing.expectEqualSlices(u8, &([_]u8{0} ** 32), long[0..]);
+}
+
+test "memzeroExplicit composes with memchrInv across alignments" {
+    for (0..@sizeOf(usize)) |offset| {
+        var backing = [_]u8{5} ** 48;
+        const window = backing[offset .. offset + 32];
+        try std.testing.expectEqual(@as(?usize, 0), memchrInv(window, 0));
+        memzeroExplicit(window);
+        try std.testing.expectEqual(@as(?usize, null), memchrInv(window, 0));
+    }
+}
+
+test "memzero_explicit mirrors memzeroExplicit" {
+    var direct = [_]u8{ 1, 2, 3, 4 };
+    var alias = [_]u8{ 1, 2, 3, 4 };
+    memzeroExplicit(direct[0..]);
+    memzero_explicit(alias[0..]);
+    try std.testing.expectEqualSlices(u8, direct[0..], alias[0..]);
 }
 
 test "memparse handles decimal hexadecimal octal and suffixes" {
