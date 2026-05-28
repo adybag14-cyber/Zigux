@@ -73,6 +73,7 @@ REQUIRED_PATHS = (
     "drivers/watchdog/bcm2835_wdt_verify.zig",
     "drivers/watchdog/gpio_wdt.zig",
     "drivers/watchdog/gpio_wdt_verify.zig",
+    "drivers/watchdog/dw_wdt.zig",
     "drivers/watchdog/dw_wdt_restart.zig",
     "drivers/watchdog/dw_wdt_pm.zig",
     "drivers/watchdog/dw_wdt_pm_scaffold.zig",
@@ -455,6 +456,11 @@ def run_self_test() -> int:
         reset_fixture()
         (root / "zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json").unlink()
         expect_issue("missing_required_path:zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json")
+        case_count += 1
+
+        reset_fixture()
+        (root / "drivers/watchdog/dw_wdt.zig").unlink()
+        expect_issue("missing_required_path:drivers/watchdog/dw_wdt.zig")
         case_count += 1
 
         reset_fixture()
