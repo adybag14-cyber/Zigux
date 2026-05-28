@@ -11,9 +11,12 @@ MANIFEST_PATH = Path("zigux/tests/phase15_readiness_gate_manifest.json")
 GAP_MATRIX_PATH = Path("zigux/tests/phase15_readiness_gap_matrix.json")
 CHECKER_PATH = Path("scripts/zigux/check-phase15-readiness-gate-packet.py")
 ARCHITECTURE_COUNCIL_CHECKER_PATH = Path("scripts/zigux/check-phase15-architecture-council-packet.py")
+DECISION_INDEX_CHECKER_PATH = Path("scripts/zigux/check-phase15-architecture-council-decision-index.py")
 SCRIPTS_CHECKER_PATH = Path("scripts/zigux/check-phase15-scripts-readme-alignment.py")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase15.py")
 BUILD_PATH = Path("zigux/tests/phase15_build.zig")
+DECISION_INDEX_MANIFEST_PATH = Path("zigux/tests/phase15_architecture_council_decision_index_manifest.json")
+DECISION_INDEX_REPLAY_PATH = Path("zigux/tests/phase15_architecture_council_decision_index.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
@@ -40,6 +43,7 @@ EXPECTED_DIRECT_PACKET_PATHS = [
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
     "scripts/zigux/check-phase15-architecture-council-packet.py",
+    "scripts/zigux/check-phase15-architecture-council-decision-index.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
     "scripts/zigux/check-phase15-handoff-note-alignment.py",
@@ -50,6 +54,8 @@ EXPECTED_DIRECT_PACKET_PATHS = [
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_architecture_council_review_process_build.zig",
+    "zigux/tests/phase15_architecture_council_decision_index_manifest.json",
+    "zigux/tests/phase15_architecture_council_decision_index.zig",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
     "zigux/tests/phase15_governance_lane_sequencing.zig",
@@ -76,6 +82,7 @@ EXPECTED_PHASE15_VALIDATE_CHECKERS = [
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
     "scripts/zigux/check-phase15-architecture-council-packet.py",
+    "scripts/zigux/check-phase15-architecture-council-decision-index.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
     "scripts/zigux/check-phase15-handoff-note-alignment.py",
@@ -85,6 +92,7 @@ EXPECTED_PHASE15_VALIDATE_CHECKERS = [
 EXPECTED_REPO_EVIDENCE = {
     "phase15_readiness_packet_checker_present": True,
     "phase15_architecture_council_packet_checker_present": True,
+    "phase15_architecture_council_decision_index_checker_present": True,
     "phase15_validator_script_present": True,
     "phase15_docs_readme_checker_present": True,
     "phase15_scripts_readme_checker_present": True,
@@ -95,6 +103,8 @@ EXPECTED_REPO_EVIDENCE = {
     "phase15_governance_lane_replay_present": True,
     "phase15_handoff_manifest_present": True,
     "phase15_review_process_build_replay_present": True,
+    "phase15_decision_index_manifest_present": True,
+    "phase15_decision_index_replay_present": True,
     "phase15_build_zig_present": True,
     "phase15_gap_matrix_present": True,
     "phase15_indefinite_c_lane_owner_alignment_present": True,
@@ -177,6 +187,7 @@ def collect_failures(root: Path) -> list[str]:
         GAP_MATRIX_PATH,
         CHECKER_PATH,
         ARCHITECTURE_COUNCIL_CHECKER_PATH,
+        DECISION_INDEX_CHECKER_PATH,
         SCRIPTS_CHECKER_PATH,
         VALIDATOR_PATH,
         MAKEFILE_PATH,
@@ -353,6 +364,24 @@ def run_self_test() -> int:
         if failures != [f"missing_direct_packet_path:{BUILD_PATH}"]:
             raise AssertionError(f"unexpected build-path failure: {failures}")
 
+        decision_index_checker_root = base / "decision_index_checker"
+        write_fixture_root(decision_index_checker_root)
+        (decision_index_checker_root / DECISION_INDEX_CHECKER_PATH).unlink()
+        failures = collect_failures(decision_index_checker_root)
+        if failures != [f"missing_required_path:{DECISION_INDEX_CHECKER_PATH}"]:
+            raise AssertionError(
+                f"unexpected decision-index-checker failure: {failures}"
+            )
+
+        decision_index_manifest_root = base / "decision_index_manifest"
+        write_fixture_root(decision_index_manifest_root)
+        (decision_index_manifest_root / DECISION_INDEX_MANIFEST_PATH).unlink()
+        failures = collect_failures(decision_index_manifest_root)
+        if failures != [f"missing_direct_packet_path:{DECISION_INDEX_MANIFEST_PATH}"]:
+            raise AssertionError(
+                f"unexpected decision-index-manifest failure: {failures}"
+            )
+
         make_root = base / "make"
         write_fixture_root(make_root)
         _write(make_root / MAKEFILE_PATH, "phase15-validate:\n\t@true\n")
@@ -381,7 +410,7 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected gap-matrix lane failure: {failures}")
 
     print("PHASE15_VALIDATION_SELF_TEST=pass")
-    print("PHASE15_VALIDATION_SELF_TEST_CASES=5")
+    print("PHASE15_VALIDATION_SELF_TEST_CASES=7")
     return 0
 
 
