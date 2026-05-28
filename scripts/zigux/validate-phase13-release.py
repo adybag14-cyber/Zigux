@@ -25,6 +25,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase13-release-packet-index.md": [
         "This note is the compact PMO packet index for the active Phase 13 shared-helper release packet.",
         "- `Documentation/zigux/phase13-release-packet-index.md`",
+        "- `scripts/zigux/check-phase13-roadmap-traceability.py`",
         "- `scripts/zigux/validate-phase13-release.py`",
         "No shared Phase 13 build handle is returned on current `master`. Keep `make -C zigux phase13-validate`, `make -C zigux phase13`, and `zigux/tests/phase13_build.zig` explicit as repo-reality gaps rather than shared packet evidence.",
         "- `zigux/tests/phase13_landlock_syscalls_manifest.json`",
@@ -99,12 +100,16 @@ REQUIRED_MARKERS = {
     "scripts/zigux/README.md": [
         "- Phase 13 flow - the current scripts-root shared-helper reminder should keep the stable contributor-facing handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, keep the shared-summary and tests-root alignment guards plus the shipped release-discipline validator explicit, and keep the live `libfs`, `devres`, `landlock`, and adjacent notifier packet split truthful without promoting the still-missing Phase 13 Makefile routes into the entrypoint",
         "`scripts/zigux/check-phase13-shared-summary-surfaces.py`, `scripts/zigux/check-phase13-tests-readme-alignment.py`, and `scripts/zigux/validate-phase13-release.py` keep the shared-summary, tests-root alignment, and release-discipline packet explicit from the scripts root without pretending a broader validator-first or convenience-route replay has returned",
-        "`Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `include/zigux/abi.h`, and `drivers/tty/hvc/hvc_console.h` keep adjacent notifier evidence explicit from the scripts root without promoting it into a fifth helper family, while `zigux/helpers/notifier_chain_view.zig`, `include/zigux/notifier_abi.h`, and `scripts/zigux/check-phase13-notifier-priority-signal.py` stay repo-reality gaps",
+        "`Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h` keep adjacent notifier evidence explicit from the scripts root without promoting it into a fifth helper family, while `zigux/helpers/notifier_chain_view.zig`, `include/zigux/notifier_abi.h`, and `scripts/zigux/check-phase13-notifier-priority-signal.py` stay repo-reality gaps",
     ],
     "zigux/tests/README.md": [
         "Keep the stable contributor-facing reminder handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.",
         "Current `master` does materialize `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep that guard explicit as shipped shared-summary evidence aligned with the contributor workflow guide and roadmap-traceability note instead of repeating it as a missing tests-root gap.",
         "Current `master` does materialize `zigux/Makefile`, but it still does not materialize `make -C zigux phase13-validate` or blocked convenience route `make -C zigux phase13`, so keep those route names framed as repo-reality-gap vocabulary rather than shipped tests-root evidence until a fresh reread proves the shared build handle returned.",
+    ],
+    "scripts/zigux/check-phase13-roadmap-traceability.py": [
+        "\"\"\"Guard the shipped Phase 13 roadmap-traceability note.\"\"\"",
+        "print(\"PHASE13_ROADMAP_TRACEABILITY=pass\")",
     ],
 }
 
