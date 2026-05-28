@@ -5,6 +5,7 @@ on:
     branches: [ master ]
   pull_request:
     paths:
+      - '.gitattributes'
       - 'scripts/zigux/check-lane05-archive-parts-workflow.py'
       - 'scripts/zigux/check-lane05-archive-parts-packet.py'
       - 'scripts/zigux/zig-toolchain-policy.json'
