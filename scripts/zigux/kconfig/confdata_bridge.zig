@@ -20,6 +20,19 @@ const EntryKind = enum {
     }
 };
 
+const OutputMode = enum {
+    json,
+    auto_conf,
+    autoconf_header,
+
+    pub fn parse(text: []const u8) ?OutputMode {
+        if (std.mem.eql(u8, text, "json")) return .json;
+        if (std.mem.eql(u8, text, "auto.conf")) return .auto_conf;
+        if (std.mem.eql(u8, text, "autoconf.h")) return .autoconf_header;
+        return null;
+    }
+};
+
 pub const Entry = struct {
     name: []const u8,
     kind: EntryKind,
@@ -356,10 +369,7 @@ pub fn emitAutoconfHeaderExports(writer: anytype, summary: Summary) !void {
     };
 }
 
-pub fn runConfdataBridge(allocator: std.mem.Allocator, input: []const u8, writer: anytype) !void {
-    var summary = try parseConfig(allocator, input);
-    defer deinitSummary(allocator, &summary);
-
+fn emitJsonSummary(writer: anytype, summary: Summary) !void {
     try writer.writeAll("{\"counts\":{\"set\":");
     try writer.print("{}", .{summary.set_count});
     try writer.writeAll(",\"unset\":");
@@ -378,23 +388,54 @@ pub fn runConfdataBridge(allocator: std.mem.Allocator, input: []const u8, writer
     try writer.writeAll("]}\n");
 }
 
+fn emitSummary(writer: anytype, summary: Summary, mode: OutputMode) !void {
+    switch (mode) {
+        .json => try emitJsonSummary(writer, summary),
+        .auto_conf => try emitAutoConfExports(writer, summary),
+        .autoconf_header => try emitAutoconfHeaderExports(writer, summary),
+    }
+}
+
+pub fn runConfdataBridge(allocator: std.mem.Allocator, input: []const u8, writer: anytype) !void {
+    return runConfdataBridgeWithMode(allocator, input, .json, writer);
+}
+
+pub fn runConfdataBridgeWithMode(allocator: std.mem.Allocator, input: []const u8, mode: OutputMode, writer: anytype) !void {
+    var summary = try parseConfig(allocator, input);
+    defer deinitSummary(allocator, &summary);
+
+    try emitSummary(writer, summary, mode);
+}
+
 pub fn main(init: std.process.Init) !void {
     const arena = init.arena.allocator();
     const io = init.io;
     const args = try init.minimal.args.toSlice(arena);
 
-    if (args.len != 2) {
-        var stderr_buffer: [160]u8 = undefined;
-        var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Usage: confdata_bridge <config>\n");
-        try stderr_writer.interface.flush();
-        std.process.exit(1);
-    }
+    const usage = "Usage: confdata_bridge [json|auto.conf|autoconf.h] <config>\n";
 
-    const input = try readConfigFile(arena, io, args[1]);
+    const output_mode: OutputMode, const config_path: []const u8 = switch (args.len) {
+        2 => .{ .json, args[1] },
+        3 => .{ OutputMode.parse(args[1]) orelse {
+            var stderr_buffer_invalid: [192]u8 = undefined;
+            var stderr_writer_invalid = Io.File.stderr().writer(io, &stderr_buffer_invalid);
+            try stderr_writer_invalid.interface.writeAll(usage);
+            try stderr_writer_invalid.interface.flush();
+            std.process.exit(1);
+        }, args[2] },
+        else => {
+            var stderr_buffer: [192]u8 = undefined;
+            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            try stderr_writer.interface.writeAll(usage);
+            try stderr_writer.interface.flush();
+            std.process.exit(1);
+        },
+    };
+
+    const input = try readConfigFile(arena, io, config_path);
     var stdout_buffer: [2048]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
-    try runConfdataBridge(arena, input, &stdout_writer.interface);
+    try runConfdataBridgeWithMode(arena, input, output_mode, &stdout_writer.interface);
     try stdout_writer.interface.flush();
 }
 
@@ -484,7 +525,7 @@ test "confdata bridge emits bounded json output" {
 test "confdata bridge decodes escaped quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_MESSAGE=\"zigux\\\"bridge\\\\\"
+        \\CONFIG_MESSAGE="zigux\"bridge\\"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -495,7 +536,7 @@ test "confdata bridge decodes escaped quoted strings" {
 test "confdata bridge strips backslashes from escaped control sequences like upstream confdata" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_ESCAPED=\"line\\n\\tend\"
+        \\CONFIG_ESCAPED="line\n\tend"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -560,7 +601,7 @@ test "confdata bridge recognizes uppercase tristate assignments" {
 test "confdata bridge ignores non-CONFIG lines like upstream confdata" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\source \"Kconfig\"
+        \\source "Kconfig"
         \\NOT_CONFIG=y
         \\CONFIG_WORD=yes
         \\CONFIG_ALPHA=m
@@ -593,7 +634,7 @@ test "confdata bridge ignores malformed unset comments with extra tokens" {
 
 test "confdata bridge keeps trailing escaped backslashes in quoted strings" {
     try parseAndExpectSingleEntry(std.testing.allocator,
-        \\CONFIG_PATH=\"drivers\\\\\"
+        \\CONFIG_PATH="drivers\\"
         \\
     , "CONFIG_PATH", .string, "drivers\\");
 }
@@ -637,8 +678,8 @@ test "confdata bridge keeps only the last assignment for duplicate symbols" {
 test "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA=\"stable\"
-        \\CONFIG_ALPHA=\"broken
+        \\CONFIG_ALPHA="stable"
+        \\CONFIG_ALPHA="broken
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -652,8 +693,8 @@ test "confdata bridge emits the preserved duplicate state after later malformed 
     defer capture.deinit();
 
     try runConfdataBridge(std.testing.allocator,
-        \\CONFIG_ALPHA=\"stable\"
-        \\CONFIG_ALPHA=\"broken
+        \\CONFIG_ALPHA="stable"
+        \\CONFIG_ALPHA="broken
         \\
     , &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"CONFIG_ALPHA\"") != null);
@@ -698,7 +739,7 @@ test "confdata bridge emits explicit empty assignments distinctly in json output
 
     try runConfdataBridge(std.testing.allocator,
         \\CONFIG_EMPTY=
-        \\CONFIG_QUOTED_EMPTY=\"\"
+        \\CONFIG_QUOTED_EMPTY=""
         \\
     , &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"name\":\"CONFIG_EMPTY\",\"kind\":\"value\",\"value\":\"\"") != null);
@@ -710,7 +751,7 @@ test "confdata bridge escapes parsed string bytes in json output" {
     defer capture.deinit();
 
     try runConfdataBridge(std.testing.allocator,
-        \\CONFIG_ALPHA=\"zigux\\\"bridge\\\\\"
+        \\CONFIG_ALPHA="zigux\"bridge\\"
         \\
     , &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"value\":\"zigux\\\"bridge\\\\\"") != null);
@@ -721,7 +762,7 @@ test "confdata bridge emits auto.conf symbol export lines" {
         \\CONFIG_ALPHA=y
         \\CONFIG_BETA=m
         \\CONFIG_COUNT=7
-        \\CONFIG_NAME=\"zigux\\\"bridge\\\\\"
+        \\CONFIG_NAME="zigux\"bridge\\"
         \\CONFIG_EMPTY=
         \\CONFIG_EXPLICIT_N=n
         \\# CONFIG_DEBUG is not set
@@ -748,7 +789,7 @@ test "confdata bridge emits autoconf header symbol export lines" {
         \\CONFIG_ALPHA=y
         \\CONFIG_BETA=m
         \\CONFIG_COUNT=7
-        \\CONFIG_NAME=\"zigux\\\"bridge\\\\\"
+        \\CONFIG_NAME="zigux\"bridge\\"
         \\CONFIG_EMPTY=
         \\CONFIG_EXPLICIT_N=n
         \\# CONFIG_DEBUG is not set
@@ -781,6 +822,51 @@ test "confdata bridge keeps explicit n out of autoconf header exports" {
     defer capture.deinit();
     try emitAutoconfHeaderExports(&capture, summary);
     try std.testing.expectEqualStrings("", capture.list.items);
+}
+
+test "confdata bridge parses explicit output modes" {
+    try std.testing.expectEqual(OutputMode.json, OutputMode.parse("json").?);
+    try std.testing.expectEqual(OutputMode.auto_conf, OutputMode.parse("auto.conf").?);
+    try std.testing.expectEqual(OutputMode.autoconf_header, OutputMode.parse("autoconf.h").?);
+}
+
+test "confdata bridge rejects unknown output modes" {
+    try std.testing.expect(OutputMode.parse("toml") == null);
+}
+
+test "confdata bridge emits auto.conf output through the explicit mode surface" {
+    var capture = try TestCapture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfdataBridgeWithMode(std.testing.allocator,
+        \\CONFIG_ALPHA=y
+        \\CONFIG_NAME="zigux"
+        \\# CONFIG_DEBUG is not set
+        \\
+    , .auto_conf, &capture);
+    try std.testing.expectEqualStrings(
+        "CONFIG_ALPHA=y\n" ++
+            "CONFIG_NAME=\"zigux\"\n",
+        capture.list.items,
+    );
+}
+
+test "confdata bridge emits autoconf header output through the explicit mode surface" {
+    var capture = try TestCapture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfdataBridgeWithMode(std.testing.allocator,
+        \\CONFIG_ALPHA=m
+        \\CONFIG_NAME="zigux"
+        \\CONFIG_EMPTY=
+        \\
+    , .autoconf_header, &capture);
+    try std.testing.expectEqualStrings(
+        "#define CONFIG_ALPHA_MODULE 1\n" ++
+            "#define CONFIG_NAME \"zigux\"\n" ++
+            "#define CONFIG_EMPTY \n",
+        capture.list.items,
+    );
 }
 
 test "confdata bridge file reader accepts config inputs beyond one mebibyte" {
