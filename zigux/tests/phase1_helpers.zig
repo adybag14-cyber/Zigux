@@ -30,6 +30,14 @@ const Fixture = struct {
             value: u64,
             rest: []const u8,
         },
+        signed_hex_k: struct {
+            value: u64,
+            rest: []const u8,
+        },
+        signed_octal_m: struct {
+            value: u64,
+            rest: []const u8,
+        },
         saturated_positive_signed: struct {
             value: u64,
             rest: []const u8,
@@ -62,6 +70,11 @@ const Fixture = struct {
             remaining: []const u8,
         },
         quoted_arg: struct {
+            param: []const u8,
+            value: []const u8,
+            remaining: []const u8,
+        },
+        empty_quoted_arg: struct {
             param: []const u8,
             value: []const u8,
             remaining: []const u8,
@@ -250,6 +263,14 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqual(fixture.cmdline.signed_k.value, signed_k.value);
     try std.testing.expectEqualStrings(fixture.cmdline.signed_k.rest, signed_k.rest);
 
+    const signed_hex_k = cmdline.memparse("-0x2Ktail");
+    try std.testing.expectEqual(fixture.cmdline.signed_hex_k.value, signed_hex_k.value);
+    try std.testing.expectEqualStrings(fixture.cmdline.signed_hex_k.rest, signed_hex_k.rest);
+
+    const signed_octal_m = cmdline.memparse("+010Mmore");
+    try std.testing.expectEqual(fixture.cmdline.signed_octal_m.value, signed_octal_m.value);
+    try std.testing.expectEqualStrings(fixture.cmdline.signed_octal_m.rest, signed_octal_m.rest);
+
     const saturated_positive_signed = cmdline.memparse("+9223372036854775808");
     try std.testing.expectEqual(fixture.cmdline.saturated_positive_signed.value, saturated_positive_signed.value);
     try std.testing.expectEqualStrings(fixture.cmdline.saturated_positive_signed.rest, saturated_positive_signed.rest);
@@ -286,6 +307,11 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqualStrings(fixture.cmdline.quoted_arg.param, quoted_arg.param);
     try std.testing.expectEqualStrings(fixture.cmdline.quoted_arg.value, quoted_arg.value.?);
     try std.testing.expectEqualStrings(fixture.cmdline.quoted_arg.remaining, quoted_arg.remaining);
+
+    const empty_quoted_arg = cmdline.nextArg("root=\"\" quiet") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings(fixture.cmdline.empty_quoted_arg.param, empty_quoted_arg.param);
+    try std.testing.expectEqualStrings(fixture.cmdline.empty_quoted_arg.value, empty_quoted_arg.value.?);
+    try std.testing.expectEqualStrings(fixture.cmdline.empty_quoted_arg.remaining, empty_quoted_arg.remaining);
 
     const unterminated_arg = cmdline.nextArg("mode=\"fast boot") orelse return error.TestUnexpectedResult;
     try std.testing.expectEqualStrings(fixture.cmdline.unterminated_arg.param, unterminated_arg.param);
