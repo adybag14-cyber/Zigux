@@ -357,7 +357,7 @@ test "phase3 low-level wrappers keep raw-pointer bridge interop-policy helpers e
         .reserved = 1,
     };
 
-    var bridge_words = [_]u32{ 0x0102_0304, 0x0506_0708 };
+    var bridge_words = [_]u32{ 0x0102_0304, 0x0506_0708, 73 };
     const bridge_addr = @intFromPtr(&bridge_words[0]);
     const second_addr = @intFromPtr(&bridge_words[1]);
 
@@ -408,6 +408,15 @@ test "phase3 low-level wrappers keep raw-pointer bridge interop-policy helpers e
         @as(u32, 0x0BAD_F00D),
         (try narrow.constPointerAtInteropPolicy(u32, second_addr, raw_policy)).*,
     );
+
+    bridge_words[1] = 47;
+    const third_addr = @intFromPtr(&bridge_words[2]);
+    try std.testing.expectEqual(@as(u32, 73), try narrow.exchangeValueAtInteropPolicyBytes(u32, third_addr, @sizeOf(u32), 79, 2, 0));
+    try std.testing.expectEqual(@as(u32, 79), bridge_words[2]);
+    try std.testing.expectEqual(@as(u32, 47), try narrow.exchangeValueAtInteropPolicy(u32, second_addr, @sizeOf(u32), 61, raw_policy));
+    try std.testing.expectEqual(@as(u32, 61), bridge_words[1]);
+    try std.testing.expectEqual(@as(u32, 61), try narrow.exchangeValueAtByte(u32, second_addr, @sizeOf(u32), 47, 2));
+    try std.testing.expectEqual(@as(u32, 47), bridge_words[1]);
 
     try std.testing.expectError(
         error.UnsafeScopeDenied,
