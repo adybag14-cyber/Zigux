@@ -84,7 +84,8 @@
     "find_first_serial": 0,
     "next_match_serials": [0, 2, 4],
     "match_iterator_serials": [0, 2, 4],
-    "cached_leftmost_return_serials": [0, 0, 4, 2],
+    "cached_leftmost_return_serials": [0, -1, 2, -1],
+    "cached_root_transition_serials": [0, 0, 4, 2],
     "next_match_terminal_null": true
   },
   "argv_split": {
@@ -162,7 +163,7 @@
     "mask_space": 160,
     "isalnum_A": true,
     "isalpha_z": true,
-    "isdigit_7": true,
+    "is_digit_7": true,
     "isspace_tab": true,
     "isxdigit_f": true,
     "ispunct_bang": true,
