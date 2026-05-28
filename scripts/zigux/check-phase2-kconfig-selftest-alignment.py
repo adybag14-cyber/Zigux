@@ -17,7 +17,6 @@ KCONFIG_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 KCONFIG_BRIDGE_CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"
 CONF_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json"
 CONFDATA_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json"
-KCONFIG_FIXTURE_ROOT = KCONFIG_BRIDGE_CASES.parent
 KCONFIG_BRIDGE_SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
@@ -224,7 +223,6 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     if [case.get("name") for case in confdata_cases] != [case.get("name") for case in checker_confdata_cases]:
         issues.append(("CONFDATA_CASE_PACKET_MISMATCH", "name packet"))
-
     if conf_manifest != build_conf_manifest_payload(conf_cases, conf_anchors, implicit_modes, explicit_modes):
         issues.append(("CONF_MANIFEST_FIELD_MISMATCH", "conf manifest drift"))
     if confdata_manifest != build_confdata_manifest_payload(confdata_cases, confdata_anchors):
@@ -233,7 +231,6 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for bridge_path in KCONFIG_BRIDGE_SURFACE_PATHS:
         if not (root / bridge_path.relative_to(ROOT)).exists():
             issues.append(("MISSING_BRIDGE_SURFACE_PATHS", bridge_path.relative_to(ROOT).as_posix()))
-
     return issues
 
 
@@ -250,13 +247,44 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
     return 1
 
 
+def render_checker_stub() -> str:
+    return '''
+REQUIRED_CONF_HELPER_ANCHORS = []
+REQUIRED_CONFDATA_HELPER_ANCHORS = []
+REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES = []
+REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES = []
+SAMPLE_CONFDATA_CASES = []
+
+def build_conf_command(case):
+    cmd = []
+    group_name = "conf_cases"
+    if group_name == "conf_cases" and "silent" in case and not isinstance(case["silent"], bool):
+        return cmd
+    if "silent" in case and case["silent"] is not True:
+        return cmd
+    if case.get("silent"):
+        cmd.append("silent")
+    if "mode_arg" in case:
+        cmd.append(str(case["mode_arg"]))
+    if "allconfig" in case:
+        cmd.append(f"allconfig={case['allconfig']}")
+    if "seed" in case:
+        cmd.append(f"seed={case['seed']}")
+    if "probability" in case:
+        cmd.append(f"probability={case['probability']}")
+    if "nosilentupdate" in case:
+        cmd.append(f"nosilentupdate={case['nosilentupdate']}")
+    return cmd
+'''
+
+
 def build_self_test_root(root: Path) -> None:
     write_text(root / WORKFLOW.relative_to(ROOT), "\n".join(("name: zigux-bootstrap", *WORKFLOW_PATH_LINES, *WORKFLOW_LINES)) + "\n")
     write_text(root / MAKEFILE.relative_to(ROOT), "\n".join(("PYTHON ?= python3", "ZIG ?= zig", "PHASE2_SCRIPT_ROOT := ../scripts/zigux", "ZIGUX_ROOT := ..", *MAKEFILE_LINES)) + "\n")
     write_text(root / SCRIPTS_README.relative_to(ROOT), "\n".join(SCRIPTS_README_MARKERS) + "\n")
     write_text(root / TESTS_README.relative_to(ROOT), "\n".join(TESTS_README_MARKERS) + "\n")
     write_text(root / REVIEW_CHECKLIST.relative_to(ROOT), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
-    write_text(root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT), "present\n")
+    write_text(root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT), render_checker_stub())
     write_text(root / KCONFIG_BRIDGE_CASES.relative_to(ROOT), json.dumps({"conf_cases": [], "confdata_cases": []}, indent=2) + "\n")
     write_text(root / CONF_MANIFEST.relative_to(ROOT), json.dumps(build_conf_manifest_payload([], [], [], []), indent=2) + "\n")
     write_text(root / CONFDATA_MANIFEST.relative_to(ROOT), json.dumps(build_confdata_manifest_payload([], []), indent=2) + "\n")
@@ -269,7 +297,7 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_kconfig_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
-        assert collect_issues(root)
+        assert collect_issues(root) == []
         checks_run += 1
         build_self_test_root(root)
         (root / KCONFIG_BRIDGE_CASES.relative_to(ROOT)).write_text("[]\n", encoding="utf-8")
