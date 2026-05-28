@@ -16,6 +16,8 @@ Read these files before you open or update a change:
 
 Use `Documentation/zigux/contributor-entrypoints.md` to pick the right bounded guide for docs, checklist, or workflow work, and use `Documentation/zigux/contributor-workflow.md` for the routine edit loop once the lane is chosen.
 
+For docs-only reminder, checklist, or contributor workflow guidance changes, use `Documentation/zigux/developer-enablement-contributor-workflow.md` and rerun `python3 scripts/zigux/check-developer-enablement-workflow.py`.
+
 Keep the top-level contributor onboarding packet aligned through:
 
 1. `CONTRIBUTING.md`
