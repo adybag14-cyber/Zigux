@@ -42,6 +42,8 @@ test "phase3 barrier wrappers compile" {
     compiler();
     acquire();
     release();
+    readBarrier();
+    writeBarrier();
     full();
     acquireRelease();
     fullFence();
@@ -131,6 +133,8 @@ test "phase3 barrier wrappers stay side-effect free on unrelated storage" {
 
     acquire();
     release();
+    readBarrier();
+    writeBarrier();
     full();
     acquireRelease();
     storeLoad();
@@ -210,6 +214,40 @@ test "phase3 barrier wrappers keep generic fence dispatch handoffs reviewable" {
 
     try std.testing.expect(!packet.ready);
     try std.testing.expectEqual(@as(u32, 0x57), packet.published);
+}
+
+test "phase3 barrier wrappers keep read and write barrier aliases aligned" {
+    const Packet = struct {
+        staged: u32,
+        published: u32,
+        ready: bool,
+    };
+
+    var packet = Packet{
+        .staged = 0,
+        .published = 0,
+        .ready = false,
+    };
+
+    packet.staged = 0x31;
+    compiler();
+    writeBarrier();
+    packet.published = packet.staged;
+    packet.ready = true;
+
+    readBarrier();
+    try std.testing.expect(packet.ready);
+    try std.testing.expectEqual(@as(u32, 0x31), packet.published);
+
+    packet.ready = false;
+    packet.staged = 0x74;
+    compiler();
+    writeBarrier();
+    packet.published = packet.staged;
+
+    readBarrier();
+    try std.testing.expect(!packet.ready);
+    try std.testing.expectEqual(@as(u32, 0x74), packet.published);
 }
 
 test "phase3 barrier wrappers keep store-load handoffs reviewable" {
@@ -342,6 +380,14 @@ pub fn acquire() void {
 
 pub fn release() void {
     fence(.release) catch unreachable;
+}
+
+pub fn readBarrier() void {
+    acquire();
+}
+
+pub fn writeBarrier() void {
+    release();
 }
 
 pub fn full() void {
