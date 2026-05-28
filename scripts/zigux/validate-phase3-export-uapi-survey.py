@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import collections
+import re
 import tempfile
 from pathlib import Path
 
@@ -31,6 +33,8 @@ C_HEADER_SMOKE_CHECK_PATH = Path("scripts/zigux/check-phase3-export-uapi-c-heade
 DEV_T_STARTER_PACKET_CHECK_PATH = Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")
 SHARED_SELFTEST_PATH = Path("scripts/zigux/validate_phase3_selftest.py")
 SHARED_CHECK_RUNNER_PATH = Path("scripts/zigux/run-phase3-checks.py")
+
+PUB_FN_PATTERN = re.compile(r"^pub fn ([A-Za-z_][A-Za-z0-9_]*)\s*\(", re.MULTILINE)
 
 REQUIRED_MARKERS = {
     SURVEY_PATH: (
@@ -180,6 +184,158 @@ REQUIRED_MARKERS = {
     ),
 }
 
+REQUIRED_FUNCTIONS = {
+    EXPORT_SHIM_PATH: (
+        "canonicalHeader",
+        "compatibleHeader",
+        "isCurrentAbiVersion",
+        "isCanonicalSize",
+        "isCompatibleSize",
+        "headerIsCanonical",
+        "headerIsCompatible",
+        "extendsBoundary",
+        "requestedExtraBytes",
+        "canonicalizeHeader",
+        "validateBoundaryHeader",
+        "currentVersion",
+        "hasCurrentAbiMajor",
+        "hasCurrentAbiMinor",
+        "hasCurrentHeaderFamilyRevision",
+        "versionMatchesCurrent",
+        "validateVersion",
+        "makeDevTFields",
+        "encodeDeviceNumber",
+        "decodeDeviceNumber",
+        "deviceFieldsAreValid",
+        "validateDeviceFields",
+        "validateDeviceNumber",
+        "deviceRangeIsValid",
+        "validateDeviceRange",
+    ),
+    UAPI_VERSION_PATH: (
+        "current",
+        "eql",
+        "hasCurrentAbiMajor",
+        "hasCurrentAbiMinor",
+        "hasCurrentHeaderFamilyRevision",
+        "matchesCurrent",
+        "validate",
+        "canonicalHeader",
+        "boundaryHeader",
+        "compatibleHeader",
+        "hasCurrentAbiVersion",
+        "isCanonicalSize",
+        "isCompatibleSize",
+        "isCanonical",
+        "isCompatible",
+        "extendsBoundary",
+        "requestedExtraBytes",
+        "canonicalizeHeader",
+        "validateBoundaryHeader",
+    ),
+    UAPI_DEV_T_PATH: (
+        "init",
+        "makeDeviceNumber",
+        "majorFromDeviceNumber",
+        "minorFromDeviceNumber",
+        "fieldsFromDeviceNumber",
+        "validate",
+        "validateRange",
+    ),
+    BINDING_HEADER_FAMILY_PATH: (
+        "currentVersion",
+        "hasCurrentAbiMajor",
+        "hasCurrentAbiMinor",
+        "hasCurrentHeaderFamilyRevision",
+        "versionMatchesCurrent",
+        "validateVersionStatus",
+        "currentBoundaryHeader",
+        "compatibleBoundaryHeader",
+        "boundaryHeaderHasCurrentAbiVersion",
+        "boundaryHeaderIsCompatibleSize",
+        "boundaryHeaderIsCanonicalSize",
+        "boundaryHeaderIsCanonical",
+        "boundaryHeaderIsCompatible",
+        "boundaryHeaderExtendsBoundary",
+        "boundaryHeaderRequestedExtraBytes",
+        "canonicalizeBoundaryHeader",
+        "validateBoundaryHeaderStatus",
+        "initDevTFields",
+        "makeDeviceNumber",
+        "majorFromDeviceNumber",
+        "minorFromDeviceNumber",
+        "fieldsFromDeviceNumber",
+        "validateDevTFields",
+        "validateDevTFieldsStatus",
+        "validateDevTComponentsStatus",
+        "validateDevTRange",
+        "validateDevTRangeStatus",
+        "okStatus",
+        "errorStatus",
+        "statusIsOk",
+        "facilityFromInt",
+        "facilityIsKnown",
+        "statusHasKnownFacility",
+    ),
+}
+
+UAPI_VERSION_EXPORT_SHIM_ALIGNMENT = {
+    "current": "currentVersion",
+    "hasCurrentAbiMajor": "hasCurrentAbiMajor",
+    "hasCurrentAbiMinor": "hasCurrentAbiMinor",
+    "hasCurrentHeaderFamilyRevision": "hasCurrentHeaderFamilyRevision",
+    "matchesCurrent": "versionMatchesCurrent",
+    "validate": "validateVersion",
+    "boundaryHeader": "canonicalHeader",
+    "compatibleHeader": "compatibleHeader",
+    "hasCurrentAbiVersion": "isCurrentAbiVersion",
+    "isCanonicalSize": "isCanonicalSize",
+    "isCompatibleSize": "isCompatibleSize",
+    "isCanonical": "headerIsCanonical",
+    "isCompatible": "headerIsCompatible",
+    "extendsBoundary": "extendsBoundary",
+    "requestedExtraBytes": "requestedExtraBytes",
+    "canonicalizeHeader": "canonicalizeHeader",
+    "validateBoundaryHeader": "validateBoundaryHeader",
+}
+
+UAPI_VERSION_HEADER_FAMILY_ALIGNMENT = {
+    "current": "currentVersion",
+    "hasCurrentAbiMajor": "hasCurrentAbiMajor",
+    "hasCurrentAbiMinor": "hasCurrentAbiMinor",
+    "hasCurrentHeaderFamilyRevision": "hasCurrentHeaderFamilyRevision",
+    "matchesCurrent": "versionMatchesCurrent",
+    "validate": "validateVersionStatus",
+    "boundaryHeader": "currentBoundaryHeader",
+    "compatibleHeader": "compatibleBoundaryHeader",
+    "hasCurrentAbiVersion": "boundaryHeaderHasCurrentAbiVersion",
+    "isCanonicalSize": "boundaryHeaderIsCanonicalSize",
+    "isCompatibleSize": "boundaryHeaderIsCompatibleSize",
+    "isCanonical": "boundaryHeaderIsCanonical",
+    "isCompatible": "boundaryHeaderIsCompatible",
+    "extendsBoundary": "boundaryHeaderExtendsBoundary",
+    "requestedExtraBytes": "boundaryHeaderRequestedExtraBytes",
+    "canonicalizeHeader": "canonicalizeBoundaryHeader",
+    "validateBoundaryHeader": "validateBoundaryHeaderStatus",
+}
+
+UAPI_DEV_T_EXPORT_SHIM_ALIGNMENT = {
+    "init": "makeDevTFields",
+    "fieldsFromDeviceNumber": "decodeDeviceNumber",
+    "validate": "deviceFieldsAreValid",
+    "validateRange": "deviceRangeIsValid",
+}
+
+UAPI_DEV_T_HEADER_FAMILY_ALIGNMENT = {
+    "init": "initDevTFields",
+    "makeDeviceNumber": "makeDeviceNumber",
+    "majorFromDeviceNumber": "majorFromDeviceNumber",
+    "minorFromDeviceNumber": "minorFromDeviceNumber",
+    "fieldsFromDeviceNumber": "fieldsFromDeviceNumber",
+    "validate": "validateDevTFields",
+    "validateRange": "validateDevTRange",
+}
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -190,7 +346,11 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
-def validate_repo(repo_root: Path) -> list[str]:
+def _exported_pub_function_names(text: str) -> list[str]:
+    return PUB_FN_PATTERN.findall(text)
+
+
+def _validate_required_markers(repo_root: Path) -> list[str]:
     issues: list[str] = []
     for relative_path, markers in REQUIRED_MARKERS.items():
         path = repo_root / relative_path
@@ -205,9 +365,101 @@ def validate_repo(repo_root: Path) -> list[str]:
     return issues
 
 
+def _validate_required_functions(repo_root: Path) -> tuple[list[str], dict[Path, set[str]]]:
+    issues: list[str] = []
+    exported_by_path: dict[Path, set[str]] = {}
+    for relative_path, required_functions in REQUIRED_FUNCTIONS.items():
+        path = repo_root / relative_path
+        if not path.is_file():
+            continue
+        exported = _exported_pub_function_names(_read(path))
+        exported_counts = collections.Counter(exported)
+        exported_set = set(exported)
+        exported_by_path[relative_path] = exported_set
+        for function_name in sorted(
+            name for name, count in exported_counts.items() if count > 1
+        ):
+            issues.append(
+                f"duplicate {relative_path.as_posix()} pub fn: {function_name}"
+            )
+        for function_name in required_functions:
+            if function_name not in exported_set:
+                issues.append(
+                    f"missing {relative_path.as_posix()} exported pub fn: {function_name}"
+                )
+    return issues, exported_by_path
+
+
+def _validate_alignment(
+    exported_by_path: dict[Path, set[str]],
+    source_path: Path,
+    target_path: Path,
+    mapping: dict[str, str],
+) -> list[str]:
+    issues: list[str] = []
+    source_exported = exported_by_path.get(source_path, set())
+    target_exported = exported_by_path.get(target_path, set())
+    for source_name, target_name in mapping.items():
+        if source_name not in source_exported:
+            continue
+        if target_name not in target_exported:
+            issues.append(
+                "missing aligned relay function: "
+                f"{target_path.as_posix()}::{target_name} "
+                f"for {source_path.as_posix()}::{source_name}"
+            )
+    return issues
+
+
+def validate_repo(repo_root: Path) -> list[str]:
+    issues = _validate_required_markers(repo_root)
+    function_issues, exported_by_path = _validate_required_functions(repo_root)
+    issues.extend(function_issues)
+    issues.extend(
+        _validate_alignment(
+            exported_by_path,
+            UAPI_VERSION_PATH,
+            EXPORT_SHIM_PATH,
+            UAPI_VERSION_EXPORT_SHIM_ALIGNMENT,
+        )
+    )
+    issues.extend(
+        _validate_alignment(
+            exported_by_path,
+            UAPI_VERSION_PATH,
+            BINDING_HEADER_FAMILY_PATH,
+            UAPI_VERSION_HEADER_FAMILY_ALIGNMENT,
+        )
+    )
+    issues.extend(
+        _validate_alignment(
+            exported_by_path,
+            UAPI_DEV_T_PATH,
+            EXPORT_SHIM_PATH,
+            UAPI_DEV_T_EXPORT_SHIM_ALIGNMENT,
+        )
+    )
+    issues.extend(
+        _validate_alignment(
+            exported_by_path,
+            UAPI_DEV_T_PATH,
+            BINDING_HEADER_FAMILY_PATH,
+            UAPI_DEV_T_HEADER_FAMILY_ALIGNMENT,
+        )
+    )
+    return issues
+
+
 def _populate_repo(root: Path) -> None:
     for relative_path, markers in REQUIRED_MARKERS.items():
-        _write(root / relative_path, "\n".join(markers) + "\n")
+        lines = list(markers)
+        existing = "\n".join(lines) + "\n"
+        if relative_path in REQUIRED_FUNCTIONS:
+            for function_name in REQUIRED_FUNCTIONS[relative_path]:
+                signature = f"pub fn {function_name}("
+                if signature not in existing:
+                    lines.append(f"pub fn {function_name}() void {{}}")
+        _write(root / relative_path, "\n".join(lines) + "\n")
 
 
 def _expect_missing_marker(root: Path, relative_path: Path, marker: str, message: str) -> int:
@@ -215,6 +467,42 @@ def _expect_missing_marker(root: Path, relative_path: Path, marker: str, message
     _write(path, _read(path).replace(marker, "", 1))
     issues = validate_repo(root)
     expected = f"missing {relative_path.as_posix()} marker: {marker}"
+    if expected not in issues:
+        print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=fail")
+        print(message)
+        return 1
+    return 0
+
+
+def _expect_missing_pub_fn(
+    root: Path, relative_path: Path, function_name: str, message: str
+) -> int:
+    path = root / relative_path
+    text = _read(path)
+    stub = f"pub fn {function_name}() void {{}}\n"
+    if stub not in text:
+        print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=fail")
+        print(f"self-test stub missing for {relative_path.as_posix()}::{function_name}")
+        return 1
+    _write(path, text.replace(stub, "", 1))
+    issues = validate_repo(root)
+    expected = f"missing {relative_path.as_posix()} exported pub fn: {function_name}"
+    if expected not in issues:
+        print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=fail")
+        print(message)
+        return 1
+    return 0
+
+
+def _expect_duplicate_pub_fn(
+    root: Path, relative_path: Path, function_name: str, message: str
+) -> int:
+    path = root / relative_path
+    text = _read(path)
+    stub = f"pub fn {function_name}() void {{}}\n"
+    _write(path, text + stub)
+    issues = validate_repo(root)
+    expected = f"duplicate {relative_path.as_posix()} pub fn: {function_name}"
     if expected not in issues:
         print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=fail")
         print(message)
@@ -306,8 +594,54 @@ def run_self_test() -> int:
             if _expect_missing_marker(root, relative_path, marker, message) != 0:
                 return 1
 
+        function_cases = (
+            (
+                UAPI_VERSION_PATH,
+                "current",
+                "expected missing UAPI version current helper to fail validation",
+            ),
+            (
+                UAPI_DEV_T_PATH,
+                "fieldsFromDeviceNumber",
+                "expected missing UAPI dev_t decode helper to fail validation",
+            ),
+            (
+                EXPORT_SHIM_PATH,
+                "deviceFieldsAreValid",
+                "expected missing export shim dev_t validity relay to fail validation",
+            ),
+            (
+                BINDING_HEADER_FAMILY_PATH,
+                "currentVersion",
+                "expected missing header-family currentVersion relay to fail validation",
+            ),
+        )
+
+        for relative_path, function_name, message in function_cases:
+            _populate_repo(root)
+            if _expect_missing_pub_fn(root, relative_path, function_name, message) != 0:
+                return 1
+
+        duplicate_cases = (
+            (
+                EXPORT_SHIM_PATH,
+                "validateDeviceRange",
+                "expected duplicate export shim dev_t range relay to fail validation",
+            ),
+            (
+                BINDING_HEADER_FAMILY_PATH,
+                "currentVersion",
+                "expected duplicate header-family currentVersion relay to fail validation",
+            ),
+        )
+
+        for relative_path, function_name, message in duplicate_cases:
+            _populate_repo(root)
+            if _expect_duplicate_pub_fn(root, relative_path, function_name, message) != 0:
+                return 1
+
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print(f"PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES={1 + len(cases)}")
+    print(f"PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES={1 + len(cases) + len(function_cases) + len(duplicate_cases)}")
     return 0
 
 
