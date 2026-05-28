@@ -21,8 +21,17 @@ const Fixture = struct {
         tail_zero_clamped_next: usize,
         tail_and_clamped_first: usize,
         tail_and_clamped_next: usize,
+        tail_andnot_clamped_first: usize,
+        tail_andnot_clamped_next: usize,
+        tail_andnot_clamped_exhausted: usize,
         tail_clamped_last: usize,
         tail_clamped_empty_last: usize,
+        tail_clump_first: usize,
+        tail_clump_first_value: u8,
+        tail_clump_next: usize,
+        tail_clump_next_value: u8,
+        tail_clump_exhausted: usize,
+        tail_clump_exhausted_value: u8,
     },
 };
 
@@ -108,6 +117,14 @@ test "find_bit fixture covers boundary and tail clamp behavior" {
         ~@as(find_bit.Word, 0),
         find_bit.lastWordMask(tail_nbits) & ~(@as(find_bit.Word, 1) << 4),
     };
+    const tail_andnot_lhs = [_]find_bit.Word{
+        0,
+        (@as(find_bit.Word, 1) << 1) | (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 9),
+    };
+    const tail_andnot_rhs = [_]find_bit.Word{
+        0,
+        @as(find_bit.Word, 1) << 1,
+    };
     const tail_empty_last_map = [_]find_bit.Word{
         0,
         @as(find_bit.Word, 1) << 10,
@@ -137,6 +154,18 @@ test "find_bit fixture covers boundary and tail clamp behavior" {
         find_bit.findNextAndBit(&tail_clamp_map, &tail_clamp_map, tail_nbits, bits_per_long + 4),
     );
     try std.testing.expectEqual(
+        fixture.tail_andnot_clamped_first,
+        find_bit.findFirstAndNotBit(&tail_andnot_lhs, &tail_andnot_rhs, tail_nbits),
+    );
+    try std.testing.expectEqual(
+        fixture.tail_andnot_clamped_next,
+        find_bit.findNextAndNotBit(&tail_andnot_lhs, &tail_andnot_rhs, tail_nbits, bits_per_long + 2),
+    );
+    try std.testing.expectEqual(
+        fixture.tail_andnot_clamped_exhausted,
+        find_bit.findNextAndNotBit(&tail_andnot_lhs, &tail_andnot_rhs, tail_nbits, bits_per_long + 4),
+    );
+    try std.testing.expectEqual(
         fixture.tail_clamped_last,
         find_bit.findLastBit(&tail_clamp_map, tail_nbits),
     );
@@ -144,4 +173,29 @@ test "find_bit fixture covers boundary and tail clamp behavior" {
         fixture.tail_clamped_empty_last,
         find_bit.findLastBit(&tail_empty_last_map, tail_nbits),
     );
+
+    const tail_clump_map = [_]find_bit.Word{
+        0,
+        (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 6),
+    };
+    var clump: u8 = 0;
+    try std.testing.expectEqual(
+        fixture.tail_clump_first,
+        find_bit.findFirstClump8(&clump, &tail_clump_map, tail_nbits),
+    );
+    try std.testing.expectEqual(fixture.tail_clump_first_value, clump);
+
+    clump = 0;
+    try std.testing.expectEqual(
+        fixture.tail_clump_next,
+        find_bit.findNextClump8(&clump, &tail_clump_map, tail_nbits, bits_per_long),
+    );
+    try std.testing.expectEqual(fixture.tail_clump_next_value, clump);
+
+    clump = fixture.tail_clump_exhausted_value;
+    try std.testing.expectEqual(
+        fixture.tail_clump_exhausted,
+        find_bit.findNextClump8(&clump, &tail_clump_map, tail_nbits, tail_nbits),
+    );
+    try std.testing.expectEqual(fixture.tail_clump_exhausted_value, clump);
 }
