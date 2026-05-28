@@ -15,65 +15,129 @@ SHARED_BUILD_PATH = Path("zigux/tests/build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 ATOMIC_HELPER_PATH = Path("zigux/helpers/atomic.zig")
 BARRIER_HELPER_PATH = Path("zigux/helpers/barrier.zig")
+LAYOUT_ASSERT_HELPER_PATH = Path("zigux/helpers/layout_assert.zig")
 MMIO_HELPER_PATH = Path("zigux/helpers/mmio.zig")
+UNSAFE_POLICY_HELPER_PATH = Path("zigux/helpers/unsafe_policy.zig")
+NARROW_HELPER_PATH = Path("zigux/unsafe/narrow.zig")
 
 REQUIRED_MARKERS = {
     REPLAY_PATH: (
         'const atomic = @import("atomic");',
         'const barrier = @import("barrier");',
+        'const layout_assert = @import("layout_assert");',
         'const mmio = @import("mmio");',
+        'const unsafe_policy = @import("unsafe_policy");',
+        'const narrow = @import("narrow");',
+        'test "phase3 low-level wrappers keep helper-local MMIO layout assertions explicit" {',
+        'try layout_assert.assertMmioRangeLayout();',
+        'test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across shared handoff" {',
+        'test "phase3 low-level wrappers keep raw-pointer bridge scope gates explicit beside MMIO policy gates" {',
+        'test "phase3 low-level wrappers keep raw-pointer bridge interop-policy helpers explicit" {',
         'test "phase3 low-level wrappers keep MMIO range helpers and width aliases explicit beside raw bridge gates" {',
+        'const direct_ptr = try narrow.pointerAtInteropPolicyBytes(',
+        'const scoped_range = try mmio.rangeScoped(base_addr, 16, 4, .volatile_mmio);',
+        'try std.testing.expect(unsafe_policy.permitsRawPointerBridgeByte(raw_scope));',
+        'try mmio.write64InteropPolicyBytes(base_addr, 8, 0x0123_4567_89AB_CDEF, mmio_scope, 0);',
         'test "phase3 low-level wrappers keep atomic order-gate failures explicit before MMIO publish" {',
     ),
     FOCUSED_BUILD_PATH: (
-        '.root_source_file = b.path("phase3_low_level_wrappers.zig"),',
-        'root_module.addImport("atomic", atomic);',
-        'root_module.addImport("barrier", barrier);',
-        'root_module.addImport("mmio", mmio);',
+        '.root_source_file = b.path("../helpers/atomic.zig"),',
+        '.root_source_file = b.path("../helpers/barrier.zig"),',
+        '.root_source_file = b.path("../helpers/layout_assert.zig"),',
+        '.root_source_file = b.path("../helpers/mmio.zig"),',
+        '.root_source_file = b.path("../helpers/unsafe_policy.zig"),',
+        '.root_source_file = b.path("../unsafe/narrow.zig"),',
+        'layout_assert.addImport("abi_bindings", abi_bindings);',
+        'narrow.addImport("abi_bindings", abi_bindings);',
+        'unsafe_policy.addImport("narrow", narrow);',
+        'mmio.addImport("unsafe_policy", unsafe_policy);',
+        'root_module.addImport("layout_assert", layout_assert);',
+        'root_module.addImport("unsafe_policy", unsafe_policy);',
+        'root_module.addImport("narrow", narrow);',
         '"phase3-low-level-wrappers-test"',
     ),
     SHARED_BUILD_PATH: (
-        "const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);",
+        'fn addPhase3LowLevelWrappers(',
         '"phase3-low-level-wrappers"',
-        "phase3_test_step.dependOn(&phase3_low_level_wrappers.step);",
+        '"phase3-test"',
+        'phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);',
+        'phase3_test_step.dependOn(&phase3_low_level_wrappers.step);',
     ),
     MAKEFILE_PATH: (
-        "phase3-low-level-wrappers:",
-        "phase3-low-level-wrappers-test:",
-        "$(ZIG) build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
-        "$(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+        'phase3-low-level-wrappers:',
+        'phase3-low-level-wrappers-test:',
+        '$(ZIG) build phase3-low-level-wrappers --build-file zigux/tests/build.zig',
+        '$(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig',
     ),
     ATOMIC_HELPER_PATH: (
-        "pub fn validateCompareExchangeOrders(",
-        "pub fn load(comptime T: type, ptr: *const T, comptime order: Ordering) LoadError!T {",
-        "pub fn fetchMax(",
+        'pub fn validateCompareExchangeOrders(',
+        'pub fn load(comptime T: type, ptr: *const T, comptime order: Ordering) LoadError!T {',
+        'pub fn strongestAllowedFailureOrder(success: Ordering) ?Ordering {',
+        'pub fn weakestAllowedFailureOrder(success: Ordering) ?Ordering {',
+        'pub fn fetchMax(',
     ),
     BARRIER_HELPER_PATH: (
-        "pub fn fence(comptime order: Ordering) FenceError!void {",
-        "pub fn storeLoad() void {",
+        'pub fn fence(comptime order: Ordering) FenceError!void {',
+        'pub fn validateFenceOrder(comptime order: Ordering) FenceError!void {',
+        'pub fn storeLoad() void {',
         'test "phase3 barrier wrappers keep seq-cst aliases aligned" {',
     ),
+    LAYOUT_ASSERT_HELPER_PATH: (
+        'pub const MmioRange = extern struct {',
+        'pub fn assertMmioRangeLayout() LayoutError!void {',
+    ),
     MMIO_HELPER_PATH: (
-        "pub fn rangeScoped(base_addr: usize, length: u32, stride: u32, scope: abi.UnsafeScope) PolicyError!MmioRange {",
-        "pub fn constPointerAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!*const volatile T {",
-        "pub fn pointerAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!*volatile T {",
-        "pub fn readAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!T {",
-        "pub fn writeAt(comptime T: type, range: MmioRange, byte_offset: usize, value: T) PolicyError!void {",
-        "pub fn exchangeAt(comptime T: type, range: MmioRange, byte_offset: usize, value: T) PolicyError!T {",
-        "pub fn writeMaskedAt(",
+        'pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {',
+        'pub fn requireInteropPolicy(policy: abi.InteropPolicy) PolicyError!void {',
+        'pub fn rangeScoped(base_addr: usize, length: u32, stride: u32, scope: abi.UnsafeScope) PolicyError!MmioRange {',
+        'pub fn rangeInteropPolicy(base_addr: usize, length: u32, stride: u32, policy: abi.InteropPolicy) PolicyError!MmioRange {',
+        'pub fn rangeInteropPolicyBytes(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8, reserved: u8) PolicyError!MmioRange {',
+        'pub fn rangeInteropPolicyByte(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8) PolicyError!MmioRange {',
+        'pub fn readInteropPolicy(comptime T: type, policy: abi.InteropPolicy, ptr: *const volatile T) PolicyError!T {',
+        'pub fn exchangeInteropPolicyBytes(',
+        'pub fn read64InteropPolicyBytes(base_addr: usize, byte_offset: usize, unsafe_scope: u8, reserved: u8) PolicyError!u64 {',
+        'pub fn constPointerAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!*const volatile T {',
+        'pub fn pointerAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!*volatile T {',
+        'pub fn readAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!T {',
+        'pub fn writeAt(comptime T: type, range: MmioRange, byte_offset: usize, value: T) PolicyError!void {',
+        'pub fn exchangeAt(comptime T: type, range: MmioRange, byte_offset: usize, value: T) PolicyError!T {',
+        'pub fn writeMaskedAt(',
         'test "phase3 mmio helper keeps range-bound accessors inside the blessed MMIO window" {',
         'test "phase3 mmio helper rejects overflowing range windows before blessing unsafe access" {',
+    ),
+    UNSAFE_POLICY_HELPER_PATH: (
+        'pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {',
+        'pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {',
+        'pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {',
+        'pub fn requireVolatileMmioInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {',
+        'pub fn permitsRawPointerBridgeByte(scope: u8) bool {',
+        'pub fn requireRawPointerBridgeByte(scope: u8) UnsafeScopeError!void {',
+    ),
+    NARROW_HELPER_PATH: (
+        'pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag {',
+        'pub fn permitsRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) bool {',
+        'pub fn pointerAtInteropPolicyBytes(comptime T: type, address: usize, byte_len: usize, unsafe_scope: u8, reserved: u8) RawPointerBridgeError!*align(1) T {',
+        'pub fn pointerAtInteropPolicy(comptime T: type, address: usize, byte_len: usize, policy: abi.InteropPolicy) RawPointerBridgeError!*align(1) T {',
+        'pub fn constPointerAtInteropPolicyBytes(comptime T: type, address: usize, unsafe_scope: u8, reserved: u8) RawPointerBridgeError!*align(1) const T {',
+        'pub fn sliceAtInteropPolicy(comptime T: type, address: usize, len: usize, policy: abi.InteropPolicy) RawPointerBridgeError![]align(1) T {',
+        'pub fn writeValueAtInteropPolicyBytes(comptime T: type, address: usize, value: T, unsafe_scope: u8, reserved: u8) RawPointerBridgeError!void {',
+        'pub fn exchangeValueAtInteropPolicy(comptime T: type, address: usize, byte_len: usize, value: T, policy: abi.InteropPolicy) RawPointerBridgeError!T {',
+        'pub fn exchangeValueAtByte(comptime T: type, address: usize, byte_len: usize, value: T, scope: u8) RawPointerBridgeError!T {',
     ),
 }
 
 SELF_TEST_CASES = (
-    (REPLAY_PATH, 'const mmio = @import("mmio");'),
-    (FOCUSED_BUILD_PATH, '"phase3-low-level-wrappers-test"'),
-    (SHARED_BUILD_PATH, "phase3_test_step.dependOn(&phase3_low_level_wrappers.step);"),
-    (MAKEFILE_PATH, "phase3-low-level-wrappers-test:"),
-    (ATOMIC_HELPER_PATH, "pub fn fetchMax("),
-    (BARRIER_HELPER_PATH, "pub fn storeLoad() void {"),
-    (MMIO_HELPER_PATH, "pub fn readAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!T {"),
+    (REPLAY_PATH, 'const layout_assert = @import("layout_assert");'),
+    (REPLAY_PATH, 'const narrow = @import("narrow");'),
+    (REPLAY_PATH, 'test "phase3 low-level wrappers keep MMIO range helpers and width aliases explicit beside raw bridge gates" {'),
+    (FOCUSED_BUILD_PATH, 'root_module.addImport("layout_assert", layout_assert);'),
+    (FOCUSED_BUILD_PATH, 'root_module.addImport("unsafe_policy", unsafe_policy);'),
+    (FOCUSED_BUILD_PATH, 'root_module.addImport("narrow", narrow);'),
+    (SHARED_BUILD_PATH, 'phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);'),
+    (LAYOUT_ASSERT_HELPER_PATH, 'pub fn assertMmioRangeLayout() LayoutError!void {'),
+    (MMIO_HELPER_PATH, 'pub fn readAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!T {'),
+    (UNSAFE_POLICY_HELPER_PATH, 'pub fn permitsRawPointerBridgeByte(scope: u8) bool {'),
+    (NARROW_HELPER_PATH, 'pub fn pointerAtInteropPolicyBytes(comptime T: type, address: usize, byte_len: usize, unsafe_scope: u8, reserved: u8) RawPointerBridgeError!*align(1) T {'),
 )
 
 
@@ -215,6 +279,10 @@ def main() -> int:
     print(f"validated {args.repo_root / FOCUSED_BUILD_PATH}")
     print(f"validated {args.repo_root / SHARED_BUILD_PATH}")
     print(f"validated {args.repo_root / MAKEFILE_PATH}")
+    print(f"validated {args.repo_root / LAYOUT_ASSERT_HELPER_PATH}")
+    print(f"validated {args.repo_root / MMIO_HELPER_PATH}")
+    print(f"validated {args.repo_root / UNSAFE_POLICY_HELPER_PATH}")
+    print(f"validated {args.repo_root / NARROW_HELPER_PATH}")
     return 0
 
 
