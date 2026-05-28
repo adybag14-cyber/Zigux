@@ -1044,3 +1044,31 @@ test "atomic64 diff wrapper keeps the local perf-baseline survey aligned with th
     try expectMarker(perf_survey_source, "seven monotonic samples");
     try expectMarker(perf_survey_source, "shared CI perf promotion");
 }
+
+test "atomic64 diff wrapper keeps its own source inventory explicit" {
+    try std.testing.expectEqual(@as(usize, 27), countOccurrences(atomic64_diff_source, "\ntest \""));
+    try expectMarker(
+        atomic64_diff_source,
+        "test \"atomic64 diff canonical wrapper keeps the shipped runtime gate wired in\" {",
+    );
+    try expectMarker(
+        atomic64_diff_source,
+        "test \"atomic64 diff wrapper keeps the shared gate-evidence packet explicit\" {",
+    );
+    try expectMarker(
+        atomic64_diff_source,
+        "test \"atomic64 diff wrapper pins the current bounded runtime case groups\" {",
+    );
+    try expectMarker(
+        atomic64_diff_source,
+        "test \"atomic64 diff wrapper executes the bounded threshold replay through the shipped runtime gate\" {",
+    );
+    try expectMarker(
+        atomic64_diff_source,
+        "test \"atomic64 diff wrapper keeps the local perf-baseline survey aligned with threshold replay evidence\" {",
+    );
+    try expectMarker(
+        atomic64_diff_source,
+        "try std.testing.expectEqual(@as(usize, 27), countOccurrences(atomic64_diff_source, \"\\ntest \\\"\"));",
+    );
+}
