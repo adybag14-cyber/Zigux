@@ -1,6 +1,6 @@
 # Phase 2 Closure
 
-This note keeps the shared Phase 2 closure packet parked while making the current `genksyms` evidence explicit and replayable from directly readable `master` surfaces.
+This note keeps the shared Phase 2 closure packet parked while making the current `genksyms` evidence and shared repo-tooling reminder surfaces explicit and replayable from directly readable `master` surfaces.
 
 ## Status
 
@@ -23,6 +23,20 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
 - `zig test scripts/zigux/genksyms.zig`
 - `make -C zigux phase2-genksyms`
 - `PHASE2_CURRENT_GENKSYMS_PROCESS_OUTPUT_PACKET=zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json,zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json,zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json,zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json,zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json,zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json`
+
+## Current Shared Repo-Tooling Evidence
+
+- `scripts/zigux/check-phase2-tool-manifest.py`, `scripts/zigux/check-phase2-bootstrap-workflow-routes.py`, and `scripts/zigux/check-phase2-artifact-tools-manifest.py` keep the shared manifest, workflow-route, and artifact-support packet explicit from current `master`.
+- `scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`, `scripts/zigux/check-phase2-cross.py`, `zigux/tests/fixtures/phase2_cross_targets.json`, `scripts/zigux/check-phase2-fixdep-gate.py`, and `scripts/zigux/check-fixdep-diff.py` keep the helper-local kconfig, direct cross-route, and fixdep governance/parity packet directly replayable beside the closure note.
+- `scripts/zigux/artifact_diff.py` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair instead of falling back into repo-reality-gap wording.
+- `python3 scripts/zigux/check-phase2-tool-manifest.py`
+- `python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py`
+- `python3 scripts/zigux/check-phase2-artifact-tools-manifest.py`
+- `python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`
+- `python3 scripts/zigux/check-phase2-cross.py`
+- `python3 scripts/zigux/check-phase2-fixdep-gate.py`
+- `python3 scripts/zigux/check-fixdep-diff.py`
+- `PHASE2_SHARED_TOOLING_CHECKERS=python3 scripts/zigux/check-phase2-tool-manifest.py,python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py,python3 scripts/zigux/check-phase2-artifact-tools-manifest.py,python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py,python3 scripts/zigux/check-phase2-cross.py,python3 scripts/zigux/check-phase2-fixdep-gate.py,python3 scripts/zigux/check-fixdep-diff.py`
 
 ## Shared Replay Routes
 
