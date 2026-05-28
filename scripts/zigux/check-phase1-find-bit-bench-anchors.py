@@ -12,6 +12,7 @@ FIND_BIT = ROOT / "tools" / "lib" / "find_bit.zig"
 
 REQUIRED_TEST_MARKERS = {
     "andnot_gap_test": 'test "find first and next set bits across words, with andnot gaps explicit" {',
+    "same_word_start_mask_test": 'test "single-word next scans honor start masks" {',
     "boundary_head_test": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start" {',
     "boundary_tail_test": 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start" {',
     "single_word_tail_test": 'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start" {',
@@ -50,6 +51,12 @@ REQUIRED_SOURCE_COUNT_MARKERS = {
 REQUIRED_SOURCE_EXACT_MARKERS = {
     "find_first_andnot_low_level_alias": "try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), _find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));",
     "find_first_andnot_gap": "findFirstAndNotBit(&andnot_lhs, &andnot_rhs, bits_per_long * 3)",
+    "find_same_word_set_first": "try std.testing.expectEqual(@as(usize, 7), findNextBit(&set_bits, nbits, 3));",
+    "find_same_word_set_second": "try std.testing.expectEqual(@as(usize, 11), findNextBit(&set_bits, nbits, 8));",
+    "find_same_word_zero_first": "try std.testing.expectEqual(@as(usize, 4), findNextZeroBit(&zero_bits, nbits, 1));",
+    "find_same_word_zero_second": "try std.testing.expectEqual(@as(usize, 9), findNextZeroBit(&zero_bits, nbits, 5));",
+    "find_same_word_and_first": "try std.testing.expectEqual(@as(usize, 9), findNextAndBit(&and_lhs, &and_rhs, nbits, 2));",
+    "find_same_word_and_second": "try std.testing.expectEqual(@as(usize, 12), findNextAndBit(&and_lhs, &and_rhs, nbits, 10));",
     "find_last_exact_word_boundary_first": "try std.testing.expectEqual(@as(usize, boundary), findLastBit(&bitmap, nbits));",
     "find_last_exact_word_boundary_clear": "bitmap[0] = 0;",
     "find_last_tail_single_word": "try std.testing.expectEqual(@as(usize, 4), findLastBit(&single_word, single_word_nbits));",
@@ -162,6 +169,14 @@ def build_sample_source(
     lines = [
         'test "find first and next set bits across words, with andnot gaps explicit" {',
         "    _ = findFirstAndNotBit(&andnot_lhs, &andnot_rhs, bits_per_long * 3);",
+        "}",
+        'test "single-word next scans honor start masks" {',
+        "    try std.testing.expectEqual(@as(usize, 7), findNextBit(&set_bits, nbits, 3));",
+        "    try std.testing.expectEqual(@as(usize, 11), findNextBit(&set_bits, nbits, 8));",
+        "    try std.testing.expectEqual(@as(usize, 4), findNextZeroBit(&zero_bits, nbits, 1));",
+        "    try std.testing.expectEqual(@as(usize, 9), findNextZeroBit(&zero_bits, nbits, 5));",
+        "    try std.testing.expectEqual(@as(usize, 9), findNextAndBit(&and_lhs, &and_rhs, nbits, 2));",
+        "    try std.testing.expectEqual(@as(usize, 12), findNextAndBit(&and_lhs, &and_rhs, nbits, 10));",
         "}",
         'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start" {',
         "    _ = findNextBit(&set_map, nbits, boundary);",
@@ -348,7 +363,7 @@ def run_self_test() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate that the live find_bit helper still carries the current bench-adjacent edge anchors, including the landed andnot, tail-clump, byte-boundary clump isolation, exact-word-boundary last-bit, and tail-word next-skip paths."
+        description="Validate that the live find_bit helper still carries the current bench-adjacent same-word start-mask, inclusive-boundary, tail-clamp, and byte-clump anchors directly in tools/lib/find_bit.zig."
     )
     parser.add_argument("--self-test", action="store_true", help="Run self-test cases only.")
     args = parser.parse_args()
