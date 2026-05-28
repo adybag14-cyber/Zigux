@@ -12,10 +12,13 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
+import tempfile
 
 MARKER = "PHASE12_CHECK_PACKET=virtio_scsi_packet"
+SELF_TEST_MARKER = "PHASE12_VIRTIO_SCSI_PACKET_SELF_TEST"
 
 SLICE_PATH = "Documentation/zigux/phase12-virtio-scsi-slice.md"
 SURVEY_NOTE_PATH = "Documentation/zigux/phase12-virtio-scsi-survey.md"
@@ -198,6 +201,11 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
 def require_markers(errors: list[str], rel_path: str, text: str, markers: list[str]) -> None:
     for marker in markers:
         if marker not in text:
@@ -311,10 +319,229 @@ def validate(root: Path) -> list[str]:
     return errors
 
 
+def fixture_manifest() -> dict[str, object]:
+    return {
+        "lane_key": "P12-L09",
+        "phase": "Phase 12",
+        "surveyed_commit": "unresolved_on_master",
+        "verified_on": "2026-05-24",
+        "anchor": "drivers/scsi/virtio_scsi.c",
+        "fixture_kind": "rollback_evidence_presence_manifest",
+        "source_manifest": "zigux/tests/phase12_virtio_scsi_manifest.json",
+        "scope": "driver-local starter and replay gates are absent while rollback evidence remains present",
+        "required_paths": EXPECTED_REQUIRED_PATHS,
+        "expected_absent_paths": EXPECTED_ABSENT,
+        "notes": [
+            "rollback evidence only",
+            "survey-build replay remains present",
+        ],
+    }
+
+
+def survey_manifest() -> dict[str, object]:
+    return {
+        "lane_key": "P12-L09",
+        "phase": "Phase 12",
+        "surveyed_commit": "unresolved_on_master",
+        "verified_on": "2026-05-24",
+        "anchor": "drivers/scsi/virtio_scsi.c",
+        "roadmap_destinations": [
+            "drivers/scsi/virtio_scsi.zig",
+            "zigux/tests/phase12_virtio_scsi.zig",
+        ],
+        "survey_summary": EXPECTED_SUMMARY_FLAGS,
+        "roadmap_gap_check": {
+            "dma_safe_abstractions": {
+                "required_by_roadmap": True,
+                "status": EXPECTED_ROADMAP_GAP_STATUSES["dma_safe_abstractions"],
+                "current_surface": "current master no longer serves a driver-local starter",
+                "blocked_by": "starter absent on current master",
+            },
+            "queueing_correctness": {
+                "required_by_roadmap": True,
+                "status": EXPECTED_ROADMAP_GAP_STATUSES["queueing_correctness"],
+                "current_surface": "support-bundle evidence only",
+                "blocked_by": "no live queue planner",
+            },
+            "throughput_and_recovery_parity": {
+                "required_by_roadmap": True,
+                "status": EXPECTED_ROADMAP_GAP_STATUSES["throughput_and_recovery_parity"],
+                "current_surface": "archival and survey evidence",
+                "blocked_by": "no runtime recovery replay",
+            },
+            "segmented_rollout": {
+                "required_by_roadmap": True,
+                "status": EXPECTED_ROADMAP_GAP_STATUSES["segmented_rollout"],
+                "current_surface": "survey packet and fallback present",
+                "blocked_by": "repeated rollback gate still absent",
+            },
+        },
+        "gaps": [
+            {
+                "id": "phase12-virtio-scsi-driver-starter",
+                "status": EXPECTED_GAP_STATUSES["phase12-virtio-scsi-driver-starter"],
+                "kind": "driver",
+                "zigux_destination": "drivers/scsi/virtio_scsi.zig",
+                "why_now": "current master no longer serves the direct starter",
+            },
+            {
+                "id": "phase12-virtio-scsi-direct-replay",
+                "status": EXPECTED_GAP_STATUSES["phase12-virtio-scsi-direct-replay"],
+                "kind": "test",
+                "zigux_destination": "zigux/tests/phase12_virtio_scsi.zig",
+                "why_now": "direct replay remains absent on current master",
+            },
+            {
+                "id": "phase12-virtio-scsi-syntax-lab",
+                "status": EXPECTED_GAP_STATUSES["phase12-virtio-scsi-syntax-lab"],
+                "kind": "test",
+                "zigux_destination": "zigux/tests/phase12_virtio_scsi_syntax_lab.zig",
+                "why_now": "syntax lab has not returned on current master",
+            },
+            {
+                "id": "phase12-virtio-scsi-repeated-replan-gate",
+                "status": EXPECTED_GAP_STATUSES["phase12-virtio-scsi-repeated-replan-gate"],
+                "kind": "test",
+                "zigux_destination": "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig",
+                "why_now": "replan gate remains absent",
+            },
+            {
+                "id": "phase12-virtio-scsi-repeated-rollback-gate",
+                "status": EXPECTED_GAP_STATUSES["phase12-virtio-scsi-repeated-rollback-gate"],
+                "kind": "test",
+                "zigux_destination": "zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig",
+                "why_now": "repeated rollback gate remains absent",
+            },
+            {
+                "id": "phase12-build-gate",
+                "status": EXPECTED_GAP_STATUSES["phase12-build-gate"],
+                "kind": "support",
+                "zigux_destination": "zigux/tests/phase12_build.zig",
+                "why_now": "shared support bundle keeps survey-gate tests reviewable",
+            },
+            {
+                "id": "phase12-make-target",
+                "status": EXPECTED_GAP_STATUSES["phase12-make-target"],
+                "kind": "support",
+                "zigux_destination": "zigux/Makefile",
+                "why_now": "shared make targets remain present",
+            },
+            {
+                "id": "phase12-virtio-scsi-survey-build-route",
+                "status": EXPECTED_GAP_STATUSES["phase12-virtio-scsi-survey-build-route"],
+                "kind": "build",
+                "zigux_destination": "zigux/tests/phase12_virtio_scsi_survey_build.zig",
+                "why_now": "dedicated survey-build replay remains present",
+            },
+            {
+                "id": "phase12-virtio-scsi-survey-gate",
+                "status": EXPECTED_GAP_STATUSES["phase12-virtio-scsi-survey-gate"],
+                "kind": "test",
+                "zigux_destination": "zigux/tests/phase12_virtio_scsi_survey.zig",
+                "why_now": "survey gate still fails closed on packet drift",
+            },
+            {
+                "id": "phase12-virtio-scsi-survey-note",
+                "status": EXPECTED_GAP_STATUSES["phase12-virtio-scsi-survey-note"],
+                "kind": "docs",
+                "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-survey.md",
+                "why_now": "survey note keeps rollback evidence aligned",
+            },
+            {
+                "id": "phase12-virtio-scsi-runtime-request-flow",
+                "status": EXPECTED_GAP_STATUSES["phase12-virtio-scsi-runtime-request-flow"],
+                "kind": "driver",
+                "zigux_destination": "drivers/scsi/virtio_scsi.zig",
+                "why_now": "runtime request flow still needs returned dma-safe scsi host surfaces",
+            },
+        ],
+    }
+
+
+def fixture_text(title: str, markers: list[str]) -> str:
+    lines = [title, ""]
+    lines.extend(f"- {marker}" for marker in markers)
+    lines.append("")
+    return "\n".join(lines)
+
+
+def write_fixture_root(root: Path) -> None:
+    write_text(root / SLICE_PATH, fixture_text("# Phase 12 virtio_scsi Slice", TEXT_MARKERS[SLICE_PATH]))
+    write_text(root / SURVEY_NOTE_PATH, fixture_text("# Phase 12 virtio_scsi Survey", TEXT_MARKERS[SURVEY_NOTE_PATH]))
+    write_text(root / FALLBACK_CATALOG_PATH, fixture_text("# Phase 12 virtio_scsi Raw GitHub Fallback Catalog", TEXT_MARKERS[FALLBACK_CATALOG_PATH]))
+    write_text(root / SURVEY_GATE_PATH, "\n".join(TEXT_MARKERS[SURVEY_GATE_PATH]) + "\n")
+    write_text(root / SURVEY_BUILD_PATH, "\n".join(TEXT_MARKERS[SURVEY_BUILD_PATH]) + "\n")
+    write_text(root / PHASE12_BUILD_PATH, "\n".join(TEXT_MARKERS[PHASE12_BUILD_PATH]) + "\n")
+    write_text(root / MAKEFILE_PATH, "\n".join(TEXT_MARKERS[MAKEFILE_PATH]) + "\n")
+    write_text(
+        root / VALIDATOR_PACKET_CHECKER_PATH,
+        "#!/usr/bin/env python3\nfrom __future__ import annotations\nimport argparse\nfrom pathlib import Path\nparser = argparse.ArgumentParser()\nparser.add_argument('--root')\nargs = parser.parse_args()\nif (Path(args.root) / 'validator_should_fail').exists():\n    raise SystemExit(1)\nraise SystemExit(0)\n",
+    )
+    write_text(root / FIXTURE_MANIFEST_PATH, json.dumps(fixture_manifest(), indent=2) + "\n")
+    write_text(root / SURVEY_MANIFEST_PATH, json.dumps(survey_manifest(), indent=2) + "\n")
+
+
+def expect_failure(root: Path, expected_fragment: str) -> None:
+    errors = validate(root)
+    if not any(expected_fragment in error for error in errors):
+        raise SystemExit(f"expected failure containing {expected_fragment!r}, got {errors!r}")
+
+
+def run_self_test() -> int:
+    base = Path(tempfile.mkdtemp(prefix="phase12-virtio-scsi-packet-"))
+    try:
+        write_fixture_root(base)
+        failures = validate(base)
+        if failures:
+            raise SystemExit(f"fixture should pass: {failures!r}")
+
+        write_fixture_root(base)
+        (base / SURVEY_NOTE_PATH).unlink()
+        expect_failure(base, f"missing file: {SURVEY_NOTE_PATH}")
+
+        write_fixture_root(base)
+        write_text(base / SURVEY_NOTE_PATH, "# broken\n")
+        expect_failure(base, f"missing marker in {SURVEY_NOTE_PATH}")
+
+        write_fixture_root(base)
+        write_text(base / MAKEFILE_PATH, "phase12-smoke:\n")
+        expect_failure(base, f"missing marker in {MAKEFILE_PATH}")
+
+        write_fixture_root(base)
+        broken = survey_manifest()
+        broken["lane_key"] = "P12-LXX"
+        write_text(base / SURVEY_MANIFEST_PATH, json.dumps(broken, indent=2) + "\n")
+        expect_failure(base, "survey manifest lane_key drift")
+
+        write_fixture_root(base)
+        broken_fixture = fixture_manifest()
+        broken_fixture["required_paths"] = []
+        write_text(base / FIXTURE_MANIFEST_PATH, json.dumps(broken_fixture, indent=2) + "\n")
+        expect_failure(base, "fixture manifest required_paths drift")
+
+        write_fixture_root(base)
+        (base / "validator_should_fail").write_text("fail\n", encoding="utf-8")
+        expect_failure(base, "companion checker failed")
+
+        write_fixture_root(base)
+        write_text(base / FALLBACK_CATALOG_PATH, "# broken\n")
+        expect_failure(base, f"missing marker in {FALLBACK_CATALOG_PATH}")
+
+        print(f"{SELF_TEST_MARKER}=pass")
+        print(f"{SELF_TEST_MARKER}_CASE_COUNT=8")
+        return 0
+    finally:
+        shutil.rmtree(base, ignore_errors=True)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default=repo_root(), help="Repository root to inspect")
+    parser.add_argument("--self-test", action="store_true", help="Run fixture-backed checker self-tests")
     args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
 
     root = Path(args.root)
     errors = validate(root)
