@@ -12,6 +12,7 @@
     "zigux/helpers/idr_slot_view.zig",
     "zigux/tests/phase3_idr_slot_starter_packet.zig",
     "zigux/tests/phase3_idr_slot_starter_packet_build.zig",
+    "zigux/tests/phase3_idr_slot_build.zig",
     "scripts/zigux/check-phase3-idr-slot-starter-packet.py",
     "zigux/tests/phase3_idr_slot_dump.zig",
     "zigux/tests/phase3_idr_slot_dump_build.zig",
@@ -29,7 +30,8 @@
     "python3 scripts/zigux/check-phase3-idr-slot.py --self-test",
     "python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc",
     "zig build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig",
-    "make -C zigux phase3-idr-slot-dump"
+    "make -C zigux phase3-idr-slot-dump",
+    "zig build phase3-idr-slot --build-file zigux/tests/phase3_idr_slot_build.zig"
   ],
   "repo_reality_gaps": [],
   "next_safe_step": "keep any same-lane follow-through narrowed to shared validator alignment or ida family follow-through after rereading current master"
