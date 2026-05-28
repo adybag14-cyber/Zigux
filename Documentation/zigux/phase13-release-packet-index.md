@@ -36,6 +36,7 @@ The directly readable release-discipline bundle is currently:
 
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/check-phase13-tests-readme-alignment.py`
+- `scripts/zigux/check-phase13-roadmap-traceability.py`
 - `scripts/zigux/validate-phase13-release.py`
 - `scripts/zigux/README.md`
 
@@ -82,4 +83,4 @@ Keep these surfaces explicit as gaps instead of release-facing proof:
 
 Leave this index parked unless one of the shared release companions drifts again.
 
-If that happens, reread this index beside `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase12-phase13-release-handoff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, then land only the smallest reminder-side truthfulness repair and rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`, `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`, and `python3 scripts/zigux/validate-phase13-release.py`.
+If that happens, reread this index beside `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase12-phase13-release-handoff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, then land only the smallest reminder-side truthfulness repair and rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`, `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`, `python3 scripts/zigux/check-phase13-roadmap-traceability.py`, and `python3 scripts/zigux/validate-phase13-release.py`.
