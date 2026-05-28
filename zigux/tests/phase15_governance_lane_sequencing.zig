@@ -74,7 +74,7 @@ test "phase 15 governance-lane sequencing manifest records the current direct pa
 
     try std.testing.expectEqualStrings("arch-council", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-25", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-27", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-governance-lane-sequencing.md", manifest.sequencing_note);
     try std.testing.expectEqualStrings("zigux/tests/phase15_readiness_gate_manifest.json", manifest.readiness_manifest);
     try std.testing.expectEqual(@as(usize, 26), manifest.direct_packet_paths.len);
@@ -166,7 +166,7 @@ test "phase 15 readiness manifest records the build companion and lane-owner rep
     const readiness = parsed.value;
 
     try std.testing.expectEqualStrings("dated_master_readback", readiness.surveyed_commit_mode);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-25", readiness.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-27", readiness.surveyed_commit);
     try std.testing.expectEqualStrings("scripts/zigux/check-phase15-readiness-gate-packet.py", readiness.readiness_packet_checker);
     try expectSliceContains(readiness.direct_packet_paths, "zigux/tests/phase15_governance_lane_sequencing_manifest.json");
     try expectSliceContains(readiness.direct_packet_paths, "zigux/tests/phase15_governance_lane_sequencing.zig");
