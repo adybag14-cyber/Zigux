@@ -8,7 +8,18 @@
     "next_zero": 68,
     "first_and": 9,
     "next_and": 66,
-    "last": 71
+    "last": 71,
+    "tail_clamped_first": 67,
+    "tail_clamped_next": 69,
+    "tail_zero_clamped_first": 69,
+    "tail_zero_clamped_next": 69,
+    "tail_and_clamped_first": 67,
+    "tail_and_clamped_next": 69,
+    "tail_clamped_last": 67,
+    "tail_clamped_empty_last": 69,
+    "tail_inclusive_boundary_next": 68,
+    "tail_inclusive_boundary_zero": 68,
+    "tail_inclusive_boundary_and": 68
   },
   "bitmap": {
     "weight": 3,
@@ -73,8 +84,7 @@
     "find_first_serial": 0,
     "next_match_serials": [0, 2, 4],
     "match_iterator_serials": [0, 2, 4],
-    "cached_leftmost_return_serials": [0, -1, 2, -1],
-    "cached_root_transition_serials": [0, 0, 4, 2],
+    "cached_leftmost_return_serials": [0, 0, 4, 2],
     "next_match_terminal_null": true
   },
   "argv_split": {
