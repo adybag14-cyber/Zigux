@@ -68,6 +68,25 @@ The repo already had the shared Phase 4 build entrypoint, validator wiring, and 
 
 Without that record, Phase 4 validation exists in code but not yet as a product-facing ownership note.
 
+### `zigux/tests/atomic64_diff.zig`
+- anchor: `lib/atomic64_test.c`
+- phase bucket: `Phase 4 differential validation for the runtime atomic64 rollback gate`
+- owner: `ABI and Runtime Team`
+- rollback owner: `ABI and Runtime Team`
+- implementation note: `zigux/tests/atomic64_diff.zig` remains the roadmap-named wrapper gate and keeps the bounded arithmetic, exchange, cmpxchg, add_unless, `inc_not_zero`, `dec_if_positive`, bitwise, and checksum-backed threshold replay routed through `zigux/tests/runtime_atomic64_diff.zig` on the shared `phase4_build.zig` entrypoint without widening into the still-separate Phase 9 runtime starter packet.
+- fallback path: keep the current C anchor plus the existing Phase 9 runtime atomic64 starter surface as the source of truth if the Zig replay gate regresses
+- perf threshold status: correctness-only gate today; no hard timing threshold is approved until the lane widens beyond the current bounded exchange, cmpxchg, add_unless, bitwise, and selftest-family replay set
+- survey packet: `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` keep the wrapper-to-runtime handoff, the shared build wiring, and the matrix wording reviewable beside the executable replay
+- bootstrap validation entrypoint: `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml`
+- local replay path: `zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig`
+- current measurable replay: `zigux/tests/atomic64_diff.zig` bounded atomic64 exchange, cmpxchg, add_unless, bitwise, and selftest-family replay via the shared runtime-backed gate
+
+### `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`
+- purpose: manifest-backed review packet for the Phase 4 atomic64 wrapper-to-runtime handoff
+- companion manifest: `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`
+- local survey wrapper: `zig build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig`
+- note: keeps the gate-evidence note, review checklist, validation matrix blob pin, and current roadmap-gap summary aligned with the shipped runtime replay
+
 ### `zigux/tests/bitmap_diff.zig`
   * anchor: `lib/test_bitmap.c`
   * phase bucket: `Phase 4 differential validation for the broad bitmap rollback gate`
