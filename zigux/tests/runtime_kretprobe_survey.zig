@@ -144,7 +144,7 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     );
 
     try expectContains(manifest_file, "\"phase\": \"Phase 9\"");
-    try expectContains(manifest_file, "\"lane_key\": \"runtime-pilot\"");
+    try expectContains(manifest_file, "\"lane_key\": \"P9-L13\"");
     try expectContains(manifest_file, "\"status\": \"active\"");
     try expectContains(
         manifest_file,
@@ -176,21 +176,21 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     );
     try expectContains(
         manifest_file,
-        "\"parity_survey_path\": \"zigux/tests/runtime_first_loadable_parity_survey.zig\"",
-    );
-    try expectContains(
-        manifest_file,
-        "\"parity_behavior_path\": \"zigux/tests/runtime_first_loadable_parity_behavior.zig\"",
+        "\"survey_note_path\": \"Documentation/zigux/phase9-runtime-kretprobe-survey.md\"",
     );
     try expectContains(manifest_file, "\"build_path\": \"zigux/tests/phase9_build.zig\"");
+    try expectContains(
+        manifest_file,
+        "\"module_slice_note_path\": \"Documentation/zigux/phase9-runtime-kretprobe-module-slice.md\"",
+    );
     try expectContains(manifest_file, "\"validation_entrypoint\": \"phase9-runtime-kretprobe-tests\"");
     try expectContains(
         manifest_file,
-        "bounded runtime kretprobe pilot packet, direct sample proof, direct loader proof",
+        "direct runtime kretprobe sample proof, direct loader proof, direct initialized-snapshot guard proof",
     );
     try expectContains(
         manifest_file,
-        "Keep the direct sample, loader, initialized-snapshot guard, registration-reentry guard, paired reinit-reexit rollback guard, module witness, and survey gate aligned before widening any shared reminder surface.",
+        "Keep the direct loader shared-request plan explicit without promoting it into broader shared runtime-loader parity.",
     );
 
     try expectContains(
