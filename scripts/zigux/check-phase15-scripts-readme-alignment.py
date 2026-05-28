@@ -16,6 +16,7 @@ READINESS_REL = "Documentation/zigux/phase15-readiness-gate-survey.md"
 SHARED_GAP_REL = "Documentation/zigux/phase15-shared-summary-gap.md"
 HANDOFF_REL = "Documentation/zigux/phase15-handoff-next-steps-survey.md"
 FREEZE_GOVERNANCE_REL = "Documentation/zigux/phase15-freeze-map-governance.md"
+DECISION_INDEX_REL = "Documentation/zigux/phase15-architecture-council-decision-index.md"
 INDEFINITE_C_POLICY_REL = "Documentation/zigux/phase15-indefinite-c-policy.md"
 PARITY_SCORECARD_REL = "Documentation/zigux/phase15-parity-scorecard.md"
 PARITY_SCORECARD_SURVEY_REL = "Documentation/zigux/phase15-parity-scorecard-survey.md"
@@ -23,6 +24,8 @@ STUDY_ONLY_REL = "Documentation/zigux/phase15-study-only-anchor-accounting.md"
 DOCS_CHECKER_REL = "scripts/zigux/check-phase15-docs-readme-alignment.py"
 SCRIPTS_CHECKER_REL = "scripts/zigux/check-phase15-scripts-readme-alignment.py"
 TESTS_CHECKER_REL = "scripts/zigux/check-phase15-tests-readme-alignment.py"
+ARCH_COUNCIL_PACKET_CHECKER_REL = "scripts/zigux/check-phase15-architecture-council-packet.py"
+DECISION_INDEX_CHECKER_REL = "scripts/zigux/check-phase15-architecture-council-decision-index.py"
 HANDOFF_CHECKER_REL = "scripts/zigux/check-phase15-review-process-handoff.py"
 HANDOFF_NOTE_CHECKER_REL = "scripts/zigux/check-phase15-handoff-note-alignment.py"
 STUDY_ONLY_CHECKER_REL = "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py"
@@ -33,6 +36,8 @@ READINESS_MANIFEST_REL = "zigux/tests/phase15_readiness_gate_manifest.json"
 REVIEW_PROCESS_TEST_REL = "zigux/tests/phase15_architecture_council_review_process.zig"
 REVIEW_PROCESS_MANIFEST_REL = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
 REVIEW_PROCESS_BUILD_REL = "zigux/tests/phase15_architecture_council_review_process_build.zig"
+DECISION_INDEX_MANIFEST_REL = "zigux/tests/phase15_architecture_council_decision_index_manifest.json"
+DECISION_INDEX_TEST_REL = "zigux/tests/phase15_architecture_council_decision_index.zig"
 LANE_SEQ_MANIFEST_REL = "zigux/tests/phase15_governance_lane_sequencing_manifest.json"
 LANE_SEQ_TEST_REL = "zigux/tests/phase15_governance_lane_sequencing.zig"
 HANDOFF_MANIFEST_REL = "zigux/tests/phase15_handoff_next_steps_manifest.json"
@@ -56,6 +61,7 @@ REQUIRED_FILES = (
     SHARED_GAP_REL,
     HANDOFF_REL,
     FREEZE_GOVERNANCE_REL,
+    DECISION_INDEX_REL,
     INDEFINITE_C_POLICY_REL,
     PARITY_SCORECARD_REL,
     PARITY_SCORECARD_SURVEY_REL,
@@ -63,6 +69,8 @@ REQUIRED_FILES = (
     DOCS_CHECKER_REL,
     SCRIPTS_CHECKER_REL,
     TESTS_CHECKER_REL,
+    ARCH_COUNCIL_PACKET_CHECKER_REL,
+    DECISION_INDEX_CHECKER_REL,
     HANDOFF_CHECKER_REL,
     HANDOFF_NOTE_CHECKER_REL,
     STUDY_ONLY_CHECKER_REL,
@@ -73,6 +81,8 @@ REQUIRED_FILES = (
     REVIEW_PROCESS_TEST_REL,
     REVIEW_PROCESS_MANIFEST_REL,
     REVIEW_PROCESS_BUILD_REL,
+    DECISION_INDEX_MANIFEST_REL,
+    DECISION_INDEX_TEST_REL,
     LANE_SEQ_MANIFEST_REL,
     LANE_SEQ_TEST_REL,
     HANDOFF_MANIFEST_REL,
@@ -93,6 +103,8 @@ README_PHASE15_MARKERS = (
     f"`{DOCS_CHECKER_REL}`",
     f"`{SCRIPTS_CHECKER_REL}`",
     f"`{TESTS_CHECKER_REL}`",
+    f"`{ARCH_COUNCIL_PACKET_CHECKER_REL}`",
+    f"`{DECISION_INDEX_CHECKER_REL}`",
     f"`{HANDOFF_CHECKER_REL}`",
     f"`{HANDOFF_NOTE_CHECKER_REL}`",
     f"`{STUDY_ONLY_CHECKER_REL}`",
@@ -100,6 +112,7 @@ README_PHASE15_MARKERS = (
     f"`{READINESS_CHECKER_REL}`",
     f"`{VALIDATOR_REL}`",
     f"`{FREEZE_GOVERNANCE_REL}`",
+    f"`{DECISION_INDEX_REL}`",
     f"`{INDEFINITE_C_POLICY_REL}`",
     f"`{PARITY_SCORECARD_REL}`",
     f"`{PARITY_SCORECARD_SURVEY_REL}`",
@@ -112,6 +125,8 @@ README_PHASE15_MARKERS = (
     f"`{REVIEW_CHECKLIST_REL}`",
     f"`{REVIEW_PROCESS_MANIFEST_REL}`",
     f"`{REVIEW_PROCESS_BUILD_REL}`",
+    f"`{DECISION_INDEX_MANIFEST_REL}`",
+    f"`{DECISION_INDEX_TEST_REL}`",
     f"`{HANDOFF_MANIFEST_REL}`",
     f"`{HANDOFF_TEST_REL}`",
     f"`{FREEZE_GOVERNANCE_TEST_REL}`",
@@ -122,6 +137,7 @@ README_PHASE15_MARKERS = (
     f"`{LANE_OWNER_ALIGNMENT_REL}`",
     f"`{WORKFLOW_REL}`",
     f"`{BUILD_REL}`",
+    "the directly readable `Documentation/zigux/phase15-architecture-council-decision-index.md` owner note, `scripts/zigux/check-phase15-architecture-council-decision-index.py` checker, `zigux/tests/phase15_architecture_council_decision_index_manifest.json` manifest, and `zigux/tests/phase15_architecture_council_decision_index.zig` focused replay now remain explicit beside the wider validator-first reminder family",
     "the directly readable `scripts/zigux/validate-phase15.py` maintenance gate and the directly readable `zigux/tests/phase15_build.zig` shared build companion both remain part of the wider validator-first reminder family",
     "repeated authenticated reads on current `master` do materialize `zigux/tests/phase15_build.zig`, so keep that shared build companion framed as directly readable governance evidence while the broader dedicated `phase15*` wrapper and shared-CI route names stay repo-reality gaps rather than shipped replay paths",
     "although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names as blocked route vocabulary rather than directly readable replay paths",
@@ -277,9 +293,10 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 ## Phase 15
 
 - Phase 15 flow - the current scripts-root governance reminder packet stays in maintenance-mode truthfulness work, keeping the landed freeze-map, readiness, handoff, parity, stay-in-C, study-only, and shared-summary surfaces aligned without implying Architecture Council approval or a deep-core port-readiness decision
-- `{DOCS_CHECKER_REL}`, `{SCRIPTS_CHECKER_REL}`, `{TESTS_CHECKER_REL}`, `{HANDOFF_CHECKER_REL}`, `{HANDOFF_NOTE_CHECKER_REL}`, `{STUDY_ONLY_CHECKER_REL}`, `{GAP_CHECKER_REL}`, `{READINESS_CHECKER_REL}`, and `{VALIDATOR_REL}` keep the current scripts-root governance packet explicit from the scripts root while the broader dedicated `phase15*` wrapper and shared-CI companions still stay blocked
-- `{FREEZE_GOVERNANCE_REL}`, `{INDEFINITE_C_POLICY_REL}`, `{PARITY_SCORECARD_REL}`, `{PARITY_SCORECARD_SURVEY_REL}`, `{LANE_SEQ_REL}`, `{READINESS_REL}`, `{HANDOFF_REL}`, `{STUDY_ONLY_REL}`, `{SHARED_GAP_REL}`, `{TESTS_README_REL}`, `{REVIEW_CHECKLIST_REL}`, `{REVIEW_PROCESS_MANIFEST_REL}`, `{REVIEW_PROCESS_BUILD_REL}`, `{HANDOFF_MANIFEST_REL}`, `{HANDOFF_TEST_REL}`, `{FREEZE_GOVERNANCE_TEST_REL}`, `{PARITY_SCORECARD_TEST_REL}`, `{INDEFINITE_C_POLICY_JSON_REL}`, `{INDEFINITE_C_POLICY_TEST_REL}`, `{READINESS_MANIFEST_REL}`, `{LANE_OWNER_ALIGNMENT_REL}`, and `{WORKFLOW_REL}` remain the current reminder-surface companions for that packet
-- `{VALIDATOR_REL}`, `{REVIEW_PROCESS_TEST_REL}`, `{REVIEW_PROCESS_MANIFEST_REL}`, `{REVIEW_PROCESS_BUILD_REL}`, `{LANE_SEQ_MANIFEST_REL}`, `{LANE_SEQ_TEST_REL}`, `{HANDOFF_MANIFEST_REL}`, `{HANDOFF_TEST_REL}`, `{FREEZE_GOVERNANCE_TEST_REL}`, `{PARITY_SCORECARD_TEST_REL}`, `{INDEFINITE_C_POLICY_JSON_REL}`, `{INDEFINITE_C_POLICY_TEST_REL}`, `{READINESS_MANIFEST_REL}`, `{LANE_OWNER_ALIGNMENT_REL}`, `{BUILD_REL}`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the directly materialized focused companions, manifests, replays, shared build companion, workflow surface, and returned shared governance references explicit without widening into approval or deep-core delivery claims
+- `{DOCS_CHECKER_REL}`, `{SCRIPTS_CHECKER_REL}`, `{TESTS_CHECKER_REL}`, `{ARCH_COUNCIL_PACKET_CHECKER_REL}`, `{DECISION_INDEX_CHECKER_REL}`, `{HANDOFF_CHECKER_REL}`, `{HANDOFF_NOTE_CHECKER_REL}`, `{STUDY_ONLY_CHECKER_REL}`, `{GAP_CHECKER_REL}`, `{READINESS_CHECKER_REL}`, and `{VALIDATOR_REL}` keep the current scripts-root governance packet explicit from the scripts root while the broader dedicated `phase15*` wrapper and shared-CI companions still stay blocked
+- `{FREEZE_GOVERNANCE_REL}`, `{DECISION_INDEX_REL}`, `{INDEFINITE_C_POLICY_REL}`, `{PARITY_SCORECARD_REL}`, `{PARITY_SCORECARD_SURVEY_REL}`, `{LANE_SEQ_REL}`, `{READINESS_REL}`, `{HANDOFF_REL}`, `{STUDY_ONLY_REL}`, `{SHARED_GAP_REL}`, `{TESTS_README_REL}`, `{REVIEW_CHECKLIST_REL}`, `{REVIEW_PROCESS_MANIFEST_REL}`, `{REVIEW_PROCESS_BUILD_REL}`, `{DECISION_INDEX_MANIFEST_REL}`, `{DECISION_INDEX_TEST_REL}`, `{HANDOFF_MANIFEST_REL}`, `{HANDOFF_TEST_REL}`, `{FREEZE_GOVERNANCE_TEST_REL}`, `{PARITY_SCORECARD_TEST_REL}`, `{INDEFINITE_C_POLICY_JSON_REL}`, `{INDEFINITE_C_POLICY_TEST_REL}`, `{READINESS_MANIFEST_REL}`, `{LANE_OWNER_ALIGNMENT_REL}`, and `{WORKFLOW_REL}` remain the current reminder-surface companions for that packet
+- `{VALIDATOR_REL}`, `{REVIEW_PROCESS_TEST_REL}`, `{REVIEW_PROCESS_MANIFEST_REL}`, `{REVIEW_PROCESS_BUILD_REL}`, `{DECISION_INDEX_MANIFEST_REL}`, `{DECISION_INDEX_TEST_REL}`, `{LANE_SEQ_MANIFEST_REL}`, `{LANE_SEQ_TEST_REL}`, `{HANDOFF_MANIFEST_REL}`, `{HANDOFF_TEST_REL}`, `{FREEZE_GOVERNANCE_TEST_REL}`, `{PARITY_SCORECARD_TEST_REL}`, `{INDEFINITE_C_POLICY_JSON_REL}`, `{INDEFINITE_C_POLICY_TEST_REL}`, `{READINESS_MANIFEST_REL}`, `{LANE_OWNER_ALIGNMENT_REL}`, `{BUILD_REL}`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the directly materialized focused companions, manifests, replays, shared build companion, workflow surface, and returned shared governance references explicit without widening into approval or deep-core delivery claims
+- the directly readable `Documentation/zigux/phase15-architecture-council-decision-index.md` owner note, `scripts/zigux/check-phase15-architecture-council-decision-index.py` checker, `zigux/tests/phase15_architecture_council_decision_index_manifest.json` manifest, and `zigux/tests/phase15_architecture_council_decision_index.zig` focused replay now remain explicit beside the wider validator-first reminder family
 - the directly readable `scripts/zigux/validate-phase15.py` maintenance gate and the directly readable `zigux/tests/phase15_build.zig` shared build companion both remain part of the wider validator-first reminder family, and repeated authenticated reads on current `master` do materialize `zigux/tests/phase15_build.zig`, so keep that shared build companion framed as directly readable governance evidence while the broader dedicated `phase15*` wrapper and shared-CI route names stay repo-reality gaps rather than shipped replay paths
 - although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names as blocked route vocabulary rather than directly readable replay paths
 - `.github/workflows/zigux-bootstrap.yml` is present on current `master`, but it still carries no dedicated Phase 15 validate, test, or aggregate route, so keep that workflow surface framed as shared-summary gap vocabulary rather than shipped Phase 15 replay evidence
@@ -378,10 +395,16 @@ def run_self_test() -> int:
         _seed(missing_marker)
         _write(
             missing_marker / README_REL,
-            _sample_readme().replace(f"`{STUDY_ONLY_CHECKER_REL}`, ", "", 1),
+            _sample_readme().replace(
+                f"`{DECISION_INDEX_CHECKER_REL}`",
+                "`scripts/zigux/check-phase15-architecture-council-decision-index.py.missing`",
+            ),
         )
         failures = validate(missing_marker)
-        expected = [f"readme_phase15:missing:`{STUDY_ONLY_CHECKER_REL}`"]
+        expected = [
+            f"readme_phase15:missing:`{DECISION_INDEX_CHECKER_REL}`",
+            "readme_phase15:missing:the directly readable `Documentation/zigux/phase15-architecture-council-decision-index.md` owner note, `scripts/zigux/check-phase15-architecture-council-decision-index.py` checker, `zigux/tests/phase15_architecture_council_decision_index_manifest.json` manifest, and `zigux/tests/phase15_architecture_council_decision_index.zig` focused replay now remain explicit beside the wider validator-first reminder family",
+        ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-marker failure: {failures}")
 
