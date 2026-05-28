@@ -13,25 +13,30 @@ REQUIRED_SOURCE_MARKERS = (
     'MAKEFILE = ROOT / "zigux" / "Makefile"',
     'CONTRACT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-contract.py"',
     'ROUTE_POLICY_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-route-policy.py"',
+    'DIRECT_WORKFLOW_CHECKER = (',
     'SHARED_SURFACE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-shared-surface.py"',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract.py --self-test",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-route-policy.py --self-test",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-direct-tool-manifest-workflow.py --self-test",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py --self-test",',
-    '    issues.append(("INVALID_ROUTE_POLICY_PLACEMENT", ",".join(ROUTE_POLICY_MAKEFILE_LINES)))',
-    '    issues.append(("INVALID_SHARED_SURFACE_TARGET_PLACEMENT", marker))',
-    '    issues.append(("INVALID_CROSS_TARGET_PLACEMENT", marker))',
+    '        collect_block_order_issues("DIRECT_WORKFLOW_BLOCK", DIRECT_WORKFLOW_MAKEFILE_LINES, validate_commands)',
+    '        issues.append(("INVALID_SHARED_SURFACE_PLACEMENT", ",".join(SHARED_SURFACE_MAKEFILE_LINES)))',
+    '            issues.append(("INVALID_DIRECT_WORKFLOW_TARGET_PLACEMENT", marker))',
     '    print("PHASE2_CROSS_VALIDATE_MAKEFILE_ORDER=pass")',
     '    print("PHASE2_CROSS_VALIDATE_MAKEFILE_ORDER_SELF_TEST=pass")',
 )
 
 REQUIRED_CASE_MARKERS = (
     '            read_text(makefile_path).replace(CONTRACT_MAKEFILE_LINES[0] + "\\n", "", 1),',
+    '            read_text(makefile_path).replace(DIRECT_WORKFLOW_MAKEFILE_LINES[0] + "\\n", "", 1),',
     '            read_text(makefile_path) + f"\\t{SHARED_SURFACE_MAKEFILE_LINES[0]}\\n",',
     '        first = makefile_lines.index(f"\\t{CONTRACT_MAKEFILE_LINES[0]}")',
     '        contract_index = makefile_lines.index(f"\\t{CONTRACT_MAKEFILE_LINES[-1]}")',
+    '        direct_index = makefile_lines.index(f"\\t{DIRECT_WORKFLOW_MAKEFILE_LINES[0]}")',
+    '        direct_tail = makefile_lines.index(f"\\t{DIRECT_WORKFLOW_MAKEFILE_LINES[-1]}")',
     '        shared_index = makefile_lines.index(f"\\t{SHARED_SURFACE_MAKEFILE_LINES[0]}")',
     '        cross_header = makefile_lines.index(REQUIRED_CROSS_TARGET)',
-    '        resolve_path(root, SHARED_SURFACE_ALIGNMENT).unlink()',
+    '        resolve_path(root, DIRECT_WORKFLOW_ALIGNMENT).unlink()',
 )
 
 
@@ -138,6 +143,15 @@ def run_self_test() -> int:
         checker_path = resolve_path(root, CHECKER)
         checker_path.write_text(
             read_text(checker_path) + REQUIRED_SOURCE_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        assert run_check(root) == 1
+        checks += 1
+
+        build_self_test_root(root)
+        checker_path = resolve_path(root, CHECKER)
+        checker_path.write_text(
+            read_text(checker_path) + REQUIRED_CASE_MARKERS[0] + "\n",
             encoding="utf-8",
         )
         assert run_check(root) == 1
