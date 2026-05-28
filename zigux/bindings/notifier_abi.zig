@@ -226,6 +226,11 @@ pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {
     return firstBrokenBacklink(head) == null;
 }
 
+pub fn hlistIsEmpty(head: ?*const HListHead) bool {
+    const first_head = head orelse return false;
+    return first_head.first == 0;
+}
+
 pub fn firstPprevMatchesHead(head: ?*const HListHead) bool {
     const first_head = head orelse return false;
     const first_node = hlistNodeFromRaw(first_head.first) orelse return true;
@@ -566,6 +571,7 @@ test "list helper rejects a broken backlink" {
 test "hlist helper accepts an empty head" {
     const head = HListHead{ .first = 0 };
 
+    try std.testing.expect(hlistIsEmpty(&head));
     try std.testing.expect(firstPprevMatchesHead(&head));
     try std.testing.expect(firstBrokenPrevLink(&head) == null);
     try std.testing.expect(hlistHasConsistentPrevLinks(&head));
@@ -574,6 +580,7 @@ test "hlist helper accepts an empty head" {
 }
 
 test "hlist helper treats a null head as absent rather than consistent" {
+    try std.testing.expect(!hlistIsEmpty(null));
     try std.testing.expect(!firstPprevMatchesHead(null));
     try std.testing.expect(firstBrokenPrevLink(null) == null);
     try std.testing.expect(!hlistHasConsistentPrevLinks(null));
@@ -591,6 +598,7 @@ test "hlist helper accepts a bounded chain whose first pprev targets the head" {
     second.next = 0;
     second.pprev = @intFromPtr(&first.next);
 
+    try std.testing.expect(!hlistIsEmpty(&head));
     try std.testing.expect(firstPprevMatchesHead(&head));
     try std.testing.expect(firstBrokenPrevLink(&head) == null);
     try std.testing.expect(hlistHasConsistentPrevLinks(&head));
@@ -605,6 +613,7 @@ test "hlist helper rejects a mismatched first-node pprev witness" {
     first.next = 0;
     first.pprev = 0;
 
+    try std.testing.expect(!hlistIsEmpty(&head));
     try std.testing.expect(!firstPprevMatchesHead(&head));
 
     const breakage = firstBrokenPrevLink(&head) orelse return error.TestUnexpectedResult;
@@ -627,6 +636,7 @@ test "hlist helper rejects a broken prev-link" {
     second.pprev = @intFromPtr(&head.first);
 
     const breakage = firstBrokenPrevLink(&head) orelse return error.TestUnexpectedResult;
+    try std.testing.expect(!hlistIsEmpty(&head));
     try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&first.next)), breakage.expected_pprev);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.actual_pprev);
