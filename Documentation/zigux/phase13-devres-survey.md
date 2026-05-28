@@ -1,6 +1,6 @@
 # Phase 13 devres DMA, scatterlist, and MMIO Boundary Survey
 
-This document records the bounded `P13-L08` survey lane around the current `lib/devres.c` helper packet on `master`: the shipped DMA, scatterlist, helper-first iounmap, helper-first iomap planning, helper-first iomap-to-iounmap cleanup-handoff evidence, and helper-local arch-WC add and detach-cleanup footholds, plus the still-missing non-posted wrapper and arch-memtype safety gaps that remain open against the Phase 13 roadmap.
+This document records the bounded `P13-L07` survey lane around the current `lib/devres.c` helper packet on `master`: the shipped DMA, scatterlist, helper-first iounmap, helper-first iomap planning, helper-first iomap-to-iounmap cleanup-handoff evidence, and helper-local arch-WC add and detach-cleanup footholds, plus the still-missing non-posted wrapper and arch-memtype safety gaps that remain open against the Phase 13 roadmap.
 
 ## Status
 
