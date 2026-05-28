@@ -119,3 +119,51 @@ test "rbtree view keeps inorder predecessors reviewable" {
     try testing.expectEqual(@as(?*const rbtree_view.RBNode, &left), root_node.prev());
     try testing.expectEqual(@as(?*const rbtree_view.RBNode, &root_node), right.prev());
 }
+
+test "rbtree view descends into the right subtree for the next inorder node" {
+    var root_node = rbtree_view.RBNode{
+        .__rb_parent_color = @intFromEnum(rbtree_view.Color.black),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+    var right = rbtree_view.RBNode{
+        .__rb_parent_color = @intFromPtr(&root_node) | @intFromEnum(rbtree_view.Color.red),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+    var right_left = rbtree_view.RBNode{
+        .__rb_parent_color = @intFromPtr(&right) | @intFromEnum(rbtree_view.Color.black),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+
+    root_node.rb_right = @intFromPtr(&right);
+    right.rb_left = @intFromPtr(&right_left);
+
+    try testing.expectEqual(@as(?*const rbtree_view.RBNode, &right_left), root_node.next());
+    try testing.expectEqual(@as(?*const rbtree_view.RBNode, &right), right_left.next());
+}
+
+test "rbtree view descends into the left subtree for the previous inorder node" {
+    var root_node = rbtree_view.RBNode{
+        .__rb_parent_color = @intFromEnum(rbtree_view.Color.black),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+    var left = rbtree_view.RBNode{
+        .__rb_parent_color = @intFromPtr(&root_node) | @intFromEnum(rbtree_view.Color.red),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+    var left_right = rbtree_view.RBNode{
+        .__rb_parent_color = @intFromPtr(&left) | @intFromEnum(rbtree_view.Color.black),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+
+    root_node.rb_left = @intFromPtr(&left);
+    left.rb_right = @intFromPtr(&left_right);
+
+    try testing.expectEqual(@as(?*const rbtree_view.RBNode, &left_right), root_node.prev());
+    try testing.expectEqual(@as(?*const rbtree_view.RBNode, &left), left_right.prev());
+}
