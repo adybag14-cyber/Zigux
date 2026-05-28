@@ -1,0 +1,96 @@
+{
+  "bitmap_bits": 1024,
+  "cases": [
+    {
+      "name": "empty_window",
+      "ordered": true,
+      "first_candidate": {
+        "id": 0,
+        "relative_bit": 0
+      },
+      "last_candidate": {
+        "id": 7,
+        "relative_bit": 7
+      },
+      "first_free": {
+        "id": 0,
+        "relative_bit": 0
+      }
+    },
+    {
+      "name": "sparse_window",
+      "ordered": true,
+      "first_candidate": {
+        "id": 0,
+        "relative_bit": 0
+      },
+      "last_candidate": {
+        "id": 7,
+        "relative_bit": 7
+      },
+      "first_free": {
+        "id": 2,
+        "relative_bit": 2
+      }
+    },
+    {
+      "name": "clamped_floor_window",
+      "ordered": true,
+      "first_candidate": {
+        "id": 1024,
+        "relative_bit": 0
+      },
+      "last_candidate": {
+        "id": 1027,
+        "relative_bit": 3
+      },
+      "first_free": {
+        "id": 1025,
+        "relative_bit": 1
+      }
+    },
+    {
+      "name": "clamped_ceiling_window",
+      "ordered": true,
+      "first_candidate": {
+        "id": 3070,
+        "relative_bit": 1022
+      },
+      "last_candidate": {
+        "id": 3071,
+        "relative_bit": 1023
+      },
+      "first_free": {
+        "id": 3071,
+        "relative_bit": 1023
+      }
+    },
+    {
+      "name": "disjoint_window",
+      "ordered": true,
+      "first_candidate": null,
+      "last_candidate": null,
+      "first_free": null
+    },
+    {
+      "name": "unordered_window",
+      "ordered": false,
+      "first_candidate": null,
+      "last_candidate": null,
+      "first_free": null
+    },
+    {
+      "name": "full_window",
+      "ordered": true,
+      "first_candidate": {
+        "id": 0,
+        "relative_bit": 0
+      },
+      "last_candidate": {
+        "id": 7,
+        "relative_bit": 7
+      },
+      "first_free": null
+    }
+  ]
+}
