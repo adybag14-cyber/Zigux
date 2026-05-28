@@ -37,16 +37,20 @@
     "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig"
   ],
   "process_output_packet": [
+    "abbreviated_unexpected_long_help_argument_expected.json",
     "abbreviated_version_expected.json",
     "ambiguous_long_option_expected.json",
     "invalid_option_expected.json",
     "missing_long_dump_types_argument_expected.json",
     "missing_long_reference_argument_expected.json",
     "missing_reference_argument_expected.json",
+    "repeated_version_expected.json",
     "too_many_reference_files_expected.json",
-    "unsupported_long_option_expected.json",
+    "unexpected_help_argument_expected.json",
     "unexpected_long_help_argument_expected.json",
-    "abbreviated_unexpected_long_help_argument_expected.json"
+    "unsupported_long_option_expected.json",
+    "version_expected.json",
+    "version_then_help_expected.json"
   ],
   "helper_local_anchors": [
     "genksyms bridge treats pure version requests as version command",
