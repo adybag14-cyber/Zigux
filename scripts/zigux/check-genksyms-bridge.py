@@ -81,16 +81,20 @@ CASE_FIXTURES = (
 )
 
 EXPECTED_PROCESS_OUTPUT_PACKET = (
+    "abbreviated_unexpected_long_help_argument_expected.json",
     "abbreviated_version_expected.json",
     "ambiguous_long_option_expected.json",
     "invalid_option_expected.json",
     "missing_long_dump_types_argument_expected.json",
     "missing_long_reference_argument_expected.json",
     "missing_reference_argument_expected.json",
+    "repeated_version_expected.json",
     "too_many_reference_files_expected.json",
-    "unsupported_long_option_expected.json",
+    "unexpected_help_argument_expected.json",
     "unexpected_long_help_argument_expected.json",
-    "abbreviated_unexpected_long_help_argument_expected.json",
+    "unsupported_long_option_expected.json",
+    "version_expected.json",
+    "version_then_help_expected.json",
 )
 
 EXPECTED_HELPER_LOCAL_ANCHORS = (
@@ -180,7 +184,7 @@ def write_text(root: Path, rel: str, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def read_json(root: Path, rel: str, issue_code: str) -> tuple[object | None, tuple[str, str] | None]:
+def read_json(root: Path, rel: str, issue_code: str):
     try:
         return json.loads(read_text(root, rel)), None
     except json.JSONDecodeError:
@@ -199,15 +203,13 @@ def find_duplicate_strings(values: list[str]) -> list[str]:
         if value in seen and value not in recorded:
             duplicates.append(value)
             recorded.add(value)
-            continue
         seen.add(value)
     return duplicates
 
 
-def extract_case_field_strings(payload: object, field: str) -> list[str] | None:
+def extract_case_field_strings(payload: object, field: str):
     if not isinstance(payload, list):
         return None
-
     values: list[str] = []
     for item in payload:
         if not isinstance(item, dict):
@@ -219,9 +221,9 @@ def extract_case_field_strings(payload: object, field: str) -> list[str] | None:
     return values
 
 
-def resolve_long_option(name: str) -> tuple[str, bool]:
-    exact_match: tuple[str, bool] | None = None
-    prefix_matches: list[tuple[str, bool]] = []
+def resolve_long_option(name: str):
+    exact_match = None
+    prefix_matches = []
     for spec_name, canonical_name, takes_argument in LONG_OPTION_SPECS:
         if name == spec_name:
             exact_match = (canonical_name, takes_argument)
@@ -329,7 +331,7 @@ def parse_args(argv: list[str]) -> dict[str, object]:
 
 
 def build_expected_manifest() -> dict[str, object]:
-    expected = {
+    return {
         "tool": "scripts/zigux/genksyms.zig",
         "status": "closed",
         "mode": "bounded wrapper-first dual-implementation bridge",
@@ -343,11 +345,15 @@ def build_expected_manifest() -> dict[str, object]:
         "process_output_packet": list(EXPECTED_PROCESS_OUTPUT_PACKET),
         "helper_local_anchors": list(EXPECTED_HELPER_LOCAL_ANCHORS),
     }
-    return expected
 
 
 def expected_process_output_payloads() -> dict[str, dict[str, object]]:
     return {
+        "abbreviated_unexpected_long_help_argument_expected.json": {
+            "stdout": "",
+            "stderr": "option '--help' doesn't allow an argument\n" + HELP_USAGE,
+            "exit_code": 1,
+        },
         "abbreviated_version_expected.json": {
             "stdout": "",
             "stderr": "genksyms version 2.5.60\n",
@@ -378,14 +384,19 @@ def expected_process_output_payloads() -> dict[str, dict[str, object]]:
             "stderr": "option requires an argument -- 'r'\n" + HELP_USAGE,
             "exit_code": 1,
         },
+        "repeated_version_expected.json": {
+            "stdout": "",
+            "stderr": "genksyms version 2.5.60\ngenksyms version 2.5.60\n",
+            "exit_code": 0,
+        },
         "too_many_reference_files_expected.json": {
             "stdout": "",
             "stderr": "too many reference files\n",
             "exit_code": 1,
         },
-        "unsupported_long_option_expected.json": {
+        "unexpected_help_argument_expected.json": {
             "stdout": "",
-            "stderr": "unrecognized option '--unknown'\n" + HELP_USAGE,
+            "stderr": "option '--help' doesn't allow an argument\n",
             "exit_code": 1,
         },
         "unexpected_long_help_argument_expected.json": {
@@ -393,10 +404,20 @@ def expected_process_output_payloads() -> dict[str, dict[str, object]]:
             "stderr": "option '--help' doesn't allow an argument\n" + HELP_USAGE,
             "exit_code": 1,
         },
-        "abbreviated_unexpected_long_help_argument_expected.json": {
+        "unsupported_long_option_expected.json": {
             "stdout": "",
-            "stderr": "option '--help' doesn't allow an argument\n" + HELP_USAGE,
+            "stderr": "unrecognized option '--unknown'\n" + HELP_USAGE,
             "exit_code": 1,
+        },
+        "version_expected.json": {
+            "stdout": "",
+            "stderr": "genksyms version 2.5.60\n",
+            "exit_code": 0,
+        },
+        "version_then_help_expected.json": {
+            "stdout": "",
+            "stderr": "genksyms version 2.5.60\n" + HELP_USAGE,
+            "exit_code": 0,
         },
     }
 
@@ -406,7 +427,7 @@ def expected_fixture_packet() -> tuple[str, ...]:
         Path(HELP_FIXTURE).name,
         Path(CASES_FIXTURE).name,
         Path(MANIFEST_FIXTURE).name,
-        *[str(case["expected_file"]) for case in CASE_FIXTURES],
+        *[case["expected_file"] for case in CASE_FIXTURES],
         *EXPECTED_PROCESS_OUTPUT_PACKET,
     )
 
@@ -439,19 +460,15 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for marker in REQUIRED_MAKEFILE_LINES:
         if count_exact_lines(makefile_text, marker) != 1:
             issues.append(("MAKEFILE_LINE_MISMATCH", marker))
-
     for marker in REQUIRED_WORKFLOW_LINES:
         if count_exact_lines(workflow_text, marker) != 1:
             issues.append(("WORKFLOW_LINE_MISMATCH", marker))
-
     for marker in REQUIRED_VERSION_SIDE_EFFECT_TEST_LINES:
         if count_exact_lines(version_side_effect_text, marker) != 1:
             issues.append(("VERSION_SIDE_EFFECT_TEST_LINE_MISMATCH", marker))
-
     for marker in REQUIRED_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINES:
         if count_exact_lines(ambiguous_version_side_effect_text, marker) != 1:
             issues.append(("AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINE_MISMATCH", marker))
-
     for anchor in EXPECTED_HELPER_LOCAL_ANCHORS:
         marker = f'test "{anchor}" {{'
         if count_exact_lines(genksyms_text, marker) != 1:
@@ -479,33 +496,31 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if expected_files is not None:
         for value in find_duplicate_strings(expected_files):
             issues.append(("DUPLICATE_EXPECTED_FILE", value))
-    expected_cases = [dict(case) for case in CASE_FIXTURES]
-    if cases_payload != expected_cases:
+    if cases_payload != [dict(case) for case in CASE_FIXTURES]:
         issues.append(("CASE_ROSTER_MISMATCH", CASES_FIXTURE))
 
     manifest_payload, manifest_issue = read_json(root, MANIFEST_FIXTURE, "INVALID_MANIFEST_JSON")
     if manifest_issue is not None:
         issues.append(manifest_issue)
         return issues
-    expected = build_expected_manifest()
+    expected_manifest = build_expected_manifest()
     if not isinstance(manifest_payload, dict):
         issues.append(("INVALID_MANIFEST_PAYLOAD", type(manifest_payload).__name__))
         return issues
-    if manifest_payload.get("standalone_proof_packet") != expected["standalone_proof_packet"]:
+    if manifest_payload.get("standalone_proof_packet") != expected_manifest["standalone_proof_packet"]:
         issues.append(("MANIFEST_FIELD_MISMATCH", "standalone_proof_packet"))
-    for key, expected_value in expected.items():
+    for key, expected_value in expected_manifest.items():
         if manifest_payload.get(key) != expected_value:
             issues.append(("MANIFEST_FIELD_MISMATCH", key))
 
     for case in CASE_FIXTURES:
         rel = f"zigux/tests/fixtures/genksyms_bridge/{case['expected_file']}"
-        expected_payload, expected_issue = read_json(root, rel, "INVALID_EXPECTED_FIXTURE_JSON")
-        if expected_issue is not None:
-            issues.append(expected_issue)
+        payload, payload_issue = read_json(root, rel, "INVALID_EXPECTED_FIXTURE_JSON")
+        if payload_issue is not None:
+            issues.append(payload_issue)
             continue
-        actual_payload = parse_args(list(case["args"]))
-        if expected_payload != actual_payload:
-            issues.append(("CASE_MISMATCH", str(case["name"])))
+        if payload != parse_args(list(case["args"])):
+            issues.append(("CASE_MISMATCH", case["name"]))
 
     for rel, expected_payload in expected_process_output_payloads().items():
         payload, payload_issue = read_json(root, f"zigux/tests/fixtures/genksyms_bridge/{rel}", "INVALID_PROCESS_OUTPUT_FIXTURE_JSON")
@@ -516,11 +531,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("PROCESS_OUTPUT_FIXTURE_MISMATCH", rel))
 
     fixture_root = root / "zigux/tests/fixtures/genksyms_bridge"
-    actual_fixture_packet = sorted(
-        path.name
-        for path in fixture_root.iterdir()
-        if path.is_file()
-    )
+    actual_fixture_packet = sorted(path.name for path in fixture_root.iterdir() if path.is_file())
     expected_packet = sorted(expected_fixture_packet())
     if actual_fixture_packet != expected_packet:
         issues.append(("FIXTURE_PACKET_MISMATCH", "zigux/tests/fixtures/genksyms_bridge"))
@@ -584,8 +595,11 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, CASES_FIXTURE, json.dumps([dict(case) for case in CASE_FIXTURES], indent=2) + "\n")
     write_text(root, MANIFEST_FIXTURE, json.dumps(build_expected_manifest(), indent=2) + "\n")
     for case in CASE_FIXTURES:
-        rel = f"zigux/tests/fixtures/genksyms_bridge/{case['expected_file']}"
-        write_text(root, rel, json.dumps(parse_args(list(case["args"])), indent=2) + "\n")
+        write_text(
+            root,
+            f"zigux/tests/fixtures/genksyms_bridge/{case['expected_file']}",
+            json.dumps(parse_args(list(case["args"])), indent=2) + "\n",
+        )
     for rel, payload in expected_process_output_payloads().items():
         write_text(root, f"zigux/tests/fixtures/genksyms_bridge/{rel}", json.dumps(payload, indent=2) + "\n")
 
@@ -652,29 +666,19 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         write_text(root, "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json", "{broken\n")
-        assert (
-            "INVALID_EXPECTED_FIXTURE_JSON",
-            "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
-        ) in collect_issues(root)
+        assert ("INVALID_EXPECTED_FIXTURE_JSON", "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
         bad_payload = parse_args(["leftover.c", "-d", "rightover.h", "-r", "foo.symref"])
         bad_payload["options"]["warnings"] = True
-        write_text(
-            root,
-            "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
-            json.dumps(bad_payload, indent=2) + "\n",
-        )
+        write_text(root, "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json", json.dumps(bad_payload, indent=2) + "\n")
         assert ("CASE_MISMATCH", "positional_passthrough") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
         write_text(root, "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json", "{broken\n")
-        assert (
-            "INVALID_PROCESS_OUTPUT_FIXTURE_JSON",
-            "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json",
-        ) in collect_issues(root)
+        assert ("INVALID_PROCESS_OUTPUT_FIXTURE_JSON", "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
@@ -690,11 +694,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         payload = expected_process_output_payloads()["unexpected_long_help_argument_expected.json"].copy()
         payload["exit_code"] = 7
-        write_text(
-            root,
-            "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json",
-            json.dumps(payload, indent=2) + "\n",
-        )
+        write_text(root, "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json", json.dumps(payload, indent=2) + "\n")
         assert ("PROCESS_OUTPUT_FIXTURE_MISMATCH", "unexpected_long_help_argument_expected.json") in collect_issues(root)
         checks += 1
 
@@ -715,10 +715,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         write_text(root, AMBIGUOUS_VERSION_SIDE_EFFECT_TEST, 'test "genksyms bridge preserves abbreviated version side effect before ambiguous long option" {\n}\n')
-        assert (
-            "AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINE_MISMATCH",
-            REQUIRED_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINES[0],
-        ) in collect_issues(root)
+        assert ("AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINE_MISMATCH", REQUIRED_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINES[0]) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
@@ -728,10 +725,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         write_text(root, GENKSYMS_ZIG, 'const help_expected_json = @embedFile("../../zigux/tests/fixtures/genksyms_bridge/help_expected.json");\n')
-        assert (
-            "HELPER_LOCAL_ANCHOR_MISMATCH",
-            f'test "{EXPECTED_HELPER_LOCAL_ANCHORS[0]}" {{',
-        ) in collect_issues(root)
+        assert ("HELPER_LOCAL_ANCHOR_MISMATCH", f'test "{EXPECTED_HELPER_LOCAL_ANCHORS[0]}" {{') in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
