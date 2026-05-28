@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 INSTALL_ZIG = Path("scripts/zigux/install-zig.py")
 TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
