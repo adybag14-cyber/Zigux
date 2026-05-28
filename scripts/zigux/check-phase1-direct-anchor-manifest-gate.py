@@ -173,6 +173,9 @@ EXPECTED_REVIEW_FIELDS = {
         ],
         "cached_root_alias_anchor": 'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
         "cached_root_transition_fixture_keys": ["cached_root_transition_serials"],
+        "cached_root_transition_shared_replay_summary": (
+            "the committed Phase 1 fixture and the shared host-tools smoke route also keep the exact `cached_root_transition_serials` cached-root erase, replacement, and detach sequence aligned on current master"
+        ),
         "shared_replay_summary": (
             "the committed Phase 1 fixture still carries traversal, detached-node, duplicate-search, "
             "and exact cached-leftmost-return witnesses for rbtree, while the current shared host-tools "
