@@ -203,7 +203,6 @@
     "alloc_count_after_kmalloc_free": 0,
     "array_zeroed": true,
     "alloc_count_after_kmalloc_array": 1,
-    "array_zeroed": true,
     "alloc_count_after_kmalloc_array_free": 0,
     "slab_is_available": true
   },
