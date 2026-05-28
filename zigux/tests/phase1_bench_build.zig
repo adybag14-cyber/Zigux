@@ -9,11 +9,6 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    const cmdline_module = b.createModule(.{
-        .root_source_file = b.path("../../tools/lib/cmdline.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
     const find_bit_module = b.createModule(.{
         .root_source_file = b.path("../../tools/lib/find_bit.zig"),
         .target = target,
@@ -45,7 +40,6 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    _ = cmdline_module;
     bitmap_module.addImport("find_bit", find_bit_module);
     root_module.addImport("bitmap", bitmap_module);
     root_module.addImport("find_bit", find_bit_module);
@@ -65,4 +59,12 @@ pub fn build(b: *std.Build) void {
         "Run the focused Phase 1 helper benchmark packet from zigux/tests",
     );
     bench_step.dependOn(&run_bench.step);
+
+    const test_step = b.step(
+        "test",
+        "Run the focused Phase 1 helper benchmark packet from zigux/tests",
+    );
+    test_step.dependOn(&run_bench.step);
+
+    b.default_step.dependOn(test_step);
 }
