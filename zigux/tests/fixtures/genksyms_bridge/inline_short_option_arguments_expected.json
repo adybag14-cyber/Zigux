@@ -1,0 +1,21 @@
+{
+  "tool": "scripts/genksyms/genksyms",
+  "stdin": "cpp-stream",
+  "stdout": "symversions",
+  "argv": [
+    "scripts/genksyms/genksyms",
+    "-d",
+    "-rfoo.symref",
+    "-Ttypes.symtypes"
+  ],
+  "options": {
+    "debug_level": 1,
+    "warnings": false,
+    "dump_defs": false,
+    "preserve": false,
+    "reference_files": [
+      "foo.symref"
+    ],
+    "dump_types_file": "types.symtypes"
+  }
+}
