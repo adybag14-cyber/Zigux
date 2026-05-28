@@ -14,6 +14,7 @@ REPLAY_PATH = Path("zigux/tests/phase13_devres_iomap_planner.zig")
 REQUIRED_MARKERS = {
     HELPER_PATH: [
         ".provides_of_iomap_planning = true",
+        ".provides_of_iomap_cleanup_handoff_planning = true",
         ".touches_live_mmio = false",
         "requires_nonposted_ioremap",
         "pub fn planDeviceTreeIomap",
@@ -198,6 +199,25 @@ def run_self_test() -> int:
                 "zigux/tests/phase13_devres_iomap_planner_manifest.json:missing_marker:\"cleanup_handoff_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
             ],
             "missing_cleanup_handoff_owner_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / HELPER_PATH,
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS[HELPER_PATH]
+                if marker != ".provides_of_iomap_cleanup_handoff_planning = true"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "lib/devres.zig:missing_marker:.provides_of_iomap_cleanup_handoff_planning = true",
+            ],
+            "missing_helper_cleanup_handoff_flag_failed",
         )
         case_count += 1
 
