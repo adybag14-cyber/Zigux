@@ -20,6 +20,11 @@ pub const ArgvSplitResult = struct {
     }
 };
 
+fn cStringPrefix(text: []const u8) []const u8 {
+    const end = std.mem.indexOfScalar(u8, text, 0) orelse text.len;
+    return text[0..end];
+}
+
 fn skipSpaces(text: []const u8, start: usize) usize {
     var idx = start;
     while (idx < text.len and std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
@@ -55,7 +60,8 @@ fn freeArgvPrefix(allocator: std.mem.Allocator, argv: [][]u8, count: usize) void
 }
 
 pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResult {
-    const argc = countArgc(text);
+    const bounded_text = cStringPrefix(text);
+    const argc = countArgc(bounded_text);
     var argv = try allocator.alloc([]u8, argc);
 
     var idx: usize = 0;
@@ -64,14 +70,14 @@ pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResul
         freeArgvPrefix(allocator, argv, arg_idx);
         allocator.free(argv);
     }
-    while (idx < text.len) {
-        idx = skipSpaces(text, idx);
-        if (idx >= text.len) {
+    while (idx < bounded_text.len) {
+        idx = skipSpaces(bounded_text, idx);
+        if (idx >= bounded_text.len) {
             break;
         }
 
-        const end = skipArg(text, idx);
-        argv[arg_idx] = try allocator.dupe(u8, text[idx..end]);
+        const end = skipArg(bounded_text, idx);
+        argv[arg_idx] = try allocator.dupe(u8, bounded_text[idx..end]);
         arg_idx += 1;
         idx = end;
     }
@@ -116,6 +122,19 @@ test "argvSplit collapses repeated whitespace and blank inputs to zero arguments
     var only_spaces = try argv_split(std.testing.allocator, " \n\t ");
     defer argv_free(&only_spaces);
     try std.testing.expectEqual(@as(usize, 0), only_spaces.argc());
+}
+
+test "argvSplit stops at the first embedded nul byte" {
+    var split = try argvSplit(std.testing.allocator, "alpha beta\x00ignored tail");
+    defer split.deinit();
+
+    try std.testing.expectEqual(@as(usize, 2), split.argc());
+    try std.testing.expectEqualStrings("alpha", split.argv[0]);
+    try std.testing.expectEqualStrings("beta", split.argv[1]);
+
+    var leading_nul = try argv_split(std.testing.allocator, "\x00alpha beta");
+    defer argv_free(&leading_nul);
+    try std.testing.expectEqual(@as(usize, 0), leading_nul.argc());
 }
 
 test "argvSplit releases partial allocations when duplication fails" {
