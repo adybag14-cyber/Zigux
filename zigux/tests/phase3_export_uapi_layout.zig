@@ -462,3 +462,66 @@ test "export shim relays starter dev_t validation and range checks through the f
     try testing.expect(!export_shim.statusIsOk(bad_range));
     try testing.expectEqual(@as(i32, -22), bad_range.code);
 }
+
+test "boundary header layout stays numerically aligned across version, export shim, and header family relays" {
+    const canonical = version.boundaryHeader(0x44);
+    const compatible = version.compatibleHeader(version.header_size + 4, 0x44);
+    const stale = version.Header{
+        .size = version.header_size,
+        .abi_version = canonical.abi_version + 1,
+        .flags = 0x44,
+    };
+
+    try testing.expectEqual(uapi_version.header_size, version.header_size);
+    try testing.expectEqual(@as(usize, version.header_size), header_family.header_size);
+    try testing.expectEqual(@as(u32, version.header_size), export_shim.header_size);
+    try testing.expectEqual(uapi_version.header_align, header_family.header_align);
+    try testing.expectEqual(uapi_version.header_align, @alignOf(export_shim.BoundaryHeader));
+    try testing.expectEqual(uapi_version.header_size_offset, header_family.header_size_offset);
+    try testing.expectEqual(uapi_version.header_abi_version_offset, header_family.header_abi_version_offset);
+    try testing.expectEqual(uapi_version.header_flags_offset, header_family.header_flags_offset);
+    try testing.expectEqual(@as(usize, uapi_version.header_size_offset), @offsetOf(export_shim.BoundaryHeader, "size"));
+    try testing.expectEqual(@as(usize, uapi_version.header_abi_version_offset), @offsetOf(export_shim.BoundaryHeader, "abi_version"));
+    try testing.expectEqual(@as(usize, uapi_version.header_flags_offset), @offsetOf(export_shim.BoundaryHeader, "flags"));
+
+    try testing.expectEqual(canonical, uapi_version.boundaryHeader(0x44));
+    try testing.expectEqual(canonical, header_family.currentBoundaryHeader(0x44));
+    try testing.expectEqual(canonical, export_shim.canonicalHeader(0x44));
+    try testing.expectEqual(compatible, uapi_version.compatibleHeader(version.header_size + 4, 0x44));
+    try testing.expectEqual(compatible, header_family.compatibleBoundaryHeader(version.header_size + 4, 0x44));
+    try testing.expectEqual(compatible, export_shim.compatibleHeader(version.header_size + 4, 0x44));
+
+    try testing.expectEqual(uapi_version.isCanonical(canonical), header_family.boundaryHeaderIsCanonical(canonical));
+    try testing.expectEqual(uapi_version.isCompatible(canonical), header_family.boundaryHeaderIsCompatible(canonical));
+    try testing.expectEqual(uapi_version.extendsBoundary(compatible), header_family.boundaryHeaderExtendsBoundary(compatible));
+    try testing.expectEqual(uapi_version.requestedExtraBytes(compatible), header_family.boundaryHeaderRequestedExtraBytes(compatible));
+    try testing.expectEqual(uapi_version.hasCurrentAbiVersion(stale.abi_version), header_family.boundaryHeaderHasCurrentAbiVersion(stale.abi_version));
+    try testing.expectEqual(uapi_version.validateBoundaryHeader(canonical), header_family.validateBoundaryHeaderStatus(canonical));
+    try testing.expectEqual(uapi_version.validateBoundaryHeader(compatible), header_family.validateBoundaryHeaderStatus(compatible));
+    try testing.expectEqual(uapi_version.validateBoundaryHeader(stale), header_family.validateBoundaryHeaderStatus(stale));
+}
+
+test "export shim and header-family boundary validators stay byte-for-byte aligned" {
+    const canonical = export_shim.canonicalHeader(0x51);
+    const compatible = export_shim.compatibleHeader(export_shim.header_size + 12, 0x51);
+    const undersized = export_shim.BoundaryHeader{
+        .size = export_shim.header_size - 1,
+        .abi_version = export_shim.abi_version,
+        .flags = 0x51,
+    };
+    const stale = export_shim.BoundaryHeader{
+        .size = export_shim.header_size,
+        .abi_version = export_shim.abi_version + 1,
+        .flags = 0x51,
+    };
+
+    try testing.expectEqual(export_shim.validateBoundaryHeader(canonical), header_family.validateBoundaryHeaderStatus(canonical));
+    try testing.expectEqual(export_shim.validateBoundaryHeader(compatible), header_family.validateBoundaryHeaderStatus(compatible));
+    try testing.expectEqual(export_shim.validateBoundaryHeader(undersized), header_family.validateBoundaryHeaderStatus(undersized));
+    try testing.expectEqual(export_shim.validateBoundaryHeader(stale), header_family.validateBoundaryHeaderStatus(stale));
+    try testing.expectEqual(export_shim.canonicalizeHeader(compatible), header_family.canonicalizeBoundaryHeader(compatible));
+    try testing.expectEqual(export_shim.extendsBoundary(compatible), header_family.boundaryHeaderExtendsBoundary(compatible));
+    try testing.expectEqual(export_shim.requestedExtraBytes(compatible), header_family.boundaryHeaderRequestedExtraBytes(compatible));
+    try testing.expectEqual(export_shim.okStatus(.helpers), header_family.okStatus(.helpers));
+    try testing.expectEqual(export_shim.errorStatus(-22, .kernel), header_family.errorStatus(-22, .kernel));
+}
