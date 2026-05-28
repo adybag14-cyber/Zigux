@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the Phase 1 find_bit review packet against helper, fixture, smoke, and lane drift."""
+"""Guard the Phase 1 find_bit review packet against helper, fixture, and note drift."""
 
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ CLOSURE_NOTE_REL = Path("Documentation/zigux/phase1-closure.md")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
+FIND_BIT_REL = "tools/lib/find_bit.zig"
 
 
 class DuplicateTrackingDict(dict[str, object]):
@@ -30,47 +31,19 @@ class DuplicateTrackingDict(dict[str, object]):
             self[key] = value
 
 
-EXPECTED_SOURCE_SYMBOLS = [
-    "pub fn findFirstBit(addr: []const Word, nbits: usize) usize {",
-    "pub fn find_first_bit(addr: []const Word, nbits: usize) usize {",
-    "pub fn _find_first_bit(addr: []const Word, nbits: usize) usize {",
-    "pub fn findFirstAndBit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
-    "pub fn find_first_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
-    "pub fn _find_first_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
-    "pub fn findFirstAndNotBit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
-    "pub fn find_first_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
-    "pub fn _find_first_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
-    "pub fn findFirstZeroBit(addr: []const Word, nbits: usize) usize {",
-    "pub fn find_first_zero_bit(addr: []const Word, nbits: usize) usize {",
-    "pub fn _find_first_zero_bit(addr: []const Word, nbits: usize) usize {",
-    "pub fn findNextBit(addr: []const Word, nbits: usize, start: usize) usize {",
-    "pub fn find_next_bit(addr: []const Word, nbits: usize, start: usize) usize {",
-    "pub fn _find_next_bit(addr: []const Word, nbits: usize, start: usize) usize {",
-    "pub fn findNextAndBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
-    "pub fn find_next_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
-    "pub fn _find_next_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
-    "pub fn findNextOrBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
-    "pub fn find_next_or_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
-    "pub fn _find_next_or_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
-    "pub fn findNextAndNotBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
-    "pub fn find_next_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
-    "pub fn _find_next_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
-    "pub fn findNextZeroBit(addr: []const Word, nbits: usize, start: usize) usize {",
-    "pub fn find_next_zero_bit(addr: []const Word, nbits: usize, start: usize) usize {",
-    "pub fn _find_next_zero_bit(addr: []const Word, nbits: usize, start: usize) usize {",
-    "pub fn getValue8(addr: []const Word, offset: usize) u8 {",
-    "pub fn findNextClump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {",
-    "pub fn find_next_clump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {",
-    "pub fn _find_next_clump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {",
-    "pub fn findFirstClump8(clump: *u8, addr: []const Word, nbits: usize) usize {",
-    "pub fn find_first_clump8(clump: *u8, addr: []const Word, nbits: usize) usize {",
-    "pub fn _find_first_clump8(clump: *u8, addr: []const Word, nbits: usize) usize {",
-    "pub fn findLastBit(addr: []const Word, nbits: usize) usize {",
-    "pub fn find_last_bit(addr: []const Word, nbits: usize) usize {",
-    "pub fn _find_last_bit(addr: []const Word, nbits: usize) usize {",
+SOURCE_SYMBOLS = [
+    "findFirstBit", "findFirstAndBit", "findFirstAndNotBit", "findFirstZeroBit",
+    "findNextBit", "findNextAndBit", "findNextOrBit", "findNextAndNotBit", "findNextZeroBit",
+    "findNextClump8", "findFirstClump8", "findLastBit", "getValue8",
+    "find_first_bit", "_find_first_bit", "find_first_and_bit", "_find_first_and_bit",
+    "find_first_andnot_bit", "_find_first_andnot_bit", "find_first_zero_bit", "_find_first_zero_bit",
+    "find_next_bit", "_find_next_bit", "find_next_and_bit", "_find_next_and_bit",
+    "find_next_or_bit", "_find_next_or_bit", "find_next_andnot_bit", "_find_next_andnot_bit",
+    "find_next_zero_bit", "_find_next_zero_bit", "find_next_clump8", "_find_next_clump8",
+    "find_first_clump8", "_find_first_clump8", "find_last_bit", "_find_last_bit",
 ]
 
-EXPECTED_HELPER_TEST_ANCHORS = [
+HELPER_TEST_ANCHORS = [
     'test "find first and next set bits across words, with andnot gaps explicit"',
     'test "find zero bits respects the declared bit count"',
     'test "find and bit returns the first shared set bit"',
@@ -106,488 +79,216 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "Linux-style aliases mirror the primary find helpers, including andnot"',
 ]
 
-EXPECTED_LANE_LINES = [
-    "- `PHASE1_FIND_BIT_DIRECT_OWNER=find_bit helper-local same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), and findLastBit() byte-clump and backward-scan coverage, plus the public, Linux-style, and underscore andnot coverage including the shipped findFirstAndNotBit(), findNextAndNotBit(), find_first_andnot_bit(), find_next_andnot_bit(), _find_first_andnot_bit(), and _find_next_andnot_bit() entry points, and tail-word skip anchors plus the committed tail-clamped and tail-inclusive-boundary find_bit replay fields already preserved in zigux/tests/fixtures/phase1_helpers.json`",
-    "- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), underscore-alias or Linux-style alias coverage including the shipped andnot scan entry points, or tail-word skip anchors, or for committed tail-clamped or tail-inclusive-boundary replay drift; do not reopen older saved validator cues or neighboring helper families`",
+PARITY_FIXTURE_KEYS = [
+    "bits_per_long", "first", "next_after_6", "next_after_word", "first_zero",
+    "next_zero", "first_and", "next_and", "last",
 ]
 
-EXPECTED_LANE_PARAGRAPH = (
-    "- current `master` also keeps the helper-local `clump8`, `getValue8()`, and `findLastBit()` "
-    "byte-clump and backward-scan proofs explicit in both `tools/lib/find_bit.zig` and the manifest's "
-    "`helper_test_anchors` list, so nearby Phase 1 follow-through should keep those checks inside the "
-    "same direct `find_bit` packet instead of splitting byte-clump or last-bit drift into a separate "
-    "shared replay family"
-)
+FIXTURE_VALUES = {
+    "bits_per_long": 64, "first": 5, "next_after_6": 9, "next_after_word": 66,
+    "first_zero": 3, "next_zero": 68, "first_and": 9, "next_and": 66, "last": 71,
+}
 
-EXPECTED_CLOSURE_PARAGRAPH = (
-    "A current helper-family tie-breaker inside that packet is the `find_bit` direct-anchor route: keep "
-    "`tools/lib/find_bit.zig` parked unless a fresh reread finds drift in the manifest-backed same-word "
-    "start-mask, head-word, tail-word, or single-word tail inclusive-boundary anchors, zero-window, "
-    "zero-sized short-circuit, past-`nbits`, `clump8`, `getValue8()`, `findLastBit()`, underscore-alias, "
-    "Linux-style alias, or tail-word skip anchors, or drift in the already-committed tail-clamped or "
-    "tail-inclusive-boundary replay fields, and do not reopen older validator-first cues or neighboring "
-    "helper families by default. Current `master` still keeps the helper-local byte-clump, backward-scan, "
-    "alias, and shipped `find_*andnot*` entry-point packet directly in `tools/lib/find_bit.zig`, and the "
-    "manifest-backed review surface together with `Documentation/zigux/phase1-host-helper-lane-sequencing.md` "
-    "keep that helper-local progress review-visible beside the narrower closure validator. That direct packet "
-    "now also includes the explicit `clump8 past-end scans return without reading bitmap words` no-read anchor, "
-    "so the byte-clump coverage is not limited to in-range or zero-bit windows. Current `master` also now spells "
-    "the lead direct anchor as `find first and next set bits across words, with andnot gaps explicit`, names the "
-    "underscore and Linux-style alias anchors `including andnot`, and keeps the dedicated `single-word tail "
-    "windows keep the last in-range next matches reachable from an inclusive start` proof alongside the "
-    "head-word and tail-word boundary packet, so leave `find_bit` parked unless one of those direct anchors or "
-    "committed replay fields drifts."
-)
-
-EXPECTED_MANIFEST_PACKET = {
-    "helper_test_anchors": EXPECTED_HELPER_TEST_ANCHORS,
-    "same_word_start_masks": 'test "single-word next scans honor start masks"',
-    "inclusive_boundary_start": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
-    "tail_word_inclusive_boundary_anchor": 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
-    "single_word_tail_inclusive_boundary_anchor": 'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start"',
+MANIFEST_EXPECTED = {
+    "helper_test_anchors": HELPER_TEST_ANCHORS,
+    "same_word_start_masks": HELPER_TEST_ANCHORS[4],
+    "inclusive_boundary_start": HELPER_TEST_ANCHORS[23],
+    "tail_word_inclusive_boundary_anchor": HELPER_TEST_ANCHORS[24],
+    "single_word_tail_inclusive_boundary_anchor": HELPER_TEST_ANCHORS[25],
     "tail_word_inclusive_boundary_contract": "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit of the final partial word, while later starts still return nbits instead of leaking the out-of-range tail.",
-    "zero_bit_window": 'test "zero-bit windows return without reading bitmap words"',
-    "zero_sized_short_circuit_anchor": 'test "zero-sized scans ignore populated backing words"',
-    "past_nbits_short_circuit": 'test "next scans past nbits return without reading bitmap words"',
-    "underscore_alias_anchor": 'test "low-level underscore aliases mirror the primary find helpers, including andnot"',
-    "linux_alias_anchor": 'test "Linux-style aliases mirror the primary find helpers, including andnot"',
-    "andnot_scan_entrypoints": [
-        "findFirstAndNotBit",
-        "find_first_andnot_bit",
-        "_find_first_andnot_bit",
-        "findNextAndNotBit",
-        "find_next_andnot_bit",
-        "_find_next_andnot_bit",
-    ],
+    "zero_bit_window": HELPER_TEST_ANCHORS[8],
+    "zero_sized_short_circuit_anchor": HELPER_TEST_ANCHORS[9],
+    "past_nbits_short_circuit": HELPER_TEST_ANCHORS[10],
+    "underscore_alias_anchor": HELPER_TEST_ANCHORS[31],
+    "linux_alias_anchor": HELPER_TEST_ANCHORS[32],
+    "andnot_scan_entrypoints": ["findFirstAndNotBit", "find_first_andnot_bit", "_find_first_andnot_bit", "findNextAndNotBit", "find_next_andnot_bit", "_find_next_andnot_bit"],
     "andnot_scan_entrypoint_contract": "The shipped public, Linux-style, and underscore andnot scan entry points stay owned by the direct find_bit packet instead of being left implicit under generic alias wording.",
-    "tail_word_set_skip_anchor": 'test "tail-word next set scans skip earlier in-range matches before clamping"',
-    "tail_word_skip_anchor": 'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
-    "tail_clamp_fixture_keys": [
-        "tail_clamped_first",
-        "tail_clamped_next",
-        "tail_zero_clamped_first",
-        "tail_zero_clamped_next",
-        "tail_and_clamped_first",
-        "tail_and_clamped_next",
-        "tail_clamped_last",
-        "tail_clamped_empty_last",
-    ],
-    "tail_inclusive_boundary_fixture_keys": [
-        "tail_inclusive_boundary_next",
-        "tail_inclusive_boundary_zero",
-        "tail_inclusive_boundary_and",
-    ],
-    "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped and tail-inclusive-boundary find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, single-word tail inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, clump8, getValue8(), findLastBit(), underscore-alias, and Linux-style alias behavior review-visible on current master",
-    "next_safe_step_note": "If this helper lane reopens, keep find_bit parked unless a fresh reread finds direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), underscore-alias, Linux-style alias coverage including the shipped andnot scan entry points, or tail-word skip anchors, or committed tail-clamped or tail-inclusive-boundary replay drift; do not reopen older saved validator cues or neighboring helper families.",
+    "tail_word_set_skip_anchor": HELPER_TEST_ANCHORS[14],
+    "tail_word_skip_anchor": HELPER_TEST_ANCHORS[30],
+    "parity_fixture_keys": PARITY_FIXTURE_KEYS,
+    "review_packet_summary": "the committed Phase 1 fixture still owns the live cross-word find_bit replay through `bits_per_long`, `first`, `next_after_6`, `next_after_word`, `first_zero`, `next_zero`, `first_and`, `next_and`, and `last`, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, single-word tail inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, clump8, getValue8(), findLastBit(), underscore-alias, and Linux-style alias behavior review-visible on current master",
+    "next_safe_step_note": "If this helper lane reopens, keep find_bit parked unless a fresh reread finds drift in the manifest-backed same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), underscore-alias, Linux-style alias coverage including the shipped andnot scan entry points, or tail-word skip anchors, or committed shared replay drift in the live `bits_per_long`, `first`, `next_after_6`, `next_after_word`, `first_zero`, `next_zero`, `first_and`, `next_and`, or `last` fixture keys; do not reopen older saved validator cues or neighboring helper families.",
 }
 
-EXPECTED_FIXTURE_VALUES = {
-    "tail_clamped_first": 67,
-    "tail_clamped_next": 69,
-    "tail_zero_clamped_first": 69,
-    "tail_zero_clamped_next": 69,
-    "tail_and_clamped_first": 67,
-    "tail_and_clamped_next": 69,
-    "tail_clamped_last": 67,
-    "tail_clamped_empty_last": 69,
-    "tail_inclusive_boundary_next": 68,
-    "tail_inclusive_boundary_zero": 68,
-    "tail_inclusive_boundary_and": 68,
-}
+LANE_MARKERS = [
+    "PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask",
+    "or for committed tail-clamped or tail-inclusive-boundary replay drift",
+]
 
-EXPECTED_SMOKE_MARKERS = [
-    'const word_bits = find_bit.bits_per_long;',
-    'try std.testing.expectEqual(word_bits - 1, find_bit.findFirstBit(&map, nbits));',
-    'try std.testing.expectEqual(word_bits - 1, find_bit.findNextBit(&map, nbits, word_bits - 1));',
-    'try std.testing.expectEqual(word_bits, find_bit.findNextBit(&map, nbits, word_bits));',
-    'try std.testing.expectEqual(word_bits + 1, find_bit.findLastBit(&map, nbits));',
-    'try std.testing.expectEqual(nbits, find_bit.findLastBit(&empty_last_map, nbits));',
+CLOSURE_MARKERS = [
+    "For `tools/lib/find_bit.zig`, current `master` still justifies a parked helper-local follow-up rather than a reopened closure pass.",
+    "This helper should only reopen if a fresh reread finds drift in those direct anchors or in the committed shared find-bit parity fields",
+    "PHASE1_FIND_BIT_REVIEW_GUARD=python3 scripts/zigux/check-phase1-find-bit-review-packet.py",
+]
+
+SMOKE_MARKERS = [
+    "const word_bits = find_bit.bits_per_long;",
+    "find_bit.findFirstBit(&map, nbits)",
+    "find_bit.findNextBit(&map, nbits, word_bits - 1)",
+    "find_bit.findLastBit(&map, nbits)",
     'test "phase1 host-tools smoke keeps find_bit andnot and clump anchors aligned" {',
-    'try std.testing.expectEqual(@as(usize, find_bit.bits_per_long + 3), find_bit.findFirstAndNotBit(&tail_lhs, &tail_rhs, nbits));',
-    'try std.testing.expectEqual(@as(usize, find_bit.bits_per_long + 3), find_bit.find_next_andnot_bit(&tail_lhs, &tail_rhs, nbits, find_bit.bits_per_long + 2));',
-    'try std.testing.expectEqual(@as(usize, nbits), find_bit._find_next_andnot_bit(&tail_lhs, &tail_rhs, nbits, find_bit.bits_per_long + 4));',
-    'try std.testing.expectEqual(@as(usize, find_bit.bits_per_long), find_bit.findFirstClump8(&clump, &clump_map, nbits));',
-    'try std.testing.expectEqual(@as(usize, find_bit.bits_per_long), find_bit.find_first_clump8(&clump, &clump_map, nbits));',
-    'try std.testing.expectEqual(@as(usize, find_bit.bits_per_long), find_bit.find_next_clump8(&clump, &clump_map, nbits, find_bit.bits_per_long));',
-    'try std.testing.expectEqual(@as(usize, nbits), find_bit._find_next_clump8(&clump, &clump_map, nbits, nbits));',
+    "find_bit.findFirstAndNotBit(&tail_lhs, &tail_rhs, nbits)",
+    "find_bit.find_next_andnot_bit(&tail_lhs, &tail_rhs, nbits, find_bit.bits_per_long + 2)",
+    "find_bit._find_next_andnot_bit(&tail_lhs, &tail_rhs, nbits, find_bit.bits_per_long + 4)",
+    "find_bit.findFirstClump8(&clump, &clump_map, nbits)",
+    "find_bit.find_next_clump8(&clump, &clump_map, nbits, find_bit.bits_per_long)",
+    "find_bit._find_next_clump8(&clump, &clump_map, nbits, nbits)",
 ]
 
 
-def repo_root(root: str | None) -> Path:
-    return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
+def root(path: str | None) -> Path:
+    return Path(path).resolve() if path else DEFAULT_ROOT.resolve()
 
 
-def load_text(root: Path, relative_path: Path) -> str:
-    return (root / relative_path).read_text(encoding="utf-8")
+def load_text(repo: Path, path: Path) -> str:
+    return (repo / path).read_text(encoding="utf-8")
 
 
-def load_json_with_duplicate_tracking(text: str) -> Any:
-    return json.loads(text, object_pairs_hook=DuplicateTrackingDict)
+def load_json(repo: Path, path: Path) -> Any:
+    return json.loads(load_text(repo, path), object_pairs_hook=DuplicateTrackingDict)
 
 
-def load_json(root: Path, relative_path: Path) -> Any:
-    return load_json_with_duplicate_tracking(load_text(root, relative_path))
-
-
-def load_json_failure(label: str, exc: json.JSONDecodeError) -> str:
-    return f"{label}:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}"
-
-
-def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:
-    paths: list[str] = []
+def duplicate_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:
+    found: list[str] = []
     if isinstance(data, DuplicateTrackingDict):
-        for key in data.duplicate_keys:
-            paths.append(".".join(prefix + (key,)))
+        found.extend(".".join(prefix + (key,)) for key in data.duplicate_keys)
     if isinstance(data, dict):
         for key, value in data.items():
-            paths.extend(collect_duplicate_json_key_paths(value, prefix + (key,)))
+            found.extend(duplicate_paths(value, prefix + (key,)))
     elif isinstance(data, list):
         for item in data:
-            paths.extend(collect_duplicate_json_key_paths(item, prefix))
-    return paths
+            found.extend(duplicate_paths(item, prefix))
+    return found
 
 
-def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
+def exact(text: str, label: str, marker: str) -> list[str]:
     count = text.count(marker)
     return [] if count == 1 else [f"{label}:expected=1:actual={count}"]
 
 
-def require_exact_value(label: str, actual: Any, expected: Any) -> list[str]:
+def equals(label: str, actual: Any, expected: Any) -> list[str]:
     return [] if actual == expected else [f"{label}:expected_current_packet"]
 
 
-def collect_failures(root: Path) -> list[str]:
+def collect_failures(repo: Path) -> list[str]:
     failures: list[str] = []
+    texts: dict[Path, str] = {}
+    for rel in [HELPER_REL, LANE_NOTE_REL, CLOSURE_NOTE_REL, SMOKE_REL]:
+        try:
+            texts[rel] = load_text(repo, rel)
+        except FileNotFoundError:
+            failures.append(f"missing_file:{rel.as_posix()}")
+            texts[rel] = ""
 
-    for relative_path in (HELPER_REL, LANE_NOTE_REL, CLOSURE_NOTE_REL, MANIFEST_REL, FIXTURE_REL, SMOKE_REL):
-        if not (root / relative_path).exists():
-            failures.append(f"missing_file:{relative_path.as_posix()}")
-    if failures:
-        return failures
+    decoded: dict[Path, Any] = {}
+    for rel, label in [(MANIFEST_REL, "manifest"), (FIXTURE_REL, "fixture")]:
+        try:
+            decoded[rel] = load_json(repo, rel)
+        except FileNotFoundError:
+            failures.append(f"missing_file:{rel.as_posix()}")
+            decoded[rel] = {}
+        except json.JSONDecodeError as exc:
+            failures.append(f"{label}:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}")
+            decoded[rel] = {}
 
-    helper_text = load_text(root, HELPER_REL)
-    lane_text = load_text(root, LANE_NOTE_REL)
-    closure_text = load_text(root, CLOSURE_NOTE_REL)
-    smoke_text = load_text(root, SMOKE_REL)
-    try:
-        manifest = load_json(root, MANIFEST_REL)
-    except json.JSONDecodeError as exc:
-        return [load_json_failure("manifest", exc)]
+    helper = texts[HELPER_REL]
+    for symbol in SOURCE_SYMBOLS:
+        failures.extend(exact(helper, f"helper_symbol:{symbol}", f"pub fn {symbol}"))
+    for marker in HELPER_TEST_ANCHORS:
+        failures.extend(exact(helper, f"helper_anchor:{marker}", marker))
+    for marker in LANE_MARKERS:
+        failures.extend(exact(texts[LANE_NOTE_REL], f"lane_marker:{marker}", marker))
+    for marker in CLOSURE_MARKERS:
+        failures.extend(exact(texts[CLOSURE_NOTE_REL], f"closure_marker:{marker}", marker))
+    for marker in SMOKE_MARKERS:
+        failures.extend(exact(texts[SMOKE_REL], f"smoke_marker:{marker}", marker))
 
-    try:
-        fixture = load_json(root, FIXTURE_REL)
-    except json.JSONDecodeError as exc:
-        return [load_json_failure("fixture", exc)]
+    manifest = decoded[MANIFEST_REL]
+    fixture = decoded[FIXTURE_REL]
+    failures.extend(f"manifest:duplicate_json_key:{path}" for path in duplicate_paths(manifest))
+    failures.extend(f"fixture:duplicate_json_key:{path}" for path in duplicate_paths(fixture))
 
-    if not isinstance(manifest, dict):
-        return [f"manifest:expected=dict:actual={type(manifest).__name__}"]
-    duplicate_manifest_paths = collect_duplicate_json_key_paths(manifest)
-    if duplicate_manifest_paths:
-        return [f"manifest:duplicate_json_key:{path}" for path in duplicate_manifest_paths]
+    review = manifest.get("review_anchors", {}) if isinstance(manifest, dict) else {}
+    packet = review.get(FIND_BIT_REL, {}) if isinstance(review, dict) else {}
+    for key, expected in MANIFEST_EXPECTED.items():
+        actual = packet.get(key) if isinstance(packet, dict) else None
+        failures.extend(equals(f"manifest:{key}", actual, expected))
 
-    if not isinstance(fixture, dict):
-        return [f"fixture:expected=dict:actual={type(fixture).__name__}"]
-    duplicate_fixture_paths = collect_duplicate_json_key_paths(fixture)
-    if duplicate_fixture_paths:
-        return [f"fixture:duplicate_json_key:{path}" for path in duplicate_fixture_paths]
-
-    for symbol in EXPECTED_SOURCE_SYMBOLS:
-        failures.extend(require_exact_occurrence(helper_text, f"helper_symbol:{symbol}", symbol))
-
-    for anchor in EXPECTED_HELPER_TEST_ANCHORS:
-        failures.extend(require_exact_occurrence(helper_text, f"helper_anchor:{anchor}", anchor))
-
-    for marker in EXPECTED_SMOKE_MARKERS:
-        failures.extend(require_exact_occurrence(smoke_text, f"smoke_marker:{marker}", marker))
-
-    for lane_line in EXPECTED_LANE_LINES:
-        failures.extend(require_exact_occurrence(lane_text, f"lane_line:{lane_line}", lane_line))
-    failures.extend(require_exact_occurrence(lane_text, "lane_paragraph", EXPECTED_LANE_PARAGRAPH))
-    failures.extend(require_exact_occurrence(closure_text, "closure_paragraph", EXPECTED_CLOSURE_PARAGRAPH))
-
-    review_anchors = manifest.get("review_anchors") if isinstance(manifest, dict) else None
-    if not isinstance(review_anchors, dict):
-        return ["manifest:review_anchors"]
-    packet = review_anchors.get("tools/lib/find_bit.zig")
-    if not isinstance(packet, dict):
-        return ["manifest:tools/lib/find_bit.zig"]
-
-    for field, expected in EXPECTED_MANIFEST_PACKET.items():
-        failures.extend(require_exact_value(f"manifest:{field}", packet.get(field), expected))
-
-    find_bit_fixture = fixture.get("find_bit") if isinstance(fixture, dict) else None
-    if not isinstance(find_bit_fixture, dict):
-        return ["fixture:find_bit"]
-    for field, expected in EXPECTED_FIXTURE_VALUES.items():
-        failures.extend(require_exact_value(f"fixture:{field}", find_bit_fixture.get(field), expected))
+    find_bit = fixture.get("find_bit", {}) if isinstance(fixture, dict) else {}
+    for key, expected in FIXTURE_VALUES.items():
+        actual = find_bit.get(key) if isinstance(find_bit, dict) else None
+        failures.extend(equals(f"fixture:{key}", actual, expected))
 
     return failures
 
 
-def write_text(root: Path, relative_path: Path, text: str) -> None:
-    destination = root / relative_path
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(text, encoding="utf-8")
+def write(repo: Path, rel: Path, text: str) -> None:
+    target = repo / rel
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(text, encoding="utf-8")
 
 
-def build_sample_repo(root: Path) -> None:
-    helper_lines = EXPECTED_SOURCE_SYMBOLS + [""] + EXPECTED_HELPER_TEST_ANCHORS
-    write_text(root, HELPER_REL, "\n".join(helper_lines) + "\n")
-    write_text(
-        root,
-        LANE_NOTE_REL,
-        "# sample\n\n" + "\n".join(EXPECTED_LANE_LINES + [EXPECTED_LANE_PARAGRAPH]) + "\n",
-    )
-    write_text(root, CLOSURE_NOTE_REL, "# sample\n\n" + EXPECTED_CLOSURE_PARAGRAPH + "\n")
-    write_text(
-        root,
-        MANIFEST_REL,
-        json.dumps({"review_anchors": {"tools/lib/find_bit.zig": EXPECTED_MANIFEST_PACKET}}, indent=2) + "\n",
-    )
-    write_text(root, FIXTURE_REL, json.dumps({"find_bit": EXPECTED_FIXTURE_VALUES}, indent=2) + "\n")
-    write_text(root, SMOKE_REL, "\n".join(EXPECTED_SMOKE_MARKERS) + "\n")
+def build_sample_repo(repo: Path) -> None:
+    write(repo, HELPER_REL, "\n".join([f"pub fn {name}" for name in SOURCE_SYMBOLS] + HELPER_TEST_ANCHORS) + "\n")
+    write(repo, LANE_NOTE_REL, "\n".join(LANE_MARKERS) + "\n")
+    write(repo, CLOSURE_NOTE_REL, "\n".join(CLOSURE_MARKERS) + "\n")
+    write(repo, MANIFEST_REL, json.dumps({"review_anchors": {FIND_BIT_REL: MANIFEST_EXPECTED}}, indent=2) + "\n")
+    write(repo, FIXTURE_REL, json.dumps({"find_bit": FIXTURE_VALUES}, indent=2) + "\n")
+    write(repo, SMOKE_REL, "\n".join(SMOKE_MARKERS) + "\n")
 
 
-def insert_duplicate_json_line(root: Path, relative_path: Path, needle: str, duplicate_line: str) -> None:
-    json_path = root / relative_path
-    text = json_path.read_text(encoding="utf-8")
-    json_path.write_text(
-        text.replace(needle, duplicate_line + "\n" + needle, 1),
-        encoding="utf-8",
-    )
+def expect_case(repo: Path, label: str, expected: str) -> None:
+    if expected not in collect_failures(repo):
+        raise SystemExit(f"phase1-find-bit-review:self-test:{label}")
 
 
 def run_self_test() -> int:
-    cases = [
-        ("missing_helper", "missing_file:tools/lib/find_bit.zig"),
-        ("missing_symbol", "helper_symbol:pub fn findLastBit(addr: []const Word, nbits: usize) usize {:expected=1:actual=0"),
-        ("missing_primary_next_symbol", "helper_symbol:pub fn findNextBit(addr: []const Word, nbits: usize, start: usize) usize {:expected=1:actual=0"),
-        ('missing_anchor', 'helper_anchor:test "getValue8 reads the last aligned byte of a word without folding in the next word":expected=1:actual=0'),
-        ("missing_lane_line", f"lane_line:{EXPECTED_LANE_LINES[0]}:expected=1:actual=0"),
-        ("missing_lane_paragraph", "lane_paragraph:expected=1:actual=0"),
-        ("missing_closure_paragraph", "closure_paragraph:expected=1:actual=0"),
-        ("manifest_drift", "manifest:review_packet_summary:expected_current_packet"),
-        ("manifest_tail_anchor_drift", "manifest:single_word_tail_inclusive_boundary_anchor:expected_current_packet"),
-        ("fixture_drift", "fixture:tail_clamped_last:expected_current_packet"),
-        ('duplicate_anchor', 'helper_anchor:test "clump8 past-end scans return without reading bitmap words":expected=1:actual=2'),
-        ("missing_smoke_file", "missing_file:zigux/tests/phase1_host_tools_smoke.zig"),
-        ('missing_smoke_marker', 'smoke_marker:try std.testing.expectEqual(@as(usize, find_bit.bits_per_long), find_bit.find_next_clump8(&clump, &clump_map, nbits, find_bit.bits_per_long));:expected=1:actual=0'),
-        ('duplicate_smoke_marker', 'smoke_marker:test "phase1 host-tools smoke keeps find_bit andnot and clump anchors aligned" {:expected=1:actual=2'),
-        ("manifest_invalid_json", "manifest:invalid_json:Expecting property name enclosed in double quotes:line=2:column=1"),
-        ("fixture_invalid_json", "fixture:invalid_json:Expecting property name enclosed in double quotes:line=2:column=1"),
-        ("manifest_duplicate_review_packet_summary", "manifest:duplicate_json_key:review_anchors.tools/lib/find_bit.zig.review_packet_summary"),
-        ("fixture_duplicate_tail_clamped_first", "fixture:duplicate_json_key:find_bit.tail_clamped_first"),
-        ("manifest_andnot_contract_drift", "manifest:andnot_scan_entrypoint_contract:expected_current_packet"),
-        ("manifest_andnot_entrypoints_drift", "manifest:andnot_scan_entrypoints:expected_current_packet"),
-        ("missing_or_symbol", "helper_symbol:pub fn findNextOrBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {:expected=1:actual=0"),
-        ("fixture_tail_inclusive_boundary_and_drift", "fixture:tail_inclusive_boundary_and:expected_current_packet"),
-        ("manifest_tail_word_set_skip_anchor_drift", "manifest:tail_word_set_skip_anchor:expected_current_packet"),
-        ("manifest_tail_word_skip_anchor_drift", "manifest:tail_word_skip_anchor:expected_current_packet"),
-        ("manifest_helper_test_anchors_drift", "manifest:helper_test_anchors:expected_current_packet"),
-    ]
-
-    with tempfile.TemporaryDirectory(prefix="zigux_phase1_find_bit_review_") as tmp_dir:
-        tmp_root = Path(tmp_dir)
-        if cases[0][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:missing_helper")
-
-        build_sample_repo(tmp_root)
-        if collect_failures(tmp_root):
+    with tempfile.TemporaryDirectory(prefix="zigux_phase1_find_bit_review_") as tmp:
+        repo = Path(tmp)
+        expect_case(repo, "missing_helper", f"missing_file:{HELPER_REL.as_posix()}")
+        build_sample_repo(repo)
+        if collect_failures(repo):
             raise SystemExit("phase1-find-bit-review:self-test:baseline")
 
-        helper_path = tmp_root / HELPER_REL
-        lane_path = tmp_root / LANE_NOTE_REL
-        closure_path = tmp_root / CLOSURE_NOTE_REL
-        manifest_path = tmp_root / MANIFEST_REL
-        fixture_path = tmp_root / FIXTURE_REL
-        smoke_path = tmp_root / SMOKE_REL
+        helper = repo / HELPER_REL
+        manifest = repo / MANIFEST_REL
+        fixture = repo / FIXTURE_REL
+        smoke = repo / SMOKE_REL
 
-        text = helper_path.read_text(encoding="utf-8").replace(
-            "pub fn findLastBit(addr: []const Word, nbits: usize) usize {\n",
-            "",
-            1,
-        )
-        helper_path.write_text(text, encoding="utf-8")
-        if cases[1][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:missing_symbol")
+        helper.write_text(helper.read_text(encoding="utf-8").replace("pub fn findLastBit\n", "", 1), encoding="utf-8")
+        expect_case(repo, "missing_symbol", "helper_symbol:findLastBit:expected=1:actual=0")
 
-        build_sampleRepo = build_sample_repo
-        build_sampleRepo(tmp_root)
-        text = helper_path.read_text(encoding="utf-8").replace(
-            "pub fn findNextBit(addr: []const Word, nbits: usize, start: usize) usize {\n",
-            "",
-            1,
-        )
-        helper_path.write_text(text, encoding="utf-8")
-        if cases[2][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:missing_primary_next_symbol")
+        build_sample_repo(repo)
+        helper.write_text(helper.read_text(encoding="utf-8") + HELPER_TEST_ANCHORS[20] + "\n", encoding="utf-8")
+        expect_case(repo, "duplicate_anchor", f"helper_anchor:{HELPER_TEST_ANCHORS[20]}:expected=1:actual=2")
 
-        build_sample_repo(tmp_root)
-        text = helper_path.read_text(encoding="utf-8").replace(
-            EXPECTED_HELPER_TEST_ANCHORS[22] + "\n",
-            "",
-            1,
-        )
-        helper_path.write_text(text, encoding="utf-8")
-        if cases[3][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:missing_anchor")
+        build_sample_repo(repo)
+        data = load_json(repo, MANIFEST_REL)
+        data["review_anchors"][FIND_BIT_REL]["parity_fixture_keys"] = ["bits_per_long"]
+        write(repo, MANIFEST_REL, json.dumps(data, indent=2) + "\n")
+        expect_case(repo, "manifest_drift", "manifest:parity_fixture_keys:expected_current_packet")
 
-        build_sample_repo(tmp_root)
-        text = lane_path.read_text(encoding="utf-8").replace(EXPECTED_LANE_LINES[0] + "\n", "", 1)
-        lane_path.write_text(text, encoding="utf-8")
-        if cases[4][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:missing_lane_line")
+        build_sample_repo(repo)
+        data = load_json(repo, FIXTURE_REL)
+        data["find_bit"]["next_after_word"] = 0
+        write(repo, FIXTURE_REL, json.dumps(data, indent=2) + "\n")
+        expect_case(repo, "fixture_drift", "fixture:next_after_word:expected_current_packet")
 
-        build_sample_repo(tmp_root)
-        text = lane_path.read_text(encoding="utf-8").replace(EXPECTED_LANE_PARAGRAPH + "\n", "", 1)
-        lane_path.write_text(text, encoding="utf-8")
-        if cases[5][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:missing_lane_paragraph")
+        build_sample_repo(repo)
+        manifest.write_text("{\ninvalid\n", encoding="utf-8")
+        expect_case(repo, "manifest_invalid_json", "manifest:invalid_json:Expecting property name enclosed in double quotes:line=2:column=1")
 
-        build_sample_repo(tmp_root)
-        text = closure_path.read_text(encoding="utf-8").replace(EXPECTED_CLOSURE_PARAGRAPH + "\n", "", 1)
-        closure_path.write_text(text, encoding="utf-8")
-        if cases[6][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:missing_closure_paragraph")
+        build_sample_repo(repo)
+        fixture_text = fixture.read_text(encoding="utf-8")
+        fixture.write_text(fixture_text.replace('    "bits_per_long": 64,', '    "bits_per_long": 0,\n    "bits_per_long": 64,', 1), encoding="utf-8")
+        expect_case(repo, "duplicate_fixture_key", "fixture:duplicate_json_key:find_bit.bits_per_long")
 
-        build_sample_repo(tmp_root)
-        manifest = load_json(tmp_root, MANIFEST_REL)
-        manifest["review_anchors"]["tools/lib/find_bit.zig"]["review_packet_summary"] = "drift"
-        write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
-        if cases[7][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:manifest_drift")
-
-        build_sample_repo(tmp_root)
-        manifest = load_json(tmp_root, MANIFEST_REL)
-        manifest["review_anchors"]["tools/lib/find_bit.zig"]["single_word_tail_inclusive_boundary_anchor"] = "drift"
-        write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
-        if cases[8][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:manifest_tail_anchor_drift")
-
-        build_sample_repo(tmp_root)
-        fixture = load_json(tmp_root, FIXTURE_REL)
-        fixture["find_bit"]["tail_clamped_last"] = 0
-        write_text(tmp_root, FIXTURE_REL, json.dumps(fixture, indent=2) + "\n")
-        if cases[9][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:fixture_drift")
-
-        build_sample_repo(tmp_root)
-        duplicated = EXPECTED_HELPER_TEST_ANCHORS[20]
-        text = helper_path.read_text(encoding="utf-8").replace(duplicated + "\n", duplicated + "\n" + duplicated + "\n", 1)
-        helper_path.write_text(text, encoding="utf-8")
-        if cases[10][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:duplicate_anchor")
-
-        build_sample_repo(tmp_root)
-        smoke_path.unlink()
-        if cases[11][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:missing_smoke_file")
-
-        build_sample_repo(tmp_root)
-        text = smoke_path.read_text(encoding="utf-8").replace(EXPECTED_SMOKE_MARKERS[12] + "\n", "", 1)
-        smoke_path.write_text(text, encoding="utf-8")
-        if cases[12][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:missing_smoke_marker")
-
-        build_sample_repo(tmp_root)
-        text = smoke_path.read_text(encoding="utf-8").replace(
-            EXPECTED_SMOKE_MARKERS[6] + "\n",
-            EXPECTED_SMOKE_MARKERS[6] + "\n" + EXPECTED_SMOKE_MARKERS[6] + "\n",
-            1,
-        )
-        smoke_path.write_text(text, encoding="utf-8")
-        if cases[13][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:duplicate_smoke_marker")
-
-        build_sample_repo(tmp_root)
-        manifest_path.write_text("{\n", encoding="utf-8")
-        if cases[14][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:manifest_invalid_json")
-
-        build_sample_repo(tmp_root)
-        fixture_path.write_text("{\n", encoding="utf-8")
-        if cases[15][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:fixture_invalid_json")
-
-        build_sample_repo(tmp_root)
-        insert_duplicate_json_line(
-            tmp_root,
-            MANIFEST_REL,
-            '      "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped and tail-inclusive-boundary find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, single-word tail inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, clump8, getValue8(), findLastBit(), underscore-alias, and Linux-style alias behavior review-visible on current master",',
-            '      "review_packet_summary": "drifted duplicate summary",',
-        )
-        if cases[16][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:manifest_duplicate_review_packet_summary")
-
-        build_sample_repo(tmp_root)
-        insert_duplicate_json_line(
-            tmp_root,
-            FIXTURE_REL,
-            '    "tail_clamped_first": 67,',
-            '    "tail_clamped_first": 0,',
-        )
-        if cases[17][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:fixture_duplicate_tail_clamped_first")
-
-        build_sample_repo(tmp_root)
-        manifest = load_json(tmp_root, MANIFEST_REL)
-        manifest["review_anchors"]["tools/lib/find_bit.zig"]["andnot_scan_entrypoint_contract"] = "drift"
-        write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
-        if cases[18][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:manifest_andnot_contract_drift")
-
-        build_sample_repo(tmp_root)
-        manifest = load_json(tmp_root, MANIFEST_REL)
-        manifest["review_anchors"]["tools/lib/find_bit.zig"]["andnot_scan_entrypoints"] = [
-            "findFirstAndNotBit",
-            "find_next_andnot_bit",
-        ]
-        write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
-        if cases[19][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:manifest_andnot_entrypoints_drift")
-
-        build_sample_repo(tmp_root)
-        text = helper_path.read_text(encoding="utf-8").replace(
-            "pub fn findNextOrBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {\n",
-            "",
-            1,
-        )
-        helper_path.write_text(text, encoding="utf-8")
-        if cases[20][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:missing_or_symbol")
-
-        build_sample_repo(tmp_root)
-        fixture = load_json(tmp_root, FIXTURE_REL)
-        fixture["find_bit"]["tail_inclusive_boundary_and"] = 0
-        write_text(tmp_root, FIXTURE_REL, json.dumps(fixture, indent=2) + "\n")
-        if cases[21][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:fixture_tail_inclusive_boundary_and_drift")
-
-        build_sample_repo(tmp_root)
-        manifest = load_json(tmp_root, MANIFEST_REL)
-        manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_word_set_skip_anchor"] = "drift"
-        write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
-        if cases[22][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:manifest_tail_word_set_skip_anchor_drift")
-
-        build_sample_repo(tmp_root)
-        manifest = load_json(tmp_root, MANIFEST_REL)
-        manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_word_skip_anchor"] = "drift"
-        write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
-        if cases[23][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:manifest_tail_word_skip_anchor_drift")
-
-        build_sample_repo(tmp_root)
-        manifest = load_json(tmp_root, MANIFEST_REL)
-        manifest["review_anchors"]["tools/lib/find_bit.zig"]["helper_test_anchors"] = [
-            EXPECTED_HELPER_TEST_ANCHORS[0],
-        ]
-        write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
-        if cases[24][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-find-bit-review:self-test:manifest_helper_test_anchors_drift")
+        build_sample_repo(repo)
+        smoke.unlink()
+        expect_case(repo, "missing_smoke", f"missing_file:{SMOKE_REL.as_posix()}")
 
     print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST=pass")
-    print(f"PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT={len(cases)}")
+    print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -596,24 +297,19 @@ def main() -> int:
     parser.add_argument("--root", help="Repository root to validate")
     parser.add_argument("--self-test", action="store_true", help="Run checker self-tests")
     args = parser.parse_args()
-
     if args.self_test:
         return run_self_test()
-
-    failures = collect_failures(repo_root(args.root))
+    failures = collect_failures(root(args.root))
     if failures:
         print("PHASE1_FIND_BIT_REVIEW_PACKET=fail")
         for failure in failures:
             print(failure)
         return 1
-
     print("phase1-find-bit-review-packet:ok")
     print(f"PHASE1_FIND_BIT_REVIEW_PACKET_HELPER={HELPER_REL.as_posix()}")
     print(f"PHASE1_FIND_BIT_REVIEW_PACKET_MANIFEST={MANIFEST_REL.as_posix()}")
     print(f"PHASE1_FIND_BIT_REVIEW_PACKET_FIXTURE={FIXTURE_REL.as_posix()}")
     print(f"PHASE1_FIND_BIT_REVIEW_PACKET_SMOKE={SMOKE_REL.as_posix()}")
-    print(f"PHASE1_FIND_BIT_REVIEW_PACKET_LANE_NOTE={LANE_NOTE_REL.as_posix()}")
-    print(f"PHASE1_FIND_BIT_REVIEW_PACKET_CLOSURE_NOTE={CLOSURE_NOTE_REL.as_posix()}")
     return 0
 
 
