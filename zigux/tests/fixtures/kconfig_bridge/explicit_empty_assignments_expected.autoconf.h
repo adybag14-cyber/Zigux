@@ -1,0 +1,2 @@
+#define CONFIG_EMPTY 
+#define CONFIG_QUOTED_EMPTY ""
