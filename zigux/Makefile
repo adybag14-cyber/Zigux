@@ -72,6 +72,8 @@ phase2-genksyms: phase2-toolchain
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py
 	cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms_version_before_invalid_long_option_test.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py
 
@@ -217,7 +219,6 @@ phase6-bsearch-perf:
 
 phase6-checksum-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-test --build-file zigux/tests/phase6_build.zig --summary all
-
 phase6-checksum-perf-matrix-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all
 
