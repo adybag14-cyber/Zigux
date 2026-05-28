@@ -53,6 +53,23 @@ test "bitmap starter packet keeps subset and overlap checks reusable across help
     try testing.expect(!base.intersects(disjoint));
 }
 
+test "bitmap starter packet ignores cross-word tail padding while walking bounded clear bits" {
+    const words = [_]usize{
+        std.math.maxInt(usize),
+        (@as(usize, 1) << 0) |
+            (@as(usize, 1) << 4) |
+            (~@as(usize, 0) << 5),
+    };
+    const capacity = bitmap_view.word_bits + 5;
+    const view = bitmap_view.BitmapView.init(words[0..], capacity);
+
+    try testing.expectEqual(capacity - 3, view.countSetBits());
+    try testing.expectEqual(@as(?usize, 0), view.firstSetBit());
+    try testing.expectEqual(@as(?usize, bitmap_view.word_bits + 1), view.firstClearBit());
+    try testing.expectEqual(@as(?usize, bitmap_view.word_bits + 4), view.nextSetBit(bitmap_view.word_bits + 1));
+    try testing.expectEqual(@as(?usize, bitmap_view.word_bits + 2), view.nextClearBit(bitmap_view.word_bits + 2));
+}
+
 test "bitmap starter packet can walk set and clear bits from a bounded start point" {
     const words = [_]usize{
         (@as(usize, 1) << 1) |
@@ -115,6 +132,22 @@ test "cpumask starter packet keeps subset and overlap semantics inside the bound
     try testing.expect(!superset.isSubsetOf(base));
     try testing.expect(base.intersects(superset));
     try testing.expect(!base.intersects(disjoint));
+}
+
+test "cpumask starter packet ignores cross-word tail padding while walking missing cpus" {
+    const words = [_]usize{
+        std.math.maxInt(usize),
+        (@as(usize, 1) << 0) |
+            (~@as(usize, 0) << 3),
+    };
+    const capacity = bitmap_view.word_bits + 3;
+    const mask = cpumask_view.CpuMaskView.init(words[0..], capacity);
+
+    try testing.expectEqual(capacity - 2, mask.countPresentCpus());
+    try testing.expectEqual(@as(?usize, 0), mask.firstCpu());
+    try testing.expectEqual(@as(?usize, bitmap_view.word_bits + 1), mask.firstMissingCpu());
+    try testing.expectEqual(@as(?usize, bitmap_view.word_bits), mask.nextCpu(bitmap_view.word_bits));
+    try testing.expectEqual(@as(?usize, bitmap_view.word_bits + 2), mask.nextMissingCpu(bitmap_view.word_bits + 2));
 }
 
 test "cpumask starter packet can walk the next routable cpu inside the declared mask" {
