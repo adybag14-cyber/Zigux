@@ -86,6 +86,9 @@
     "confdata bridge keeps explicit empty assignments distinct from quoted empty strings",
     "confdata bridge emits explicit empty assignments distinctly in json output",
     "confdata bridge escapes parsed string bytes in json output",
+    "confdata bridge emits auto.conf symbol export lines",
+    "confdata bridge emits autoconf header symbol export lines",
+    "confdata bridge keeps explicit n out of autoconf header exports",
     "confdata bridge releases appended entry ownership on index-allocation failure",
     "confdata bridge preserves duplicate unset ownership on allocation failure"
   ]
