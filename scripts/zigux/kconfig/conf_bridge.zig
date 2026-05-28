@@ -146,9 +146,13 @@ fn modeAllConfigFallbacks(mode: Mode) ?[]const []const u8 {
     };
 }
 
+fn allconfigRequestsFallbacks(allconfig: []const u8) bool {
+    return allconfig.len == 0 or std.mem.eql(u8, allconfig, "1");
+}
+
 fn requestNeedsAllConfigFallbacks(request: Request) bool {
     if (request.allconfig) |allconfig| {
-        return allconfig.len == 0 and modeAllConfigFallbacks(request.mode) != null;
+        return allconfigRequestsFallbacks(allconfig) and modeAllConfigFallbacks(request.mode) != null;
     }
     return modeUsesAllConfigSentinel(request.mode);
 }
@@ -596,6 +600,21 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     try std.testing.expect(std.mem.indexOf(u8, explicit_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, explicit_capture.list.items, "\"allconfig_fallbacks\":[\"allmod.config\",\"all.config\"]") != null);
 
+    var sentinel_capture = try TestCapture.init(std.testing.allocator, 224);
+    defer sentinel_capture.deinit();
+
+    try runConfBridge(&sentinel_capture, .{
+        .mode = .allmodconfig,
+        .kconfig = "Kconfig",
+        .config = "mod/.config",
+        .arch = "arm",
+        .allconfig = "1",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, sentinel_capture.list.items, "\"mode\":\"allmodconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sentinel_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sentinel_capture.list.items, "\"allconfig_fallbacks\":[\"allmod.config\",\"all.config\"]") != null);
+
     var default_no_capture = try TestCapture.init(std.testing.allocator, 224);
     defer default_no_capture.deinit();
 
@@ -727,6 +746,23 @@ test "conf bridge emits explicit randconfig allconfig override when present" {
     try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
     try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"allconfig_fallbacks\":[\"allrandom.config\",\"all.config\"]") != null);
+
+    var sentinel_capture = try TestCapture.init(std.testing.allocator, 256);
+    defer sentinel_capture.deinit();
+
+    try runConfBridge(&sentinel_capture, .{
+        .mode = .randconfig,
+        .kconfig = "Kconfig",
+        .config = "rand/.config",
+        .arch = "x86_64",
+        .allconfig = "1",
+        .seed = "0xC0FFEE",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, sentinel_capture.list.items, "\"mode\":\"randconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sentinel_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sentinel_capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sentinel_capture.list.items, "\"allconfig_fallbacks\":[\"allrandom.config\",\"all.config\"]") != null);
 }
 
 test "conf bridge omits randconfig allconfig sentinel without explicit override" {
@@ -842,6 +878,11 @@ test "bridge options parser accepts explicit allconfig override for allmodconfig
     try std.testing.expect(allmodconfig.seed == null);
     try std.testing.expect(allmodconfig.probability == null);
     try std.testing.expect(allmodconfig.nosilentupdate == null);
+
+    const allmodconfig_sentinel = try parseBridgeOptions(.allmodconfig, &.{"allconfig=1"});
+    try std.testing.expect(allmodconfig_sentinel.allconfig != null);
+    try std.testing.expectEqualStrings("1", allmodconfig_sentinel.allconfig.?);
+    try std.testing.expect(allconfigRequestsFallbacks(allmodconfig_sentinel.allconfig.?));
 
     const allnoconfig = try parseBridgeOptions(.allnoconfig, &.{"allconfig=mini-all.config"});
     try std.testing.expect(allnoconfig.allconfig != null);
