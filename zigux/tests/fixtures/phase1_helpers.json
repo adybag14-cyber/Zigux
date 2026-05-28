@@ -2,13 +2,13 @@
   "find_bit": {
     "bits_per_long": 64,
     "first": 5,
-    "next_after_6": 67,
-    "next_after_word": 135,
+    "next_after_6": 9,
+    "next_after_word": 66,
     "first_zero": 3,
     "next_zero": 68,
     "first_and": 9,
     "next_and": 66,
-    "last": 135
+    "last": 71
   },
   "bitmap": {
     "weight": 3,
