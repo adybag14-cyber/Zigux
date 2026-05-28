@@ -694,7 +694,6 @@ test "phase 1 helper ports match committed parity fixture" {
     var postorder_count: usize = 0;
     var postorder_node = rbtree.firstPostorder(&postorder_root);
     while (postorder_node) |current_node| : (postorder_node = rbtree.nextPostorder(current_node)) {
-        _ = current_node;
         postorder_count += 1;
     }
     try std.testing.expectEqual(fixture.rbtree.postorder_count, postorder_count);
