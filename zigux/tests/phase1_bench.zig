@@ -6,6 +6,8 @@ const list_sort = @import("list_sort");
 const rbtree = @import("rbtree");
 const string = @import("string");
 
+const Io = std.Io;
+
 const iterations_bitmap_weight: u64 = 20000;
 const iterations_bitmap_window: u64 = 20000;
 const iterations_find_bit: u64 = 20000;
@@ -115,14 +117,23 @@ fn findBitEdgeBench() struct { checksum: u64 } {
     return .{ .checksum = checksum };
 }
 
-fn stringBench() struct { checksum: u64 } {
+fn stringBench() !struct { checksum: u64 } {
     var checksum: u64 = 0;
-    var idx: u64 = 0;
+    var idx: usize = 0;
     while (idx < iterations_string) : (idx += 1) {
-        var appended = [_]u8{ 'h', 'i', 0, 'x', 'x', 'x' };
-        checksum +%= @intCast(string.strlcat(appended[0..], "all"));
-        checksum +%= @intCast(string.strspn("abba!", "ab"));
-        checksum +%= @intCast(string.sysfsMatchString(&[_][]const u8{ "disabled", "auto\n", "manual" }, "auto").?);
+        const even = (idx & 1) == 0;
+        const enabled = try string.strtobool(if (even) "on" else "0");
+        var trim_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };
+        const trimmed = string.trimSpaces(&trim_buf);
+        const parsed = string.memparse(if (even) "64K rest" else "-17 tail");
+        const dirty = if (even)
+            string.memchrInv("aaaaXaaa", 'a')
+        else
+            string.memchrInv("bbbb", 'b');
+        checksum +%= @as(u64, @intFromBool(enabled));
+        checksum +%= @intCast(trimmed.len);
+        checksum +%= @intCast(parsed.rest.len);
+        checksum +%= @as(u64, @intFromBool(dirty != null));
     }
     return .{ .checksum = checksum };
 }
@@ -288,15 +299,16 @@ fn rbtreeCachedBench() struct { checksum: u64 } {
     return .{ .checksum = checksum };
 }
 
-pub fn main() !void {
+pub fn main(init: std.process.Init) !void {
+    const io = init.io;
     var stdout_buffer: [4096]u8 = undefined;
-    var stdout_writer = std.fs.File.stdout().writer(&stdout_buffer);
+    var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
 
     const bitmap_weight_result = bitmapWeightBench();
     const bitmap_window_result = bitmapWindowBench();
     const find_bit_result = findBitBench();
     const find_bit_edge_result = findBitEdgeBench();
-    const string_result = stringBench();
+    const string_result = try stringBench();
     const hweight_result = hweightBench();
     const list_sort_result = listSortBench();
     const rbtree_result = rbtreeBench();
