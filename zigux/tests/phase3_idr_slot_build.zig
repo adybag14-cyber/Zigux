@@ -99,6 +99,15 @@ fn addPhase3IdrSlotDump(
     return b.addRunArtifact(dump);
 }
 
+fn dependOnIdrSlotBundle(
+    step: *std.Build.Step,
+    starter_packet: *std.Build.Step.Run,
+    dump: *std.Build.Step.Run,
+) void {
+    step.dependOn(&starter_packet.step);
+    step.dependOn(&dump.step);
+}
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -110,6 +119,19 @@ pub fn build(b: *std.Build) void {
         "phase3-idr-slot",
         "Run the shared Phase 3 idr-slot starter packet and dump bundle",
     );
-    phase3_idr_slot_step.dependOn(&phase3_idr_slot_starter_packet.step);
-    phase3_idr_slot_step.dependOn(&phase3_idr_slot_dump.step);
+    dependOnIdrSlotBundle(
+        phase3_idr_slot_step,
+        phase3_idr_slot_starter_packet,
+        phase3_idr_slot_dump,
+    );
+
+    const phase3_idr_slot_test_step = b.step(
+        "phase3-idr-slot-test",
+        "Run the shared Phase 3 idr-slot starter packet and dump bundle",
+    );
+    dependOnIdrSlotBundle(
+        phase3_idr_slot_test_step,
+        phase3_idr_slot_starter_packet,
+        phase3_idr_slot_dump,
+    );
 }
