@@ -39,6 +39,7 @@ The landed boundary is still narrow and reviewable:
 - `include/zigux/abi.h` and `include/linux/zigux.h` hold the public C-facing header contract and the Linux-facing UAPI aliases for the same starter packet.
 - `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, `zigux/bindings/version.zig`, `zigux/bindings/dev_t.zig`, and `zigux/bindings/header_family.zig` provide the curated Zig-side view of that same boundary.
 - `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_export_shim_build.zig`, and `zigux/tests/phase3_export_uapi_c_header_smoke.c` keep the packet replayable from both Zig and C-facing entry points, while `.github/workflows/zigux-bootstrap.yml` now runs the direct C smoke route as its own Phase 3 bootstrap step.
+- `zigux/tests/build.zig` and `zigux/Makefile` now keep a shared `phase3-abi-export` replay route visible alongside the focused export-shim and export/UAPI layout replays so this packet can be rerun as one bounded gate.
 
 ## Current Boundary Gap
 
@@ -57,6 +58,8 @@ Current `master` does not yet turn this lane into:
 - `PHASE3_EXPORT_SHIM_DEDICATED_GATE=zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig`
 - `PHASE3_LAYOUT_SHARED_GATE=zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig`
 - `PHASE3_LAYOUT_DEDICATED_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
+- `PHASE3_ABI_EXPORT_SHARED_GATE=zig build phase3-abi-export --build-file zigux/tests/build.zig`
+- `PHASE3_ABI_EXPORT_MAKE_ROUTE=make -C zigux phase3-abi-export`
 - `PHASE3_C_HEADER_SMOKE_GATE=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py`
 - `PHASE3_C_HEADER_SMOKE_WORKFLOW_GATE=.github/workflows/zigux-bootstrap.yml -> Run current Phase 3 export/UAPI C header smoke`
 - `PHASE3_SHARED_VALIDATE_SELFTEST_PATH=scripts/zigux/validate_phase3_selftest.py`
@@ -70,6 +73,6 @@ Keep this lane bounded to export-shim and starter UAPI truthfulness. Reopen it o
 
 - the survey or validator
 - the starter export/UAPI headers or bindings
-- the focused export-shim, layout, or C-smoke replay routes
+- the shared `phase3-abi-export` gate or the focused export-shim, layout, or C-smoke replay routes
 
 Do not use this lane to claim broader Phase 3 completion.
