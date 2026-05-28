@@ -43,16 +43,25 @@ For this lane, that is the most important remaining structural gap.
 
 ### 2. Reminder-surface drift risk around the live allconfig packet
 
-The live fixture packet now treats these modes as explicit `allconfig` override cases:
-- `allnoconfig`
-- `allyesconfig`
+The live fixture packet and manifest now split the `allconfig` story across two explicit surfaces.
+
+The request-plan packet in `zigux/tests/fixtures/kconfig_bridge/cases.json` and `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json` treats these modes as explicit override cases:
 - `allmodconfig`
 - `alldefconfig`
 - `randconfig`
 
-The shipped manifest packet also records an empty `allconfig_sentinel_packet`, which matches that fully explicit override roster.
+The manifest keeps these sentinel-backed modes separate through `allconfig_sentinel_packet`:
+- `allnoconfig`
+- `allyesconfig`
 
-That makes the next same-family risk a reminder-surface truthfulness problem rather than a bridge-runtime implementation gap: every alignment guard that describes the `allconfig` roster must match the live packet exactly or it becomes weaker than the bridge scaffold it is supposed to protect.
+The helper-local reminder packet still names the broader explicit-override guard surface through `helper_local_allconfig_explicit_override_modes`:
+- `allmodconfig`
+- `allnoconfig`
+- `allyesconfig`
+- `alldefconfig`
+- `randconfig`
+
+That makes the next same-family risk a reminder-surface truthfulness problem rather than a bridge-runtime implementation gap: every alignment guard that describes the `allconfig` roster must preserve the live split between sentinel-backed cases, request-plan override cases, and helper-local reminder coverage.
 
 ### 3. Differential replay remains fixture-backed, not source-backed
 
@@ -73,7 +82,7 @@ Those pieces already exist and should be preserved as the stable base for the ne
 ## Highest-Value Next Bounded Step
 
 The next same-lane step should stay narrow:
-- refresh any kconfig reminder or alignment checker that still describes the pre-current `allconfig` packet, especially where the live case roster and manifest now treat `allyesconfig` as an explicit override case and leave the sentinel packet empty
+- refresh any kconfig reminder or alignment checker that still collapses the live `allconfig` packet, especially where the request-plan override packet, the non-empty sentinel packet, and the helper-local explicit-override roster now diverge by design
 
 After that narrow truthfulness pass lands, the next stronger roadmap-backed step would be:
 - add a direct provenance or differential anchor for `conf.c` / `confdata.c` once those C sources are readable in-tree again on current `master`
