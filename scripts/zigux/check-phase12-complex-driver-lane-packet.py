@@ -148,6 +148,10 @@ FORBIDDEN_MAKEFILE_MARKERS = (
     "phase12: phase12-smoke phase12-test",
 )
 
+EXACT_LINE_MARKER_PATHS = {
+    WORKFLOW_PATH,
+}
+
 
 class CheckFailure(RuntimeError):
     pass
@@ -161,8 +165,13 @@ def read_text(root: Path, path: Path) -> str:
 
 
 def require_markers(text: str, markers: tuple[str, ...], label: Path) -> None:
+    normalized_lines = {line.strip() for line in text.splitlines()}
+    exact_line_match = label in EXACT_LINE_MARKER_PATHS
     for marker in markers:
-        if marker not in text:
+        marker_present = (
+            marker.strip() in normalized_lines if exact_line_match else marker in text
+        )
+        if not marker_present:
             raise CheckFailure(f"{label} missing marker: {marker}")
 
 
@@ -317,6 +326,30 @@ def expect_failure(root: Path, expected_fragment: str) -> None:
     raise AssertionError(f"expected failure containing: {expected_fragment}")
 
 
+def remove_marker(path: Path, marker: str) -> None:
+    text = path.read_text(encoding="utf-8")
+    updated = text.replace(f"{marker}\n", "", 1)
+    if updated == text:
+        updated = text.replace(marker, "", 1)
+    if updated == text:
+        raise AssertionError(f"expected removable marker: {marker}")
+    path.write_text(updated, encoding="utf-8")
+
+
+def decrement_count_marker(path: Path, marker: str) -> None:
+    text = path.read_text(encoding="utf-8")
+    updated = text.replace(f"{marker}\n", "", 1)
+    if updated == text:
+        updated = text.replace(marker, "", 1)
+    if updated == text:
+        raise AssertionError(f"expected removable count marker: {marker}")
+    path.write_text(updated, encoding="utf-8")
+
+
+def add_forbidden_marker(path: Path, marker: str) -> None:
+    path.write_text(path.read_text(encoding="utf-8") + f"{marker}\n", encoding="utf-8")
+
+
 def run_self_test() -> int:
     cases = 0
     with tempfile.TemporaryDirectory(prefix="phase12-complex-driver-lane-") as tmp:
@@ -326,56 +359,86 @@ def run_self_test() -> int:
         check(root)
         cases += 1
 
-        write_fixture(root)
-        (root / NOTE_PATH).write_text("broken\n", encoding="utf-8")
-        expect_failure(root, str(NOTE_PATH))
-        cases += 1
+        for rel_path in REQUIRED_FILES:
+            write_fixture(root)
+            (root / rel_path).unlink()
+            expect_failure(root, f"missing required file: {rel_path}")
+            cases += 1
 
-        write_fixture(root)
-        (root / SUPPORT_BUNDLE_MAP_PATH).write_text("broken\n", encoding="utf-8")
-        expect_failure(root, str(SUPPORT_BUNDLE_MAP_PATH))
-        cases += 1
+        for rel_path in REQUIRED_PRESENT_PATHS:
+            write_fixture(root)
+            (root / rel_path).unlink()
+            expect_failure(root, f"{CHECK_NAME} missing path: {rel_path}")
+            cases += 1
 
-        write_fixture(root)
-        (root / SYNTAX_LAB_NOTE_PATH).write_text("broken\n", encoding="utf-8")
-        expect_failure(root, str(SYNTAX_LAB_NOTE_PATH))
-        cases += 1
+        for rel_path in FORBIDDEN_PRESENT_PATHS:
+            write_fixture(root)
+            target = root / rel_path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("// stale monolith\n", encoding="utf-8")
+            expect_failure(root, f"{CHECK_NAME} unexpected path present: {rel_path}")
+            cases += 1
 
-        write_fixture(root)
-        (root / README_PATH).write_text("broken\n", encoding="utf-8")
-        expect_failure(root, str(README_PATH))
-        cases += 1
+        for marker in NOTE_MARKERS:
+            write_fixture(root)
+            remove_marker(root / NOTE_PATH, marker)
+            expect_failure(root, f"{NOTE_PATH} missing marker: {marker}")
+            cases += 1
 
-        write_fixture(root)
-        (root / WORKFLOW_PATH).write_text("broken\n", encoding="utf-8")
-        expect_failure(root, str(WORKFLOW_PATH))
-        cases += 1
+        for marker in SUPPORT_BUNDLE_MAP_MARKERS:
+            write_fixture(root)
+            remove_marker(root / SUPPORT_BUNDLE_MAP_PATH, marker)
+            expect_failure(root, f"{SUPPORT_BUNDLE_MAP_PATH} missing marker: {marker}")
+            cases += 1
 
-        write_fixture(root)
-        (root / BUILD_PATH).write_text("broken\n", encoding="utf-8")
-        expect_failure(root, str(BUILD_PATH))
-        cases += 1
+        for marker in SYNTAX_LAB_NOTE_MARKERS:
+            write_fixture(root)
+            remove_marker(root / SYNTAX_LAB_NOTE_PATH, marker)
+            expect_failure(root, f"{SYNTAX_LAB_NOTE_PATH} missing marker: {marker}")
+            cases += 1
 
-        write_fixture(root)
-        (root / MAKEFILE_PATH).write_text("phase12-smoke:\n", encoding="utf-8")
-        expect_failure(root, str(MAKEFILE_PATH))
-        cases += 1
+        for marker in README_MARKERS:
+            write_fixture(root)
+            remove_marker(root / README_PATH, marker)
+            expect_failure(root, f"{README_PATH} missing marker: {marker}")
+            cases += 1
+
+        for marker in WORKFLOW_MARKERS:
+            write_fixture(root)
+            remove_marker(root / WORKFLOW_PATH, marker)
+            expect_failure(root, f"{WORKFLOW_PATH} missing marker: {marker}")
+            cases += 1
+
+        for marker in BUILD_MARKERS:
+            write_fixture(root)
+            remove_marker(root / BUILD_PATH, marker)
+            expect_failure(root, f"{BUILD_PATH} missing marker: {marker}")
+            cases += 1
+
+        for marker in MAKEFILE_MARKERS:
+            write_fixture(root)
+            remove_marker(root / MAKEFILE_PATH, marker)
+            expect_failure(root, f"{MAKEFILE_PATH} missing marker: {marker}")
+            cases += 1
+
+        for marker in FORBIDDEN_MAKEFILE_MARKERS:
+            write_fixture(root)
+            add_forbidden_marker(root / MAKEFILE_PATH, marker)
+            expect_failure(root, f"{MAKEFILE_PATH} stale marker present: {marker}")
+            cases += 1
+
+        for marker, expected in BUILD_COUNT_MARKERS.items():
+            write_fixture(root)
+            decrement_count_marker(root / BUILD_PATH, marker)
+            expect_failure(
+                root,
+                f"{BUILD_PATH} wrong count for {marker!r}: expected {expected}, got {expected - 1}",
+            )
+            cases += 1
 
         write_fixture(root)
         (root / VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH).unlink()
-        expect_failure(root, str(VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH))
-        cases += 1
-
-        write_fixture(root)
-        (root / REQUIRED_PRESENT_PATHS[0]).unlink()
-        expect_failure(root, str(REQUIRED_PRESENT_PATHS[0]))
-        cases += 1
-
-        write_fixture(root)
-        forbidden = root / FORBIDDEN_PRESENT_PATHS[0]
-        forbidden.parent.mkdir(parents=True, exist_ok=True)
-        forbidden.write_text("// stale monolith\n", encoding="utf-8")
-        expect_failure(root, str(FORBIDDEN_PRESENT_PATHS[0]))
+        expect_failure(root, f"missing required file: {VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH}")
         cases += 1
 
         write_fixture(root)
