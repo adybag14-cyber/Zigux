@@ -54,6 +54,8 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     defer std.testing.allocator.free(loader_file);
     const module_file = try readRepoFileAlloc("zigux/tests/runtime_kretprobe_module.zig", 64 * 1024);
     defer std.testing.allocator.free(module_file);
+    const manifest_file = try readRepoFileAlloc("zigux/tests/runtime_kretprobe_manifest.json", 16 * 1024);
+    defer std.testing.allocator.free(manifest_file);
     const initialized_guard_file = try readRepoFileAlloc(
         "samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig",
         16 * 1024,
@@ -139,6 +141,56 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     try expectContains(
         module_file,
         "runtime kretprobe sample keeps duplicate registration and failed exit rollback explicit at the module boundary",
+    );
+
+    try expectContains(manifest_file, "\"phase\": \"Phase 9\"");
+    try expectContains(manifest_file, "\"lane_key\": \"runtime-pilot\"");
+    try expectContains(manifest_file, "\"status\": \"active\"");
+    try expectContains(
+        manifest_file,
+        "\"sample_path\": \"samples/zigux/runtime_kretprobe.zig\"",
+    );
+    try expectContains(
+        manifest_file,
+        "\"loader_path\": \"samples/zigux/runtime_kretprobe_loader.zig\"",
+    );
+    try expectContains(
+        manifest_file,
+        "\"initialized_snapshot_guard_path\": \"samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig\"",
+    );
+    try expectContains(
+        manifest_file,
+        "\"registration_reentry_guard_path\": \"samples/zigux/runtime_kretprobe_registration_reentry_gate.zig\"",
+    );
+    try expectContains(
+        manifest_file,
+        "\"reinit_reexit_guard_path\": \"samples/zigux/runtime_kretprobe_reinit_reexit_guard.zig\"",
+    );
+    try expectContains(
+        manifest_file,
+        "\"module_path\": \"zigux/tests/runtime_kretprobe_module.zig\"",
+    );
+    try expectContains(
+        manifest_file,
+        "\"survey_path\": \"zigux/tests/runtime_kretprobe_survey.zig\"",
+    );
+    try expectContains(
+        manifest_file,
+        "\"parity_survey_path\": \"zigux/tests/runtime_first_loadable_parity_survey.zig\"",
+    );
+    try expectContains(
+        manifest_file,
+        "\"parity_behavior_path\": \"zigux/tests/runtime_first_loadable_parity_behavior.zig\"",
+    );
+    try expectContains(manifest_file, "\"build_path\": \"zigux/tests/phase9_build.zig\"");
+    try expectContains(manifest_file, "\"validation_entrypoint\": \"phase9-runtime-kretprobe-tests\"");
+    try expectContains(
+        manifest_file,
+        "bounded runtime kretprobe pilot packet, direct sample proof, direct loader proof",
+    );
+    try expectContains(
+        manifest_file,
+        "Keep the direct sample, loader, initialized-snapshot guard, registration-reentry guard, paired reinit-reexit rollback guard, module witness, and survey gate aligned before widening any shared reminder surface.",
     );
 
     try expectContains(
