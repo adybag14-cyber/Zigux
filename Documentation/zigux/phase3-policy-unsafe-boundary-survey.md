@@ -33,6 +33,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_POLICY_UNSAFE_REPLAY_PATH=zigux/tests/phase3_policy_unsafe.zig`
 - `PHASE3_POLICY_UNSAFE_REPLAY_BUILD_PATH=zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_POLICY_UNSAFE_REPLAY_TEST_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
+- `PHASE3_POLICY_UNSAFE_REPLAY_MAKE_GATE=make -C zigux phase3-policy-unsafe-test`
 - `PHASE3_LOW_LEVEL_WRAPPER_TEST_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-further-policy-unsafe-gap-beyond-keeping-the-helper-local-packet-dedicated-replay-pair-and-the-directly-coupled-low-level-wrapper-packet-aligned`
 - `PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-layout-assert-panic-policy-allocator-policy-unsafe-policy-mmio-or-narrow-helper-surfaces-or-the-dedicated-policy-unsafe-survey-gate-drift-again`
@@ -59,6 +60,8 @@ The live bounded packet is currently split across four directly coupled proof su
 - `zigux/tests/phase3_policy_unsafe.zig` and `zigux/tests/phase3_policy_unsafe_build.zig`, which now provide a dedicated replay pair for shared interop-policy records, helper-versus-narrow gate alignment, fail-closed require paths, and the resulting panic, allocator, and unsafe-surface consequences without reopening the starter packet or low-level wrapper packet.
 - `zigux/tests/phase3_policy_dump.zig`, `zigux/tests/phase3_policy_dump_build.zig`, `zigux/tests/fixtures/phase3_policy_dump_expected.txt`, `scripts/zigux/check-phase3-policy-dump.py`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`, which keep the focused dump replay and the directly coupled MMIO-plus-narrow wrapper packet explicit beside the dedicated survey guard.
 
+Current `master` also keeps `zigux/Makefile` plus `.github/workflows/zigux-bootstrap.yml` explicit with both the direct `zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig` replay and the returned `make -C zigux phase3-policy-unsafe-test` wrapper, so this survey should treat those support routes as current bounded packet evidence rather than leaving the dedicated policy-unsafe replay implicit behind the Zig-only route.
+
 This note should stay tied to those current packet-local surfaces instead of using `Documentation/zigux/phase3-abi-slice.md`, `zigux/tests/fixtures/phase3_abi_manifest.json`, or `scripts/zigux/validate-phase3.py` as its parking trigger.
 
 ## Ledger Alignment
@@ -66,12 +69,12 @@ This policy-and-unsafe note is still evidence for the same bounded Phase 3 ABI s
 
 ## Current Boundary Gap
 There is no remaining packet-local product gap to open inside this lane today. The live need is truthfulness and alignment:
-- keep the helper-local policy slice, dedicated `phase3_policy_unsafe` replay pair, focused policy dump route, and directly coupled low-level-wrapper packet describing the same shipped surface
-- keep the survey validator tracking the files that now form the real bounded packet
-- avoid claiming that the older shared-ABI reminder path is still the only proof route when current `master` already ships a dedicated replay pair
+- keep the helper-local policy slice, dedicated `phase3_policy_unsafe` replay pair, focused policy dump route, directly coupled low-level-wrapper packet, returned `make -C zigux phase3-policy-unsafe-test` wrapper, and workflow-backed replay route describing the same shipped surface
+- keep the survey validator tracking the files and support routes that now form the real bounded packet
+- avoid claiming that the older shared-ABI reminder path is still the only proof route when current `master` already ships a dedicated replay pair with direct, make-backed, and workflow-backed evidence
 
 ## Next Bounded Step
-- leave this lane parked unless `zigux/helpers/layout_assert.zig`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, `zigux/helpers/unsafe_policy.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_policy_unsafe.zig`, `zigux/tests/phase3_policy_unsafe_build.zig`, `Documentation/zigux/phase3-policy-slice.md`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, or `scripts/zigux/validate-phase3-policy-unsafe-survey.py` drifts again from this survey
+- leave this lane parked unless `zigux/helpers/layout_assert.zig`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, `zigux/helpers/unsafe_policy.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_policy_unsafe.zig`, `zigux/tests/phase3_policy_unsafe_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `Documentation/zigux/phase3-policy-slice.md`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, or `scripts/zigux/validate-phase3-policy-unsafe-survey.py` drifts again from this survey
 - keep the next same-lane change to one packet-local note refresh or one validator-wording refresh tied only to this unsafe substrate slice and its dedicated blob-marker guard
 - treat `Documentation/zigux/phase3-abi-slice.md`, `zigux/tests/fixtures/phase3_abi_manifest.json`, and `scripts/zigux/validate-phase3.py` as adjacent shared surfaces rather than parking triggers for this unsafe survey
-- if the helper-local policy starter packet, dedicated policy-unsafe replay pair, focused policy dump route, directly coupled low-level-wrapper replay, either dedicated survey check, or any listed blob marker changes later, resurvey this note against the exact live files before claiming that surface here
+- if the helper-local policy starter packet, dedicated policy-unsafe replay pair, focused policy dump route, directly coupled low-level-wrapper replay, returned `make -C zigux phase3-policy-unsafe-test` wrapper, workflow-backed replay route, either dedicated survey check, or any listed blob marker changes later, resurvey this note against the exact live files before claiming that surface here
