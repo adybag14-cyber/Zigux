@@ -8,7 +8,12 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[0]
+def default_root_from(script_path: Path) -> Path:
+    resolved = script_path.resolve()
+    return resolved.parents[2] if len(resolved.parents) >= 3 else Path.cwd()
+
+
+ROOT = default_root_from(Path(__file__))
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 SCRIPTS_README = Path("scripts/zigux/README.md")
 MAKEFILE = Path("zigux/Makefile")
@@ -323,7 +328,11 @@ def run_self_test() -> int:
         + len(MAKEFILE_LINES)
         + len(FORBIDDEN_MAKEFILE_LINES)
         + 3
+        + 1
     )
+
+    assert default_root_from(Path("/tmp/Zigux/scripts/zigux/check-phase2-kbuild-routes.py")) == Path("/tmp/Zigux")
+    checks_run += 1
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_kbuild_routes_") as tmp_dir:
         root = Path(tmp_dir)
