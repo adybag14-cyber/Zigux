@@ -42,6 +42,23 @@ def normalize_expected_wrapper_name(name: str) -> str:
     return name
 
 
+def normalize_expected_wrapper_path(path: Path, scripts_dir: Path) -> Path:
+    scripts_dir_resolved = scripts_dir.resolve(strict=False)
+    candidate = Path(path).resolve(strict=False)
+    try:
+        relative = candidate.relative_to(scripts_dir_resolved)
+    except ValueError as exc:
+        raise ValueError(
+            f"expected wrapper path inside {scripts_dir_resolved}: {path}"
+        ) from exc
+    if relative.parent != Path("."):
+        raise ValueError(
+            f"expected wrapper path to live directly inside {scripts_dir_resolved}: {path}"
+        )
+    normalize_expected_wrapper_name(relative.name)
+    return scripts_dir_resolved / relative.name
+
+
 def build_expected_entries(
     expected_wrapper_names: list[str], scripts_dir: Path
 ) -> list[object]:
@@ -79,10 +96,13 @@ def sync_wrappers(
     scripts_dir: Path = DEFAULT_SCRIPTS_DIR,
 ) -> list[str]:
     mismatches: list[str] = []
-    expected_paths = {entry.check_script for entry in entries}
+    normalized_expected_paths = [
+        normalize_expected_wrapper_path(Path(entry.check_script), scripts_dir)
+        for entry in entries
+    ]
+    expected_paths = set(normalized_expected_paths)
 
-    for entry in entries:
-        path = entry.check_script
+    for path in normalized_expected_paths:
         if not path.exists():
             mismatches.append(path.as_posix())
             if not check:
@@ -207,6 +227,34 @@ def run_self_test() -> int:
                 f"expected invalid wrapper name to be rejected: {invalid_name}"
             )
 
+        outside_wrapper = tmp_dir.parent / "check-phase3-outside.py"
+        try:
+            sync_wrappers(
+                [SimpleNamespace(check_script=outside_wrapper)],
+                expected,
+                check=True,
+                scripts_dir=tmp_dir,
+            )
+        except ValueError as exc:
+            assert "expected wrapper path inside" in str(exc)
+            case_count += 1
+        else:
+            raise AssertionError("expected outside wrapper path to be rejected")
+
+        nested_wrapper = tmp_dir / "nested" / "check-phase3-nested.py"
+        try:
+            sync_wrappers(
+                [SimpleNamespace(check_script=nested_wrapper)],
+                expected,
+                check=True,
+                scripts_dir=tmp_dir,
+            )
+        except ValueError as exc:
+            assert "live directly inside" in str(exc)
+            case_count += 1
+        else:
+            raise AssertionError("expected nested wrapper path to be rejected")
+
     print("PHASE3_WRAPPER_SELF_TEST=pass")
     print(f"PHASE3_WRAPPER_SELF_TEST_CASE_COUNT={case_count}")
     return 0
@@ -249,11 +297,16 @@ def main() -> int:
     expected = render_wrapper_stub()
     try:
         entries = build_expected_entries(args.expected_wrapper, args.scripts_dir)
+        mismatches = sync_wrappers(
+            entries,
+            expected,
+            check=args.check,
+            scripts_dir=args.scripts_dir,
+        )
     except ValueError as exc:
         print("PHASE3_WRAPPER_TEMPLATES=fail")
         print(str(exc))
         return 1
-    mismatches = sync_wrappers(entries, expected, check=args.check, scripts_dir=args.scripts_dir)
 
     if mismatches and args.check:
         print("PHASE3_WRAPPER_TEMPLATES=fail")
