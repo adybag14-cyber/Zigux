@@ -426,6 +426,49 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     try std.testing.expect(rbtree.emptyNode(&cached_replacement.node));
 }
 
+test "phase1 host-tools smoke keeps zalloc reset and rezero behavior aligned" {
+    const allocator = std.testing.allocator;
+    const ZeroValue = struct {
+        bytes: [3]u8,
+        count: u16,
+        enabled: bool,
+    };
+
+    var bytes: ?[]u8 = try zalloc.zallocBytes(allocator, 4);
+    defer zalloc.zfreeBytes(allocator, &bytes);
+    try std.testing.expectEqual(@as(usize, 4), bytes.?.len);
+    for (bytes.?) |byte| {
+        try std.testing.expectEqual(@as(u8, 0), byte);
+    }
+    @memset(bytes.?, 0xaa);
+
+    zalloc.zfreeBytes(allocator, &bytes);
+    try std.testing.expect(bytes == null);
+    zalloc.zfreeBytes(allocator, &bytes);
+    try std.testing.expect(bytes == null);
+
+    bytes = try zalloc.zallocBytes(allocator, 4);
+    for (bytes.?) |byte| {
+        try std.testing.expectEqual(@as(u8, 0), byte);
+    }
+
+    var value: ?*ZeroValue = try zalloc.zallocValue(allocator, ZeroValue);
+    defer zalloc.zfreeValue(allocator, ZeroValue, &value);
+    value.?.bytes = .{ 1, 2, 3 };
+    value.?.count = 9;
+    value.?.enabled = true;
+
+    zalloc.zfreeValue(allocator, ZeroValue, &value);
+    try std.testing.expect(value == null);
+    zalloc.zfreeValue(allocator, ZeroValue, &value);
+    try std.testing.expect(value == null);
+
+    value = try zalloc.zallocValue(allocator, ZeroValue);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0 }, &value.?.bytes);
+    try std.testing.expectEqual(@as(u16, 0), value.?.count);
+    try std.testing.expectEqual(false, value.?.enabled);
+}
+
 test "phase1 host-tools smoke keeps find_bit andnot and clump anchors aligned" {
     const nbits = find_bit.bits_per_long + 5;
     const tail_lhs = [_]find_bit.Word{ 0, (@as(find_bit.Word, 1) << 1) | (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 9) };
