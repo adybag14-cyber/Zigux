@@ -31,8 +31,10 @@ Lane: `P2-L01`
 
 ## Next bounded same-family step
 
-1. Keep `P2-L01` parked unless a fresh current-`master` reread finds new repo-versus-roadmap drift inside the fixdep helper, checker, fixture, or route packet.
-2. If the shared Phase 2 reminder lane reopens, wire `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md` into `Documentation/zigux/phase2-closure.md` and `zigux/tests/README.md` before widening the fixdep family again.
+The current repo evidence now supports one fixdep-only next-safe-step note: make a one-file closure correction in `Documentation/zigux/phase2-closure.md` so the shared Phase 2 closure packet enumerates `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md`, then stop and leave the broader tests-root reminder follow-through to the shared Phase 2 reminder lane.
+
+1. Use `P2-Y02` only for that one-file closure correction in `Documentation/zigux/phase2-closure.md`.
+2. Leave `zigux/tests/README.md` out of this lane unless the shared Phase 2 reminder lane explicitly reopens it.
 3. If a future current-head reread makes `scripts/basic/fixdep.c` directly readable through the authenticated exact-path contents route again, refresh this survey note to retire the degraded-read gap.
 4. If a future fixdep behavior lane widens the helper-local regression packet again, keep the gate and survey aligned in the same run so the survey does not fall behind landed code.
 5. Do not widen from this survey into genksyms, kconfig, parser behavior, or shared Phase 2 reminder maintenance.
