@@ -13,6 +13,16 @@ pub const Action = enum {
     warn_and_return,
 };
 
+pub const EscalationError = error{
+    InvalidInteropPolicy,
+    UnexpectedEscalation,
+};
+
+pub const ActionError = error{
+    InvalidInteropPolicy,
+    UnexpectedAction,
+};
+
 pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.PanicMode {
     if (reserved != 0) return null;
     return switch (mode) {
@@ -61,6 +71,55 @@ pub fn actionFor(mode: abi.PanicMode) Action {
         .bug => .bug_check,
         .warn => .warn_and_return,
     };
+}
+
+pub fn requireEscalation(mode: abi.PanicMode, expected: Escalation) EscalationError!void {
+    if (escalationFor(mode) != expected) {
+        return error.UnexpectedEscalation;
+    }
+}
+
+pub fn requireEscalationPolicyBytes(
+    mode: u8,
+    reserved: u8,
+    expected: Escalation,
+) EscalationError!void {
+    const actual = escalationFromInteropPolicyBytes(mode, reserved) orelse return error.InvalidInteropPolicy;
+    if (actual != expected) {
+        return error.UnexpectedEscalation;
+    }
+}
+
+pub fn requireEscalationInteropPolicy(
+    policy: abi.InteropPolicy,
+    expected: Escalation,
+) EscalationError!void {
+    try requireEscalationPolicyBytes(policy.panic_mode, policy.reserved, expected);
+}
+
+pub fn requireEscalationByte(mode: u8, expected: Escalation) EscalationError!void {
+    try requireEscalationPolicyBytes(mode, 0, expected);
+}
+
+pub fn requireAction(mode: abi.PanicMode, expected: Action) ActionError!void {
+    if (actionFor(mode) != expected) {
+        return error.UnexpectedAction;
+    }
+}
+
+pub fn requireActionPolicyBytes(mode: u8, reserved: u8, expected: Action) ActionError!void {
+    const actual = actionForInteropPolicyBytes(mode, reserved) orelse return error.InvalidInteropPolicy;
+    if (actual != expected) {
+        return error.UnexpectedAction;
+    }
+}
+
+pub fn requireActionInteropPolicy(policy: abi.InteropPolicy, expected: Action) ActionError!void {
+    try requireActionPolicyBytes(policy.panic_mode, policy.reserved, expected);
+}
+
+pub fn requireActionByte(mode: u8, expected: Action) ActionError!void {
+    try requireActionPolicyBytes(mode, 0, expected);
 }
 
 pub fn escalationFromInteropPolicyBytes(mode: u8, reserved: u8) ?Escalation {
@@ -178,6 +237,71 @@ test "phase3 panic policy keeps escalation explicit" {
     try std.testing.expect(!canReturn(.abort));
     try std.testing.expect(!canReturn(.bug));
     try std.testing.expect(canReturn(.warn));
+}
+
+test "phase3 panic policy keeps require helpers explicit" {
+    const abort_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = 0,
+        .reserved = 0,
+    };
+    const bug_policy = abi.InteropPolicy{
+        .panic_mode = 1,
+        .allocator_mode = 1,
+        .unsafe_scope = 1,
+        .reserved = 0,
+    };
+    const warn_policy = abi.InteropPolicy{
+        .panic_mode = 2,
+        .allocator_mode = 2,
+        .unsafe_scope = 2,
+        .reserved = 0,
+    };
+
+    try requireEscalation(.abort, .immediate_abort);
+    try requireEscalation(.bug, .kernel_bug);
+    try requireEscalation(.warn, .warning_only);
+    try std.testing.expectError(error.UnexpectedEscalation, requireEscalation(.warn, .kernel_bug));
+
+    try requireEscalationByte(0, .immediate_abort);
+    try requireEscalationByte(1, .kernel_bug);
+    try requireEscalationByte(2, .warning_only);
+    try std.testing.expectError(error.UnexpectedEscalation, requireEscalationByte(2, .kernel_bug));
+    try std.testing.expectError(error.InvalidInteropPolicy, requireEscalationByte(9, .warning_only));
+
+    try requireEscalationPolicyBytes(0, 0, .immediate_abort);
+    try requireEscalationPolicyBytes(1, 0, .kernel_bug);
+    try requireEscalationPolicyBytes(2, 0, .warning_only);
+    try std.testing.expectError(error.UnexpectedEscalation, requireEscalationPolicyBytes(1, 0, .warning_only));
+    try std.testing.expectError(error.InvalidInteropPolicy, requireEscalationPolicyBytes(2, 1, .warning_only));
+
+    try requireEscalationInteropPolicy(abort_policy, .immediate_abort);
+    try requireEscalationInteropPolicy(bug_policy, .kernel_bug);
+    try requireEscalationInteropPolicy(warn_policy, .warning_only);
+    try std.testing.expectError(error.UnexpectedEscalation, requireEscalationInteropPolicy(abort_policy, .warning_only));
+
+    try requireAction(.abort, .abort_now);
+    try requireAction(.bug, .bug_check);
+    try requireAction(.warn, .warn_and_return);
+    try std.testing.expectError(error.UnexpectedAction, requireAction(.bug, .warn_and_return));
+
+    try requireActionByte(0, .abort_now);
+    try requireActionByte(1, .bug_check);
+    try requireActionByte(2, .warn_and_return);
+    try std.testing.expectError(error.UnexpectedAction, requireActionByte(1, .abort_now));
+    try std.testing.expectError(error.InvalidInteropPolicy, requireActionByte(9, .bug_check));
+
+    try requireActionPolicyBytes(0, 0, .abort_now);
+    try requireActionPolicyBytes(1, 0, .bug_check);
+    try requireActionPolicyBytes(2, 0, .warn_and_return);
+    try std.testing.expectError(error.UnexpectedAction, requireActionPolicyBytes(2, 0, .bug_check));
+    try std.testing.expectError(error.InvalidInteropPolicy, requireActionPolicyBytes(2, 1, .warn_and_return));
+
+    try requireActionInteropPolicy(abort_policy, .abort_now);
+    try requireActionInteropPolicy(bug_policy, .bug_check);
+    try requireActionInteropPolicy(warn_policy, .warn_and_return);
+    try std.testing.expectError(error.UnexpectedAction, requireActionInteropPolicy(warn_policy, .bug_check));
 }
 
 test "phase3 panic policy stays explicit" {
