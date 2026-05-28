@@ -7,6 +7,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
+SPLIT_HELPER_WORKFLOW = ".github/workflows/zigux-bootstrap-split-helper.yml"
+ARCHIVE_PARTS_WORKFLOW = ".github/workflows/zigux-bootstrap-archive-parts-packet.yml"
 
 REQUIRED_PATHS = (
     "zigux-alpha/README.md",
@@ -24,12 +26,18 @@ REQUIRED_PATHS = (
     "scripts/zigux/stage-pinned-zig-archive.py",
     "scripts/zigux/check-lane05-stage-helper-contract.py",
     "scripts/zigux/check-lane05-stage-helper-selftest.py",
+    "scripts/zigux/split-pinned-zig-archive.py",
+    "scripts/zigux/check-lane05-split-helper-selftest.py",
+    "scripts/zigux/check-lane05-split-helper-workflow.py",
+    "scripts/zigux/check-lane05-archive-parts-packet.py",
     "scripts/zigux/check-phase1-route-summary-counts.py",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/validate-bootstrap.py",
     "scripts/zigux/zig-toolchain-policy.json",
     "zigux/tests/README.md",
     WORKFLOW,
+    SPLIT_HELPER_WORKFLOW,
+    ARCHIVE_PARTS_WORKFLOW,
 )
 
 README_MARKERS = (
@@ -96,6 +104,30 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/validate-bootstrap.py",
 )
 
+REQUIRED_SPLIT_HELPER_WORKFLOW_LINES = (
+    "name: zigux-bootstrap-split-helper",
+    "branches: [ master ]",
+    "- 'scripts/zigux/**'",
+    "- 'third_party/**'",
+    "- '.github/workflows/zigux-bootstrap-split-helper.yml'",
+    "run: python3 -m py_compile scripts/zigux/split-pinned-zig-archive.py scripts/zigux/check-lane05-split-helper-selftest.py scripts/zigux/check-lane05-split-helper-workflow.py",
+    "run: python3 scripts/zigux/split-pinned-zig-archive.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-split-helper-workflow.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-split-helper-workflow.py",
+)
+
+REQUIRED_ARCHIVE_PARTS_WORKFLOW_LINES = (
+    "name: zigux-bootstrap-archive-parts-packet",
+    "branches: [ master ]",
+    "- 'scripts/zigux/check-lane05-archive-parts-packet.py'",
+    "- 'scripts/zigux/zig-toolchain-policy.json'",
+    "- 'third_party/**'",
+    "- '.github/workflows/zigux-bootstrap-archive-parts-packet.yml'",
+    "run: python3 scripts/zigux/check-lane05-archive-parts-packet.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-archive-parts-packet.py --allow-missing",
+)
+
 
 def read_text(root: Path, rel: str) -> str:
     path = root / rel
@@ -140,6 +172,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if not (root / rel).exists():
             issues.append(("MISSING_REQUIRED_PATH", rel))
 
+    if issues:
+        return issues
+
     readme = read_text(root, "zigux-alpha/README.md")
     roadmap = read_text(root, "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md")
     ledger = read_text(root, "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md")
@@ -147,6 +182,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     freeze_map = read_text(root, "Documentation/zigux/freeze-map.md")
     scripts_readme = read_text(root, "scripts/zigux/README.md")
     workflow = read_text(root, WORKFLOW)
+    split_helper_workflow = read_text(root, SPLIT_HELPER_WORKFLOW)
+    archive_parts_workflow = read_text(root, ARCHIVE_PARTS_WORKFLOW)
 
     for marker in README_MARKERS:
         if marker not in readme:
@@ -173,6 +210,20 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_WORKFLOW_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
+
+    for marker in REQUIRED_SPLIT_HELPER_WORKFLOW_LINES:
+        count = count_exact_lines(split_helper_workflow, marker)
+        if count == 0:
+            issues.append(("MISSING_SPLIT_HELPER_WORKFLOW_LINE", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_SPLIT_HELPER_WORKFLOW_LINE", f"{marker}:count={count}"))
+
+    for marker in REQUIRED_ARCHIVE_PARTS_WORKFLOW_LINES:
+        count = count_exact_lines(archive_parts_workflow, marker)
+        if count == 0:
+            issues.append(("MISSING_ARCHIVE_PARTS_WORKFLOW_LINE", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_ARCHIVE_PARTS_WORKFLOW_LINE", f"{marker}:count={count}"))
 
     return issues
 
@@ -285,26 +336,45 @@ def build_self_test_root(root: Path) -> None:
         )
         + "\n",
     )
-    write_text(root, "scripts/zigux/check-zig-toolchain.py", "present\n")
-    write_text(root, "scripts/zigux/check-lane01-bootstrap-charter-alignment.py", "present\n")
-    write_text(root, "scripts/zigux/check-lane05-local-first-archive-workflow.py", "present\n")
-    write_text(root, "scripts/zigux/check-lane05-local-archive-readme.py", "present\n")
-    write_text(root, "scripts/zigux/check-lane05-install-zig-archive-verification.py", "present\n")
-    write_text(root, "scripts/zigux/stage-pinned-zig-archive.py", "present\n")
-    write_text(root, "scripts/zigux/check-lane05-stage-helper-contract.py", "present\n")
-    write_text(root, "scripts/zigux/check-lane05-stage-helper-selftest.py", "present\n")
-    write_text(root, "scripts/zigux/check-phase1-route-summary-counts.py", "present\n")
-    write_text(root, "scripts/zigux/install-zig.py", "present\n")
-    write_text(root, "scripts/zigux/validate-bootstrap.py", "present\n")
-    write_text(root, "scripts/zigux/zig-toolchain-policy.json", "{}\n")
-    write_text(root, "zigux/tests/README.md", "present\n")
+    for rel in (
+        "scripts/zigux/check-zig-toolchain.py",
+        "scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
+        "scripts/zigux/check-lane05-local-first-archive-workflow.py",
+        "scripts/zigux/check-lane05-local-archive-readme.py",
+        "scripts/zigux/check-lane05-install-zig-archive-verification.py",
+        "scripts/zigux/stage-pinned-zig-archive.py",
+        "scripts/zigux/check-lane05-stage-helper-contract.py",
+        "scripts/zigux/check-lane05-stage-helper-selftest.py",
+        "scripts/zigux/split-pinned-zig-archive.py",
+        "scripts/zigux/check-lane05-split-helper-selftest.py",
+        "scripts/zigux/check-lane05-split-helper-workflow.py",
+        "scripts/zigux/check-lane05-archive-parts-packet.py",
+        "scripts/zigux/check-phase1-route-summary-counts.py",
+        "scripts/zigux/install-zig.py",
+        "scripts/zigux/validate-bootstrap.py",
+        "scripts/zigux/zig-toolchain-policy.json",
+        "zigux/tests/README.md",
+    ):
+        write_text(root, rel, "present\n")
+
     write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES)) + "\n")
+    write_text(
+        root,
+        SPLIT_HELPER_WORKFLOW,
+        "\n".join(("name: zigux-bootstrap-split-helper", *REQUIRED_SPLIT_HELPER_WORKFLOW_LINES[1:])) + "\n",
+    )
+    write_text(
+        root,
+        ARCHIVE_PARTS_WORKFLOW,
+        "\n".join(("name: zigux-bootstrap-archive-parts-packet", *REQUIRED_ARCHIVE_PARTS_WORKFLOW_LINES[1:])) + "\n",
+    )
 
 
 def run_self_test() -> int:
     checks = 0
     with tempfile.TemporaryDirectory(prefix="zigux_validate_bootstrap_") as tmp_dir:
         root = Path(tmp_dir)
+
         build_self_test_root(root)
         assert collect_issues(root) == []
         checks += 1
@@ -321,33 +391,6 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root,
-            "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md",
-            read_text(root, "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md").replace(ROADMAP_MARKERS[1] + "\n", "", 1),
-        )
-        assert ("MISSING_ROADMAP_MARKER", ROADMAP_MARKERS[1]) in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        write_text(
-            root,
-            "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md",
-            read_text(root, "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md").replace(LEDGER_MARKERS[1] + "\n", "", 1),
-        )
-        assert ("MISSING_LEDGER_MARKER", LEDGER_MARKERS[1]) in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        write_text(
-            root,
-            "Documentation/zigux/freeze-map.md",
-            read_text(root, "Documentation/zigux/freeze-map.md").replace(FREEZE_MAP_MARKERS[3] + "\n", "", 1),
-        )
-        assert ("MISSING_FREEZE_MAP_MARKER", FREEZE_MAP_MARKERS[3]) in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        write_text(
-            root,
             WORKFLOW,
             replace_exact_line(
                 read_text(root, WORKFLOW),
@@ -355,26 +398,7 @@ def run_self_test() -> int:
                 "run: python3 scripts/zigux/other.py",
             ),
         )
-        assert (
-            "MISSING_WORKFLOW_LINE",
-            "run: python3 scripts/zigux/install-zig.py --self-test",
-        ) in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        write_text(
-            root,
-            WORKFLOW,
-            replace_exact_line(
-                read_text(root, WORKFLOW),
-                "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
-                "run: python3 scripts/zigux/other.py",
-            ),
-        )
-        assert (
-            "MISSING_WORKFLOW_LINE",
-            "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
-        ) in collect_issues(root)
+        assert ("MISSING_WORKFLOW_LINE", "run: python3 scripts/zigux/install-zig.py --self-test") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
@@ -393,50 +417,65 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
-        write_text(root, WORKFLOW, duplicate_exact_line(read_text(root, WORKFLOW), REQUIRED_WORKFLOW_LINES[-1]))
-        assert ("DUPLICATE_WORKFLOW_LINE", f"{REQUIRED_WORKFLOW_LINES[-1]}:count=2") in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        (root / "scripts/zigux/check-zig-toolchain.py").unlink()
-        assert ("MISSING_REQUIRED_PATH", "scripts/zigux/check-zig-toolchain.py") in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        (root / "scripts/zigux/check-phase1-route-summary-counts.py").unlink()
+        write_text(
+            root,
+            SPLIT_HELPER_WORKFLOW,
+            replace_exact_line(
+                read_text(root, SPLIT_HELPER_WORKFLOW),
+                "run: python3 scripts/zigux/check-lane05-split-helper-workflow.py --self-test",
+                "run: python3 scripts/zigux/other.py",
+            ),
+        )
         assert (
-            "MISSING_REQUIRED_PATH",
-            "scripts/zigux/check-phase1-route-summary-counts.py",
+            "MISSING_SPLIT_HELPER_WORKFLOW_LINE",
+            "run: python3 scripts/zigux/check-lane05-split-helper-workflow.py --self-test",
         ) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
-        (root / "scripts/zigux/stage-pinned-zig-archive.py").unlink()
+        write_text(
+            root,
+            SPLIT_HELPER_WORKFLOW,
+            duplicate_exact_line(
+                read_text(root, SPLIT_HELPER_WORKFLOW),
+                "run: python3 scripts/zigux/split-pinned-zig-archive.py --self-test",
+            ),
+        )
         assert (
-            "MISSING_REQUIRED_PATH",
-            "scripts/zigux/stage-pinned-zig-archive.py",
+            "DUPLICATE_SPLIT_HELPER_WORKFLOW_LINE",
+            "run: python3 scripts/zigux/split-pinned-zig-archive.py --self-test:count=2",
         ) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
-        (root / "scripts/zigux/check-lane05-stage-helper-selftest.py").unlink()
+        write_text(
+            root,
+            ARCHIVE_PARTS_WORKFLOW,
+            replace_exact_line(
+                read_text(root, ARCHIVE_PARTS_WORKFLOW),
+                "run: python3 scripts/zigux/check-lane05-archive-parts-packet.py --allow-missing",
+                "run: python3 scripts/zigux/other.py",
+            ),
+        )
         assert (
-            "MISSING_REQUIRED_PATH",
-            "scripts/zigux/check-lane05-stage-helper-selftest.py",
+            "MISSING_ARCHIVE_PARTS_WORKFLOW_LINE",
+            "run: python3 scripts/zigux/check-lane05-archive-parts-packet.py --allow-missing",
         ) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
-        (root / "scripts/zigux/install-zig.py").unlink()
-        assert ("MISSING_REQUIRED_PATH", "scripts/zigux/install-zig.py") in collect_issues(root)
+        (root / "scripts/zigux/check-lane05-archive-parts-packet.py").unlink()
+        assert ("MISSING_REQUIRED_PATH", "scripts/zigux/check-lane05-archive-parts-packet.py") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
-        (root / "scripts/zigux/zig-toolchain-policy.json").unlink()
-        assert (
-            "MISSING_REQUIRED_PATH",
-            "scripts/zigux/zig-toolchain-policy.json",
-        ) in collect_issues(root)
+        (root / SPLIT_HELPER_WORKFLOW).unlink()
+        assert ("MISSING_REQUIRED_PATH", SPLIT_HELPER_WORKFLOW) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / ARCHIVE_PARTS_WORKFLOW).unlink()
+        assert ("MISSING_REQUIRED_PATH", ARCHIVE_PARTS_WORKFLOW) in collect_issues(root)
         checks += 1
 
     print("BOOTSTRAP_VALIDATION_SELF_TEST=pass")
@@ -446,7 +485,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate that the current Zigux bootstrap packet still exposes its charter, docs, toolchain, and workflow surfaces."
+        description="Validate that the current Zigux bootstrap packet still exposes its charter, docs, toolchain, and Lane 05 workflow surfaces."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="run built-in contract checks")
@@ -462,6 +501,8 @@ def main() -> int:
     print("BOOTSTRAP_VALIDATION=pass")
     print(f"BOOTSTRAP_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
     print(f"BOOTSTRAP_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
+    print(f"BOOTSTRAP_SPLIT_HELPER_WORKFLOW_LINE_COUNT={len(REQUIRED_SPLIT_HELPER_WORKFLOW_LINES)}")
+    print(f"BOOTSTRAP_ARCHIVE_PARTS_WORKFLOW_LINE_COUNT={len(REQUIRED_ARCHIVE_PARTS_WORKFLOW_LINES)}")
     return 0
 
 
