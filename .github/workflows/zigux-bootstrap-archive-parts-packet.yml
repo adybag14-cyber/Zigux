@@ -5,6 +5,7 @@ on:
     branches: [ master ]
   pull_request:
     paths:
+      - 'scripts/zigux/check-lane05-archive-parts-workflow.py'
       - 'scripts/zigux/check-lane05-archive-parts-packet.py'
       - 'scripts/zigux/zig-toolchain-policy.json'
       - 'third_party/**'
@@ -34,6 +35,15 @@ jobs:
         uses: actions/setup-python@v6.2.0
         with:
           python-version: '3.x'
+
+      - name: Compile current Lane 05 archive-parts workflow scripts
+        run: python3 -m py_compile scripts/zigux/check-zig-toolchain.py scripts/zigux/check-lane05-archive-parts-packet.py scripts/zigux/check-lane05-archive-parts-workflow.py
+
+      - name: Self-test current Lane 05 archive-parts workflow checker
+        run: python3 scripts/zigux/check-lane05-archive-parts-workflow.py --self-test
+
+      - name: Check current Lane 05 archive-parts workflow packet
+        run: python3 scripts/zigux/check-lane05-archive-parts-workflow.py
 
       - name: Self-test current Lane 05 archive parts packet checker
         run: python3 scripts/zigux/check-lane05-archive-parts-packet.py --self-test
