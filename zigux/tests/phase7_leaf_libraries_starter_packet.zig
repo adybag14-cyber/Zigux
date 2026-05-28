@@ -89,3 +89,72 @@ test "phase7 packet keeps cached rbtree ordering stable for parsed values" {
     const new_leftmost_entry: *const Entry = @fieldParentPtr("node", new_leftmost);
     try testing.expectEqual(@as(i32, 4), new_leftmost_entry.key);
 }
+
+test "phase7 packet keeps duplicate mode values queryable across argv split cmdline parsing and rbtree matching" {
+    const Entry = struct {
+        key: [:0]u8,
+        node: rbtree.Node = rbtree.Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return std.mem.order(u8, lhs_entry.key, rhs_entry.key) == .lt;
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(key: *const anyopaque, node: *const rbtree.Node) i32 {
+            const needle: *const []const u8 = @ptrCast(@alignCast(key));
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            return switch (std.mem.order(u8, needle.*, entry.key)) {
+                .lt => -1,
+                .eq => 0,
+                .gt => 1,
+            };
+        }
+    }.compare;
+
+    const command = "mode=fast-path mode=fast-path mode=safe";
+    var split = try argv_split.argvSplit(testing.allocator, command);
+    defer split.deinit(testing.allocator);
+
+    var entries: [3]Entry = undefined;
+    var root = rbtree.RootCached.init();
+
+    for (split.argv, 0..) |token, index| {
+        const parsed = cmdline.nextArg(token);
+        try testing.expectEqualStrings("mode", parsed.param);
+
+        const normalized = try string_helpers.kstrdupAndReplace(
+            testing.allocator,
+            parsed.value.?,
+            '-',
+            '_',
+        );
+        entries[index] = .{ .key = normalized };
+        _ = rbtree.addCached(&entries[index].node, &root, less);
+    }
+    defer for (&entries) |*entry| testing.allocator.free(entry.key);
+
+    const key = "fast_path";
+    const first_match = rbtree.findFirst(@ptrCast(&key), &root.root, cmp) orelse {
+        return error.TestUnexpectedResult;
+    };
+    const first_entry: *const Entry = @fieldParentPtr("node", first_match);
+    try testing.expectEqualStrings("fast_path", first_entry.key);
+
+    var iterator = rbtree.matchIterator(@ptrCast(&key), &root.root, cmp);
+    var count: usize = 0;
+    while (iterator.next()) |node| {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        try testing.expectEqualStrings("fast_path", entry.key);
+        count += 1;
+    }
+
+    try testing.expectEqual(@as(usize, 2), count);
+    const leftmost = rbtree.firstCached(&root) orelse return error.TestUnexpectedResult;
+    const leftmost_entry: *const Entry = @fieldParentPtr("node", leftmost);
+    try testing.expectEqualStrings("fast_path", leftmost_entry.key);
+}
