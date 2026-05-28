@@ -1,0 +1,32 @@
+{
+  "phase": "Phase 3",
+  "lane": "helper-interop",
+  "slug": "phase3-ida-range",
+  "status": "starter_and_dump_packet_present",
+  "scope": "helper-local ida range occupancy summaries layered on the landed ida allocation packet",
+  "packet_files": [
+    "Documentation/zigux/phase3-ida-range-slice.md",
+    "zigux/helpers/ida_bitmap_view.zig",
+    "zigux/helpers/ida_alloc_view.zig",
+    "zigux/helpers/ida_range_view.zig",
+    "zigux/tests/phase3_ida_range_starter_packet.zig",
+    "zigux/tests/phase3_ida_range_starter_packet_build.zig",
+    "scripts/zigux/check-phase3-ida-range-starter-packet.py",
+    "zigux/tests/phase3_ida_range_dump.zig",
+    "zigux/tests/phase3_ida_range_dump_build.zig",
+    "zigux/tests/fixtures/phase3_ida_range/phase3_ida_range_c_harness.c",
+    "zigux/tests/fixtures/phase3_ida_range/expected.json",
+    "zigux/tests/fixtures/phase3_ida_range_manifest.json",
+    "scripts/zigux/check-phase3-ida-range.py"
+  ],
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase3-ida-range-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-ida-range-starter-packet.py",
+    "zig build phase3-ida-range-starter-packet-test --build-file zigux/tests/phase3_ida_range_starter_packet_build.zig",
+    "python3 scripts/zigux/check-phase3-ida-range.py --self-test",
+    "python3 scripts/zigux/check-phase3-ida-range.py --repo-root . --zig zig --cc gcc",
+    "zig build phase3-ida-range-dump --build-file zigux/tests/phase3_ida_range_dump_build.zig"
+  ],
+  "repo_reality_gaps": [],
+  "next_safe_step": "keep the helper-local ida range packet honest before widening into ida policy or shared ABI surfaces"
+}
