@@ -413,6 +413,7 @@ def collect_fixdep_case_issues(path: Path) -> list[tuple[str, str]]:
     names: list[str] = []
     seen: set[str] = set()
     duplicates: set[str] = set()
+    actual_cases_by_name: dict[str, dict[str, object]] = {}
     for index, raw_case in enumerate(raw_cases):
         if not isinstance(raw_case, dict):
             issues.append(("INVALID_FIXDEP_CASE_ENTRY", f"index={index}:type={type(raw_case).__name__}"))
@@ -427,6 +428,8 @@ def collect_fixdep_case_issues(path: Path) -> list[tuple[str, str]]:
         seen.add(name)
         if name not in REQUIRED_FIXDEP_CASE_NAMES:
             issues.append(("UNEXPECTED_FIXDEP_CASE", name))
+        if name not in actual_cases_by_name:
+            actual_cases_by_name[name] = raw_case
 
     for name in sorted(duplicates):
         issues.append(("DUPLICATE_FIXDEP_CASE", name))
@@ -438,6 +441,23 @@ def collect_fixdep_case_issues(path: Path) -> list[tuple[str, str]]:
     for name in REQUIRED_FIXDEP_CASE_NAMES:
         if name not in seen:
             issues.append(("MISSING_FIXDEP_CASE", name))
+
+    for name, expected_case in REQUIRED_FIXDEP_EXPECTED_CASES.items():
+        actual_case = actual_cases_by_name.get(name)
+        if actual_case is None:
+            continue
+        actual_keys = set(actual_case) - {"name"}
+        expected_keys = set(expected_case)
+        for key in sorted(actual_keys | expected_keys):
+            actual_value = actual_case.get(key)
+            expected_value = expected_case.get(key)
+            if actual_value != expected_value:
+                issues.append(
+                    (
+                        "FIXDEP_CASE_FIELD_MISMATCH",
+                        f"{name}:{key}={actual_value!r}:expected={expected_value!r}",
+                    )
+                )
     return issues
 
 
@@ -559,7 +579,11 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve(root, VALIDATE_PHASE2_REL), "\n".join(VALIDATE_PHASE2_REQUIRED_LINES) + "\n")
     write_text(
         resolve(root, FIXDEP_CASES_REL),
-        json.dumps([{"name": name} for name in REQUIRED_FIXDEP_CASE_NAMES], indent=2) + "\n",
+        json.dumps(
+            [{"name": name, **REQUIRED_FIXDEP_EXPECTED_CASES[name]} for name in REQUIRED_FIXDEP_CASE_NAMES],
+            indent=2,
+        )
+        + "\n",
     )
     write_text(resolve(root, FIXDEP_SURVEY_REL), "\n".join(SURVEY_REQUIRED_MARKERS) + "\n")
     write_text(resolve(root, PHASE2_CLOSURE_REL), "\n".join(CLOSURE_REQUIRED_MARKERS) + "\n")
@@ -611,6 +635,18 @@ def run_self_test() -> int:
         path.write_text(original.replace("'sample': {", "'zzz': {", 1), encoding="utf-8")
         issues = collect_issues(root)
         assert any(code == "FIXDEP_DIFF_EXPECTED_CASE_ORDER_MISMATCH" for code, _ in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, FIXDEP_CASES_REL)
+        original_cases = json.loads(read_text(path))
+        original_cases[0]["target"] = "sample-renamed.o"
+        path.write_text(json.dumps(original_cases, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert (
+            "FIXDEP_CASE_FIELD_MISMATCH",
+            "sample:target='sample-renamed.o':expected='sample.o'",
+        ) in issues
         checks_run += 1
 
         build_self_test_root(root)
