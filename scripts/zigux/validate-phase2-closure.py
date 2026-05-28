@@ -48,13 +48,20 @@ SHARED_TOOLING_COMMANDS = (
     "python3 scripts/zigux/check-fixdep-diff.py",
 )
 
+SHARED_GENKSYMS_PROOF_PATHS = (
+    "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
+    "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
+)
+HELPER_LOCAL_INLINE_SHORT_PROOF = (
+    "scripts/zigux/genksyms_inline_short_option_argument_test.zig"
+)
+
 GENKSYMS_REQUIRED_NOTE_MARKERS = (
     "Documentation/zigux/phase2-genksyms-dual-implementation-survey.md",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
     "scripts/zigux/genksyms.zig",
-    "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
-    "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
+    *SHARED_GENKSYMS_PROOF_PATHS,
     "zigux/tests/fixtures/genksyms_bridge/manifest.json",
     "zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json",
 )
@@ -156,7 +163,7 @@ def expected_genksyms_fixture_paths(genksyms_manifest: dict[str, object]) -> lis
     return paths
 
 
-def expected_genksyms_proof_paths(genksyms_manifest: dict[str, object]) -> list[str]:
+def helper_local_genksyms_proof_paths(genksyms_manifest: dict[str, object]) -> list[str]:
     proofs = genksyms_manifest.get("standalone_proof_packet")
     if not isinstance(proofs, list) or not all(isinstance(item, str) for item in proofs):
         raise SystemExit(
@@ -218,9 +225,22 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for path in expected_genksyms_fixture_paths(genksyms_manifest):
         if path not in fixture_roster:
             issues.append(("MISSING_MANIFEST_SURFACE", f"fixture_roster:{path}"))
-    for path in expected_genksyms_proof_paths(genksyms_manifest):
+
+    helper_local_proof_paths = helper_local_genksyms_proof_paths(genksyms_manifest)
+    for path in helper_local_proof_paths:
+        if not (root / path).exists():
+            issues.append(("MISSING_HELPER_LOCAL_PROOF_PATH", path))
+
+    for path in SHARED_GENKSYMS_PROOF_PATHS:
+        if path not in helper_local_proof_paths:
+            issues.append(("MISSING_SHARED_GENKSYMS_PROOF", path))
         if path not in bridge_helpers:
             issues.append(("MISSING_MANIFEST_SURFACE", f"bridge_helpers:{path}"))
+
+    for path in helper_local_proof_paths:
+        if path.endswith("_test.zig") and path.startswith("scripts/zigux/genksyms_"):
+            if path not in SHARED_GENKSYMS_PROOF_PATHS and path in bridge_helpers:
+                issues.append(("UNEXPECTED_SHARED_GENKSYMS_PROOF", path))
 
     process_output_packet = genksyms_manifest.get("process_output_packet")
     if not isinstance(process_output_packet, list) or not all(
@@ -362,8 +382,7 @@ def build_self_test_root(root: Path) -> None:
             ],
             "bridge_helpers": [
                 "scripts/zigux/genksyms.zig",
-                "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
-                "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
+                *SHARED_GENKSYMS_PROOF_PATHS,
             ],
             "cross_route_support": [
                 "scripts/zigux/check-phase2-cross.py",
@@ -407,10 +426,7 @@ def build_self_test_root(root: Path) -> None:
         "bridge_expected_packet": ["minimal_expected.json"],
         "help_packet": ["help_expected.json"],
         "process_output_packet": process_output_packet,
-        "standalone_proof_packet": [
-            "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
-            "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
-        ],
+        "standalone_proof_packet": list(SHARED_GENKSYMS_PROOF_PATHS),
     }
 
     closure_text = """# Phase 2 Closure
@@ -518,8 +534,7 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
         "third_party/README.md",
         "scripts/zigux/artifact_diff.py",
         "scripts/zigux/genksyms.zig",
-        "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
-        "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
+        *SHARED_GENKSYMS_PROOF_PATHS,
         "scripts/zigux/fixdep.zig",
         "zigux/tests/fixtures/fixdep/cases.json",
         "scripts/zigux/zig-toolchain-policy.json",
@@ -636,6 +651,38 @@ def run_self_test() -> int:
         assert (
             "MISSING_MANIFEST_SURFACE",
             "fixture_roster:zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(read_text(root / GENKSYMS_MANIFEST_REL))
+        manifest["standalone_proof_packet"].append(HELPER_LOCAL_INLINE_SHORT_PROOF)
+        write_text(root / GENKSYMS_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        write_text(root / HELPER_LOCAL_INLINE_SHORT_PROOF, "present\n")
+        assert collect_issues(root) == []
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(read_text(root / GENKSYMS_MANIFEST_REL))
+        manifest["standalone_proof_packet"] = [SHARED_GENKSYMS_PROOF_PATHS[0]]
+        write_text(root / GENKSYMS_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        assert (
+            "MISSING_SHARED_GENKSYMS_PROOF",
+            SHARED_GENKSYMS_PROOF_PATHS[1],
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(read_text(root / GENKSYMS_MANIFEST_REL))
+        manifest["standalone_proof_packet"].append(HELPER_LOCAL_INLINE_SHORT_PROOF)
+        write_text(root / GENKSYMS_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        tool_manifest = json.loads(read_text(root / PHASE2_TOOL_MANIFEST_REL))
+        tool_manifest["present_surfaces"]["bridge_helpers"].append(HELPER_LOCAL_INLINE_SHORT_PROOF)
+        write_text(root / PHASE2_TOOL_MANIFEST_REL, json.dumps(tool_manifest, indent=2) + "\n")
+        write_text(root / HELPER_LOCAL_INLINE_SHORT_PROOF, "present\n")
+        assert (
+            "UNEXPECTED_SHARED_GENKSYMS_PROOF",
+            HELPER_LOCAL_INLINE_SHORT_PROOF,
         ) in collect_issues(root)
         checks_run += 1
 
