@@ -19,6 +19,8 @@ PHASE2_BOOTSTRAP_NOTES_REL = Path("Documentation/zigux/phase2-toolchain-bootstra
 PHASE2_VALIDATE_REL = Path("scripts/zigux/validate-phase2.py")
 PHASE2_CLOSURE_VALIDATE_REL = Path("scripts/zigux/validate-phase2-closure.py")
 PHASE2_TOOL_MANIFEST_REL = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
+PHASE2_ARTIFACT_TOOLS_MANIFEST_REL = Path("zigux/tests/fixtures/phase2_artifact_tools_manifest.json")
+PHASE2_CROSS_TARGETS_REL = Path("zigux/tests/fixtures/phase2_cross_targets.json")
 GENKSYMS_MANIFEST_REL = Path("zigux/tests/fixtures/genksyms_bridge/manifest.json")
 GENKSYMS_CASES_REL = Path("zigux/tests/fixtures/genksyms_bridge/cases.json")
 
@@ -36,6 +38,16 @@ GENKSYMS_COMMANDS = (
     "make -C zigux phase2-genksyms",
 )
 
+SHARED_TOOLING_COMMANDS = (
+    "python3 scripts/zigux/check-phase2-tool-manifest.py",
+    "python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
+    "python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
+    "python3 scripts/zigux/check-phase2-cross.py",
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py",
+    "python3 scripts/zigux/check-fixdep-diff.py",
+)
+
 GENKSYMS_REQUIRED_NOTE_MARKERS = (
     "Documentation/zigux/phase2-genksyms-dual-implementation-survey.md",
     "scripts/zigux/check-genksyms-bridge.py",
@@ -45,6 +57,19 @@ GENKSYMS_REQUIRED_NOTE_MARKERS = (
     "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
     "zigux/tests/fixtures/genksyms_bridge/manifest.json",
     "zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json",
+)
+
+SHARED_TOOLING_REQUIRED_NOTE_MARKERS = (
+    "scripts/zigux/check-phase2-tool-manifest.py",
+    "scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
+    "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
+    "scripts/zigux/check-phase2-cross.py",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
+    "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-fixdep-diff.py",
+    "scripts/zigux/artifact_diff.py",
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
 )
 
 MANIFEST_SURFACE_KEYS = (
@@ -150,6 +175,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         PHASE2_VALIDATE_REL,
         PHASE2_CLOSURE_VALIDATE_REL,
         PHASE2_TOOL_MANIFEST_REL,
+        PHASE2_ARTIFACT_TOOLS_MANIFEST_REL,
+        PHASE2_CROSS_TARGETS_REL,
         GENKSYMS_MANIFEST_REL,
         GENKSYMS_CASES_REL,
     ):
@@ -222,7 +249,19 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if expected_validator_line not in closure_text:
         issues.append(("MISSING_CLOSURE_LINE", expected_validator_line))
 
-    for marker in (*GENKSYMS_REQUIRED_NOTE_MARKERS, *VALIDATOR_COMMANDS, *GENKSYMS_COMMANDS):
+    expected_shared_tooling_line = "PHASE2_SHARED_TOOLING_CHECKERS=" + ",".join(
+        SHARED_TOOLING_COMMANDS
+    )
+    if expected_shared_tooling_line not in closure_text:
+        issues.append(("MISSING_CLOSURE_LINE", expected_shared_tooling_line))
+
+    for marker in (
+        *GENKSYMS_REQUIRED_NOTE_MARKERS,
+        *SHARED_TOOLING_REQUIRED_NOTE_MARKERS,
+        *VALIDATOR_COMMANDS,
+        *GENKSYMS_COMMANDS,
+        *SHARED_TOOLING_COMMANDS,
+    ):
         if f"`{marker}`" not in closure_text:
             issues.append(("MISSING_CLOSURE_MARKER", marker))
 
@@ -303,6 +342,13 @@ def build_self_test_root(root: Path) -> None:
             "checkers": [
                 "scripts/zigux/check-genksyms-bridge.py",
                 "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+                "scripts/zigux/check-phase2-tool-manifest.py",
+                "scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
+                "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+                "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
+                "scripts/zigux/check-phase2-cross.py",
+                "scripts/zigux/check-phase2-fixdep-gate.py",
+                "scripts/zigux/check-fixdep-diff.py",
             ],
             "bootstrap_helpers": [
                 "scripts/zigux/install-zig.py",
@@ -312,6 +358,7 @@ def build_self_test_root(root: Path) -> None:
             ],
             "artifact_support": [
                 "scripts/zigux/artifact_diff.py",
+                "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
             ],
             "bridge_helpers": [
                 "scripts/zigux/genksyms.zig",
@@ -320,9 +367,12 @@ def build_self_test_root(root: Path) -> None:
             ],
             "cross_route_support": [
                 "scripts/zigux/check-phase2-cross.py",
+                "zigux/tests/fixtures/phase2_cross_targets.json",
             ],
             "fixdep_support": [
                 "scripts/zigux/fixdep.zig",
+                "scripts/zigux/check-phase2-fixdep-gate.py",
+                "scripts/zigux/check-fixdep-diff.py",
                 "zigux/tests/fixtures/fixdep/cases.json",
             ],
             "fixture_roster": [
@@ -365,7 +415,7 @@ def build_self_test_root(root: Path) -> None:
 
     closure_text = """# Phase 2 Closure
 
-Shared Phase 2 closure evidence stays parked unless one current reminder surface drifts.
+This note keeps the shared Phase 2 closure packet parked while making the current `genksyms` evidence and shared repo-tooling reminder surfaces explicit and replayable from directly readable `master` surfaces.
 
 ## Status
 
@@ -373,8 +423,9 @@ Shared Phase 2 closure evidence stays parked unless one current reminder surface
 - `PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest`
 - manifest: `zigux/tests/fixtures/phase2_tool_manifest.json`
 - shared note: `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
+- shared validator pair: `python3 scripts/zigux/validate-phase2.py` and `python3 scripts/zigux/validate-phase2-closure.py`
 
-## Current genksyms evidence
+## Current Genksyms Evidence
 
 - `Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`
 - `scripts/zigux/check-genksyms-bridge.py`
@@ -390,9 +441,24 @@ Shared Phase 2 closure evidence stays parked unless one current reminder surface
 - `python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py`
 - `zig test scripts/zigux/genksyms.zig`
 - `make -C zigux phase2-genksyms`
-- `python3 scripts/zigux/validate-phase2.py`
-- `python3 scripts/zigux/validate-phase2-closure.py`
 - `PHASE2_CURRENT_GENKSYMS_PROCESS_OUTPUT_PACKET=zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json,zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json,zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json,zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json,zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json,zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json`
+
+## Current Shared Repo-Tooling Evidence
+
+- `scripts/zigux/check-phase2-tool-manifest.py`, `scripts/zigux/check-phase2-bootstrap-workflow-routes.py`, and `scripts/zigux/check-phase2-artifact-tools-manifest.py`
+- `scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`, `scripts/zigux/check-phase2-cross.py`, `zigux/tests/fixtures/phase2_cross_targets.json`, `scripts/zigux/check-phase2-fixdep-gate.py`, and `scripts/zigux/check-fixdep-diff.py`
+- `scripts/zigux/artifact_diff.py` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
+- `python3 scripts/zigux/check-phase2-tool-manifest.py`
+- `python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py`
+- `python3 scripts/zigux/check-phase2-artifact-tools-manifest.py`
+- `python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`
+- `python3 scripts/zigux/check-phase2-cross.py`
+- `python3 scripts/zigux/check-phase2-fixdep-gate.py`
+- `python3 scripts/zigux/check-fixdep-diff.py`
+- `PHASE2_SHARED_TOOLING_CHECKERS=python3 scripts/zigux/check-phase2-tool-manifest.py,python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py,python3 scripts/zigux/check-phase2-artifact-tools-manifest.py,python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py,python3 scripts/zigux/check-phase2-cross.py,python3 scripts/zigux/check-phase2-fixdep-gate.py,python3 scripts/zigux/check-fixdep-diff.py`
+
+## Shared Replay Routes
+
 - `PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2`
 - `PHASE2_CLOSURE_VALIDATORS=python3 scripts/zigux/validate-phase2.py,python3 scripts/zigux/validate-phase2-closure.py`
 
@@ -423,6 +489,11 @@ Shared Phase 2 closure evidence stays parked unless one current reminder surface
     write_text(root / WORKFLOW_REL, workflow_lines + "\n")
     write_text(root / MAKEFILE_REL, makefile_lines + "\n")
     write_text(root / PHASE2_TOOL_MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+    write_text(
+        root / PHASE2_ARTIFACT_TOOLS_MANIFEST_REL,
+        json.dumps({"present": True}, indent=2) + "\n",
+    )
+    write_text(root / PHASE2_CROSS_TARGETS_REL, "[]\n")
     write_text(root / GENKSYMS_MANIFEST_REL, json.dumps(genksyms_manifest, indent=2) + "\n")
     write_text(root / GENKSYMS_CASES_REL, "[]\n")
 
@@ -436,13 +507,19 @@ Shared Phase 2 closure evidence stays parked unless one current reminder surface
         "scripts/zigux/validate-phase2-closure.py",
         "scripts/zigux/check-genksyms-bridge.py",
         "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+        "scripts/zigux/check-phase2-tool-manifest.py",
+        "scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
+        "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+        "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
+        "scripts/zigux/check-phase2-cross.py",
+        "scripts/zigux/check-phase2-fixdep-gate.py",
+        "scripts/zigux/check-fixdep-diff.py",
         "scripts/zigux/install-zig.py",
         "third_party/README.md",
         "scripts/zigux/artifact_diff.py",
         "scripts/zigux/genksyms.zig",
         "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
         "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
-        "scripts/zigux/check-phase2-cross.py",
         "scripts/zigux/fixdep.zig",
         "zigux/tests/fixtures/fixdep/cases.json",
         "scripts/zigux/zig-toolchain-policy.json",
@@ -503,6 +580,23 @@ def run_self_test() -> int:
         write_text(
             closure_path,
             read_text(closure_path).replace(
+                "PHASE2_SHARED_TOOLING_CHECKERS=",
+                "PHASE2_DROPPED_SHARED_TOOLING_CHECKERS=",
+                1,
+            ),
+        )
+        assert (
+            "MISSING_CLOSURE_LINE",
+            "PHASE2_SHARED_TOOLING_CHECKERS="
+            + ",".join(SHARED_TOOLING_COMMANDS),
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        closure_path = root / PHASE2_CLOSURE_REL
+        write_text(
+            closure_path,
+            read_text(closure_path).replace(
                 "`zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json`\n",
                 "",
                 1,
@@ -511,6 +605,22 @@ def run_self_test() -> int:
         assert (
             "MISSING_CLOSURE_MARKER",
             "zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        closure_path = root / PHASE2_CLOSURE_REL
+        write_text(
+            closure_path,
+            read_text(closure_path).replace(
+                "`scripts/zigux/check-phase2-tool-manifest.py`",
+                "`scripts/zigux/check-phase2-tool-manifest.py.dropped`",
+                1,
+            ),
+        )
+        assert (
+            "MISSING_CLOSURE_MARKER",
+            "scripts/zigux/check-phase2-tool-manifest.py",
         ) in collect_issues(root)
         checks_run += 1
 
