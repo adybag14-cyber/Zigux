@@ -347,7 +347,7 @@ static int check_interop_policy_relays(void)
 
 static int check_uapi_policy_and_rbtree_relays(void)
 {
-    struct zigux_interop_policy safe = zigux_default_interop_policy();
+    struct zigux_interop_policy safe = zigux_uapi_default_interop_policy();
     struct zigux_interop_policy mmio = {
         .panic_mode = ZIGUX_PANIC_BUG,
         .allocator_mode = ZIGUX_ALLOC_KERNEL_HEAP,
@@ -365,6 +365,11 @@ static int check_uapi_policy_and_rbtree_relays(void)
         .allocator_mode = 9u,
         .unsafe_scope = 9u,
         .reserved = 0u,
+    };
+    zigux_rbtree_root_view uncached = {
+        .root = (uintptr_t)0x1000u,
+        .cached_leftmost = (uintptr_t)0,
+        .flags = 0u,
     };
     zigux_rbtree_root_view cached = {
         .root = (uintptr_t)0x1000u,
@@ -387,11 +392,46 @@ static int check_uapi_policy_and_rbtree_relays(void)
     struct zigux_export_status cached_status = zigux_uapi_validate_rbtree_root_view(cached);
     struct zigux_export_status malformed_status = zigux_uapi_validate_rbtree_root_view(malformed);
 
+    if (safe.panic_mode != ZIGUX_PANIC_ABORT)
+        return __LINE__;
+    if (safe.allocator_mode != ZIGUX_ALLOC_CALLER_PROVIDED)
+        return __LINE__;
+    if (safe.unsafe_scope != ZIGUX_UNSAFE_NONE)
+        return __LINE__;
+    if (safe.reserved != 0u)
+        return __LINE__;
+
+    if (!zigux_uapi_panic_mode_is_known(safe.panic_mode))
+        return __LINE__;
+    if (!zigux_uapi_allocator_mode_is_known(safe.allocator_mode))
+        return __LINE__;
+    if (!zigux_uapi_unsafe_scope_is_known(safe.unsafe_scope))
+        return __LINE__;
+    if (!zigux_uapi_interop_policy_reserved_clear(safe))
+        return __LINE__;
     if (!zigux_uapi_interop_policy_is_recognized(safe))
+        return __LINE__;
+
+    if (!zigux_uapi_panic_mode_is_known(mmio.panic_mode))
+        return __LINE__;
+    if (!zigux_uapi_allocator_mode_is_known(mmio.allocator_mode))
+        return __LINE__;
+    if (!zigux_uapi_unsafe_scope_is_known(mmio.unsafe_scope))
+        return __LINE__;
+    if (!zigux_uapi_interop_policy_reserved_clear(mmio))
         return __LINE__;
     if (!zigux_uapi_interop_policy_is_recognized(mmio))
         return __LINE__;
+
+    if (zigux_uapi_interop_policy_reserved_clear(reserved))
+        return __LINE__;
     if (zigux_uapi_interop_policy_is_recognized(reserved))
+        return __LINE__;
+    if (zigux_uapi_panic_mode_is_known(unknown.panic_mode))
+        return __LINE__;
+    if (zigux_uapi_allocator_mode_is_known(unknown.allocator_mode))
+        return __LINE__;
+    if (zigux_uapi_unsafe_scope_is_known(unknown.unsafe_scope))
         return __LINE__;
     if (zigux_uapi_interop_policy_is_recognized(unknown))
         return __LINE__;
@@ -425,6 +465,16 @@ static int check_uapi_policy_and_rbtree_relays(void)
     if (unknown_status.flags != (uint16_t)ZIGUX_STATUS_FLAG_ERROR)
         return __LINE__;
 
+    if (zigux_uapi_rbtree_root_view_is_cached(uncached))
+        return __LINE__;
+    if (zigux_uapi_rbtree_root_view_has_leftmost(uncached))
+        return __LINE__;
+    if (!zigux_uapi_rbtree_root_view_is_valid(uncached))
+        return __LINE__;
+    if (!zigux_uapi_rbtree_root_view_is_cached(cached))
+        return __LINE__;
+    if (!zigux_uapi_rbtree_root_view_has_leftmost(cached))
+        return __LINE__;
     if (!zigux_uapi_rbtree_root_view_is_valid(cached))
         return __LINE__;
     if (zigux_uapi_rbtree_root_view_is_valid(malformed))
