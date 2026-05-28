@@ -108,25 +108,10 @@ EXPECTED_REVIEW_FIELDS = {
         "zero_bit_noop_anchor": 'test "bitmap zero-bit logical helpers stay explicit"',
         "partial_xor_review_fields": ["partial_xor_nbits", "partial_xor_masked_values"],
         "review_packet_summary": (
-            "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, "
-            "scnprintf output, truncation, tiny-buffer, and partial-window xor replay, while current "
-            "master keeps the direct helper-local bitmap packet bounded to whole-word range edges, raw "
-            "copy alias behavior, tail-clearing and extension semantics, zero and aligned copyAndExtend "
-            "handling, zero-sized destination-view no-op coverage, zero-bit logical short-circuit "
-            "coverage, exact-word-boundary equality fast-path masking, tail-masked predicate behavior, "
-            "out-of-range tail-bit full or empty or weight masking, caller-window xor and or clamping, "
-            "multiword-tail xor and or clamp witnesses, weighted tail-count clamping, terminator-only "
-            "and zero-length caller-view formatting, empty-bitmap caller-buffer preservation, Linux-style "
-            "alias mirror coverage, and allocator optional-reset coverage."
+            "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, copy/copy-clear-tail/copy-and-extend replay, scnprintf output, truncation, tiny-buffer handling, logical operator outputs, range set/clear/fill/zero outcomes, and partial-window xor replay, while current master keeps the direct helper-local bitmap packet bounded to whole-word range edges, raw copy alias behavior, tail-clearing and extension semantics, zero and aligned copyAndExtend handling, zero-sized destination-view no-op coverage, zero-bit logical short-circuit coverage, exact-word-boundary equality fast-path masking, tail-masked predicate behavior, out-of-range tail-bit full or empty or weight masking, caller-window xor and or clamping, multiword-tail xor and or clamp witnesses, weighted tail-count clamping, terminator-only and zero-length caller-view formatting, empty-bitmap caller-buffer preservation, Linux-style alias mirror coverage, and allocator optional-reset coverage."
         ),
         "next_safe_step_note": (
-            "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor "
-            "drift inside the current helper-local packet or committed shared replay drift in the bitmap "
-            "parity fields; current master still ships direct fill-tail clamp, copy-alias, truncation, "
-            "cross-word scnprintf, exact-word-boundary equality fast-path masking, caller-window xor and "
-            "or clamp, weighted tail-count clamp, empty-buffer, allocator-reset, zero-bit logical "
-            "short-circuit, and Linux-style alias mirror anchors here; do not reopen older closure-side "
-            "or validator-route cue names by default."
+            "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor drift inside the current helper-local packet or committed shared replay drift in the bitmap copy, logical, range, allocation, formatting, or partial-window parity fields; current master still ships direct fill-tail clamp, raw copy alias, cross-word scnprintf, exact-word-boundary equality fast-path masking, caller-window xor and or clamp, weighted tail-count clamp, empty-buffer, allocator-reset, zero-bit logical short-circuit, and Linux-style alias mirror anchors here; do not reopen older closure-side or validator-route cue names by default."
         ),
     },
     "tools/lib/find_bit.zig": {
