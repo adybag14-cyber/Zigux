@@ -36,6 +36,8 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-docs-shared-reminder.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-required-make-routes.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-required-make-routes.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-bootstrap-workflow-routes.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-bootstrap-workflow-routes.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-artifact-tools-manifest.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-artifact-tools-manifest.py",
 )
@@ -46,12 +48,14 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase2-kbuild-routes.py`",
         "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
         "`scripts/zigux/check-phase2-required-make-routes.py`",
+        "`scripts/zigux/check-phase2-bootstrap-workflow-routes.py`",
         "`scripts/zigux/check-phase2-artifact-tools-manifest.py`",
         "`make -C zigux phase2-tools`",
     ),
     REVIEW_CHECKLIST: (
         "`scripts/zigux/check-phase2-kbuild-routes.py`",
         "`scripts/zigux/check-phase2-required-make-routes.py`",
+        "`scripts/zigux/check-phase2-bootstrap-workflow-routes.py`",
         "`make -C zigux phase2-tools`",
     ),
     SCRIPTS_README: (
@@ -72,6 +76,7 @@ REQUIRED_MARKERS = {
         "\"scripts/zigux/check-phase2-kbuild-routes.py\"",
         "\"scripts/zigux/check-phase2-docs-shared-reminder.py\"",
         "\"scripts/zigux/check-phase2-required-make-routes.py\"",
+        "\"scripts/zigux/check-phase2-bootstrap-workflow-routes.py\"",
         "\"scripts/zigux/check-phase2-artifact-tools-manifest.py\"",
         "\"make -C zigux phase2-tools\"",
     ),
@@ -208,7 +213,7 @@ def build_sample_root(root: Path) -> None:
                 "# Phase 2 Toolchain Bootstrap Notes",
                 "",
                 "- `phase2-tools` stays explicit beside the returned wrapper packet.",
-                "- `scripts/zigux/check-phase2-kbuild-routes.py`, `scripts/zigux/check-phase2-docs-shared-reminder.py`, `scripts/zigux/check-phase2-required-make-routes.py`, and `scripts/zigux/check-phase2-artifact-tools-manifest.py` remain the current tools-route companions.",
+                "- `scripts/zigux/check-phase2-kbuild-routes.py`, `scripts/zigux/check-phase2-docs-shared-reminder.py`, `scripts/zigux/check-phase2-required-make-routes.py`, `scripts/zigux/check-phase2-bootstrap-workflow-routes.py`, and `scripts/zigux/check-phase2-artifact-tools-manifest.py` remain the current tools-route companions.",
                 "- `make -C zigux phase2-tools` keeps the shipped wrapper route explicit.",
             )
         )
@@ -221,7 +226,7 @@ def build_sample_root(root: Path) -> None:
             (
                 "# Zigux Review Checklist",
                 "",
-                "- keep `scripts/zigux/check-phase2-kbuild-routes.py` and `scripts/zigux/check-phase2-required-make-routes.py` aligned with `make -C zigux phase2-tools`.",
+                "- keep `scripts/zigux/check-phase2-kbuild-routes.py`, `scripts/zigux/check-phase2-required-make-routes.py`, `scripts/zigux/check-phase2-bootstrap-workflow-routes.py`, and `make -C zigux phase2-tools` aligned.",
             )
         )
         + "\n",
@@ -261,6 +266,7 @@ def build_sample_root(root: Path) -> None:
                 '      "scripts/zigux/check-phase2-kbuild-routes.py",',
                 '      "scripts/zigux/check-phase2-docs-shared-reminder.py",',
                 '      "scripts/zigux/check-phase2-required-make-routes.py",',
+                '      "scripts/zigux/check-phase2-bootstrap-workflow-routes.py",',
                 '      "scripts/zigux/check-phase2-artifact-tools-manifest.py"',
                 "    ],",
                 '    "make_wrappers": ["make -C zigux phase2-tools"]',
