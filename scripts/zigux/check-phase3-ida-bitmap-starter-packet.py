@@ -19,14 +19,16 @@ STARTER_BUILD_ROUTE = (
     "zig build phase3-ida-bitmap-starter-packet-test --build-file "
     "zigux/tests/phase3_ida_bitmap_starter_packet_build.zig"
 )
+CHECKER_ROUTE = "python3 scripts/zigux/check-phase3-ida-bitmap-starter-packet.py --repo-root ."
+SELF_TEST_ROUTE = "python3 scripts/zigux/check-phase3-ida-bitmap-starter-packet.py --self-test"
 
 REQUIRED_MARKERS = {
     SLICE_PATH: (
         "zigux/helpers/ida_bitmap_view.zig",
         "zigux/tests/phase3_ida_bitmap_starter_packet_manifest.json",
         "scripts/zigux/check-phase3-ida-bitmap-starter-packet.py",
-        "python3 scripts/zigux/check-phase3-ida-bitmap-starter-packet.py --self-test",
-        "python3 scripts/zigux/check-phase3-ida-bitmap-starter-packet.py",
+        SELF_TEST_ROUTE,
+        CHECKER_ROUTE,
         STARTER_BUILD_ROUTE,
         "fixed 128-byte IDA bitmap chunk",
         "The landed `ida_bitmap` helper-local starter packet is real repo evidence",
@@ -60,8 +62,8 @@ REQUIRED_MARKERS = {
         '"Documentation/zigux/phase3-ida-bitmap-slice.md"',
         '"zigux/helpers/ida_bitmap_view.zig"',
         '"zigux/tests/phase3_ida_bitmap_starter_packet_manifest.json"',
-        '"python3 scripts/zigux/check-phase3-ida-bitmap-starter-packet.py --self-test"',
-        '"python3 scripts/zigux/check-phase3-ida-bitmap-starter-packet.py"',
+        f'"{SELF_TEST_ROUTE}"',
+        f'"{CHECKER_ROUTE}"',
         STARTER_BUILD_ROUTE,
         '"repo_reality_gaps": []',
         '"next_safe_step": "keep the helper-local ida bitmap packet honest with manifest-backed replay before widening into broader ida allocation or range semantics"',
@@ -78,8 +80,8 @@ REQUIRED_PACKET_FILES = (
 )
 
 REQUIRED_REPLAY_ROUTES = (
-    "python3 scripts/zigux/check-phase3-ida-bitmap-starter-packet.py --self-test",
-    "python3 scripts/zigux/check-phase3-ida-bitmap-starter-packet.py",
+    SELF_TEST_ROUTE,
+    CHECKER_ROUTE,
     STARTER_BUILD_ROUTE,
 )
 
@@ -148,28 +150,28 @@ def _populate_repo(root: Path) -> None:
     files = {
         path: "\n".join(markers) + "\n" for path, markers in REQUIRED_MARKERS.items()
     }
-    files[MANIFEST_PATH] = """{
-  "phase": "Phase 3",
-  "lane": "helper-interop",
-  "slug": "phase3-ida-bitmap-starter-packet",
-  "status": "starter_packet_present",
-  "scope": "helper-local ida bitmap chunk geometry and first-set/first-zero replay",
-  "packet_files": [
-    "Documentation/zigux/phase3-ida-bitmap-slice.md",
-    "zigux/helpers/ida_bitmap_view.zig",
-    "zigux/tests/phase3_ida_bitmap_starter_packet.zig",
-    "zigux/tests/phase3_ida_bitmap_starter_packet_build.zig",
-    "zigux/tests/phase3_ida_bitmap_starter_packet_manifest.json",
-    "scripts/zigux/check-phase3-ida-bitmap-starter-packet.py"
+    files[MANIFEST_PATH] = f"""{{
+  \"phase\": \"Phase 3\",
+  \"lane\": \"helper-interop\",
+  \"slug\": \"phase3-ida-bitmap-starter-packet\",
+  \"status\": \"starter_packet_present\",
+  \"scope\": \"helper-local ida bitmap chunk geometry and first-set/first-zero replay\",
+  \"packet_files\": [
+    \"Documentation/zigux/phase3-ida-bitmap-slice.md\",
+    \"zigux/helpers/ida_bitmap_view.zig\",
+    \"zigux/tests/phase3_ida_bitmap_starter_packet.zig\",
+    \"zigux/tests/phase3_ida_bitmap_starter_packet_build.zig\",
+    \"zigux/tests/phase3_ida_bitmap_starter_packet_manifest.json\",
+    \"scripts/zigux/check-phase3-ida-bitmap-starter-packet.py\"
   ],
-  "replay_routes": [
-    "python3 scripts/zigux/check-phase3-ida-bitmap-starter-packet.py --self-test",
-    "python3 scripts/zigux/check-phase3-ida-bitmap-starter-packet.py",
-    "zig build phase3-ida-bitmap-starter-packet-test --build-file zigux/tests/phase3_ida_bitmap_starter_packet_build.zig"
+  \"replay_routes\": [
+    \"{SELF_TEST_ROUTE}\",
+    \"{CHECKER_ROUTE}\",
+    \"{STARTER_BUILD_ROUTE}\"
   ],
-  "repo_reality_gaps": [],
-  "next_safe_step": "keep the helper-local ida bitmap packet honest with manifest-backed replay before widening into broader ida allocation or range semantics"
-}
+  \"repo_reality_gaps\": [],
+  \"next_safe_step\": \"keep the helper-local ida bitmap packet honest with manifest-backed replay before widening into broader ida allocation or range semantics\"
+}}
 """
     for relative_path, text in files.items():
         path = root / relative_path
@@ -180,6 +182,7 @@ def _populate_repo(root: Path) -> None:
 SELF_TEST_CASES = (
     (SLICE_PATH, "zigux/tests/phase3_ida_bitmap_starter_packet_manifest.json"),
     (SLICE_PATH, STARTER_BUILD_ROUTE),
+    (MANIFEST_PATH, f'"{CHECKER_ROUTE}"'),
     (HELPER_PATH, "pub fn firstZero(self: BitmapView) ?usize {"),
     (TEST_PATH, 'test "ida bitmap starter packet keeps sparse words explicit across chunk boundaries" {'),
     (BUILD_PATH, '"phase3-ida-bitmap-starter-packet-test"'),
