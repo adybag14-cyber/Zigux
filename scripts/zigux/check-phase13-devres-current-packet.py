@@ -70,8 +70,8 @@ SURVEY_MARKERS = [
     "scripts/zigux/check-phase13-devres-current-packet.py",
     "landed `phase13-devres-current-packet-checker`",
     "Only rematerialize a helper-first non-posted or arch-memtype planner if `scripts/zigux/check-phase13-devres-current-packet.py`",
-    "one helper-local arch-WC release-record foothold",
-    "`.provides_arch_phys_wc_add_planning = true`, `planManagedArchPhysWcAdd(...)`",
+    "helper-local arch-WC add and detach-cleanup footholds",
+    "`.provides_arch_phys_wc_add_planning = true`, `planManagedArchPhysWcAdd(...)`, and `planManagedArchPhysWcDetachCleanup(...)`",
 ]
 
 HELPER_MARKERS = [
@@ -347,13 +347,15 @@ def run_self_test() -> int:
 
         seed_fixture_tree(root)
         write_text(
-            root / HELPER_PATH,
-            "\n".join(marker for marker in HELPER_MARKERS if marker != ".provides_arch_phys_wc_add_planning = true") + "\n",
+            root / SURVEY_PATH,
+            "\n".join(
+                marker for marker in SURVEY_MARKERS if marker != "helper-local arch-WC add and detach-cleanup footholds"
+            ) + "\n",
         )
         assert_only(
             validate(root),
-            ["helper:missing_marker:.provides_arch_phys_wc_add_planning = true"],
-            "missing_arch_wc_helper_marker_failed",
+            ["survey:missing_marker:helper-local arch-WC add and detach-cleanup footholds"],
+            "missing_arch_wc_survey_marker_failed",
         )
         case_count += 1
 
