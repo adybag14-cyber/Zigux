@@ -52,6 +52,11 @@ const phase15_targets = [_]Phase15Target{
         .description = "Run the focused Phase 15 readiness-gate test",
         .root_source_file = "phase15_readiness_gate.zig",
     },
+    .{
+        .step_name = "phase15-freeze-map-shared-surface-inventory",
+        .description = "Run the focused Phase 15 freeze-map shared-surface inventory test",
+        .root_source_file = "phase15_freeze_map_shared_surface_inventory.zig",
+    },
 };
 
 pub fn build(b: *std.Build) void {
