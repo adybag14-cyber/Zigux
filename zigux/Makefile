@@ -11,9 +11,9 @@ ZIG_PINNED_EXECUTABLE := $(firstword $(wildcard $(ZIG_PINNED_EXTRACT_ROOT)/zig $
 ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))
 ZIG_PINNED_TOOLCHAIN := $(if $(ZIG_PINNED_EXECUTABLE),$(ZIG_PINNED_EXECUTABLE),$(ZIG_LOCAL_TOOLCHAIN))
 ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)
-PHONY += phase3-abi-core-packet phase3-list-hlist-starter-packet phase3-list-hlist-dump phase3-idr-slot-starter-packet-test phase3-idr-slot-dump phase3-low-level-wrappers-test phase3-policy-starter-packet-test phase3-policy-dump phase3-policy-unsafe-test phase3-test phase3-dump phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4 phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-loader-command-env-boundary-guard-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test phase9-test phase11-validate
+PHONY += phase3-abi-core-packet phase3-abi-export phase3-list-hlist-starter-packet phase3-list-hlist-dump phase3-idr-slot-starter-packet-test phase3-idr-slot-dump phase3-low-level-wrappers-test phase3-policy-starter-packet-test phase3-policy-dump phase3-policy-unsafe-test phase3-test phase3-dump phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4 phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-loader-command-env-boundary-guard-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test phase9-test phase11-validate
 
-.PHONY: phase1-route-summary phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2 phase3-validate phase3 phase3-abi-core-packet phase3-list-hlist-starter-packet phase3-list-hlist-dump phase3-idr-slot-starter-packet-test phase3-idr-slot-dump phase3-xarray-slot-starter-packet phase3-xarray-slot-starter-packet-test phase3-xarray-slot-dump phase3-test phase3-dump phase3-policy-dump phase3-policy-unsafe-test phase3-export-uapi-layout phase3-low-level-wrappers phase3-export-uapi-layout-test phase3-low-level-wrappers-test phase3-policy-starter-packet-test phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4 phase6-validate phase6-base64-test phase6-base64-perf phase6-bsearch-test phase6-bsearch-perf phase6-checksum-test phase6-checksum-perf-matrix-test phase6-checksum-perf phase6-hexdump-review phase6-hexdump-perf-matrix-test phase6-hexdump-test phase6-hexdump-perf phase6-perf phase7-validate phase7-rbtree-test phase7-rbtree-survey phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-file-path-handle-bridge-test phase8-perf-buffer-poll-test phase8-test phase8 phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-loader-command-env-boundary-guard-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test phase9-test phase10-validate phase10-test phase10 phase11-validate phase12-validate phase12-smoke phase12-test phase12-virtio-net-syntax-lab-test phase12 phase14-validate
+.PHONY: phase1-route-summary phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2 phase3-validate phase3 phase3-abi-core-packet phase3-abi-export phase3-list-hlist-starter-packet phase3-list-hlist-dump phase3-idr-slot-starter-packet-test phase3-idr-slot-dump phase3-xarray-slot-starter-packet phase3-xarray-slot-starter-packet-test phase3-xarray-slot-dump phase3-test phase3-dump phase3-policy-dump phase3-policy-unsafe-test phase3-export-uapi-layout phase3-low-level-wrappers phase3-export-uapi-layout-test phase3-low-level-wrappers-test phase3-policy-starter-packet-test phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4 phase6-validate phase6-base64-test phase6-base64-perf phase6-bsearch-test phase6-bsearch-perf phase6-checksum-test phase6-checksum-perf-matrix-test phase6-checksum-perf phase6-hexdump-review phase6-hexdump-perf-matrix-test phase6-hexdump-test phase6-hexdump-perf phase6-perf phase7-validate phase7-rbtree-test phase7-rbtree-survey phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-file-path-handle-bridge-test phase8-perf-buffer-poll-test phase8-test phase8 phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-loader-command-env-boundary-guard-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test phase9-test phase10-validate phase10-test phase10 phase11-validate phase12-validate phase12-smoke phase12-test phase12-virtio-net-syntax-lab-test phase12 phase14-validate
 
 phase1-route-summary:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-route-summary-counts.py --self-test
@@ -123,6 +123,9 @@ phase3-xarray-slot-dump:
 
 phase3-export-uapi-layout:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout --build-file zigux/tests/build.zig
+
+phase3-abi-export:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-abi-export --build-file zigux/tests/build.zig
 
 phase3-low-level-wrappers:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers --build-file zigux/tests/build.zig
@@ -258,127 +261,3 @@ phase7-rbtree-survey:
 
 phase8-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-libbpf-segment-gate.py
-
-phase8-exec-cmd-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all
-
-phase8-help-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_help_only_build.zig --summary all
-
-phase8-help-kallsyms-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all
-
-phase8-kallsyms-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all
-
-phase8-libbpf-segments-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all
-
-phase8-file-path-handle-bridge-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all
-
-phase8-perf-buffer-poll-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all
-
-phase8-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_build.zig --summary all
-
-phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test phase8-file-path-handle-bridge-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test
-
-phase9-runtime-atomic64-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig --summary all
-
-phase9-runtime-bitmap-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig --summary all
-
-phase9-runtime-loader-shared-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig --summary all
-
-phase9-runtime-loader-command-env-boundary-guard-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-loader-command-env-boundary-guard-tests --build-file zigux/tests/phase9_build.zig --summary all
-
-phase9-runtime-trace-events-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig --summary all
-
-phase9-runtime-kretprobe-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-kretprobe-tests --build-file zigux/tests/phase9_build.zig --summary all
-
-phase9-first-loadable-runtime-module-parity-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-first-loadable-runtime-module-parity-behavior-tests --build-file zigux/tests/phase9_build.zig --summary all
-
-phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-loader-command-env-boundary-guard-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test
-
-phase10-validate:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-bootstrap-route.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-shared-freeze-boundary.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-ring-packet.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-input-packet.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-harness-coverage.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-tests-readme-core-surfaces.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-closure-manifest-counts.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10-closure.py
-
-phase10-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all
-
-phase10: phase10-validate phase10-test
-
-phase11-validate:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_pm_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_verify_helper_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_preflight_review_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig
-
-phase12-validate:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-build-only-phase12-surface.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-build-only-phase12-surface.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-build-inventory.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-build-inventory.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-complex-driver-lane-packet.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-cross-compile-smoke.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-cross-compile-smoke.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-libbpf-snapshot.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-libbpf-snapshot.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-libbpf-lane-marker.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-libbpf-lane-marker.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase12.py
-
-phase12-smoke:
-	cd $(ZIGUX_ROOT) && $(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all
-
-phase12-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all
-
-phase12-nvme-pci-direct-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase12-nvme-pci-direct-test --build-file zigux/tests/phase12_nvme_pci_build.zig --summary all
-
-phase12-nvme-pci-survey-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase12-nvme-pci-survey-test --build-file zigux/tests/phase12_nvme_pci_survey_build.zig --summary all
-
-phase12-virtio-net-syntax-lab-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all
-
-phase12-virtio-net-throughput-parity-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all
-
-phase12: phase12-validate phase12-smoke phase12-test
