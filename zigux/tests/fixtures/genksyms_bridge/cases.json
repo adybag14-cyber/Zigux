@@ -16,6 +16,15 @@
     "expected_file": "debug_reference_types_expected.json"
   },
   {
+    "name": "inline_short_option_arguments",
+    "args": [
+      "-d",
+      "-rfoo.symref",
+      "-Ttypes.symtypes"
+    ],
+    "expected_file": "inline_short_option_arguments_expected.json"
+  },
+  {
     "name": "long_options",
     "args": [
       "--debug",
