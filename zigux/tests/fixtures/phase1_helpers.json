@@ -163,7 +163,7 @@
     "mask_space": 160,
     "isalnum_A": true,
     "isalpha_z": true,
-    "is_digit_7": true,
+    "isdigit_7": true,
     "isspace_tab": true,
     "isxdigit_f": true,
     "ispunct_bang": true,
@@ -203,6 +203,7 @@
     "alloc_count_after_kmalloc_free": 0,
     "array_zeroed": true,
     "alloc_count_after_kmalloc_array": 1,
+    "array_zeroed": true,
     "alloc_count_after_kmalloc_array_free": 0,
     "slab_is_available": true
   },
