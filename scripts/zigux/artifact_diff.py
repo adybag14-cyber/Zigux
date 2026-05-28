@@ -55,14 +55,23 @@ SELF_TEST_CASES = [
     "json_missing_expected",
     "json_missing_actual",
     "json_missing_both",
+    "json_directory_expected",
+    "json_directory_actual",
+    "json_directory_both",
     "bytes_pass",
     "bytes_drift",
     "text_missing_expected",
     "text_missing_actual",
     "text_missing_both",
+    "text_directory_expected",
+    "text_directory_actual",
+    "text_directory_both",
     "bytes_missing_expected",
     "bytes_missing_actual",
     "bytes_missing_both",
+    "bytes_directory_expected",
+    "bytes_directory_actual",
+    "bytes_directory_both",
     "legacy_sha256_alias",
     "missing_mode_value_rejected",
     "missing_positional_arguments_rejected",
@@ -101,15 +110,27 @@ def canonical_json_bytes(path: Path, *, side: str) -> tuple[bytes | None, str | 
     return (json.dumps(value, indent=2, sort_keys=True, ensure_ascii=True) + "\n").encode("utf-8"), None
 
 
-def missing_lines(expected: Path, actual: Path) -> list[str] | None:
+def path_problem_lines(expected: Path, actual: Path) -> list[str] | None:
     expected_exists = expected.exists()
     actual_exists = actual.exists()
-    if expected_exists and actual_exists:
+    expected_is_file = expected.is_file() if expected_exists else False
+    actual_is_file = actual.is_file() if actual_exists else False
+    if expected_exists and actual_exists and expected_is_file and actual_is_file:
         return None
-    return [
-        f"EXPECTED_EXISTS={expected_exists}",
-        f"ACTUAL_EXISTS={actual_exists}",
-    ]
+
+    lines: list[str] = []
+    if not (expected_exists and actual_exists):
+        lines.extend(
+            [
+                f"EXPECTED_EXISTS={expected_exists}",
+                f"ACTUAL_EXISTS={actual_exists}",
+            ]
+        )
+    if expected_exists and not expected_is_file:
+        lines.append("EXPECTED_IS_FILE=False")
+    if actual_exists and not actual_is_file:
+        lines.append("ACTUAL_IS_FILE=False")
+    return lines
 
 
 def compare_text(expected: Path, actual: Path) -> ComparisonResult:
@@ -156,9 +177,9 @@ def normalize_mode(mode: str) -> str:
 
 def compare(mode: str, expected: Path, actual: Path) -> ComparisonResult:
     mode = normalize_mode(mode)
-    missing = missing_lines(expected, actual)
-    if missing is not None:
-        return ComparisonResult(ok=False, extra_lines=missing)
+    path_problem = path_problem_lines(expected, actual)
+    if path_problem is not None:
+        return ComparisonResult(ok=False, extra_lines=path_problem)
     if mode == "text":
         return compare_text(expected, actual)
     if mode == "json":
@@ -200,6 +221,8 @@ def run_self_test() -> int:
         actual = root / "actual.txt"
         missing = root / "missing.txt"
         other_missing = root / "other-missing.txt"
+        directory = root / "directory"
+        other_directory = root / "other-directory"
         expected_json = root / "expected.json"
         actual_json = root / "actual.json"
         actual_json_mismatch = root / "actual-mismatch.json"
@@ -209,6 +232,9 @@ def run_self_test() -> int:
         invalid_actual_utf8_json = root / "invalid-actual-utf8.json"
         blob_a = root / "blob-a.bin"
         blob_b = root / "blob-b.bin"
+
+        directory.mkdir()
+        other_directory.mkdir()
 
         expected.write_text("alpha\nbeta\n", encoding="utf-8", newline="\n")
         actual.write_text("alpha\nbeta\n", encoding="utf-8", newline="\n")
@@ -286,6 +312,25 @@ def run_self_test() -> int:
         )
         covered.append("json_missing_both")
 
+        assert_case(
+            compare("json", directory, actual_json).extra_lines == ["EXPECTED_IS_FILE=False"],
+            "json_directory_expected",
+        )
+        covered.append("json_directory_expected")
+
+        assert_case(
+            compare("json", expected_json, directory).extra_lines == ["ACTUAL_IS_FILE=False"],
+            "json_directory_actual",
+        )
+        covered.append("json_directory_actual")
+
+        assert_case(
+            compare("json", directory, other_directory).extra_lines
+            == ["EXPECTED_IS_FILE=False", "ACTUAL_IS_FILE=False"],
+            "json_directory_both",
+        )
+        covered.append("json_directory_both")
+
         blob_a.write_bytes(b"zigux-artifact-diff")
         blob_b.write_bytes(b"zigux-artifact-diff")
         bytes_pass = compare("bytes", blob_a, blob_b)
@@ -325,6 +370,25 @@ def run_self_test() -> int:
         covered.append("text_missing_both")
 
         assert_case(
+            compare("text", directory, actual).extra_lines == ["EXPECTED_IS_FILE=False"],
+            "text_directory_expected",
+        )
+        covered.append("text_directory_expected")
+
+        assert_case(
+            compare("text", expected, directory).extra_lines == ["ACTUAL_IS_FILE=False"],
+            "text_directory_actual",
+        )
+        covered.append("text_directory_actual")
+
+        assert_case(
+            compare("text", directory, other_directory).extra_lines
+            == ["EXPECTED_IS_FILE=False", "ACTUAL_IS_FILE=False"],
+            "text_directory_both",
+        )
+        covered.append("text_directory_both")
+
+        assert_case(
             compare("bytes", missing, blob_a).extra_lines == ["EXPECTED_EXISTS=False", "ACTUAL_EXISTS=True"],
             "bytes_missing_expected",
         )
@@ -341,6 +405,25 @@ def run_self_test() -> int:
             "bytes_missing_both",
         )
         covered.append("bytes_missing_both")
+
+        assert_case(
+            compare("bytes", directory, blob_a).extra_lines == ["EXPECTED_IS_FILE=False"],
+            "bytes_directory_expected",
+        )
+        covered.append("bytes_directory_expected")
+
+        assert_case(
+            compare("bytes", blob_a, directory).extra_lines == ["ACTUAL_IS_FILE=False"],
+            "bytes_directory_actual",
+        )
+        covered.append("bytes_directory_actual")
+
+        assert_case(
+            compare("bytes", directory, other_directory).extra_lines
+            == ["EXPECTED_IS_FILE=False", "ACTUAL_IS_FILE=False"],
+            "bytes_directory_both",
+        )
+        covered.append("bytes_directory_both")
 
         legacy_alias = run_parser_probe(["--mode", "sha256", str(blob_a), str(blob_a)])
         assert_case(legacy_alias.returncode == 0, "legacy_sha256_alias")
