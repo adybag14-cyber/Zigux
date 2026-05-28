@@ -127,6 +127,32 @@ static inline struct zigux_export_status zigux_uapi_validate_boundary_header(
         (uint16_t)ZIGUX_FACILITY_KERNEL);
 }
 
+static inline struct zigux_interop_policy zigux_uapi_default_interop_policy(void)
+{
+    return zigux_default_interop_policy();
+}
+
+static inline int zigux_uapi_panic_mode_is_known(uint8_t mode)
+{
+    return zigux_panic_mode_is_known(mode);
+}
+
+static inline int zigux_uapi_allocator_mode_is_known(uint8_t mode)
+{
+    return zigux_allocator_mode_is_known(mode);
+}
+
+static inline int zigux_uapi_unsafe_scope_is_known(uint8_t scope)
+{
+    return zigux_unsafe_scope_is_known(scope);
+}
+
+static inline int zigux_uapi_interop_policy_reserved_clear(
+    struct zigux_interop_policy policy)
+{
+    return zigux_interop_policy_reserved_clear(policy);
+}
+
 static inline int zigux_uapi_interop_policy_is_recognized(
     struct zigux_interop_policy policy)
 {
@@ -141,6 +167,16 @@ static inline struct zigux_export_status zigux_uapi_validate_interop_policy(
     return zigux_make_status(
         (int32_t)ZIGUX_UAPI_INVALID_ARGUMENT,
         (uint16_t)ZIGUX_FACILITY_KERNEL);
+}
+
+static inline int zigux_uapi_rbtree_root_view_is_cached(zigux_rbtree_root_view view)
+{
+    return zigux_rbtree_root_view_is_cached(view);
+}
+
+static inline int zigux_uapi_rbtree_root_view_has_leftmost(zigux_rbtree_root_view view)
+{
+    return zigux_rbtree_root_view_has_leftmost(view);
 }
 
 static inline int zigux_uapi_rbtree_root_view_is_valid(zigux_rbtree_root_view view)
