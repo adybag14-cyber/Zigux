@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")
 THIRD_PARTY_DIR = Path("third_party")
 EXPECTED_ARCHIVE_SIZES = {
-    "x86_64-linux": 58_159_088,
+    "x86_64-linux": 58159088,
 }
 ARCHIVE_DUPLICATE_SUFFIX_RE = re.compile(r"^(?P<stem>.+) \((?P<copy>\d+)\)(?P<suffix>\.tar\.xz)$")
 
@@ -501,7 +501,7 @@ def run_self_test() -> int:
         write_policy(root, expected_sha)
         metadata = load_policy(root)
         source_with_duplicate_name = source.with_name(
-            duplicate_source_fixture_name(str(metadata["filename"]))
+            duplicate_source_fixture_name(str(metadata["filename"])
         )
         source.rename(source_with_duplicate_name)
 
