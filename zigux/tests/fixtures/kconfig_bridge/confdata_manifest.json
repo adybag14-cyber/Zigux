@@ -89,6 +89,11 @@
     "confdata bridge emits auto.conf symbol export lines",
     "confdata bridge emits autoconf header symbol export lines",
     "confdata bridge keeps explicit n out of autoconf header exports",
+    "confdata bridge parses explicit output modes",
+    "confdata bridge rejects unknown output modes",
+    "confdata bridge emits auto.conf output through the explicit mode surface",
+    "confdata bridge emits autoconf header output through the explicit mode surface",
+    "confdata bridge file reader accepts config inputs beyond one mebibyte",
     "confdata bridge releases appended entry ownership on index-allocation failure",
     "confdata bridge preserves duplicate unset ownership on allocation failure"
   ]
