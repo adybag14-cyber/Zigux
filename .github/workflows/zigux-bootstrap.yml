@@ -185,11 +185,11 @@ jobs:
       - name: Check current Lane 05 install-zig archive verification packet
         run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py
 
-      - name: Self-test current Zig installer helper
-        run: python3 scripts/zigux/install-zig.py --self-test
-
       - name: Self-test current staged pinned Zig archive helper
         run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test
+
+      - name: Self-test current Zig installer helper
+        run: python3 scripts/zigux/install-zig.py --self-test
 
       - name: Self-test current Lane 05 stage helper contract checker
         run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test
@@ -626,6 +626,12 @@ jobs:
 
       - name: Run Phase 10 helper tests
         run: make -C zigux phase10-test
+
+      - name: Self-test current Phase 11 build inventory checker
+        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test
+
+      - name: Check current Phase 11 build inventory packet
+        run: python3 scripts/zigux/check-phase11-build-inventory.py
 
       - name: Validate current Phase 11 support bundle
         run: make -C zigux phase11-validate
