@@ -19,6 +19,8 @@
 - `zigux/tests/phase12_virtio_scsi_survey.zig` fails closed if current `master` starts claiming the old replay files are present again or if the surviving rollback evidence drifts out of sync
 - `zigux/tests/phase12_virtio_scsi_survey_build.zig` keeps the dedicated survey-build replay machine-checkable
 - `scripts/zigux/check-phase12-virtio-scsi-packet.py` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` keep the rollback-only split machine-checkable from the scripts side and the raw-read fallback side
+- reversible-delivery evidence: current `master` preserves the survey note, fixture manifest, survey manifest, survey gate, dedicated survey-build route, checker, shared build bundle, and `zigux/Makefile` as rollback evidence while the driver-local starter and replay gates remain absent
+- rollback drill: when this packet moves, rerun the survey gate, the dedicated survey-build route, the packet checker, and the rollback-coverage checker before treating any returned `virtio_scsi` driver surface as live Phase 12 storage progress
 
 ## Next bounded step
 - leave this lane in survey/fallback maintenance mode until current `master` regains one real `virtio_scsi` driver-local surface; when that happens, rebuild the packet around that returned surface instead of widening directly into speculative runtime storage work
