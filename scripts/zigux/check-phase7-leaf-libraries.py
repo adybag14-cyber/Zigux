@@ -58,12 +58,14 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase7_leaf_libraries_starter_packet_build.zig`",
         "`zigux/tests/fixtures/phase7_leaf_libraries_manifest.json`",
         "`scripts/zigux/check-phase7-leaf-libraries.py`",
+        "duplicate-key match iteration",
     ],
     TEST_PATH: [
         'test "phase7 packet keeps borrowed cmdline parsing aligned with owned argv splitting" {',
         'test "phase7 packet keeps string helper replacement and cmdline quoting reviewable" {',
         'test "phase7 packet keeps memparse and integer option expansion explicit" {',
         'test "phase7 packet keeps cached rbtree ordering stable for parsed values" {',
+        'test "phase7 packet keeps duplicate mode values queryable across argv split cmdline parsing and rbtree matching" {',
     ],
     BUILD_PATH: [
         '.root_source_file = b.path("../../lib/string_helpers.zig"),',
