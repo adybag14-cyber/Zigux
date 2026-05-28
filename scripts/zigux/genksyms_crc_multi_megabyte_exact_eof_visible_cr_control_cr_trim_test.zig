@@ -32,80 +32,79 @@ fn Capture(comptime capacity: usize) type {
         pub fn writeByte(self: *@This(), byte: u8) !void {
             try self.list.append(self.allocator, byte);
         }
-+    };
-+}
-+
-+test "lane19 multi-megabyte exact-buffer EOF continuation trims trailing carriage returns from a visible CR-led control tail beyond the old CLI cap" {
-+    const skipped_record_count = 257;
-+    const skipped_record_len = gen.c_line_payload_len + 1;
-+
-+    var input = try std.ArrayList(u8).initCapacity(
-+        std.testing.allocator,
-+        skipped_record_count * skipped_record_len + gen.c_line_payload_len + 9,
-+    );
-+    defer input.deinit(std.testing.allocator);
-+
-+    for (0..skipped_record_count) |_| {
-+        try input.append(std.testing.allocator, 0);
-+        try input.appendNTimes(std.testing.allocator, 'a', gen.c_line_payload_len - 1);
-+        try input.append(std.testing.allocator, '\n');
-+    }
-+
-+    try input.appendNTimes(std.testing.allocator, 'z', gen.c_line_payload_len);
-+    try input.append(std.testing.allocator, '\r');
-+    try input.append(std.testing.allocator, '\r');
-+    try input.append(std.testing.allocator, '\x08');
-+    try input.append(std.testing.allocator, '\x0c');
-+    try input.append(std.testing.allocator, '\x01');
-+    try input.append(std.testing.allocator, 'b');
-+    try input.append(std.testing.allocator, '\r');
-+    try input.append(std.testing.allocator, '\r');
-+
-+    try std.testing.expect(input.items.len > old_cli_cap);
-+
-+    var capture = try Capture(1024).init(std.testing.allocator);
-+    defer capture.deinit();
-+    try gen.runGenksymsCrc(input.items, &capture);
-+
-+    const exact_start = skipped_record_count * skipped_record_len;
-+    const exact_crc = try std.fmt.allocPrint(
-+        std.testing.allocator,
-+        "0x{x:0>8}",
-+        .{gen.crc32(input.items[exact_start .. exact_start + gen.c_line_payload_len])},
-+    );
-+    defer std.testing.allocator.free(exact_crc);
-+    const normalized_crc = try std.fmt.allocPrint(
-+        std.testing.allocator,
-+        "0x{x:0>8}",
-+        .{gen.crc32("\r\r\x08\x0c\x01b")},
-+    );
-+    defer std.testing.allocator.free(normalized_crc);
-+    const trailing_cr_crc = try std.fmt.allocPrint(
-+        std.testing.allocator,
-+        "0x{x:0>8}",
-+        .{gen.crc32("\r\r\x08\x0c\x01b\r\r")},
-+    );
-+    defer std.testing.allocator.free(trailing_cr_crc);
-+    const controls_without_cr_prefix_crc = try std.fmt.allocPrint(
-+        std.testing.allocator,
-+        "0x{x:0>8}",
-+        .{gen.crc32("\x08\x0c\x01b")},
-+    );
-+    defer std.testing.allocator.free(controls_without_cr_prefix_crc);
-+    const trimmed_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{gen.crc32("b")});
-+    defer std.testing.allocator.free(trimmed_crc);
-+
-+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, exact_crc) != null);
-+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, normalized_crc) != null);
-+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, trailing_cr_crc) == null);
-+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, controls_without_cr_prefix_crc) == null);
-+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, trimmed_crc) == null);
-+    try std.testing.expect(std.mem.count(u8, capture.list.items, "crc_hex") == 2);
-+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\\r\\b\\f\\u0001b\"") != null);
-+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\b\\f\\u0001b\"") == null);
-+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\\r\\b\\f\\u0001b\\r\"") == null);
-+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"b\"") == null);
-+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\\u0000") == null);
-+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"a") == null);
-     };
- }
+    };
+}
+
+test "lane19 multi-megabyte exact-buffer EOF continuation trims trailing carriage returns from a visible CR-led control tail beyond the old CLI cap" {
+    const skipped_record_count = 257;
+    const skipped_record_len = gen.c_line_payload_len + 1;
+
+    var input = try std.ArrayList(u8).initCapacity(
+        std.testing.allocator,
+        skipped_record_count * skipped_record_len + gen.c_line_payload_len + 9,
+    );
+    defer input.deinit(std.testing.allocator);
+
+    for (0..skipped_record_count) |_| {
+        try input.append(std.testing.allocator, 0);
+        try input.appendNTimes(std.testing.allocator, 'a', gen.c_line_payload_len - 1);
+        try input.append(std.testing.allocator, '\n');
+    }
+
+    try input.appendNTimes(std.testing.allocator, 'z', gen.c_line_payload_len);
+    try input.append(std.testing.allocator, '\r');
+    try input.append(std.testing.allocator, '\r');
+    try input.append(std.testing.allocator, '\x08');
+    try input.append(std.testing.allocator, '\x0c');
+    try input.append(std.testing.allocator, '\x01');
+    try input.append(std.testing.allocator, 'b');
+    try input.append(std.testing.allocator, '\r');
+    try input.append(std.testing.allocator, '\r');
+
+    try std.testing.expect(input.items.len > old_cli_cap);
+
+    var capture = try Capture(1024).init(std.testing.allocator);
+    defer capture.deinit();
+    try gen.runGenksymsCrc(input.items, &capture);
+
+    const exact_start = skipped_record_count * skipped_record_len;
+    const exact_crc = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "0x{x:0>8}",
+        .{gen.crc32(input.items[exact_start .. exact_start + gen.c_line_payload_len])},
+    );
+    defer std.testing.allocator.free(exact_crc);
+    const normalized_crc = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "0x{x:0>8}",
+        .{gen.crc32("\r\r\x08\x0c\x01b")},
+    );
+    defer std.testing.allocator.free(normalized_crc);
+    const trailing_cr_crc = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "0x{x:0>8}",
+        .{gen.crc32("\r\r\x08\x0c\x01b\r\r")},
+    );
+    defer std.testing.allocator.free(trailing_cr_crc);
+    const controls_without_cr_prefix_crc = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "0x{x:0>8}",
+        .{gen.crc32("\x08\x0c\x01b")},
+    );
+    defer std.testing.allocator.free(controls_without_cr_prefix_crc);
+    const trimmed_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{gen.crc32("b")});
+    defer std.testing.allocator.free(trimmed_crc);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, exact_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, normalized_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, trailing_cr_crc) == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, controls_without_cr_prefix_crc) == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, trimmed_crc) == null);
+    try std.testing.expect(std.mem.count(u8, capture.list.items, "crc_hex") == 2);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\\r\\b\\f\\u0001b\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\b\\f\\u0001b\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\\r\\b\\f\\u0001b\\r\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"b\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\\u0000") == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"a") == null);
+}
