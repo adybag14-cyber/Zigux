@@ -316,7 +316,7 @@ def self_test() -> int:
                         },
                         indent=2,
                     )
-                    + "\n',
+                    + "\n",
                 ),
                 "invalid required_make_routes",
             ),
