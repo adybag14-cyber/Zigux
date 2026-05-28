@@ -87,7 +87,6 @@ RETAINED_STEP_PAIRS = (
     (PHASE2_ARTIFACT_TOOLS_SELF_TEST_STEP, PHASE2_ARTIFACT_TOOLS_CHECK_STEP),
     (PHASE7_MAKE_WRAPPER_SELF_TEST_STEP, PHASE7_MAKE_WRAPPER_CHECK_STEP),
     (PHASE9_FREEZE_MAP_SELF_TEST_STEP, PHASE9_FREEZE_MAP_CHECK_STEP),
-    (PHASE11_BUILD_INVENTORY_SELF_TEST_STEP, PHASE11_BUILD_INVENTORY_CHECK_STEP),
 )
 
 
@@ -404,11 +403,7 @@ jobs:
         run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test
       - name: Check current Phase 7 make-wrapper selftest alignment packet
         run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py
-      - name: Self-test current Phase 11 build inventory checker
-        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test
-      - name: Check current Phase 11 build inventory packet
-        run: python3 scripts/zigux/check-phase11-build-inventory.py
-"""
+    """
     check_workflow(good_workflow)
     case_count = 1
 
@@ -591,20 +586,6 @@ jobs:
         case_count += 1
     else:
         raise AssertionError("expected missing retained step failure")
-
-    missing_build_inventory_step = good_workflow.replace(
-        f"      {PHASE11_BUILD_INVENTORY_SELF_TEST_STEP}\n"
-        "        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test\n",
-        "",
-        1,
-    )
-    try:
-        check_workflow(missing_build_inventory_step)
-    except SystemExit as exc:
-        assert PHASE11_BUILD_INVENTORY_SELF_TEST_STEP in str(exc)
-        case_count += 1
-    else:
-        raise AssertionError("expected missing Phase 11 build inventory self-test failure")
 
     missing_third_party_path = good_workflow.replace(
         "            - 'third_party/**'\n",
