@@ -1,7 +1,7 @@
 {
   "lane_key": "arch-council",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-25",
+  "surveyed_commit": "current-master-readback-2026-05-27",
   "sequencing_note": "Documentation/zigux/phase15-governance-lane-sequencing.md",
   "readiness_manifest": "zigux/tests/phase15_readiness_gate_manifest.json",
   "shared_summary_gap_note": "Documentation/zigux/phase15-shared-summary-gap.md",
