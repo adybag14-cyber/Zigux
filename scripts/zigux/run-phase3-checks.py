@@ -173,6 +173,8 @@ CHECK_COMMANDS = (
             "validated zigux/tests/phase3_low_level_wrappers_build.zig",
             "validated zigux/tests/build.zig",
             "validated zigux/Makefile",
+            "validated zigux/helpers/atomic.zig",
+            "validated zigux/helpers/barrier.zig",
         ),
     ),
     (
@@ -521,6 +523,10 @@ def run_self_test() -> int:
             return 1
         if expect_missing_output_marker(21, 3, "expected missing low-level-wrapper make-route output marker to fail the runner") != 0:
             return 1
+        if expect_missing_output_marker(21, 4, "expected missing low-level-wrapper atomic-helper output marker to fail the runner") != 0:
+            return 1
+        if expect_missing_output_marker(21, 5, "expected missing low-level-wrapper barrier-helper output marker to fail the runner") != 0:
+            return 1
         linux_zigux_header_path = root / CHECK_COMMANDS[22][0]
         populate_repo()
         _write_synthetic_script(linux_zigux_header_path, ())
@@ -567,7 +573,7 @@ def run_self_test() -> int:
         if expect_missing_output_marker(27, 3, "expected missing full list-hlist manifest output marker to fail the runner") != 0:
             return 1
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
-        print("PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT=" f"{len(SELF_TEST_MISSING_CASES) + 38}")
+        print("PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT=" f"{len(SELF_TEST_MISSING_CASES) + 40}")
         return 0
 
 
