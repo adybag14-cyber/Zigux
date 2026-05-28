@@ -122,6 +122,8 @@ REQUIRED_MARKERS = {
         '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
         '"make -C zigux phase3-export-uapi-layout-test"',
         '"make -C zigux phase3-export-shim-test"',
+        '"zig build phase3-abi-export --build-file zigux/tests/build.zig"',
+        '"make -C zigux phase3-abi-export"',
         '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
     ),
     TESTS_BUILD_PATH: (
@@ -626,6 +628,16 @@ def run_self_test() -> int:
                 MANIFEST_PATH,
                 '"make -C zigux phase3-export-shim-test"',
                 "expected manifest make-route marker removal to fail validation",
+            ),
+            (
+                MANIFEST_PATH,
+                '"zig build phase3-abi-export --build-file zigux/tests/build.zig"',
+                "expected manifest shared abi-export build route marker removal to fail validation",
+            ),
+            (
+                MANIFEST_PATH,
+                '"make -C zigux phase3-abi-export"',
+                "expected manifest shared abi-export make route marker removal to fail validation",
             ),
             (
                 SHARED_SELFTEST_PATH,
