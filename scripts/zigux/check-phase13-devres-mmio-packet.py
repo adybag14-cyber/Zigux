@@ -132,6 +132,7 @@ IOMAP_MANIFEST_MARKERS = [
     "\"status\": \"starter_landed\"",
     "\"translation_miss_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
     "\"request_region_denial_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+    "\"nonposted_wrapper_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
     "\"remap_failure_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
     "\"cleanup_handoff_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
     "\"cleanup_release_miss_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
@@ -395,6 +396,25 @@ def run_self_test() -> int:
                 "iomap_manifest:missing_marker:\"cleanup_handoff_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
             ],
             "missing_iomap_cleanup_handoff_owner_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / IOMAP_MANIFEST_PATH,
+            "\n".join(
+                marker
+                for marker in IOMAP_MANIFEST_MARKERS
+                if marker != "\"nonposted_wrapper_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\""
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "iomap_manifest:missing_marker:\"nonposted_wrapper_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+            ],
+            "missing_iomap_nonposted_wrapper_owner_failed",
         )
         case_count += 1
 
