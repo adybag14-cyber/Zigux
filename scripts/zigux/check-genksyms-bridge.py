@@ -12,6 +12,7 @@ WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
 GENKSYMS_ZIG = "scripts/zigux/genksyms.zig"
 VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
 AMBIGUOUS_VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig"
+INLINE_SHORT_ARGUMENT_TEST = "scripts/zigux/genksyms_inline_short_option_argument_test.zig"
 HELP_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/help_expected.json"
 CASES_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/cases.json"
 MANIFEST_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
@@ -22,6 +23,11 @@ CASE_FIXTURES = (
         "name": "debug_reference_types",
         "args": ["-d", "-r", "ref.symvers", "-T", "types.symtypes"],
         "expected_file": "debug_reference_types_expected.json",
+    },
+    {
+        "name": "inline_short_option_arguments",
+        "args": ["-d", "-rfoo.symref", "-Ttypes.symtypes"],
+        "expected_file": "inline_short_option_arguments_expected.json",
     },
     {
         "name": "long_options",
@@ -121,9 +127,14 @@ REQUIRED_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINES = (
     'test "genksyms bridge preserves abbreviated version side effect before ambiguous long option" {',
 )
 
+REQUIRED_INLINE_SHORT_ARGUMENT_TEST_LINES = (
+    'test "genksyms bridge accepts inline short option arguments" {',
+)
+
 STANDALONE_PROOF_PACKET = (
     VERSION_SIDE_EFFECT_TEST,
     AMBIGUOUS_VERSION_SIDE_EFFECT_TEST,
+    INLINE_SHORT_ARGUMENT_TEST,
 )
 
 HELP_USAGE = (
@@ -167,7 +178,7 @@ LONG_OPTION_SPECS = (
     ("preserve", "preserve", False),
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 23
+EXPECTED_SELF_TEST_CASE_COUNT = 24
 
 
 def read_text(root: Path, rel: str) -> str:
@@ -275,10 +286,16 @@ def parse_args(argv: list[str]) -> dict[str, object]:
             idx += 1
             reference_files.append(argv[idx])
             rendered.extend((arg, argv[idx]))
+        elif arg.startswith("-r") and arg != "-r":
+            reference_files.append(arg[2:])
+            rendered.append(arg)
         elif arg == "-T":
             idx += 1
             dump_types_file = argv[idx]
             rendered.extend((arg, argv[idx]))
+        elif arg.startswith("-T") and arg != "-T":
+            dump_types_file = arg[2:]
+            rendered.append(arg)
         elif arg.startswith("--"):
             option, separator, inline_value = arg[2:].partition("=")
             canonical_name, takes_argument = resolve_long_option(option)
@@ -435,6 +452,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     genksyms_text = read_text(root, GENKSYMS_ZIG)
     version_side_effect_text = read_text(root, VERSION_SIDE_EFFECT_TEST)
     ambiguous_version_side_effect_text = read_text(root, AMBIGUOUS_VERSION_SIDE_EFFECT_TEST)
+    inline_short_argument_text = read_text(root, INLINE_SHORT_ARGUMENT_TEST)
 
     for marker in REQUIRED_MAKEFILE_LINES:
         if count_exact_lines(makefile_text, marker) != 1:
@@ -451,6 +469,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for marker in REQUIRED_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINES:
         if count_exact_lines(ambiguous_version_side_effect_text, marker) != 1:
             issues.append(("AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINE_MISMATCH", marker))
+
+    for marker in REQUIRED_INLINE_SHORT_ARGUMENT_TEST_LINES:
+        if count_exact_lines(inline_short_argument_text, marker) != 1:
+            issues.append(("INLINE_SHORT_ARGUMENT_TEST_LINE_MISMATCH", marker))
 
     for anchor in EXPECTED_HELPER_LOCAL_ANCHORS:
         marker = f'test "{anchor}" {{'
@@ -579,6 +601,11 @@ def build_self_test_root(root: Path) -> None:
         AMBIGUOUS_VERSION_SIDE_EFFECT_TEST,
         'test "genksyms bridge preserves version side effect before ambiguous long option" {\n}\n'
         'test "genksyms bridge preserves abbreviated version side effect before ambiguous long option" {\n}\n',
+    )
+    write_text(
+        root,
+        INLINE_SHORT_ARGUMENT_TEST,
+        'test "genksyms bridge accepts inline short option arguments" {\n}\n',
     )
     write_text(root, HELP_FIXTURE, json.dumps({"stdout": "", "stderr": HELP_USAGE, "exit_code": 0}, indent=2) + "\n")
     write_text(root, CASES_FIXTURE, json.dumps([dict(case) for case in CASE_FIXTURES], indent=2) + "\n")
@@ -722,6 +749,14 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
+        write_text(root, INLINE_SHORT_ARGUMENT_TEST, "")
+        assert (
+            "INLINE_SHORT_ARGUMENT_TEST_LINE_MISMATCH",
+            REQUIRED_INLINE_SHORT_ARGUMENT_TEST_LINES[0],
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
         write_text(root, GENKSYMS_ZIG, 'const help_expected_json = @embedFile("missing.json");\n')
         assert ("MISSING_HELP_FIXTURE_EMBED", HELP_FIXTURE) in collect_issues(root)
         checks += 1
@@ -759,10 +794,11 @@ def main() -> int:
     if issues:
         return emit_issues(issues)
 
+    required_path_count = 6 + len(STANDALONE_PROOF_PACKET) + len(CASE_FIXTURES) + len(EXPECTED_PROCESS_OUTPUT_PACKET)
     print("GENKSYMS_BRIDGE=pass")
     print(f"GENKSYMS_BRIDGE_CASE_COUNT={len(CASE_FIXTURES)}")
     print(f"GENKSYMS_BRIDGE_EXPECTED_CASE_COUNT={len(CASE_FIXTURES)}")
-    print(f"GENKSYMS_BRIDGE_REQUIRED_PATH_COUNT={9 + len(CASE_FIXTURES) + len(EXPECTED_PROCESS_OUTPUT_PACKET)}")
+    print(f"GENKSYMS_BRIDGE_REQUIRED_PATH_COUNT={required_path_count}")
     return 0
 
 
