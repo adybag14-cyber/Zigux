@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the current Phase 2 toolchain reminder action path."""
+"""Guard the current Phase 2 toolchain action path."""
 
 from __future__ import annotations
 
@@ -9,86 +9,164 @@ from pathlib import Path
 
 
 HERE = Path(__file__).resolve()
-ROOT = HERE.parents[3] if len(HERE.parents) > 3 else Path.cwd()
+ROOT = HERE.parents[2] if len(HERE.parents) > 2 else Path.cwd()
 
-WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
+DOCS_ROOT_README = Path("Documentation/zigux/README.md")
 BOOTSTRAP_NOTES = Path("Documentation/zigux/phase2-toolchain-bootstrap-notes.md")
-SCRIPTS_README = Path("scripts/zigux/README.md")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 TESTS_README = Path("zigux/tests/README.md")
+WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
+MAKEFILE = Path("zigux/Makefile")
 CHECK_ZIG_TOOLCHAIN = Path("scripts/zigux/check-zig-toolchain.py")
 CHECK_TOOLCHAIN_PINNING = Path("scripts/zigux/check-phase2-toolchain-pinning.py")
 CHECK_TOOLCHAIN_PIN_SCOPE = Path("scripts/zigux/check-phase2-toolchain-pin-scope.py")
+CHECK_REQUIRED_MAKE_ROUTES = Path("scripts/zigux/check-phase2-required-make-routes.py")
+CHECK_BOOTSTRAP_WORKFLOW_ROUTES = Path("scripts/zigux/check-phase2-bootstrap-workflow-routes.py")
+CHECK_LOCAL_FIRST_ARCHIVE = Path("scripts/zigux/check-lane05-local-first-archive-workflow.py")
+CHECK_LOCAL_ARCHIVE_README = Path("scripts/zigux/check-lane05-local-archive-readme.py")
+CHECK_INSTALL_ZIG_ARCHIVE = Path("scripts/zigux/check-lane05-install-zig-archive-verification.py")
 INSTALL_ZIG = Path("scripts/zigux/install-zig.py")
-CHECK_PHASE2_CROSS = Path("scripts/zigux/check-phase2-cross.py")
 THIRD_PARTY_README = Path("third_party/README.md")
-MAKEFILE = Path("zigux/Makefile")
 
 REQUIRED_FILES = (
-    WORKFLOW,
+    DOCS_ROOT_README,
     BOOTSTRAP_NOTES,
-    SCRIPTS_README,
     REVIEW_CHECKLIST,
     TESTS_README,
+    WORKFLOW,
+    MAKEFILE,
     CHECK_ZIG_TOOLCHAIN,
     CHECK_TOOLCHAIN_PINNING,
     CHECK_TOOLCHAIN_PIN_SCOPE,
+    CHECK_REQUIRED_MAKE_ROUTES,
+    CHECK_BOOTSTRAP_WORKFLOW_ROUTES,
+    CHECK_LOCAL_FIRST_ARCHIVE,
+    CHECK_LOCAL_ARCHIVE_README,
+    CHECK_INSTALL_ZIG_ARCHIVE,
     INSTALL_ZIG,
-    CHECK_PHASE2_CROSS,
     THIRD_PARTY_README,
-    MAKEFILE,
 )
 
 REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
+    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
+    "run: python3 scripts/zigux/install-zig.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "run: make -C zigux phase2-toolchain",
+    "run: make -C zigux phase2-tools",
+    "run: make -C zigux phase2-kconfig",
+    "run: make -C zigux phase2-cross",
+    "run: make -C zigux phase2-genksyms",
+    "run: make -C zigux phase2-fixdep",
+    "run: make -C zigux phase2-validate",
+    "run: make -C zigux phase2",
 )
 
-REQUIRED_SCRIPTS_README_MARKERS = (
-    "`scripts/zigux/check-zig-toolchain.py`",
+REQUIRED_MAKEFILE_LINES = (
+    "phase2-toolchain:",
+    "phase2-tools:",
+    "phase2-kconfig: phase2-toolchain",
+    "phase2-cross:",
+    "phase2-genksyms: phase2-toolchain",
+    "phase2-fixdep: phase2-toolchain",
+    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
+    "phase2: phase2-validate",
+)
+
+REQUIRED_DOCS_ROOT_MARKERS = (
+    "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`scripts/zigux/install-zig.py`",
-    "`scripts/zigux/check-phase2-cross.py`",
+    "`scripts/zigux/check-zig-toolchain.py`",
+    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`scripts/zigux/check-phase2-required-make-routes.py`",
+    "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
+    "`zigux/Makefile`",
     "`third_party/README.md`",
+    "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
+    "`scripts/zigux/check-lane05-local-archive-readme.py`",
+    "`python3 scripts/zigux/validate-phase2.py`",
+    "`python3 scripts/zigux/validate-phase2-closure.py`",
     "`make -C zigux phase2-toolchain`",
+    "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-kconfig`",
+    "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2-genksyms`",
+    "`make -C zigux phase2-fixdep`",
+    "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2`",
 )
 
 REQUIRED_BOOTSTRAP_MARKERS = (
+    "`scripts/zigux/check-zig-toolchain.py`",
+    "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
+    "`scripts/zigux/check-lane05-local-archive-readme.py`",
+    "`scripts/zigux/check-lane05-install-zig-archive-verification.py`",
+    "`scripts/zigux/install-zig.py`",
+    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
+    "`make -C zigux phase2-toolchain`",
+    "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-kconfig`",
+    "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2-genksyms`",
+    "`make -C zigux phase2-fixdep`",
+    "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2`",
+)
+
+REQUIRED_REVIEW_MARKERS = (
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`scripts/zigux/check-zig-toolchain.py`",
+    "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
+    "`scripts/zigux/check-lane05-local-archive-readme.py`",
+    "`third_party/README.md`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
+    "`make -C zigux phase2-toolchain`",
+    "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-kconfig`",
+    "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2-genksyms`",
+    "`make -C zigux phase2-fixdep`",
+    "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2`",
+)
+
+REQUIRED_TESTS_MARKERS = (
     "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-cross.py`",
-    "`third_party/README.md`",
-    "`.github/workflows/zigux-bootstrap.yml`",
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
-    "`python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-toolchain-pinning.py`",
-    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-    "`make -C zigux phase2-toolchain`",
-)
-
-REQUIRED_REVIEW_MARKERS = (
-    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
-)
-
-REQUIRED_TESTS_MARKERS = (
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`make -C zigux phase2-toolchain`",
+    "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-kconfig`",
+    "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2-genksyms`",
+    "`make -C zigux phase2-fixdep`",
+    "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2`",
 )
 
 
@@ -121,6 +199,15 @@ def replace_exact_line(text: str, marker: str, replacement: str = "") -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
@@ -143,8 +230,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         return issues
 
     workflow_text = read_text(resolve(root, WORKFLOW))
+    makefile_text = read_text(resolve(root, MAKEFILE))
+    docs_root_text = read_text(resolve(root, DOCS_ROOT_README))
     bootstrap_text = read_text(resolve(root, BOOTSTRAP_NOTES))
-    scripts_text = read_text(resolve(root, SCRIPTS_README))
     review_text = read_text(resolve(root, REVIEW_CHECKLIST))
     tests_text = read_text(resolve(root, TESTS_README))
 
@@ -158,14 +246,25 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
             continue
         workflow_indices.append(exact_line_index(workflow_text, marker) or 0)
-    if len(workflow_indices) == len(REQUIRED_WORKFLOW_LINES) and workflow_indices != sorted(
-        workflow_indices
-    ):
-        issues.append(("WORKFLOW_ORDER_MISMATCH", "phase2-toolchain-run-order"))
+    if len(workflow_indices) == len(REQUIRED_WORKFLOW_LINES) and workflow_indices != sorted(workflow_indices):
+        issues.append(("WORKFLOW_ORDER_MISMATCH", "phase2-toolchain-action-order"))
 
-    for marker in REQUIRED_SCRIPTS_README_MARKERS:
-        if marker not in scripts_text:
-            issues.append(("MISSING_SCRIPTS_README_MARKER", marker))
+    makefile_indices: list[int] = []
+    for marker in REQUIRED_MAKEFILE_LINES:
+        count = count_exact_lines(makefile_text, marker)
+        if count == 0:
+            issues.append(("MISSING_MAKEFILE_LINE", marker))
+            continue
+        if count != 1:
+            issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
+            continue
+        makefile_indices.append(exact_line_index(makefile_text, marker) or 0)
+    if len(makefile_indices) == len(REQUIRED_MAKEFILE_LINES) and makefile_indices != sorted(makefile_indices):
+        issues.append(("MAKEFILE_ORDER_MISMATCH", "phase2-toolchain-make-order"))
+
+    for marker in REQUIRED_DOCS_ROOT_MARKERS:
+        if marker not in docs_root_text:
+            issues.append(("MISSING_DOCS_ROOT_MARKER", marker))
 
     for marker in REQUIRED_BOOTSTRAP_MARKERS:
         if marker not in bootstrap_text:
@@ -197,18 +296,16 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 
 
 def build_sample_root(root: Path) -> None:
-    write_text(resolve(root, WORKFLOW), "\n".join(REQUIRED_WORKFLOW_LINES) + "\n")
+    write_text(resolve(root, DOCS_ROOT_README), "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
     write_text(resolve(root, BOOTSTRAP_NOTES), "\n".join(REQUIRED_BOOTSTRAP_MARKERS) + "\n")
-    write_text(resolve(root, SCRIPTS_README), "\n".join(REQUIRED_SCRIPTS_README_MARKERS) + "\n")
     write_text(resolve(root, REVIEW_CHECKLIST), "\n".join(REQUIRED_REVIEW_MARKERS) + "\n")
     write_text(resolve(root, TESTS_README), "\n".join(REQUIRED_TESTS_MARKERS) + "\n")
-    write_text(resolve(root, CHECK_ZIG_TOOLCHAIN), "present\n")
-    write_text(resolve(root, CHECK_TOOLCHAIN_PINNING), "present\n")
-    write_text(resolve(root, CHECK_TOOLCHAIN_PIN_SCOPE), "present\n")
-    write_text(resolve(root, INSTALL_ZIG), "present\n")
-    write_text(resolve(root, CHECK_PHASE2_CROSS), "present\n")
-    write_text(resolve(root, THIRD_PARTY_README), "present\n")
-    write_text(resolve(root, MAKEFILE), "present\n")
+    write_text(resolve(root, WORKFLOW), "\n".join(REQUIRED_WORKFLOW_LINES) + "\n")
+    write_text(resolve(root, MAKEFILE), "\n".join(REQUIRED_MAKEFILE_LINES) + "\n")
+    for rel in REQUIRED_FILES:
+        if rel in {DOCS_ROOT_README, BOOTSTRAP_NOTES, REVIEW_CHECKLIST, TESTS_README, WORKFLOW, MAKEFILE}:
+            continue
+        write_text(resolve(root, rel), "present\n")
 
 
 def run_self_test() -> int:
@@ -217,7 +314,10 @@ def run_self_test() -> int:
         + len(REQUIRED_WORKFLOW_LINES)
         + len(REQUIRED_WORKFLOW_LINES)
         + 1
-        + len(REQUIRED_SCRIPTS_README_MARKERS)
+        + len(REQUIRED_MAKEFILE_LINES)
+        + len(REQUIRED_MAKEFILE_LINES)
+        + 1
+        + len(REQUIRED_DOCS_ROOT_MARKERS)
         + len(REQUIRED_BOOTSTRAP_MARKERS)
         + len(REQUIRED_REVIEW_MARKERS)
         + len(REQUIRED_TESTS_MARKERS)
@@ -235,11 +335,7 @@ def run_self_test() -> int:
             build_sample_root(root)
             workflow_path = resolve(root, WORKFLOW)
             workflow_path.write_text(
-                replace_exact_line(
-                    workflow_path.read_text(encoding="utf-8"),
-                    marker,
-                    "run: python3 scripts/zigux/other.py",
-                ),
+                replace_exact_line(workflow_path.read_text(encoding="utf-8"), marker, "run: python3 other.py"),
                 encoding="utf-8",
             )
             assert ("MISSING_WORKFLOW_LINE", marker) in collect_issues(root)
@@ -249,7 +345,7 @@ def run_self_test() -> int:
             build_sample_root(root)
             workflow_path = resolve(root, WORKFLOW)
             workflow_path.write_text(
-                workflow_path.read_text(encoding="utf-8").replace(marker, f"{marker}\n{marker}", 1),
+                duplicate_exact_line(workflow_path.read_text(encoding="utf-8"), marker),
                 encoding="utf-8",
             )
             assert ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2") in collect_issues(root)
@@ -258,46 +354,60 @@ def run_self_test() -> int:
         build_sample_root(root)
         workflow_path = resolve(root, WORKFLOW)
         workflow_path.write_text("\n".join(reversed(REQUIRED_WORKFLOW_LINES)) + "\n", encoding="utf-8")
-        assert ("WORKFLOW_ORDER_MISMATCH", "phase2-toolchain-run-order") in collect_issues(root)
+        assert ("WORKFLOW_ORDER_MISMATCH", "phase2-toolchain-action-order") in collect_issues(root)
         checks += 1
 
-        for marker in REQUIRED_SCRIPTS_README_MARKERS:
+        for marker in REQUIRED_MAKEFILE_LINES:
             build_sample_root(root)
-            readme_path = resolve(root, SCRIPTS_README)
-            readme_path.write_text(
-                replace_once(readme_path.read_text(encoding="utf-8"), marker),
+            makefile_path = resolve(root, MAKEFILE)
+            makefile_path.write_text(
+                replace_exact_line(makefile_path.read_text(encoding="utf-8"), marker, "# removed"),
                 encoding="utf-8",
             )
-            assert ("MISSING_SCRIPTS_README_MARKER", marker) in collect_issues(root)
+            assert ("MISSING_MAKEFILE_LINE", marker) in collect_issues(root)
+            checks += 1
+
+        for marker in REQUIRED_MAKEFILE_LINES:
+            build_sample_root(root)
+            makefile_path = resolve(root, MAKEFILE)
+            makefile_path.write_text(
+                duplicate_exact_line(makefile_path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2") in collect_issues(root)
+            checks += 1
+
+        build_sample_root(root)
+        makefile_path = resolve(root, MAKEFILE)
+        makefile_path.write_text("\n".join(reversed(REQUIRED_MAKEFILE_LINES)) + "\n", encoding="utf-8")
+        assert ("MAKEFILE_ORDER_MISMATCH", "phase2-toolchain-make-order") in collect_issues(root)
+        checks += 1
+
+        for marker in REQUIRED_DOCS_ROOT_MARKERS:
+            build_sample_root(root)
+            path = resolve(root, DOCS_ROOT_README)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_DOCS_ROOT_MARKER", marker) in collect_issues(root)
             checks += 1
 
         for marker in REQUIRED_BOOTSTRAP_MARKERS:
             build_sample_root(root)
-            notes_path = resolve(root, BOOTSTRAP_NOTES)
-            notes_path.write_text(
-                replace_once(notes_path.read_text(encoding="utf-8"), marker),
-                encoding="utf-8",
-            )
+            path = resolve(root, BOOTSTRAP_NOTES)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_BOOTSTRAP_MARKER", marker) in collect_issues(root)
             checks += 1
 
         for marker in REQUIRED_REVIEW_MARKERS:
             build_sample_root(root)
-            review_path = resolve(root, REVIEW_CHECKLIST)
-            review_path.write_text(
-                replace_once(review_path.read_text(encoding="utf-8"), marker),
-                encoding="utf-8",
-            )
+            path = resolve(root, REVIEW_CHECKLIST)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_REVIEW_MARKER", marker) in collect_issues(root)
             checks += 1
 
         for marker in REQUIRED_TESTS_MARKERS:
             build_sample_root(root)
-            tests_path = resolve(root, TESTS_README)
-            tests_path.write_text(
-                replace_once(tests_path.read_text(encoding="utf-8"), marker),
-                encoding="utf-8",
-            )
+            path = resolve(root, TESTS_README)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_TESTS_MARKER", marker) in collect_issues(root)
             checks += 1
 
@@ -316,32 +426,28 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
+    parser.add_argument("--write-sample-root", type=Path, help="Write a minimal passing sample root and exit")
     parser.add_argument("--self-test", action="store_true", help="Run built-in self-test cases")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
+    if args.write_sample_root is not None:
+        build_sample_root(args.write_sample_root.resolve())
+        print("PHASE2_TOOLCHAIN_ACTION_PATH_SAMPLE_ROOT=written")
+        print(f"PHASE2_TOOLCHAIN_ACTION_PATH_SAMPLE_ROOT_PATH={args.write_sample_root.resolve()}")
+        return 0
+
     issues = collect_issues(args.root.resolve())
     if issues:
         return emit_issues(issues)
 
-    workflow_text = read_text(resolve(args.root, WORKFLOW))
-    scripts_text = read_text(resolve(args.root, SCRIPTS_README))
-    bootstrap_text = read_text(resolve(args.root, BOOTSTRAP_NOTES))
     print("PHASE2_TOOLCHAIN_ACTION_PATH=pass")
-    print(
-        "PHASE2_TOOLCHAIN_ACTION_PATH_WORKFLOW_LINE_COUNT="
-        f"{sum(count_exact_lines(workflow_text, marker) for marker in REQUIRED_WORKFLOW_LINES)}"
-    )
-    print(
-        "PHASE2_TOOLCHAIN_ACTION_PATH_SCRIPTS_MARKER_COUNT="
-        f"{sum(1 for marker in REQUIRED_SCRIPTS_README_MARKERS if marker in scripts_text)}"
-    )
-    print(
-        "PHASE2_TOOLCHAIN_ACTION_PATH_BOOTSTRAP_MARKER_COUNT="
-        f"{sum(1 for marker in REQUIRED_BOOTSTRAP_MARKERS if marker in bootstrap_text)}"
-    )
+    print(f"PHASE2_TOOLCHAIN_ACTION_PATH_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
+    print(f"PHASE2_TOOLCHAIN_ACTION_PATH_MAKEFILE_LINE_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
+    print(f"PHASE2_TOOLCHAIN_ACTION_PATH_DOCS_ROOT_MARKER_COUNT={len(REQUIRED_DOCS_ROOT_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_ACTION_PATH_BOOTSTRAP_MARKER_COUNT={len(REQUIRED_BOOTSTRAP_MARKERS)}")
     return 0
 
 
