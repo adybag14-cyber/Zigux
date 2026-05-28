@@ -204,6 +204,8 @@
     "make -C zigux phase3-export-shim-test",
     "make -C zigux phase3-export-uapi-layout",
     "make -C zigux phase3-export-uapi-layout-test",
+    "zig build phase3-abi-export --build-file zigux/tests/build.zig",
+    "make -C zigux phase3-abi-export",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
     "make -C zigux phase3-dump",
