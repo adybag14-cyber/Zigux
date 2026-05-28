@@ -41,6 +41,8 @@ REQUIRED_MARKERS = {
         "PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py",
         "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
         "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
+        "PHASE3_EXPORT_SHIM_INTEROP_POLICY_RELAY=zigux/kernel/export_shim.zig -> validateInteropPolicy",
+        "PHASE3_EXPORT_SHIM_RBTREE_RELAY=zigux/kernel/export_shim.zig -> validateRbtreeRootView",
         "PHASE3_ABI_H_PATH=include/zigux/abi.h",
         "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
         "PHASE3_BINDING_HEADER_FAMILY_PATH=zigux/bindings/header_family.zig",
@@ -51,7 +53,7 @@ REQUIRED_MARKERS = {
         "PHASE3_C_HEADER_SMOKE_PATH=zigux/tests/phase3_export_uapi_c_header_smoke.c",
         "PHASE3_C_HEADER_SMOKE_WORKFLOW_ROUTE=.github/workflows/zigux-bootstrap.yml",
         "PHASE3_C_HEADER_SMOKE_WORKFLOW_GATE=.github/workflows/zigux-bootstrap.yml -> Run current Phase 3 export/UAPI C header smoke",
-        "PHASE3_EXPORT_UAPI_GAP=broader curated UAPI families and wider export-shim coverage remain open after the landed starter packet",
+        "PHASE3_EXPORT_UAPI_GAP=broader curated UAPI families and wider export-shim coverage beyond the landed starter packet and focused runtime relays remain open",
         "Do not use this lane to claim broader Phase 3 completion.",
     ),
     VALIDATOR_PATH: (
@@ -66,6 +68,8 @@ REQUIRED_MARKERS = {
         "pub fn validateVersion(candidate: Version) ExportStatus {",
         "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {",
         "pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {",
+        "pub fn validateInteropPolicy(policy: InteropPolicy) ExportStatus {",
+        "pub fn validateRbtreeRootView(view: RbtreeRootView) ExportStatus {",
     ),
     ABI_H_PATH: (
         "#define ZIGUX_ABI_VERSION 1U",
@@ -211,6 +215,8 @@ REQUIRED_FUNCTIONS = {
         "validateDeviceNumber",
         "deviceRangeIsValid",
         "validateDeviceRange",
+        "validateInteropPolicy",
+        "validateRbtreeRootView",
     ),
     UAPI_VERSION_PATH: (
         "current",
@@ -524,8 +530,18 @@ def run_self_test() -> int:
         cases = (
             (
                 SURVEY_PATH,
-                "PHASE3_EXPORT_UAPI_GAP=broader curated UAPI families and wider export-shim coverage remain open after the landed starter packet",
+                "PHASE3_EXPORT_UAPI_GAP=broader curated UAPI families and wider export-shim coverage beyond the landed starter packet and focused runtime relays remain open",
                 "expected export/UAPI gap marker removal to fail validation",
+            ),
+            (
+                SURVEY_PATH,
+                "PHASE3_EXPORT_SHIM_INTEROP_POLICY_RELAY=zigux/kernel/export_shim.zig -> validateInteropPolicy",
+                "expected export/UAPI interop-policy relay marker removal to fail validation",
+            ),
+            (
+                SURVEY_PATH,
+                "PHASE3_EXPORT_SHIM_RBTREE_RELAY=zigux/kernel/export_shim.zig -> validateRbtreeRootView",
+                "expected export/UAPI rbtree relay marker removal to fail validation",
             ),
             (
                 SURVEY_PATH,
@@ -541,6 +557,16 @@ def run_self_test() -> int:
                 EXPORT_SHIM_PATH,
                 "pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {",
                 "expected export shim boundary-header marker removal to fail validation",
+            ),
+            (
+                EXPORT_SHIM_PATH,
+                "pub fn validateInteropPolicy(policy: InteropPolicy) ExportStatus {",
+                "expected export shim interop-policy relay marker removal to fail validation",
+            ),
+            (
+                EXPORT_SHIM_PATH,
+                "pub fn validateRbtreeRootView(view: RbtreeRootView) ExportStatus {",
+                "expected export shim rbtree relay marker removal to fail validation",
             ),
             (
                 LINUX_HEADER_PATH,
@@ -611,6 +637,16 @@ def run_self_test() -> int:
                 "expected missing export shim dev_t validity relay to fail validation",
             ),
             (
+                EXPORT_SHIM_PATH,
+                "validateInteropPolicy",
+                "expected missing export shim interop-policy relay to fail validation",
+            ),
+            (
+                EXPORT_SHIM_PATH,
+                "validateRbtreeRootView",
+                "expected missing export shim rbtree relay to fail validation",
+            ),
+            (
                 BINDING_HEADER_FAMILY_PATH,
                 "currentVersion",
                 "expected missing header-family currentVersion relay to fail validation",
@@ -627,6 +663,11 @@ def run_self_test() -> int:
                 EXPORT_SHIM_PATH,
                 "validateDeviceRange",
                 "expected duplicate export shim dev_t range relay to fail validation",
+            ),
+            (
+                EXPORT_SHIM_PATH,
+                "validateInteropPolicy",
+                "expected duplicate export shim interop-policy relay to fail validation",
             ),
             (
                 BINDING_HEADER_FAMILY_PATH,
