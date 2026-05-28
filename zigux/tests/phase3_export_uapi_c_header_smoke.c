@@ -18,6 +18,10 @@ static int check_version_relays(void)
         return __LINE__;
     if (!zigux_export_status_ok(valid))
         return __LINE__;
+    if (valid.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (valid.flags != 0u)
+        return __LINE__;
 
     stale.header_family_revision += 1u;
     invalid = zigux_uapi_validate_version(stale);
@@ -26,6 +30,10 @@ static int check_version_relays(void)
     if (zigux_export_status_ok(invalid))
         return __LINE__;
     if (invalid.code != ZIGUX_UAPI_INVALID_ARGUMENT)
+        return __LINE__;
+    if (invalid.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (invalid.flags != (uint16_t)ZIGUX_STATUS_FLAG_ERROR)
         return __LINE__;
 
     return 0;
@@ -96,6 +104,10 @@ static int check_boundary_header_relays(void)
         return __LINE__;
     if (!zigux_export_status_ok(canonical_status))
         return __LINE__;
+    if (canonical_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (canonical_status.flags != 0u)
+        return __LINE__;
     if (zigux_boundary_header_extends_boundary(canonical))
         return __LINE__;
     if (zigux_boundary_header_requested_extra_bytes(canonical) != 0u)
@@ -106,6 +118,10 @@ static int check_boundary_header_relays(void)
     if (!zigux_boundary_header_is_compatible(compatible))
         return __LINE__;
     if (!zigux_export_status_ok(compatible_status))
+        return __LINE__;
+    if (compatible_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (compatible_status.flags != 0u)
         return __LINE__;
     if (!zigux_boundary_header_extends_boundary(compatible))
         return __LINE__;
@@ -121,6 +137,10 @@ static int check_boundary_header_relays(void)
     if (zigux_export_status_ok(stale_status))
         return __LINE__;
     if (stale_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)
+        return __LINE__;
+    if (stale_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (stale_status.flags != (uint16_t)ZIGUX_STATUS_FLAG_ERROR)
         return __LINE__;
 
     if (!zigux_boundary_header_is_canonical(canonicalized))
@@ -143,6 +163,10 @@ static int check_boundary_header_relays(void)
         return __LINE__;
     if (!zigux_export_status_ok(uapi_canonical_status))
         return __LINE__;
+    if (uapi_canonical_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (uapi_canonical_status.flags != 0u)
+        return __LINE__;
     if (zigux_uapi_boundary_header_extends_boundary(uapi_canonical))
         return __LINE__;
     if (zigux_uapi_boundary_header_requested_extra_bytes(uapi_canonical) != 0u)
@@ -158,6 +182,10 @@ static int check_boundary_header_relays(void)
         return __LINE__;
     if (!zigux_export_status_ok(uapi_compatible_status))
         return __LINE__;
+    if (uapi_compatible_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (uapi_compatible_status.flags != 0u)
+        return __LINE__;
     if (!zigux_uapi_boundary_header_extends_boundary(uapi_compatible))
         return __LINE__;
     if (zigux_uapi_boundary_header_requested_extra_bytes(uapi_compatible) != 12u)
@@ -171,6 +199,10 @@ static int check_boundary_header_relays(void)
         return __LINE__;
     if (uapi_undersized_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)
         return __LINE__;
+    if (uapi_undersized_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (uapi_undersized_status.flags != (uint16_t)ZIGUX_STATUS_FLAG_ERROR)
+        return __LINE__;
 
     if (zigux_uapi_boundary_header_has_current_abi_version(uapi_stale.abi_version))
         return __LINE__;
@@ -181,6 +213,10 @@ static int check_boundary_header_relays(void)
     if (zigux_export_status_ok(uapi_stale_status))
         return __LINE__;
     if (uapi_stale_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)
+        return __LINE__;
+    if (uapi_stale_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (uapi_stale_status.flags != (uint16_t)ZIGUX_STATUS_FLAG_ERROR)
         return __LINE__;
 
     if (!zigux_uapi_boundary_header_is_canonical(uapi_canonicalized))
@@ -199,6 +235,10 @@ static int check_boundary_header_relays(void)
         return __LINE__;
     if (undersized_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)
         return __LINE__;
+    if (undersized_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (undersized_status.flags != (uint16_t)ZIGUX_STATUS_FLAG_ERROR)
+        return __LINE__;
 
     return 0;
 }
@@ -216,6 +256,10 @@ static int check_status_facility_relays(void)
     if (!zigux_uapi_export_status_has_known_facility(ok))
         return __LINE__;
     if (!zigux_uapi_export_status_has_known_facility(err))
+        return __LINE__;
+    if (ok.flags != 0u)
+        return __LINE__;
+    if (err.flags != (uint16_t)ZIGUX_STATUS_FLAG_ERROR)
         return __LINE__;
     if (zigux_uapi_facility_is_known(unknown.facility))
         return __LINE__;
@@ -378,21 +422,45 @@ static int check_dev_t_relays(void)
         return __LINE__;
     if (!zigux_export_status_ok(valid_status))
         return __LINE__;
+    if (valid_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (valid_status.flags != 0u)
+        return __LINE__;
     if (zigux_export_status_ok(invalid_field_status))
         return __LINE__;
     if (invalid_field_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)
+        return __LINE__;
+    if (invalid_field_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (invalid_field_status.flags != (uint16_t)ZIGUX_STATUS_FLAG_ERROR)
         return __LINE__;
     if (zigux_export_status_ok(invalid_minor_status))
         return __LINE__;
     if (invalid_minor_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)
         return __LINE__;
+    if (invalid_minor_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (invalid_minor_status.flags != (uint16_t)ZIGUX_STATUS_FLAG_ERROR)
+        return __LINE__;
     if (zigux_export_status_ok(invalid_components))
         return __LINE__;
+    if (invalid_components.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (invalid_components.flags != (uint16_t)ZIGUX_STATUS_FLAG_ERROR)
+        return __LINE__;
     if (!zigux_export_status_ok(range_status))
+        return __LINE__;
+    if (range_status.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (range_status.flags != 0u)
         return __LINE__;
     if (zigux_export_status_ok(invalid_range))
         return __LINE__;
     if (invalid_range.code != ZIGUX_UAPI_INVALID_ARGUMENT)
+        return __LINE__;
+    if (invalid_range.facility != (uint16_t)ZIGUX_FACILITY_KERNEL)
+        return __LINE__;
+    if (invalid_range.flags != (uint16_t)ZIGUX_STATUS_FLAG_ERROR)
         return __LINE__;
 
     return 0;
