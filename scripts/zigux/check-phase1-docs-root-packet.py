@@ -162,7 +162,7 @@ def run_self_test() -> int:
             build_sample_root(broken_root)
             write_text(broken_root / relative_path, "returned\n")
             failures = collect_failures(broken_root)
-            assert failures == [f"unexpected_materialized_gap:{relative_path.as_posix()}]
+            assert failures == [f"unexpected_materialized_gap:{relative_path.as_posix()}" ]
             checks_run += 1
 
         for marker in FORBIDDEN_EXACT_MARKERS:
