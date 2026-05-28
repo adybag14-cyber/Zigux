@@ -91,6 +91,14 @@
       "value": 18446744073709549568,
       "rest": " tail"
     },
+    "signed_hex_k": {
+      "value": 18446744073709549568,
+      "rest": "tail"
+    },
+    "signed_octal_m": {
+      "value": 8388608,
+      "rest": "more"
+    },
     "saturated_positive_signed": {
       "value": 9223372036854775807,
       "rest": ""
@@ -114,6 +122,11 @@
       "param": "mode",
       "value": "fast path",
       "remaining": "tail"
+    },
+    "empty_quoted_arg": {
+      "param": "root",
+      "value": "",
+      "remaining": "quiet"
     },
     "unterminated_arg": {
       "param": "mode",
