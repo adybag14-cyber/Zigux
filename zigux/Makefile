@@ -83,6 +83,10 @@ phase2-fixdep:
 	cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig
 
 phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-direct-tool-manifest-workflow.py --self-test
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-direct-tool-manifest-workflow.py
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py --self-test
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface-selftest-alignment.py --self-test
