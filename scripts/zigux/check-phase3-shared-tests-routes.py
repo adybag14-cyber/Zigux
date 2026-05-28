@@ -133,6 +133,8 @@ REQUIRED_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-xarray-slot.py")',
+    'Path("scripts/zigux/check-phase3-idr-slot-starter-packet.py")',
+    'Path("scripts/zigux/check-phase3-idr-slot.py")',
     'Path("scripts/zigux/check-phase3-policy-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-policy-dump.py")',
     'Path("scripts/zigux/validate-phase3.py")',
@@ -299,6 +301,14 @@ SELF_TEST_CASES = (
     (
         SELFTEST_DRIVER_PATH,
         'Path("scripts/zigux/check-phase3-xarray-slot.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-idr-slot-starter-packet.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-idr-slot.py")',
     ),
     (
         SELFTEST_DRIVER_PATH,
