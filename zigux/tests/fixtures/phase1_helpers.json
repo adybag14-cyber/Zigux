@@ -24,8 +24,17 @@
     "tail_zero_clamped_next": 69,
     "tail_and_clamped_first": 67,
     "tail_and_clamped_next": 69,
+    "tail_andnot_clamped_first": 67,
+    "tail_andnot_clamped_next": 67,
+    "tail_andnot_clamped_exhausted": 69,
     "tail_clamped_last": 67,
-    "tail_clamped_empty_last": 69
+    "tail_clamped_empty_last": 69,
+    "tail_clump_first": 64,
+    "tail_clump_first_value": 8,
+    "tail_clump_next": 64,
+    "tail_clump_next_value": 8,
+    "tail_clump_exhausted": 69,
+    "tail_clump_exhausted_value": 90
   },
   "bitmap": {
     "weight": 3,
