@@ -15,8 +15,8 @@ This note records one bounded Phase 3 helper-local `rbtree` starter packet on cu
 This packet stays intentionally small:
 
 - `zigux/helpers/rbtree_view.zig` only decodes one `rb_root` pointer plus one `rb_node` parent-and-color word into a reviewable helper-local surface.
-- The helper keeps color, parent, child, inorder successor, inorder predecessor, and empty-root decoding explicit without widening into insert, erase, rebalance, or tree mutation logic.
-- `zigux/tests/phase3_rbtree_starter_packet.zig` keeps the empty-root case, parent/color decoding, leftmost/rightmost traversal, and inorder successor/predecessor traversal visible.
+- The helper keeps color, parent, child, inorder successor, inorder predecessor, child-subtree descent, and empty-root decoding explicit without widening into insert, erase, rebalance, or tree mutation logic.
+- `zigux/tests/phase3_rbtree_starter_packet.zig` keeps the empty-root case, parent/color decoding, leftmost/rightmost traversal, direct inorder successor/predecessor hops, and child-subtree successor/predecessor descent visible.
 - `zigux/tests/phase3_rbtree_starter_packet_build.zig` gives the packet one focused replay route instead of wiring it into the broader shared ABI aggregate.
 - `zigux/tests/fixtures/phase3_rbtree_manifest.json` plus `scripts/zigux/check-phase3-rbtree-starter-packet.py` keep the packet fail-closed and reviewable.
 
