@@ -687,6 +687,13 @@ test "strlcpy stops at embedded NUL bytes and reports the C-string source length
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'i', 0, 9, 9 }, buf[0..]);
 }
 
+test "strlcat appends within the destination size and reports the attempted length" {
+    var buf = [_]u8{ 'a', 'b', 0, 0, 0 };
+
+    try std.testing.expectEqual(@as(usize, 4), strlcat(buf[0..], "cd"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'b', 'c', 'd', 0 }, buf[0..]);
+}
+
 test "strlcat appends only the C-string prefix from embedded-NUL sources" {
     var buf = [_]u8{ 'a', 0, 'x', 'x' };
     const src = [_]u8{ 'b', 'c', 0, 'd' };
