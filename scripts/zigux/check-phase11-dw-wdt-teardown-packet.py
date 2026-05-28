@@ -37,8 +37,9 @@ GAP_NOTE_MARKERS = [
 
 CLOCK_PLAN_MARKERS = [
     "current direct contents rereads now materialize `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`",
-    "`drivers/watchdog/dw_wdt_verify.zig`",
-    "keep the returned validation matrix, survey note, survey gate, registration scaffold, restart helper, returned verify helper, bounded PM helper pair, and paired DesignWare checkers explicit while the broader direct driver, driver-test, slice, and teardown-note stack stays outside this direct contents bridge",
+    "`drivers/watchdog/dw_wdt.zig`",
+    "`zigux/tests/phase11_dw_wdt.zig`",
+    "keep the returned validation matrix, survey note, survey gate, registration scaffold, direct driver-and-test pair, restart helper, returned verify helper, bounded PM helper pair, and paired DesignWare checkers explicit while the slice-note, teardown-note, and older packet-checker reminder stack stays outside this direct contents bridge",
 ]
 
 PLATFORM_PLAN_MARKERS = [
