@@ -21,21 +21,13 @@ SELF_TEST_STEP = "- name: Self-test current Lane 05 local-first archive checker"
 SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test"
 CHECK_STEP = "- name: Check current Lane 05 local-first archive packet"
 CHECK_CMD = "python3 scripts/zigux/check-lane05-local-first-archive-workflow.py"
+README_SELF_TEST_STEP = "- name: Self-test current Lane 05 local archive README checker"
+README_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test"
+README_CHECK_STEP = "- name: Check current Lane 05 local archive README packet"
+README_CHECK_CMD = "python3 scripts/zigux/check-lane05-local-archive-readme.py"
 STAGE_HELPER_SELF_TEST_STEP = "- name: Self-test current staged pinned Zig archive helper"
 STAGE_HELPER_SELF_TEST_CMD = "python3 scripts/zigux/stage-pinned-zig-archive.py --self-test"
-NEXT_PHASE_STEP = "- name: Self-test current Zig installer helper"
-PHASE1_ROUTE_SUMMARY_SELF_TEST_STEP = "- name: Self-test current Phase 1 route summary checker"
-PHASE1_ROUTE_SUMMARY_CHECK_STEP = "- name: Check current Phase 1 route summary packet"
-PHASE2_TOOL_MANIFEST_SELF_TEST_STEP = "- name: Self-test current Phase 2 tool manifest checker"
-PHASE2_TOOL_MANIFEST_CHECK_STEP = "- name: Check current Phase 2 tool manifest packet"
-PHASE2_ARTIFACT_TOOLS_SELF_TEST_STEP = "- name: Self-test current Phase 2 artifact tools manifest checker"
-PHASE2_ARTIFACT_TOOLS_CHECK_STEP = "- name: Check current Phase 2 artifact tools manifest packet"
-PHASE7_MAKE_WRAPPER_SELF_TEST_STEP = "- name: Self-test current Phase 7 make-wrapper selftest alignment checker"
-PHASE7_MAKE_WRAPPER_CHECK_STEP = "- name: Check current Phase 7 make-wrapper selftest alignment packet"
-PHASE9_FREEZE_MAP_SELF_TEST_STEP = "- name: Self-test current Phase 9 freeze-map study-boundaries checker"
-PHASE9_FREEZE_MAP_CHECK_STEP = "- name: Check current Phase 9 freeze-map study-boundaries packet"
-PHASE11_BUILD_INVENTORY_SELF_TEST_STEP = "- name: Self-test current Phase 11 build inventory checker"
-PHASE11_BUILD_INVENTORY_CHECK_STEP = "- name: Check current Phase 11 build inventory packet"
+NEXT_PHASE_STEP = "- name: Self-test current Phase 2 fixdep gate checker"
 THIRD_PARTY_PATH = "- 'third_party/**'"
 SCRIPTS_PATH = "- 'scripts/zigux/**'"
 TOOLS_PATH = "- 'tools/lib/*.zig'"
@@ -74,20 +66,6 @@ LOCAL_ARCHIVE_MARKERS = (
     'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
     'if try_download "$ZIGUX_ZIG_URL"; then',
     "failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org",
-)
-
-README_SELF_TEST_STEP = "- name: Self-test current Lane 05 local archive README checker"
-README_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test"
-README_CHECK_STEP = "- name: Check current Lane 05 local archive README packet"
-README_CHECK_CMD = "python3 scripts/zigux/check-lane05-local-archive-readme.py"
-
-RETAINED_STEP_PAIRS = (
-    (PHASE1_ROUTE_SUMMARY_SELF_TEST_STEP, PHASE1_ROUTE_SUMMARY_CHECK_STEP),
-    (PHASE2_TOOL_MANIFEST_SELF_TEST_STEP, PHASE2_TOOL_MANIFEST_CHECK_STEP),
-    (PHASE2_ARTIFACT_TOOLS_SELF_TEST_STEP, PHASE2_ARTIFACT_TOOLS_CHECK_STEP),
-    (PHASE7_MAKE_WRAPPER_SELF_TEST_STEP, PHASE7_MAKE_WRAPPER_CHECK_STEP),
-    (PHASE9_FREEZE_MAP_SELF_TEST_STEP, PHASE9_FREEZE_MAP_CHECK_STEP),
-    (PHASE11_BUILD_INVENTORY_SELF_TEST_STEP, PHASE11_BUILD_INVENTORY_CHECK_STEP),
 )
 
 
@@ -151,12 +129,8 @@ def check_workflow(text: str) -> None:
     require_marker(text, README_CHECK_CMD, "workflow readme-checker command")
     require_marker(text, STAGE_HELPER_SELF_TEST_STEP, "workflow staged-helper self-test step name")
     require_marker(text, STAGE_HELPER_SELF_TEST_CMD, "workflow staged-helper self-test command")
-    require_marker(text, NEXT_PHASE_STEP, "workflow next-step anchor")
+    require_marker(text, NEXT_PHASE_STEP, "workflow next-phase anchor")
     require_marker(text, THIRD_PARTY_PATH, "workflow third-party path filter")
-
-    for self_test_step, check_step in RETAINED_STEP_PAIRS:
-        require_marker(text, self_test_step, "retained bootstrap step")
-        require_marker(text, check_step, "retained bootstrap step")
 
     require_exact_count(text, SETUP_STEP, 1, "workflow step name")
     require_exact_count(text, TOOLCHAIN_SELF_TEST_STEP, 1, "workflow step name")
@@ -185,10 +159,6 @@ def check_workflow(text: str) -> None:
     require_exact_count(text, "if try_local_archive; then", 1, "local archive helper invocation")
     require_exact_line_count(text, THIRD_PARTY_PATH, 1, "workflow path filter line")
 
-    for self_test_step, check_step in RETAINED_STEP_PAIRS:
-        require_exact_count(text, self_test_step, 1, "retained bootstrap step")
-        require_exact_count(text, check_step, 1, "retained bootstrap step")
-
     require_order(text, CHECKOUT_STEP, SETUP_STEP, "workflow step order")
     require_order(text, SETUP_STEP, TOOLCHAIN_SELF_TEST_STEP, "workflow step order")
     require_order(text, TOOLCHAIN_SELF_TEST_STEP, POLICY_STEP, "workflow step order")
@@ -201,9 +171,6 @@ def check_workflow(text: str) -> None:
     require_order(text, STAGE_HELPER_SELF_TEST_STEP, NEXT_PHASE_STEP, "workflow step order")
     require_order(text, SCRIPTS_PATH, THIRD_PARTY_PATH, "workflow pull_request path order")
     require_order(text, THIRD_PARTY_PATH, TOOLS_PATH, "workflow pull_request path order")
-
-    for self_test_step, check_step in RETAINED_STEP_PAIRS:
-        require_order(text, self_test_step, check_step, "retained bootstrap step order")
 
     require_order(
         text,
@@ -382,32 +349,8 @@ jobs:
         run: python3 scripts/zigux/check-lane05-local-archive-readme.py
       - name: Self-test current staged pinned Zig archive helper
         run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test
-      - name: Self-test current Zig installer helper
-        run: python3 scripts/zigux/install-zig.py --self-test
-      - name: Self-test current Phase 1 route summary checker
-        run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test
-      - name: Check current Phase 1 route summary packet
-        run: python3 scripts/zigux/check-phase1-route-summary-counts.py
-      - name: Self-test current Phase 2 tool manifest checker
-        run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test
-      - name: Check current Phase 2 tool manifest packet
-        run: python3 scripts/zigux/check-phase2-tool-manifest.py
-      - name: Self-test current Phase 2 artifact tools manifest checker
-        run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test
-      - name: Check current Phase 2 artifact tools manifest packet
-        run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py
-      - name: Self-test current Phase 9 freeze-map study-boundaries checker
-        run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py --self-test
-      - name: Check current Phase 9 freeze-map study-boundaries packet
-        run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py
-      - name: Self-test current Phase 7 make-wrapper selftest alignment checker
-        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test
-      - name: Check current Phase 7 make-wrapper selftest alignment packet
-        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py
-      - name: Self-test current Phase 11 build inventory checker
-        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test
-      - name: Check current Phase 11 build inventory packet
-        run: python3 scripts/zigux/check-phase11-build-inventory.py
+      - name: Self-test current Phase 2 fixdep gate checker
+        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
 """
     check_workflow(good_workflow)
     case_count = 1
@@ -550,61 +493,18 @@ jobs:
     else:
         raise AssertionError("expected missing README checker self-test step failure")
 
-    missing_tool_manifest_step = good_workflow.replace(
-        f"      {PHASE2_TOOL_MANIFEST_SELF_TEST_STEP}\n"
-        "        run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test\n",
+    missing_next_phase_anchor = good_workflow.replace(
+        f"      {NEXT_PHASE_STEP}\n        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test\n",
         "",
         1,
     )
     try:
-        check_workflow(missing_tool_manifest_step)
+        check_workflow(missing_next_phase_anchor)
     except SystemExit as exc:
-        assert PHASE2_TOOL_MANIFEST_SELF_TEST_STEP in str(exc)
+        assert NEXT_PHASE_STEP in str(exc)
         case_count += 1
     else:
-        raise AssertionError("expected missing Phase 2 tool manifest self-test failure")
-
-    missing_artifact_manifest_step = good_workflow.replace(
-        f"      {PHASE2_ARTIFACT_TOOLS_CHECK_STEP}\n"
-        "        run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py\n",
-        "",
-        1,
-    )
-    try:
-        check_workflow(missing_artifact_manifest_step)
-    except SystemExit as exc:
-        assert PHASE2_ARTIFACT_TOOLS_CHECK_STEP in str(exc)
-        case_count += 1
-    else:
-        raise AssertionError("expected missing Phase 2 artifact tools manifest check failure")
-
-    missing_retained_step = good_workflow.replace(
-        f"      {PHASE9_FREEZE_MAP_SELF_TEST_STEP}\n"
-        "        run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py --self-test\n",
-        "",
-        1,
-    )
-    try:
-        check_workflow(missing_retained_step)
-    except SystemExit as exc:
-        assert PHASE9_FREEZE_MAP_SELF_TEST_STEP in str(exc)
-        case_count += 1
-    else:
-        raise AssertionError("expected missing retained step failure")
-
-    missing_build_inventory_step = good_workflow.replace(
-        f"      {PHASE11_BUILD_INVENTORY_SELF_TEST_STEP}\n"
-        "        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test\n",
-        "",
-        1,
-    )
-    try:
-        check_workflow(missing_build_inventory_step)
-    except SystemExit as exc:
-        assert PHASE11_BUILD_INVENTORY_SELF_TEST_STEP in str(exc)
-        case_count += 1
-    else:
-        raise AssertionError("expected missing Phase 11 build inventory self-test failure")
+        raise AssertionError("expected missing next-phase anchor failure")
 
     missing_third_party_path = good_workflow.replace(
         "            - 'third_party/**'\n",
