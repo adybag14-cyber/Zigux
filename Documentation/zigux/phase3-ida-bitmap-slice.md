@@ -28,7 +28,7 @@ The current helper-local packet now has one bounded replay layer:
 - `zigux/tests/phase3_ida_bitmap_starter_packet_manifest.json`
 - `scripts/zigux/check-phase3-ida-bitmap-starter-packet.py`
 - `python3 scripts/zigux/check-phase3-ida-bitmap-starter-packet.py --self-test`
-- `python3 scripts/zigux/check-phase3-ida-bitmap-starter-packet.py`
+- `python3 scripts/zigux/check-phase3-ida-bitmap-starter-packet.py --repo-root .`
 - `zig build phase3-ida-bitmap-starter-packet-test --build-file zigux/tests/phase3_ida_bitmap_starter_packet_build.zig`
 
 ## Current Gap
