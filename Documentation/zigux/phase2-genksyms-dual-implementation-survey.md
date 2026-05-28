@@ -14,6 +14,7 @@ Lane: `P2-L07`
 - The live helper still exposes the bounded bridge shape rather than a deeper parser rollout: request and command structs, explicit parse-failure variants for option handling, a sixteen-file reference cap, long-option resolution for `help`, `version`, `debug`, `warnings`, `quiet`, `dump`, `reference`, `dump-types`, and `preserve`, and JSON bridge rendering through `renderGenksymsBridge()`.
 - The live helper still carries embedded Zig unit tests for short and long option parsing, version or help side effects, getopt-style error rendering, empty inline `--reference=` and abbreviated `--dump-t=` argument preservation, passthrough handling, dash-prefixed short- and long-option arguments consumed as data, and the sixteen-reference-file cap.
 - Current `master` also directly serves the bounded checker, invocation-fixture packet, dedicated manifest, help fixture, standalone version-side-effect proofs, process-output fixtures, tests-root reminder, closure note, Phase 2 validator surfaces, workflow hooks, and `phase2-genksyms` make wrapper tied to that bridge packet.
+- Current `master` now also directly serves `scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py`, which keeps this survey anchored to the live wrapper-first helper and the still-missing CRC-side evidence instead of treating the ledger history as already fully closed.
 
 ## Current repo-reality gap
 
