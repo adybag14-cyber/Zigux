@@ -200,3 +200,18 @@ test "invalid class exits without stderr" {
     try std.testing.expectEqualStrings("", stdout.list.items);
     try std.testing.expectEqualStrings("", stderr.list.items);
 }
+
+test "runMkElfconfig ignores conflicting trailing ELF header" {
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const input = [_]u8{ 0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 } ++
+        [_]u8{ 0x7f, 'E', 'L', 'F', 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+    const exit_code = try runMkElfconfig(&input, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 0), exit_code);
+    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
