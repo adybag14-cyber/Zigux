@@ -14,12 +14,15 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
 
 - `Documentation/zigux/phase2-genksyms-dual-implementation-survey.md` remains the same-family roadmap and ledger truthfulness anchor for the wrapper-first `genksyms` lane.
 - `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/check-phase2-genksyms-selftest-alignment.py`, and `scripts/zigux/genksyms.zig` remain the live checker, closure-alignment guard, and Zig bridge helper on current `master`.
+- `scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py` remains the dedicated survey guard that keeps the wrapper-first bridge evidence and missing CRC-side dual-implementation gap statement from drifting apart.
 - `scripts/zigux/genksyms_version_before_invalid_long_option_test.zig` and `scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig` remain the standalone version-side-effect proofs carried by the shipped bridge packet.
 - `zigux/tests/fixtures/genksyms_bridge/manifest.json` remains the live packet manifest, and `zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json` is now part of the directly named process-output fixture set instead of sitting only in the helper-local manifest.
 - `python3 scripts/zigux/check-genksyms-bridge.py --self-test`
 - `python3 scripts/zigux/check-genksyms-bridge.py`
 - `python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py --self-test`
 - `python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py`
+- `python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py --self-test`
+- `python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py`
 - `zig test scripts/zigux/genksyms.zig`
 - `make -C zigux phase2-genksyms`
 - `PHASE2_CURRENT_GENKSYMS_PROCESS_OUTPUT_PACKET=zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json,zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json,zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json,zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json,zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json,zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json`
