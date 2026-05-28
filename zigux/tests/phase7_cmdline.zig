@@ -93,6 +93,24 @@ test "phase 7 cmdline companion replays validator-only getOption cursor movement
     try std.testing.expectEqualStrings("rest", negative_rest);
 }
 
+test "phase 7 cmdline companion replays first-NUL boundaries for option scanning" {
+    var single_rest: []const u8 = "7\x00-9";
+    var single_value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&single_rest, &single_value));
+    try std.testing.expectEqual(@as(i32, 7), single_value);
+    try std.testing.expectEqualStrings("", single_rest);
+
+    var values = [_]i32{ 0, 0, 0, 0 };
+    const rest = cmdline.getOptions("1,2\x00,3-4", values.len, &values);
+    try std.testing.expectEqualStrings("", rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, 1, 2, 0 }, &values);
+
+    var validate = [_]i32{0};
+    const validate_rest = cmdline.get_options("5\x00,7", 0, &validate);
+    try std.testing.expectEqualStrings("", validate_rest);
+    try std.testing.expectEqual(@as(i32, 1), validate[0]);
+}
+
 test "phase 7 cmdline companion replays get_option alias cursor parity" {
     var alias_plus_rest: []const u8 = "+12,tail";
     var alias_plus_value: i32 = -1;
