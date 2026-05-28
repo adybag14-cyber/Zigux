@@ -16,14 +16,17 @@ EXPECTED_ARCHIVE_SIZES = {
 
 HELPER_MARKERS = (
     'TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")',
-    "DEFAULT_CHUNK_BYTES = 786_432",
+    "DEFAULT_CHUNK_BYTES = 786_429",
+    "MAX_SHARD_TEXT_BYTES = 1_048_576",
     '    "x86_64-linux": 58_159_088,',
+    'assert ((4 * math.ceil(DEFAULT_CHUNK_BYTES / 3)) + 1) <= MAX_SHARD_TEXT_BYTES',
     'with tempfile.TemporaryDirectory(prefix="split_archive_pass_") as tmp_dir:',
     'assert part_count == math.ceil(len(payload) / 1024)',
     'assert (root / "rebuilt.tar.xz").read_bytes() == payload',
     "expect_split_failure(",
     '"output directory must be empty"',
     '"chunk_bytes must be positive"',
+    '"chunk_bytes 786432 would emit base64 shard text larger than 1048576 bytes"',
     '"missing expected shard"',
     '"expected sha mismatch failure"',
     '"expected invalid base64 failure"',
@@ -39,7 +42,8 @@ EXACT_ONCE_MARKERS = (
 )
 
 ORDERED_MARKERS = (
-    ('"chunk_bytes must be positive"', '"missing expected shard"'),
+    ('"chunk_bytes must be positive"', '"chunk_bytes 786432 would emit base64 shard text larger than 1048576 bytes"'),
+    ('"chunk_bytes 786432 would emit base64 shard text larger than 1048576 bytes"', '"missing expected shard"'),
     ('"missing expected shard"', '"expected invalid base64 failure"'),
     ('"expected invalid base64 failure"', '"expected sha mismatch failure"'),
 )
@@ -193,12 +197,14 @@ def write_sample_root(root: Path) -> None:
         "\n".join(
             (
                 'TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")',
-                "DEFAULT_CHUNK_BYTES = 786_432",
+                "DEFAULT_CHUNK_BYTES = 786_429",
+                "MAX_SHARD_TEXT_BYTES = 1_048_576",
                 "EXPECTED_ARCHIVE_SIZES = {",
                 '    "x86_64-linux": 58_159_088,',
                 "}",
                 "",
                 "def run_self_test() -> int:",
+                "    assert ((4 * math.ceil(DEFAULT_CHUNK_BYTES / 3)) + 1) <= MAX_SHARD_TEXT_BYTES",
                 '    with tempfile.TemporaryDirectory(prefix="split_archive_pass_") as tmp_dir:',
                 '        write_policy(root, expected_sha, len(payload))',
                 "        assert part_count == math.ceil(len(payload) / 1024)",
@@ -214,9 +220,13 @@ def write_sample_root(root: Path) -> None:
                 "    )",
                 "    expect_split_failure(",
                 '        lambda root, source, output_dir, metadata: None,',
+                '        "chunk_bytes 786432 would emit base64 shard text larger than 1048576 bytes",',
+                "    )",
+                "    expect_split_failure(",
+                '        lambda root, source, output_dir, metadata: None,',
                 '        "missing expected shard",',
                 "    )",
-                '    (output_dir / "part-000.b64").write_text("not base64!\\n", encoding="utf-8")',
+                '(output_dir / "part-000.b64").write_text("not base64!\\n", encoding="utf-8")',
                 '    raise AssertionError("expected invalid base64 failure")',
                 '    raise AssertionError("expected sha mismatch failure")',
                 '    print("SPLIT_PINNED_ZIG_ARCHIVE_SELF_TEST=pass")',
