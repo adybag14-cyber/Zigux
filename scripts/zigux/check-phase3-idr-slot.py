@@ -13,6 +13,7 @@ import tempfile
 from pathlib import Path
 
 
+DOC_PATH = Path("Documentation/zigux/phase3-idr-slot-slice.md")
 ERR_PTR_PATH = Path("zigux/helpers/err_ptr.zig")
 XA_VALUE_PATH = Path("zigux/helpers/xa_value.zig")
 XARRAY_SLOT_PATH = Path("zigux/helpers/xarray_slot_view.zig")
@@ -25,8 +26,16 @@ DUMP_BUILD_PATH = Path("zigux/tests/phase3_idr_slot_dump_build.zig")
 EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_idr_slot/expected.json")
 C_HARNESS_PATH = Path("zigux/tests/fixtures/phase3_idr_slot/phase3_idr_slot_c_harness.c")
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_idr_slot_manifest.json")
+MAKEFILE_PATH = Path("zigux/Makefile")
 
 REQUIRED_MARKERS = {
+    DOC_PATH: (
+        "# Phase 3 idr-slot Slice",
+        "`zigux/Makefile`",
+        "`make -C zigux phase3-idr-slot-starter-packet-test`",
+        "`make -C zigux phase3-idr-slot-dump`",
+        "two focused Makefile wrappers",
+    ),
     HELPER_PATH: (
         "pub const SlotKind = enum {",
         "pub fn fromInternalValue(value: usize) xa_value.MakeValueError!SlotView {",
@@ -55,6 +64,12 @@ REQUIRED_MARKERS = {
         '.root_source_file = b.path("phase3_idr_slot_dump.zig"),',
         '"phase3-idr-slot-dump"',
     ),
+    MAKEFILE_PATH: (
+        "phase3-idr-slot-starter-packet-test:",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig",
+        "phase3-idr-slot-dump:",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig",
+    ),
     C_HARNESS_PATH: (
         "#define MAX_ERRNO ((uintptr_t)4095)",
         'return "internal_value";',
@@ -71,6 +86,9 @@ REQUIRED_MARKERS = {
         '"slug": "phase3-idr-slot"',
         '"status": "starter_and_dump_packet_present"',
         '"zigux/tests/phase3_idr_slot_dump.zig"',
+        '"zigux/Makefile"',
+        '"make -C zigux phase3-idr-slot-starter-packet-test"',
+        '"make -C zigux phase3-idr-slot-dump"',
         '"python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc"',
     ),
 }
@@ -90,15 +108,18 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/fixtures/phase3_idr_slot/expected.json",
     "zigux/tests/fixtures/phase3_idr_slot_manifest.json",
     "scripts/zigux/check-phase3-idr-slot.py",
+    "zigux/Makefile",
 )
 
 REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --repo-root .",
     "zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig",
+    "make -C zigux phase3-idr-slot-starter-packet-test",
     "python3 scripts/zigux/check-phase3-idr-slot.py --self-test",
     "python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc",
     "zig build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig",
+    "make -C zigux phase3-idr-slot-dump",
 )
 
 
@@ -208,6 +229,7 @@ def validate_repo(repo_root: Path, zig: str, cc: str, *, skip_exec: bool = False
         else:
             packet_files = manifest.get("packet_files")
             replay_routes = manifest.get("replay_routes")
+            repo_reality_gaps = manifest.get("repo_reality_gaps")
             if not isinstance(packet_files, list):
                 issues.append("phase3_idr_slot_manifest.json packet_files is not a list")
             if not isinstance(replay_routes, list):
@@ -226,6 +248,10 @@ def validate_repo(repo_root: Path, zig: str, cc: str, *, skip_exec: bool = False
                             "phase3_idr_slot_manifest.json missing replay route: "
                             f"{route}"
                         )
+            if repo_reality_gaps != []:
+                issues.append(
+                    "phase3_idr_slot_manifest.json repo_reality_gaps must stay empty after the wrapper packet lands"
+                )
 
     if issues or skip_exec:
         return issues
@@ -263,6 +289,8 @@ def _populate_repo(root: Path) -> None:
                 "scope": "helper-local idr slot starter packet plus fixture-backed dump parity",
                 "packet_files": list(REQUIRED_PACKET_FILES),
                 "replay_routes": list(REQUIRED_REPLAY_ROUTES),
+                "repo_reality_gaps": [],
+                "next_safe_step": "keep any same-lane follow-through narrowed to shared validator alignment or ida family follow-through after rereading current master",
             },
             indent=2,
         ) + "\n",
@@ -270,11 +298,13 @@ def _populate_repo(root: Path) -> None:
 
 
 SELF_TEST_CASES = (
+    (DOC_PATH, "`make -C zigux phase3-idr-slot-dump`"),
     (HELPER_PATH, "pub fn isTaggedInternalEntry(raw: usize) bool {"),
     (DUMP_PATH, 'try writeCase(writer, "internal_limit", inline_limit_raw, true);'),
+    (MAKEFILE_PATH, "phase3-idr-slot-dump:"),
     (C_HARNESS_PATH, 'write_case("err_max", (uintptr_t)(intptr_t)-4095, 0);'),
     (EXPECTED_PATH, '"decoded_error": -4095'),
-    (MANIFEST_PATH, '"status": "starter_and_dump_packet_present"'),
+    (MANIFEST_PATH, '"make -C zigux phase3-idr-slot-starter-packet-test"'),
 )
 
 
@@ -300,8 +330,21 @@ def run_self_test() -> int:
                 print(f"expected missing marker was not reported: {expected}")
                 return 1
 
+        _populate_repo(root)
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["repo_reality_gaps"] = ["stale-gap"]
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root, zig="zig", cc="gcc", skip_exec=True)
+        expected = (
+            "phase3_idr_slot_manifest.json repo_reality_gaps must stay empty after the wrapper packet lands"
+        )
+        if expected not in issues:
+            print("PHASE3_IDR_SLOT_SELF_TEST=fail")
+            print("expected repo_reality_gaps drift was not reported")
+            return 1
+
     print("PHASE3_IDR_SLOT_SELF_TEST=pass")
-    print(f"PHASE3_IDR_SLOT_SELF_TEST_CASES={len(SELF_TEST_CASES)}")
+    print(f"PHASE3_IDR_SLOT_SELF_TEST_CASES={len(SELF_TEST_CASES) + 1}")
     return 0
 
 
