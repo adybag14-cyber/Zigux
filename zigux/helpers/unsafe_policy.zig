@@ -725,3 +725,164 @@ test "phase3 unsafe policy keeps raw-pointer bridge relays helper-local" {
     );
     try std.testing.expectError(error.UnsafeScopeDenied, writeValueAtByte(u32, second_addr, 83, 0));
 }
+
+pub const RawPointerWindow = struct {
+    base_addr: usize,
+    byte_len: usize,
+};
+
+pub const RawPointerWindowError = RawPointerBridgeError || error{
+    OffsetOverflow,
+    AccessOutsideWindow,
+};
+
+fn rawPointerBridgeScopeByte() u8 {
+    return @intFromEnum(abi.UnsafeScope.raw_pointer_bridge);
+}
+
+fn requireWindowAddress(window: RawPointerWindow, byte_offset: usize, access_len: usize) RawPointerWindowError!usize {
+    const end_offset = std.math.add(usize, byte_offset, access_len) catch return error.OffsetOverflow;
+    if (end_offset > window.byte_len) return error.AccessOutsideWindow;
+    return std.math.add(usize, window.base_addr, byte_offset) catch return error.AddressOverflow;
+}
+
+pub fn windowInteropPolicyBytes(
+    base_addr: usize,
+    byte_len: usize,
+    scope: u8,
+    reserved: u8,
+) RawPointerWindowError!RawPointerWindow {
+    try requireRawPointerBridgePolicyBytes(scope, reserved);
+    _ = std.math.add(usize, base_addr, byte_len) catch return error.AddressOverflow;
+    return .{ .base_addr = base_addr, .byte_len = byte_len };
+}
+
+pub fn windowInteropPolicy(
+    base_addr: usize,
+    byte_len: usize,
+    policy: abi.InteropPolicy,
+) RawPointerWindowError!RawPointerWindow {
+    return windowInteropPolicyBytes(base_addr, byte_len, policy.unsafe_scope, policy.reserved);
+}
+
+pub fn windowByte(base_addr: usize, byte_len: usize, scope: u8) RawPointerWindowError!RawPointerWindow {
+    return windowInteropPolicyBytes(base_addr, byte_len, scope, 0);
+}
+
+pub fn pointerAtWindow(
+    comptime T: type,
+    window: RawPointerWindow,
+    byte_offset: usize,
+) RawPointerWindowError!*align(1) T {
+    const address = try requireWindowAddress(window, byte_offset, @sizeOf(T));
+    return narrow.pointerAtByte(T, address, @sizeOf(T), rawPointerBridgeScopeByte());
+}
+
+pub fn constPointerAtWindow(
+    comptime T: type,
+    window: RawPointerWindow,
+    byte_offset: usize,
+) RawPointerWindowError!*align(1) const T {
+    const address = try requireWindowAddress(window, byte_offset, @sizeOf(T));
+    return narrow.constPointerAtByte(T, address, rawPointerBridgeScopeByte());
+}
+
+pub fn sliceAtWindow(
+    comptime T: type,
+    window: RawPointerWindow,
+    byte_offset: usize,
+    len: usize,
+) RawPointerWindowError![]align(1) T {
+    const access_len = std.math.mul(usize, len, @sizeOf(T)) catch return error.LengthOverflow;
+    const address = try requireWindowAddress(window, byte_offset, access_len);
+    return narrow.sliceAtByte(T, address, len, rawPointerBridgeScopeByte());
+}
+
+pub fn constSliceAtWindow(
+    comptime T: type,
+    window: RawPointerWindow,
+    byte_offset: usize,
+    len: usize,
+) RawPointerWindowError![]align(1) const T {
+    const access_len = std.math.mul(usize, len, @sizeOf(T)) catch return error.LengthOverflow;
+    const address = try requireWindowAddress(window, byte_offset, access_len);
+    return narrow.constSliceAtByte(T, address, len, rawPointerBridgeScopeByte());
+}
+
+pub fn readValueAtWindow(
+    comptime T: type,
+    window: RawPointerWindow,
+    byte_offset: usize,
+) RawPointerWindowError!T {
+    const address = try requireWindowAddress(window, byte_offset, @sizeOf(T));
+    return narrow.readValueAtByte(T, address, @sizeOf(T), rawPointerBridgeScopeByte());
+}
+
+pub fn writeValueAtWindow(
+    comptime T: type,
+    window: RawPointerWindow,
+    byte_offset: usize,
+    value: T,
+) RawPointerWindowError!void {
+    const address = try requireWindowAddress(window, byte_offset, @sizeOf(T));
+    return narrow.writeValueAtByte(T, address, value, rawPointerBridgeScopeByte());
+}
+
+pub fn exchangeValueAtWindow(
+    comptime T: type,
+    window: RawPointerWindow,
+    byte_offset: usize,
+    value: T,
+) RawPointerWindowError!T {
+    const address = try requireWindowAddress(window, byte_offset, @sizeOf(T));
+    return narrow.exchangeValueAtByte(T, address, @sizeOf(T), value, rawPointerBridgeScopeByte());
+}
+
+test "phase3 unsafe policy keeps raw-pointer bridge windows bounded" {
+    const raw = abi.InteropPolicy{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 2, .reserved = 0 };
+    const safe = abi.InteropPolicy{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 0, .reserved = 0 };
+    const reserved = abi.InteropPolicy{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 2, .reserved = 1 };
+
+    var bridge_words = [_]u32{ 31, 47, 59 };
+    const base_addr = @intFromPtr(&bridge_words[0]);
+    const byte_len = @sizeOf(@TypeOf(bridge_words));
+
+    const window = try windowInteropPolicy(base_addr, byte_len, raw);
+    try std.testing.expectEqual(base_addr, window.base_addr);
+    try std.testing.expectEqual(byte_len, window.byte_len);
+    try std.testing.expectEqual(window, try windowByte(base_addr, byte_len, 2));
+
+    const first = try pointerAtWindow(u32, window, 0);
+    try std.testing.expectEqual(@as(u32, 31), first.*);
+
+    const second = try constPointerAtWindow(u32, window, @sizeOf(u32));
+    try std.testing.expectEqual(@as(u32, 47), second.*);
+
+    const mutable_slice = try sliceAtWindow(u32, window, 0, bridge_words.len);
+    mutable_slice[2] = 71;
+    try std.testing.expectEqual(@as(u32, 71), bridge_words[2]);
+
+    const replay_slice = try constSliceAtWindow(u32, window, 0, bridge_words.len);
+    try std.testing.expectEqual(@as(usize, bridge_words.len), replay_slice.len);
+    try std.testing.expectEqual(@as(u32, 71), replay_slice[2]);
+
+    try std.testing.expectEqual(@as(u32, 47), try readValueAtWindow(u32, window, @sizeOf(u32)));
+
+    try writeValueAtWindow(u32, window, @sizeOf(u32) * 2, 73);
+    try std.testing.expectEqual(@as(u32, 73), bridge_words[2]);
+
+    try std.testing.expectEqual(
+        @as(u32, 73),
+        try exchangeValueAtWindow(u32, window, @sizeOf(u32) * 2, 79),
+    );
+    try std.testing.expectEqual(@as(u32, 79), bridge_words[2]);
+
+    try std.testing.expectError(error.UnsafeScopeDenied, windowInteropPolicy(base_addr, byte_len, safe));
+    try std.testing.expectError(error.UnsafeScopeDenied, windowInteropPolicy(base_addr, byte_len, reserved));
+    try std.testing.expectError(error.AccessOutsideWindow, pointerAtWindow(u32, window, byte_len));
+    try std.testing.expectError(
+        error.AccessOutsideWindow,
+        sliceAtWindow(u32, window, @sizeOf(u32), bridge_words.len),
+    );
+    try std.testing.expectError(error.OffsetOverflow, readValueAtWindow(u32, window, std.math.maxInt(usize)));
+}
