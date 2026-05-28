@@ -123,7 +123,7 @@ REQUIRED_EXPORT_SHIM_BUILD_MARKERS = (
     'export_shim_module.addImport("dev_t_binding", dev_t_binding_module);',
     'export_shim_module.addImport("version_binding", version_binding_module);',
     '.name = "phase3-export-shim-test",',
-    'b.step(',
+    "b.step(",
     '"phase3-export-shim-test"',
     '"Run the focused Phase 3 export shim replay"',
 )
@@ -133,6 +133,8 @@ REQUIRED_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-xarray-slot.py")',
+    'Path("scripts/zigux/check-phase3-idr-slot-starter-packet.py")',
+    'Path("scripts/zigux/check-phase3-idr-slot.py")',
     'Path("scripts/zigux/check-phase3-policy-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-policy-dump.py")',
     'Path("scripts/zigux/validate-phase3.py")',
@@ -150,11 +152,13 @@ REQUIRED_DRIVER_MARKERS = (
     'Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")',
     'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
     'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
+    'Path("scripts/zigux/check-phase3-low-level-wrappers.py")',
     'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
     'Path("scripts/zigux/generate-phase3-check-wrappers.py")',
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
     'Path("scripts/zigux/check-phase3-bitmap-cpumask.py")',
     'Path("scripts/zigux/check-phase3-list-hlist-starter-packet.py")',
+    'Path("scripts/zigux/check-phase3-list-hlist.py")',
 )
 
 REQUIRED_MAKEFILE_MARKERS = (
@@ -223,7 +227,7 @@ SELF_TEST_CASES = (
     (BUILD_PATH, '.root_source_file = b.path("../helpers/xarray_slot_view.zig"),'),
     (BUILD_PATH, '.root_source_file = b.path("phase3_xarray_slot_starter_packet.zig"),'),
     (BUILD_PATH, 'root_module.addImport("xarray_slot_view", xarray_slot_view);'),
-    (BUILD_PATH, 'fn addPhase3BitmapCpumaskStarterPacket('),
+    (BUILD_PATH, "fn addPhase3BitmapCpumaskStarterPacket("),
     (BUILD_PATH, '.root_source_file = b.path("../helpers/bitmap_view.zig"),'),
     (BUILD_PATH, '.root_source_file = b.path("../helpers/cpumask_view.zig"),'),
     (BUILD_PATH, '.root_source_file = b.path("phase3_bitmap_cpumask_starter_packet.zig"),'),
@@ -234,7 +238,7 @@ SELF_TEST_CASES = (
     (BUILD_PATH, "const phase3_bitmap_cpumask_step = b.step("),
     (BUILD_PATH, "phase3_bitmap_cpumask_step.dependOn(&phase3_bitmap_cpumask_starter_packet.step);"),
     (BUILD_PATH, "phase3_test_step.dependOn(&phase3_bitmap_cpumask_starter_packet.step);"),
-    (BUILD_PATH, 'fn addPhase3ListHListStarterPacket('),
+    (BUILD_PATH, "fn addPhase3ListHListStarterPacket("),
     (BUILD_PATH, '.root_source_file = b.path("../helpers/list_view.zig"),'),
     (BUILD_PATH, '.root_source_file = b.path("../helpers/hlist_view.zig"),'),
     (BUILD_PATH, '.root_source_file = b.path("phase3_list_hlist_starter_packet.zig"),'),
@@ -268,310 +272,86 @@ SELF_TEST_CASES = (
     (BUILD_PATH, "phase3_test_step.dependOn(&phase3_xarray_slot_starter_packet.step);"),
     (BUILD_PATH, "phase3_dump_step.dependOn(&phase3_abi_dump.step);"),
     (BUILD_PATH, "smoke_step.dependOn(phase3_test_step);"),
-    (
-        EXPORT_SHIM_BUILD_PATH,
-        '.root_source_file = b.path("../kernel/export_shim.zig"),',
-    ),
-    (
-        EXPORT_SHIM_BUILD_PATH,
-        'export_shim_module.addImport("version_binding", version_binding_module);',
-    ),
-    (
-        EXPORT_SHIM_BUILD_PATH,
-        '.name = "phase3-export-shim-test",',
-    ),
-    (
-        EXPORT_SHIM_BUILD_PATH,
-        '"Run the focused Phase 3 export shim replay"',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-xarray-slot.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-policy-starter-packet.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-policy-dump.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/validate-phase3.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-abi.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-abi-support-packet.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-abi-manifest-replay-routes.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-wrapper-templates.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-catalog-selftest.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/run-phase3-checks.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/validate-phase3-export-uapi-survey.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/generate-phase3-check-wrappers.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-selftest-surface.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-bitmap-cpumask.py")',
-    ),
-    (
-        SELFTEST_DRIVER_PATH,
-        'Path("scripts/zigux/check-phase3-list-hlist-starter-packet.py")',
-    ),
-    (
-        MAKEFILE_PATH,
-        "phase3-export-uapi-layout:",
-    ),
-    (
-        MAKEFILE_PATH,
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
-    ),
-    (
-        MAKEFILE_PATH,
-        "phase3-export-uapi-layout-test:",
-    ),
-    (
-        MAKEFILE_PATH,
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
-    ),
-    (
-        MAKEFILE_PATH,
-        "phase3-export-shim-test:",
-    ),
-    (
-        MAKEFILE_PATH,
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
-    ),
-    (
-        MAKEFILE_PATH,
-        "phase3-low-level-wrappers:",
-    ),
-    (
-        MAKEFILE_PATH,
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
-    ),
-    (
-        MAKEFILE_PATH,
-        "phase3-low-level-wrappers-test:",
-    ),
-    (
-        MAKEFILE_PATH,
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
-    ),
-    (
-        MAKEFILE_PATH,
-        "phase3-policy-starter-packet-test:",
-    ),
-    (
-        MAKEFILE_PATH,
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
-    ),
-    (
-        MAKEFILE_PATH,
-        "phase3-policy-dump:",
-    ),
-    (
-        MAKEFILE_PATH,
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
-    ),
-    (
-        MAKEFILE_PATH,
-        "phase3-test:",
-    ),
-    (
-        MAKEFILE_PATH,
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-test --build-file zigux/tests/build.zig",
-    ),
-    (
-        MAKEFILE_PATH,
-        "phase3-dump:",
-    ),
-    (
-        MAKEFILE_PATH,
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig",
-    ),
-    (
-        MAKEFILE_PATH,
-        "phase3: phase3-validate phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase3-policy-unsafe-test phase3-test phase3-policy-dump phase3-dump",
-    ),
-    (
-        WORKFLOW_PATH,
-        "- name: Self-test current Phase 3 interop packet",
-    ),
-    (
-        WORKFLOW_PATH,
-        "run: python3 scripts/zigux/validate_phase3_selftest.py",
-    ),
-    (
-        WORKFLOW_PATH,
-        "- name: Check current Phase 3 interop packet",
-    ),
-    (
-        WORKFLOW_PATH,
-        "run: python3 scripts/zigux/run-phase3-checks.py",
-    ),
-    (
-        WORKFLOW_PATH,
-        "- name: Run current Phase 3 export/UAPI layout replay",
-    ),
-    (
-        WORKFLOW_PATH,
-        "run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
-    ),
-    (
-        WORKFLOW_PATH,
-        "- name: Run current Phase 3 export shim replay",
-    ),
-    (
-        WORKFLOW_PATH,
-        "run: zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
-    ),
-    (
-        WORKFLOW_PATH,
-        "- name: Run current Phase 3 policy starter-packet replay",
-    ),
-    (
-        WORKFLOW_PATH,
-        "run: make -C zigux phase3-policy-starter-packet-test",
-    ),
-    (
-        WORKFLOW_PATH,
-        "- name: Run current Phase 3 policy dump replay",
-    ),
-    (
-        WORKFLOW_PATH,
-        "run: zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
-    ),
-    (
-        WORKFLOW_PATH,
-        "- name: Run current Phase 3 policy dump make wrapper",
-    ),
-    (
-        WORKFLOW_PATH,
-        "run: make -C zigux phase3-policy-dump",
-    ),
-    (
-        WORKFLOW_PATH,
-        "- name: Self-test current Phase 3 low-level wrapper survey validator",
-    ),
-    (
-        WORKFLOW_PATH,
-        "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
-    ),
-    (
-        WORKFLOW_PATH,
-        "- name: Check current Phase 3 low-level wrapper survey packet",
-    ),
-    (
-        WORKFLOW_PATH,
-        "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
-    ),
-    (
-        WORKFLOW_PATH,
-        "- name: Run current Phase 3 low-level wrapper replay",
-    ),
-    (
-        WORKFLOW_PATH,
-        "run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
-    ),
-    (
-        WORKFLOW_PATH,
-        "- name: Run current Phase 3 low-level wrapper make route",
-    ),
-    (
-        WORKFLOW_PATH,
-        "run: make -C zigux phase3-low-level-wrappers",
-    ),
-    (
-        WORKFLOW_PATH,
-        "- name: Run current Phase 3 focused low-level wrapper make route",
-    ),
-    (
-        WORKFLOW_PATH,
-        "run: make -C zigux phase3-low-level-wrappers-test",
-    ),
-    (
-        WORKFLOW_PATH,
-        "- name: Run current Phase 3 shared tests-root packet",
-    ),
-    (
-        WORKFLOW_PATH,
-        "run: zig build phase3-test --build-file zigux/tests/build.zig",
-    ),
-    (
-        WORKFLOW_PATH,
-        "- name: Run current Phase 3 ABI dump replay",
-    ),
+    (EXPORT_SHIM_BUILD_PATH, '.root_source_file = b.path("../kernel/export_shim.zig"),'),
+    (EXPORT_SHIM_BUILD_PATH, 'export_shim_module.addImport("version_binding", version_binding_module);'),
+    (EXPORT_SHIM_BUILD_PATH, '.name = "phase3-export-shim-test",'),
+    (EXPORT_SHIM_BUILD_PATH, '"Run the focused Phase 3 export shim replay"'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-xarray-slot.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-idr-slot-starter-packet.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-idr-slot.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-policy-starter-packet.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-policy-dump.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/validate-phase3.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-abi.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-abi-support-packet.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-abi-manifest-replay-routes.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-shared-tests-routes.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-wrapper-templates.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-catalog-selftest.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/run-phase3-checks.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/validate-phase3-validator-support-surface.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/validate-phase3-export-uapi-survey.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-low-level-wrappers.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/generate-phase3-check-wrappers.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-selftest-surface.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-bitmap-cpumask.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-list-hlist-starter-packet.py")'),
+    (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-list-hlist.py")'),
+    (MAKEFILE_PATH, "phase3-export-uapi-layout:"),
+    (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout --build-file zigux/tests/build.zig"),
+    (MAKEFILE_PATH, "phase3-export-uapi-layout-test:"),
+    (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"),
+    (MAKEFILE_PATH, "phase3-export-shim-test:"),
+    (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"),
+    (MAKEFILE_PATH, "phase3-low-level-wrappers:"),
+    (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers --build-file zigux/tests/build.zig"),
+    (MAKEFILE_PATH, "phase3-low-level-wrappers-test:"),
+    (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"),
+    (MAKEFILE_PATH, "phase3-policy-starter-packet-test:"),
+    (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"),
+    (MAKEFILE_PATH, "phase3-policy-dump:"),
+    (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"),
+    (MAKEFILE_PATH, "phase3-test:"),
+    (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-test --build-file zigux/tests/build.zig"),
+    (MAKEFILE_PATH, "phase3-dump:"),
+    (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig"),
+    (MAKEFILE_PATH, "phase3: phase3-validate phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase3-policy-unsafe-test phase3-test phase3-policy-dump phase3-dump"),
+    (WORKFLOW_PATH, "- name: Self-test current Phase 3 interop packet"),
+    (WORKFLOW_PATH, "run: python3 scripts/zigux/validate_phase3_selftest.py"),
+    (WORKFLOW_PATH, "- name: Check current Phase 3 interop packet"),
+    (WORKFLOW_PATH, "run: python3 scripts/zigux/run-phase3-checks.py"),
+    (WORKFLOW_PATH, "- name: Run current Phase 3 export/UAPI layout replay"),
+    (WORKFLOW_PATH, "run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"),
+    (WORKFLOW_PATH, "- name: Run current Phase 3 export shim replay"),
+    (WORKFLOW_PATH, "run: zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"),
+    (WORKFLOW_PATH, "- name: Run current Phase 3 policy starter-packet replay"),
+    (WORKFLOW_PATH, "run: make -C zigux phase3-policy-starter-packet-test"),
+    (WORKFLOW_PATH, "- name: Run current Phase 3 policy dump replay"),
+    (WORKFLOW_PATH, "run: zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"),
+    (WORKFLOW_PATH, "- name: Run current Phase 3 policy dump make wrapper"),
+    (WORKFLOW_PATH, "run: make -C zigux phase3-policy-dump"),
+    (WORKFLOW_PATH, "- name: Self-test current Phase 3 low-level wrapper survey validator"),
+    (WORKFLOW_PATH, "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"),
+    (WORKFLOW_PATH, "- name: Check current Phase 3 low-level wrapper survey packet"),
+    (WORKFLOW_PATH, "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
+    (WORKFLOW_PATH, "- name: Run current Phase 3 low-level wrapper replay"),
+    (WORKFLOW_PATH, "run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"),
+    (WORKFLOW_PATH, "- name: Run current Phase 3 low-level wrapper make route"),
+    (WORKFLOW_PATH, "run: make -C zigux phase3-low-level-wrappers"),
+    (WORKFLOW_PATH, "- name: Run current Phase 3 focused low-level wrapper make route"),
+    (WORKFLOW_PATH, "run: make -C zigux phase3-low-level-wrappers-test"),
+    (WORKFLOW_PATH, "- name: Run current Phase 3 shared tests-root packet"),
+    (WORKFLOW_PATH, "run: zig build phase3-test --build-file zigux/tests/build.zig"),
+    (WORKFLOW_PATH, "- name: Run current Phase 3 ABI dump replay"),
 )
 
 
@@ -589,8 +369,7 @@ def _remove_exact_line(path: Path, marker: str) -> None:
     for index, line in enumerate(lines):
         if line == marker:
             del lines[index]
-            path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-            return
+            break
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -600,8 +379,7 @@ def _validate_markers(repo_root: Path, relative_path: Path, markers: tuple[str, 
     try:
         text = _read_text(path)
     except FileNotFoundError:
-        issues.append(f"missing repo file: {relative_path.as_posix()}")
-        return issues
+        return [f"missing repo file: {relative_path.as_posix()}"]
 
     for marker in markers:
         if marker not in text:
@@ -615,8 +393,7 @@ def _validate_exact_lines(repo_root: Path, relative_path: Path, markers: tuple[s
     try:
         lines = _read_text(path).splitlines()
     except FileNotFoundError:
-        issues.append(f"missing repo file: {relative_path.as_posix()}")
-        return issues
+        return [f"missing repo file: {relative_path.as_posix()}"]
 
     for marker in markers:
         if marker not in lines:
@@ -627,13 +404,7 @@ def _validate_exact_lines(repo_root: Path, relative_path: Path, markers: tuple[s
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     issues.extend(_validate_markers(repo_root, BUILD_PATH, REQUIRED_BUILD_MARKERS))
-    issues.extend(
-        _validate_markers(
-            repo_root,
-            EXPORT_SHIM_BUILD_PATH,
-            REQUIRED_EXPORT_SHIM_BUILD_MARKERS,
-        )
-    )
+    issues.extend(_validate_markers(repo_root, EXPORT_SHIM_BUILD_PATH, REQUIRED_EXPORT_SHIM_BUILD_MARKERS))
     issues.extend(_validate_markers(repo_root, SELFTEST_DRIVER_PATH, REQUIRED_DRIVER_MARKERS))
     issues.extend(_validate_exact_lines(repo_root, MAKEFILE_PATH, REQUIRED_MAKEFILE_MARKERS))
     issues.extend(_validate_exact_lines(repo_root, WORKFLOW_PATH, REQUIRED_WORKFLOW_MARKERS))
@@ -649,9 +420,7 @@ def _populate_repo(root: Path) -> None:
 
 
 def run_self_test() -> int:
-    with tempfile.TemporaryDirectory(
-        prefix="zigux_phase3_shared_tests_routes_"
-    ) as temp_dir:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_shared_tests_routes_") as temp_dir:
         root = Path(temp_dir)
         _populate_repo(root)
 
@@ -663,8 +432,7 @@ def run_self_test() -> int:
 
         for relative_path, marker in SELF_TEST_CASES:
             _populate_repo(root)
-            path = root / relative_path
-            _remove_exact_line(path, marker)
+            _remove_exact_line(root / relative_path, marker)
             issues = validate_repo(root)
             expected = f"missing {relative_path.as_posix()} marker: {marker}"
             if expected not in issues:
