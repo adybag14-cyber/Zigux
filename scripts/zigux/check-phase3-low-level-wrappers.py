@@ -29,15 +29,15 @@ REQUIRED_MARKERS = {
         'const unsafe_policy = @import("unsafe_policy");',
         'const narrow = @import("narrow");',
         'test "phase3 low-level wrappers keep helper-local MMIO layout assertions explicit" {',
-        'try layout_assert.assertMmioRangeLayout();',
+        "try layout_assert.assertMmioRangeLayout();",
         'test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across shared handoff" {',
         'test "phase3 low-level wrappers keep raw-pointer bridge scope gates explicit beside MMIO policy gates" {',
         'test "phase3 low-level wrappers keep raw-pointer bridge interop-policy helpers explicit" {',
         'test "phase3 low-level wrappers keep MMIO range helpers and width aliases explicit beside raw bridge gates" {',
-        'const direct_ptr = try narrow.pointerAtInteropPolicyBytes(',
-        'const scoped_range = try mmio.rangeScoped(base_addr, 16, 4, .volatile_mmio);',
-        'try std.testing.expect(unsafe_policy.permitsRawPointerBridgeByte(raw_scope));',
-        'try mmio.write64InteropPolicyBytes(base_addr, 8, 0x0123_4567_89AB_CDEF, mmio_scope, 0);',
+        "const direct_ptr = try narrow.pointerAtInteropPolicyBytes(",
+        "const scoped_range = try mmio.rangeScoped(base_addr, 16, 4, .volatile_mmio);",
+        "try std.testing.expect(unsafe_policy.permitsRawPointerBridgeByte(raw_scope));",
+        "try mmio.write64InteropPolicyBytes(base_addr, 8, 0x0123_4567_89AB_CDEF, mmio_scope, 0);",
         'test "phase3 low-level wrappers keep atomic order-gate failures explicit before MMIO publish" {',
     ),
     FOCUSED_BUILD_PATH: (
@@ -57,11 +57,11 @@ REQUIRED_MARKERS = {
         '"phase3-low-level-wrappers-test"',
     ),
     SHARED_BUILD_PATH: (
-        'fn addPhase3LowLevelWrappers(',
+        "fn addPhase3LowLevelWrappers(",
         '"phase3-low-level-wrappers"',
         '"phase3-test"',
-        'phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);',
-        'phase3_test_step.dependOn(&phase3_low_level_wrappers.step);',
+        "phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);",
+        "phase3_test_step.dependOn(&phase3_low_level_wrappers.step);",
     ),
     MAKEFILE_PATH: (
         'phase3-low-level-wrappers:',
@@ -185,106 +185,108 @@ def validate_repo(repo_root: Path, zig: str, *, skip_exec: bool = False) -> list
     focused = _run(
         [
             zig,
-            "build",
-            "phase3-low-level-wrappers-test",
-            "--build-file",
+            'build',
+            'phase3-low-level-wrappers-test',
+            '--build-file',
             str(repo_root / FOCUSED_BUILD_PATH),
         ],
         cwd=repo_root,
     )
     if focused.returncode != 0:
         issues.append(
-            "focused low-level-wrapper build failed:\n"
-            f"stdout:\n{focused.stdout}\n"
-            f"stderr:\n{focused.stderr}"
+            'focused low-level-wrapper build failed:\n'
+            f'stdout:\n{focused.stdout}\n'
+            f'stderr:\n{focused.stderr}'
         )
 
     shared = _run(
         [
             zig,
-            "build",
-            "phase3-low-level-wrappers",
-            "--build-file",
+            'build',
+            'phase3-low-level-wrappers',
+            '--build-file',
             str(repo_root / SHARED_BUILD_PATH),
         ],
         cwd=repo_root,
     )
     if shared.returncode != 0:
         issues.append(
-            "shared low-level-wrapper build failed:\n"
-            f"stdout:\n{shared.stdout}\n"
-            f"stderr:\n{shared.stderr}"
+            'shared low-level-wrapper build failed:\n'
+            f'stdout:\n{shared.stdout}\n'
+            f'stderr:\n{shared.stderr}'
         )
 
     return issues
 
 
 def run_self_test() -> int:
-    with tempfile.TemporaryDirectory(prefix="zigux_phase3_low_level_wrappers_") as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix='zigux_phase3_low_level_wrappers_') as tmp_dir:
         root = Path(tmp_dir)
         for relative_path, markers in REQUIRED_MARKERS.items():
-            _write(root / relative_path, "\n".join(markers) + "\n")
+            _write(root / relative_path, '\n'.join(markers) + '\n')
 
-        issues = validate_repo(root, zig="zig", skip_exec=True)
+        issues = validate_repo(root, zig='zig', skip_exec=True)
         if issues:
-            print("PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST=fail")
-            print("\n".join(issues))
+            print('PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST=fail')
+            print('\n'.join(issues))
             return 1
 
         for relative_path, marker in SELF_TEST_CASES:
             path = root / relative_path
             original = _read(path)
-            _write(path, original.replace(marker, "", 1))
+            _write(path, original.replace(marker, '', 1))
             try:
-                issues = validate_repo(root, zig="zig", skip_exec=True)
-                expected = f"missing {relative_path.as_posix()} marker: {marker}"
+                issues = validate_repo(root, zig='zig', skip_exec=True)
+                expected = f'missing {relative_path.as_posix()} marker: {marker}'
                 if expected not in issues:
-                    print("PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST=fail")
-                    print(f"expected missing marker was not reported: {expected}")
+                    print('PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST=fail')
+                    print(f'expected missing marker was not reported: {expected}')
                     return 1
             finally:
                 _write(path, original)
 
-    print("PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST=pass")
-    print(f"PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST_CASES={len(SELF_TEST_CASES)}")
+    print('PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST=pass')
+    print(f'PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST_CASES={len(SELF_TEST_CASES)}')
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the current Phase 3 low-level-wrapper compile-route packet."
+        description='Validate the current Phase 3 low-level-wrapper compile-route packet.'
     )
     parser.add_argument(
-        "--repo-root",
+        '--repo-root',
         type=Path,
-        default=Path("."),
-        help="repository root that contains the Phase 3 low-level-wrapper packet",
+        default=Path('.'),
+        help='repository root that contains the Phase 3 low-level-wrapper packet',
     )
-    parser.add_argument("--zig", help="path to zig executable")
-    parser.add_argument("--skip-exec", action="store_true")
-    parser.add_argument("--self-test", action="store_true")
+    parser.add_argument('--zig', help='path to zig executable')
+    parser.add_argument('--skip-exec', action='store_true')
+    parser.add_argument('--self-test', action='store_true')
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    zig = _resolve_tool(args.zig, "ZIG", "zig")
+    zig = _resolve_tool(args.zig, 'ZIG', 'zig')
     issues = validate_repo(args.repo_root, zig, skip_exec=args.skip_exec)
     if issues:
-        print("PHASE3_LOW_LEVEL_WRAPPERS=fail")
-        print("\n".join(issues))
+        print('PHASE3_LOW_LEVEL_WRAPPERS=fail')
+        print('\n'.join(issues))
         return 1
 
-    print(f"validated {args.repo_root / REPLAY_PATH}")
-    print(f"validated {args.repo_root / FOCUSED_BUILD_PATH}")
-    print(f"validated {args.repo_root / SHARED_BUILD_PATH}")
-    print(f"validated {args.repo_root / MAKEFILE_PATH}")
-    print(f"validated {args.repo_root / LAYOUT_ASSERT_HELPER_PATH}")
-    print(f"validated {args.repo_root / MMIO_HELPER_PATH}")
-    print(f"validated {args.repo_root / UNSAFE_POLICY_HELPER_PATH}")
-    print(f"validated {args.repo_root / NARROW_HELPER_PATH}")
+    print(f'validated {args.repo_root / REPLAY_PATH}')
+    print(f'validated {args.repo_root / FOCUSED_BUILD_PATH}')
+    print(f'validated {args.repo_root / SHARED_BUILD_PATH}')
+    print(f'validated {args.repo_root / MAKEFILE_PATH}')
+    print(f'validated {args.repo_root / ATOMIC_HELPER_PATH}')
+    print(f'validated {args.repo_root / BARRIER_HELPER_PATH}')
+    print(f'validated {args.repo_root / LAYOUT_ASSERT_HELPER_PATH}')
+    print(f'validated {args.repo_root / MMIO_HELPER_PATH}')
+    print(f'validated {args.repo_root / UNSAFE_POLICY_HELPER_PATH}')
+    print(f'validated {args.repo_root / NARROW_HELPER_PATH}')
     return 0
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     raise SystemExit(main())
