@@ -6,8 +6,12 @@ on:
   pull_request:
     paths:
       - 'scripts/zigux/check-lane05-archive-parts-packet.py'
+      - 'scripts/zigux/check-lane05-stage-helper-contract.py'
+      - 'scripts/zigux/check-lane05-stage-helper-selftest.py'
+      - 'scripts/zigux/stage-pinned-zig-archive.py'
       - 'scripts/zigux/zig-toolchain-policy.json'
       - 'third_party/**'
+      - '.github/workflows/zigux-bootstrap.yml'
       - '.github/workflows/zigux-bootstrap-archive-parts-packet.yml'
   workflow_dispatch:
 
@@ -40,3 +44,18 @@ jobs:
 
       - name: Check current Lane 05 archive parts packet
         run: python3 scripts/zigux/check-lane05-archive-parts-packet.py --allow-missing
+
+      - name: Self-test current staged pinned Zig archive helper
+        run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test
+
+      - name: Self-test current Lane 05 stage helper contract checker
+        run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test
+
+      - name: Check current Lane 05 stage helper contract packet
+        run: python3 scripts/zigux/check-lane05-stage-helper-contract.py
+
+      - name: Self-test current Lane 05 stage helper selftest checker
+        run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test
+
+      - name: Check current Lane 05 stage helper selftest packet
+        run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py
