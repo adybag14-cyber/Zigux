@@ -45,8 +45,10 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
 
 ## Repo-Reality Gaps
 
-- `PHASE2_CURRENT_GAP_PACKET=`
+- `PHASE2_CURRENT_GAP_PACKET=Documentation/zigux/phase2-kconfig-bridge-gap-survey.md`
+- current authenticated repo reads do not expose `scripts/kconfig/conf.c` or `scripts/kconfig/confdata.c` on `master`, so the shipped kconfig bridge packet remains fixture-backed rather than same-tree differential
+- the next same-family truthfulness pass should keep every kconfig reminder surface aligned with the live explicit `allconfig` override roster recorded in `zigux/tests/fixtures/kconfig_bridge/cases.json` and `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
 
 ## Next Step
 
-Keep the shared Phase 2 closure packet parked unless one shared reminder surface drifts again. If the `genksyms` lane resumes substantive implementation instead of closure upkeep, start with one smallest same-family step around the still-missing CRC-side evidence recorded in the survey rather than widening this shared note again.
+Keep the shared Phase 2 closure packet parked unless one shared reminder surface drifts again. If the kconfig bridge lane resumes substantive implementation instead of closure upkeep, start with one smallest same-family step that refreshes any stale `allconfig` reminder surface against the live kconfig bridge packet, then add a direct `conf.c` / `confdata.c` provenance anchor once those C sources are readable in-tree again on current `master`. If the `genksyms` lane resumes substantive implementation instead of closure upkeep, start with one smallest same-family step around the still-missing CRC-side evidence recorded in the survey rather than widening this shared note again.
