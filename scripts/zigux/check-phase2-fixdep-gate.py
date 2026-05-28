@@ -20,6 +20,7 @@ FIXDEP_CASES_REL = Path("zigux/tests/fixtures/fixdep/cases.json")
 FIXDEP_SURVEY_REL = Path("Documentation/zigux/phase2-fixdep-dual-implementation-survey.md")
 PHASE2_CLOSURE_REL = Path("Documentation/zigux/phase2-closure.md")
 TESTS_README_REL = Path("zigux/tests/README.md")
+SCRIPTS_README_REL = Path("scripts/zigux/README.md")
 MAKEFILE_REL = Path("zigux/Makefile")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 
@@ -31,6 +32,7 @@ REQUIRED_FILES = (
     FIXDEP_SURVEY_REL,
     PHASE2_CLOSURE_REL,
     TESTS_README_REL,
+    SCRIPTS_README_REL,
     MAKEFILE_REL,
     WORKFLOW_REL,
 )
@@ -263,6 +265,13 @@ TESTS_README_REQUIRED_MARKERS = (
     "`make -C zigux phase2-fixdep`",
 )
 
+SCRIPTS_README_REQUIRED_MARKERS = (
+    "## Phase 2",
+    "current fixdep packet stays reviewable through the dedicated governance guard, parity checker, and shipped `phase2-fixdep` wrapper",
+    "`scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `zigux/tests/fixtures/fixdep/cases.json`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` keep the current fixdep governance, determinism, helper, fixture, and CI packet explicit from the scripts root",
+    "`python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`, `python3 scripts/zigux/check-phase2-fixdep-gate.py`, `python3 scripts/zigux/check-fixdep-diff.py --self-test`, `python3 scripts/zigux/check-fixdep-diff.py`, `zig test scripts/zigux/fixdep.zig`, and `make -C zigux phase2-fixdep` replay the shipped fixdep lane without widening into unrelated Phase 2 surfaces",
+)
+
 REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
     "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
@@ -475,6 +484,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     survey_text = read_text(resolve(root, FIXDEP_SURVEY_REL))
     closure_text = read_text(resolve(root, PHASE2_CLOSURE_REL))
     tests_readme_text = read_text(resolve(root, TESTS_README_REL))
+    scripts_readme_text = read_text(resolve(root, SCRIPTS_README_REL))
     makefile_text = read_text(resolve(root, MAKEFILE_REL))
     workflow_text = read_text(resolve(root, WORKFLOW_REL))
 
@@ -519,6 +529,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             tests_readme_text,
             TESTS_README_REQUIRED_MARKERS,
             "MISSING_TESTS_README_MARKER",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            scripts_readme_text,
+            SCRIPTS_README_REQUIRED_MARKERS,
+            "MISSING_SCRIPTS_README_MARKER",
         )
     )
     issues.extend(
@@ -588,6 +605,7 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve(root, FIXDEP_SURVEY_REL), "\n".join(SURVEY_REQUIRED_MARKERS) + "\n")
     write_text(resolve(root, PHASE2_CLOSURE_REL), "\n".join(CLOSURE_REQUIRED_MARKERS) + "\n")
     write_text(resolve(root, TESTS_README_REL), "\n".join(TESTS_README_REQUIRED_MARKERS) + "\n")
+    write_text(resolve(root, SCRIPTS_README_REL), "\n".join(SCRIPTS_README_REQUIRED_MARKERS) + "\n")
     write_text(
         resolve(root, MAKEFILE_REL),
         ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2\n"
@@ -659,6 +677,12 @@ def run_self_test() -> int:
         path = resolve(root, FIXDEP_SURVEY_REL)
         path.write_text(read_text(path).replace(SURVEY_REQUIRED_MARKERS[0], "", 1), encoding="utf-8")
         assert ("MISSING_SURVEY_MARKER", SURVEY_REQUIRED_MARKERS[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, SCRIPTS_README_REL)
+        path.write_text(read_text(path).replace(SCRIPTS_README_REQUIRED_MARKERS[1], "", 1), encoding="utf-8")
+        assert ("MISSING_SCRIPTS_README_MARKER", SCRIPTS_README_REQUIRED_MARKERS[1]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
