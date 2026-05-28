@@ -16,6 +16,15 @@ ROUTE_POLICY_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate
 ROUTE_POLICY_ALIGNMENT = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-route-policy-selftest-alignment.py"
 )
+DIRECT_WORKFLOW_CHECKER = (
+    ROOT / "scripts" / "zigux" / "check-phase2-cross-direct-tool-manifest-workflow.py"
+)
+DIRECT_WORKFLOW_ALIGNMENT = (
+    ROOT
+    / "scripts"
+    / "zigux"
+    / "check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py"
+)
 SHARED_SURFACE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-shared-surface.py"
 SHARED_SURFACE_ALIGNMENT = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-shared-surface-selftest-alignment.py"
@@ -33,6 +42,12 @@ ROUTE_POLICY_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-route-policy-selftest-alignment.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-route-policy-selftest-alignment.py",
 )
+DIRECT_WORKFLOW_MAKEFILE_LINES = (
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-direct-tool-manifest-workflow.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-direct-tool-manifest-workflow.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py",
+)
 SHARED_SURFACE_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py",
@@ -46,6 +61,8 @@ REQUIRED_PATHS = (
     CONTRACT_ALIGNMENT,
     ROUTE_POLICY_CHECKER,
     ROUTE_POLICY_ALIGNMENT,
+    DIRECT_WORKFLOW_CHECKER,
+    DIRECT_WORKFLOW_ALIGNMENT,
     SHARED_SURFACE_CHECKER,
     SHARED_SURFACE_ALIGNMENT,
 )
@@ -55,6 +72,7 @@ REQUIRED_MAKEFILE_LINES = (
     *ROUTE_POLICY_MAKEFILE_LINES,
     "phase2-genksyms:",
     "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
+    *DIRECT_WORKFLOW_MAKEFILE_LINES,
     *SHARED_SURFACE_MAKEFILE_LINES,
 )
 REQUIRED_CROSS_TARGET = "phase2-cross:"
@@ -157,7 +175,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for marker in (*CONTRACT_MAKEFILE_LINES, *ROUTE_POLICY_MAKEFILE_LINES):
         if marker not in cross_commands:
             issues.append(("MISSING_CROSS_TARGET_COMMAND", marker))
-    for marker in SHARED_SURFACE_MAKEFILE_LINES:
+    for marker in (*DIRECT_WORKFLOW_MAKEFILE_LINES, *SHARED_SURFACE_MAKEFILE_LINES):
         if marker not in validate_commands:
             issues.append(("MISSING_VALIDATE_TARGET_COMMAND", marker))
 
@@ -167,6 +185,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues.extend(collect_block_order_issues("CONTRACT_BLOCK", CONTRACT_MAKEFILE_LINES, cross_commands))
     issues.extend(collect_block_order_issues("ROUTE_POLICY_BLOCK", ROUTE_POLICY_MAKEFILE_LINES, cross_commands))
     issues.extend(
+        collect_block_order_issues("DIRECT_WORKFLOW_BLOCK", DIRECT_WORKFLOW_MAKEFILE_LINES, validate_commands)
+    )
+    issues.extend(
         collect_block_order_issues("SHARED_SURFACE_BLOCK", SHARED_SURFACE_MAKEFILE_LINES, validate_commands)
     )
 
@@ -175,6 +196,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if route_policy_start <= contract_end:
         issues.append(("INVALID_ROUTE_POLICY_PLACEMENT", ",".join(ROUTE_POLICY_MAKEFILE_LINES)))
 
+    direct_workflow_end = max(validate_commands.index(marker) for marker in DIRECT_WORKFLOW_MAKEFILE_LINES)
+    shared_surface_start = min(validate_commands.index(marker) for marker in SHARED_SURFACE_MAKEFILE_LINES)
+    if shared_surface_start <= direct_workflow_end:
+        issues.append(("INVALID_SHARED_SURFACE_PLACEMENT", ",".join(SHARED_SURFACE_MAKEFILE_LINES)))
+
     for marker in SHARED_SURFACE_MAKEFILE_LINES:
         if marker in cross_commands:
             issues.append(("INVALID_SHARED_SURFACE_TARGET_PLACEMENT", marker))
@@ -182,6 +208,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for marker in (*CONTRACT_MAKEFILE_LINES, *ROUTE_POLICY_MAKEFILE_LINES):
         if marker in validate_commands:
             issues.append(("INVALID_CROSS_TARGET_PLACEMENT", marker))
+
+    for marker in DIRECT_WORKFLOW_MAKEFILE_LINES:
+        if marker in cross_commands:
+            issues.append(("INVALID_DIRECT_WORKFLOW_TARGET_PLACEMENT", marker))
 
     return issues
 
@@ -208,6 +238,7 @@ def build_sample_root(root: Path) -> None:
         "phase2-genksyms:",
         "\t@true",
         REQUIRED_VALIDATE_TARGET,
+        *[f"\t{line}" for line in DIRECT_WORKFLOW_MAKEFILE_LINES],
         *[f"\t{line}" for line in SHARED_SURFACE_MAKEFILE_LINES],
     ]
     write_text(resolve_path(root, MAKEFILE), "\n".join(makefile_lines) + "\n")
@@ -228,6 +259,15 @@ def run_self_test() -> int:
         makefile_path = resolve_path(root, MAKEFILE)
         makefile_path.write_text(
             read_text(makefile_path).replace(CONTRACT_MAKEFILE_LINES[0] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        assert run_check(root) == 1
+        checks += 1
+
+        build_sample_root(root)
+        makefile_path = resolve_path(root, MAKEFILE)
+        makefile_path.write_text(
+            read_text(makefile_path).replace(DIRECT_WORKFLOW_MAKEFILE_LINES[0] + "\n", "", 1),
             encoding="utf-8",
         )
         assert run_check(root) == 1
@@ -268,6 +308,32 @@ def run_self_test() -> int:
         build_sample_root(root)
         makefile_path = resolve_path(root, MAKEFILE)
         makefile_lines = read_text(makefile_path).splitlines()
+        direct_index = makefile_lines.index(f"\t{DIRECT_WORKFLOW_MAKEFILE_LINES[0]}")
+        next_index = makefile_lines.index(f"\t{DIRECT_WORKFLOW_MAKEFILE_LINES[1]}")
+        makefile_lines[direct_index], makefile_lines[next_index] = (
+            makefile_lines[next_index],
+            makefile_lines[direct_index],
+        )
+        makefile_path.write_text("\n".join(makefile_lines) + "\n", encoding="utf-8")
+        assert run_check(root) == 1
+        checks += 1
+
+        build_sample_root(root)
+        makefile_path = resolve_path(root, MAKEFILE)
+        makefile_lines = read_text(makefile_path).splitlines()
+        direct_tail = makefile_lines.index(f"\t{DIRECT_WORKFLOW_MAKEFILE_LINES[-1]}")
+        shared_head = makefile_lines.index(f"\t{SHARED_SURFACE_MAKEFILE_LINES[0]}")
+        makefile_lines[direct_tail], makefile_lines[shared_head] = (
+            makefile_lines[shared_head],
+            makefile_lines[direct_tail],
+        )
+        makefile_path.write_text("\n".join(makefile_lines) + "\n", encoding="utf-8")
+        assert run_check(root) == 1
+        checks += 1
+
+        build_sample_root(root)
+        makefile_path = resolve_path(root, MAKEFILE)
+        makefile_lines = read_text(makefile_path).splitlines()
         shared_index = makefile_lines.index(f"\t{SHARED_SURFACE_MAKEFILE_LINES[0]}")
         next_index = makefile_lines.index(f"\t{SHARED_SURFACE_MAKEFILE_LINES[1]}")
         makefile_lines[shared_index], makefile_lines[next_index] = (
@@ -292,7 +358,7 @@ def run_self_test() -> int:
         checks += 1
 
         build_sample_root(root)
-        resolve_path(root, SHARED_SURFACE_ALIGNMENT).unlink()
+        resolve_path(root, DIRECT_WORKFLOW_ALIGNMENT).unlink()
         assert run_check(root) == 1
         checks += 1
 
