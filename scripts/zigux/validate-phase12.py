@@ -127,7 +127,7 @@ REQUIRED_MARKERS = {
         "attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12 ZIG=<attached-zig-path>`",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
-        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, and the shipped wrapper name `make -C zigux phase12-validate`",
+        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, and the shipped wrapper name `make -C zigux phase12-validate`",
         "Keep the rollback-evidence-only `virtio_scsi` packet explicit through `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_virtio_scsi_survey_build.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py` while keeping that storage-facing rollback-evidence packet and its dedicated survey-build rerun outside the shared `smoke` and `test` build route.",
         "Keep the bounded NVMe foothold explicit through `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json` while leaving it outside the shared smoke-and-test route.",
     ],
@@ -303,14 +303,23 @@ FIXTURE_TITLES = {
 }
 
 
+def checker_fixture_text(exit_code: int = 0, output: str = "") -> str:
+    output_line = f"print({output!r})\n" if output else ""
+    return (
+        "#!/usr/bin/env python3\n"
+        "from __future__ import annotations\n\n"
+        "import argparse\n\n"
+        "parser = argparse.ArgumentParser()\n"
+        'parser.add_argument("--root")\n'
+        "parser.parse_args()\n"
+        f"{output_line}"
+        f"raise SystemExit({exit_code})\n"
+    )
+
+
 def fixture_text(rel_path: str) -> str:
     if rel_path in CHECKER_PATHS:
-        return (
-            "#!/usr/bin/env python3\n"
-            "from __future__ import annotations\n\n"
-            "if __name__ == '__main__':\n"
-            "    raise SystemExit(0)\n"
-        )
+        return checker_fixture_text()
 
     if rel_path == MAKEFILE_PATH:
         return "\n".join(REQUIRED_MARKERS[MAKEFILE_PATH]) + "\n"
@@ -371,6 +380,17 @@ def add_forbidden_marker(path: Path, marker: str) -> None:
     path.write_text(path.read_text(encoding="utf-8") + f"{marker}\n", encoding="utf-8")
 
 
+def expect_checker_failure(root: Path, rel_path: str) -> None:
+    failures = run_checker(root, rel_path)
+    expected_exit = f"phase12_checker_failed:{rel_path}:exit=1"
+    expected_output = f"phase12_checker_output:fixture checker failure: {rel_path}"
+    if expected_exit not in failures or expected_output not in failures:
+        raise SystemExit(
+            "expected checker failure not found: "
+            f"{rel_path}\nactual={failures!r}"
+        )
+
+
 def run_self_test() -> int:
     base = Path(tempfile.mkdtemp(prefix="phase12-validator-"))
     try:
@@ -405,7 +425,24 @@ def run_self_test() -> int:
             add_forbidden_marker(base / rel_path, marker)
             expect_failure(base, f"forbidden_marker:{rel_path}:{marker}")
 
-        case_count = len(missing_file_cases) + len(marker_cases) + len(forbidden_cases)
+        checker_failure_cases = list(CHECKER_PATHS)
+        for rel_path in checker_failure_cases:
+            write_fixture_root(base)
+            write_text(
+                base / rel_path,
+                checker_fixture_text(
+                    exit_code=1,
+                    output=f"fixture checker failure: {rel_path}",
+                ),
+            )
+            expect_checker_failure(base, rel_path)
+
+        case_count = (
+            len(missing_file_cases)
+            + len(marker_cases)
+            + len(forbidden_cases)
+            + len(checker_failure_cases)
+        )
         print("PHASE12_VALIDATOR_SELF_TEST=pass")
         print(f"PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
         return 0
