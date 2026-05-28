@@ -24,6 +24,10 @@ WORKFLOW_ORDERED_STEPS = (
     "      - name: Check current Phase 1 string review packet",
     "      - name: Self-test current Phase 1 find-bit review checker",
     "      - name: Check current Phase 1 find-bit review packet",
+    "      - name: Self-test current Phase 1 bitmap direct-anchor checker",
+    "      - name: Check current Phase 1 bitmap direct-anchor packet",
+    "      - name: Self-test current Phase 1 rbtree review checker",
+    "      - name: Check current Phase 1 rbtree review packet",
     "      - name: Self-test current Phase 1 route summary checker",
     "      - name: Check current Phase 1 route summary packet",
     "      - name: Self-test current Phase 1 bench checker",
@@ -52,6 +56,8 @@ EXACT_RUN_LINES = (
     "        run: python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py",
     "        run: python3 scripts/zigux/check-phase1-string-review-packet.py",
     "        run: python3 scripts/zigux/check-phase1-find-bit-review-packet.py",
+    "        run: python3 scripts/zigux/check-phase1-bitmap-direct-anchors.py",
+    "        run: python3 scripts/zigux/check-phase1-rbtree-review-packet.py",
     "        run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
     "        run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py",
     "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
@@ -74,6 +80,7 @@ CLOSURE_NOTE_MARKERS = (
     "- `PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
     "- `PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",
     "- `PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
+    "- `PHASE1_BITMAP_DIRECT_REVIEW=helper-local bitmap direct anchors stay explicit through the closure packet because the shared Phase 1 replay now already owns allocator sizing, zero-filled allocation words, copy/copy-clear-tail/copy-and-extend replay, logical operator outputs, range set/clear/fill/zero outcomes, scnprintf output, truncation, tiny-buffer handling, and partial-window xor replay, so current master keeps whole-word range edges, raw copy alias behavior, tail-clearing and extension semantics, zero and aligned copyAndExtend handling, zero-sized destination-view no-op coverage, zero-bit logical short-circuit coverage, exact-word-boundary equality fast-path masking, tail-masked predicate behavior, out-of-range tail-bit full or empty or weight masking, caller-window xor and or clamping, multiword-tail xor and or clamp witnesses, weighted tail-count clamping, terminator-only and zero-length caller-view formatting, empty-bitmap caller-buffer preservation, Linux-style alias mirror coverage, and allocator optional-reset coverage review-visible at the helper surface`",
     "- `PHASE1_FIND_BIT_REVIEW_GUARD=python3 scripts/zigux/check-phase1-find-bit-review-packet.py exact-checks helper-local find_bit anchors plus the committed tail-clamped and tail-inclusive-boundary replay packet across the helper, closure note, lane note, manifest, and fixture`",
     "- `PHASE1_RBTREE_REVIEW_GUARD=python3 scripts/zigux/check-phase1-rbtree-review-packet.py exact-checks helper-local rbtree anchors plus the committed duplicate-search and cached-leftmost replay packet across the helper, closure note, lane note, manifest, fixture, and shared smoke route`",
     "- `PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py exact-checks the current direct-anchor helper manifest packet for bitmap, find_bit, rbtree, and string and then reruns the dedicated rbtree direct-anchor checker`",
@@ -144,8 +151,8 @@ def collect_failures(root: Path) -> list[str]:
                 f"slot_order:self_test_index={slot_self_index}:packet_index={slot_packet_index}"
             )
         else:
-            route_summary_index = find_index(workflow_lines, WORKFLOW_ORDERED_STEPS[11])
-            bench_index = find_index(workflow_lines, WORKFLOW_ORDERED_STEPS[12])
+            route_summary_index = find_index(workflow_lines, WORKFLOW_ORDERED_STEPS[15])
+            bench_index = find_index(workflow_lines, WORKFLOW_ORDERED_STEPS[16])
             if route_summary_index != -1 and slot_self_index <= route_summary_index:
                 failures.append(
                     f"slot_position:self_test_index={slot_self_index}:route_summary_index={route_summary_index}"
@@ -205,6 +212,14 @@ def build_sample_workflow(include_slot_steps: bool = False) -> str:
         "        run: python3 scripts/zigux/check-phase1-find-bit-review-packet.py --self-test",
         "      - name: Check current Phase 1 find-bit review packet",
         "        run: python3 scripts/zigux/check-phase1-find-bit-review-packet.py",
+        "      - name: Self-test current Phase 1 bitmap direct-anchor checker",
+        "        run: python3 scripts/zigux/check-phase1-bitmap-direct-anchors.py --self-test",
+        "      - name: Check current Phase 1 bitmap direct-anchor packet",
+        "        run: python3 scripts/zigux/check-phase1-bitmap-direct-anchors.py",
+        "      - name: Self-test current Phase 1 rbtree review checker",
+        "        run: python3 scripts/zigux/check-phase1-rbtree-review-packet.py --self-test",
+        "      - name: Check current Phase 1 rbtree review packet",
+        "        run: python3 scripts/zigux/check-phase1-rbtree-review-packet.py",
         "      - name: Self-test current Phase 1 route summary checker",
         "        run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
         "      - name: Check current Phase 1 route summary packet",
@@ -325,10 +340,13 @@ def run_self_test() -> int:
         ("success_slot_wired", None, True),
         ("missing_workflow", ("remove_file", WORKFLOW_REL), False),
         ("missing_closure_note", ("remove_file", CLOSURE_NOTE_REL), False),
-        ("missing_route_summary_packet", ("remove_line", WORKFLOW_REL, WORKFLOW_ORDERED_STEPS[11]), False),
-        ("duplicate_smoke_step", ("duplicate_line", WORKFLOW_REL, WORKFLOW_ORDERED_STEPS[22]), False),
-        ("phase3_phase1_smoke_swap", ("swap_lines", WORKFLOW_ORDERED_STEPS[21], WORKFLOW_ORDERED_STEPS[22]), False),
+        ("missing_bitmap_packet", ("remove_line", WORKFLOW_REL, WORKFLOW_ORDERED_STEPS[10]), False),
+        ("missing_rbtree_packet", ("remove_line", WORKFLOW_REL, WORKFLOW_ORDERED_STEPS[13]), False),
+        ("missing_route_summary_packet", ("remove_line", WORKFLOW_REL, WORKFLOW_ORDERED_STEPS[15]), False),
+        ("duplicate_smoke_step", ("duplicate_line", WORKFLOW_REL, WORKFLOW_ORDERED_STEPS[26]), False),
+        ("phase3_phase1_smoke_swap", ("swap_lines", WORKFLOW_ORDERED_STEPS[25], WORKFLOW_ORDERED_STEPS[26]), False),
         ("forbidden_viability_step", ("add_line", WORKFLOW_REL, FORBIDDEN_WORKFLOW_LINES[0]), False),
+        ("missing_bitmap_marker", ("remove_marker", CLOSURE_NOTE_MARKERS[3]), False),
         ("missing_closure_validator_marker", ("remove_marker", CLOSURE_NOTE_MARKERS[0]), False),
         ("forbidden_old_closure_marker", ("add_marker", FORBIDDEN_CLOSURE_MARKERS[0]), False),
         ("slot_pair_incomplete", ("add_line", WORKFLOW_REL, OPTIONAL_SLOT_STEPS[0]), False),
