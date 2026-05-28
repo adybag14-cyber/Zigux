@@ -61,6 +61,8 @@ REQUIRED_FILES = [
 SLICE_MARKERS = [
     "`scripts/zigux/check-phase13-devres-current-packet.py` keeps the same-lane survey, planner, helper, replay, and checker surfaces aligned before widening into any missing non-posted or arch-memtype helper work",
     "the dedicated packet checkers, and the new current-packet checker",
+    "helper-local arch-WC add or detach-cleanup footholds",
+    "`planManagedArchPhysWcAdd(...)` and `planManagedArchPhysWcDetachCleanup(...)` as helper-local arch-WC footholds",
     "rerun `python3 scripts/zigux/check-phase13-devres-current-packet.py` before widening anything else",
 ]
 
@@ -282,6 +284,22 @@ def run_self_test() -> int:
             validate(root),
             ["slice:missing_marker:rerun `python3 scripts/zigux/check-phase13-devres-current-packet.py` before widening anything else"],
             "missing_slice_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / SLICE_PATH,
+            "\n".join(
+                marker
+                for marker in SLICE_MARKERS
+                if marker != "`planManagedArchPhysWcAdd(...)` and `planManagedArchPhysWcDetachCleanup(...)` as helper-local arch-WC footholds"
+            ) + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["slice:missing_marker:`planManagedArchPhysWcAdd(...)` and `planManagedArchPhysWcDetachCleanup(...)` as helper-local arch-WC footholds"],
+            "missing_slice_arch_wc_marker_failed",
         )
         case_count += 1
 
