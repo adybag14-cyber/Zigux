@@ -47,6 +47,7 @@ PHASE1_HELPERS_BUILD_REL = Path("zigux/tests/phase1_helpers_build.zig")
 PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+HELPERS_FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 ZIGUX_MAKEFILE_REL = Path("zigux/Makefile")
 BITMAP_HELPER_REL = Path("tools/lib/bitmap.zig")
 FIND_BIT_HELPER_REL = Path("tools/lib/find_bit.zig")
@@ -76,6 +77,7 @@ REQUIRED_FILES = (
     PHASE1_SMOKE_REL,
     WORKFLOW_REL,
     MANIFEST_REL,
+    HELPERS_FIXTURE_REL,
     ZIGUX_MAKEFILE_REL,
     BITMAP_HELPER_REL,
     FIND_BIT_HELPER_REL,
@@ -227,6 +229,25 @@ EXPECTED_RBTREE_REVIEW_ANCHORS = {
     ],
     "review_packet_summary": "the current shared host-tools smoke replay keeps duplicate-range iteration and the exact `cached_leftmost_return_serials` cached-root leftmost-return witness visible for rbtree, while the committed Phase 1 fixture still carries the exact traversal, detached-node, duplicate-search, and cached-leftmost-return witnesses; direct helper-local anchors continue to own cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed paths that the shared smoke route does not replay exactly",
     "next_safe_step_note": "If this helper lane reopens, keep the already-landed shared-replay promotion for `cached_leftmost_return_serials` aligned across the committed fixture, shared replay, and direct cached-root anchors; the ordered Linux-style alias proof, dedicated `low_level_alias_anchor`, and the remaining cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior stay owned by direct helper-local anchors until another committed cached-root field lands.",
+}
+
+EXPECTED_RBTREE_FIXTURE_FIELDS = {
+    "empty_root": True,
+    "insert_order": [5, 10, 15, 20, 25],
+    "reverse_order": [25, 20, 15, 10, 5],
+    "replace_order": [5, 10, 15, 25],
+    "erase_init_order": [5, 15, 25],
+    "postorder_count": 3,
+    "erase_init_node_empty": True,
+    "cleared_node_empty": True,
+    "find_found_key": 15,
+    "find_missing": True,
+    "find_first_serial": 0,
+    "next_match_serials": [0, 2, 4],
+    "match_iterator_serials": [0, 2, 4],
+    "cached_leftmost_return_serials": [0, -1, 2, -1],
+    "cached_root_transition_serials": [0, 0, 4, 2],
+    "next_match_terminal_null": True,
 }
 
 EXPECTED_BITMAP_REVIEW_ANCHORS = {
@@ -406,6 +427,14 @@ def collect_failures(root: Path) -> list[str]:
     failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/rbtree.zig", review_anchors.get("tools/lib/rbtree.zig"), EXPECTED_RBTREE_REVIEW_ANCHORS))
     failures.extend(require_expected_mapping(f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/string.zig", review_anchors.get("tools/lib/string.zig"), EXPECTED_STRING_REVIEW_ANCHORS))
 
+    try:
+        helpers_fixture = json.loads(load_text(root, HELPERS_FIXTURE_REL))
+    except json.JSONDecodeError as exc:
+        return [f"{HELPERS_FIXTURE_REL.as_posix()}:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}"]
+    if not isinstance(helpers_fixture, dict):
+        return [f"{HELPERS_FIXTURE_REL.as_posix()}:expected=dict:actual={type(helpers_fixture).__name__}"]
+    failures.extend(require_expected_mapping(f"{HELPERS_FIXTURE_REL.as_posix()}:rbtree", helpers_fixture.get("rbtree"), EXPECTED_RBTREE_FIXTURE_FIELDS))
+
     for script_rel, label in DELEGATED_CHECKERS:
         failures.extend(run_checker(root, script_rel, label))
 
@@ -456,6 +485,16 @@ def make_fixture_tree(root: Path) -> None:
         )
         + "\n",
     )
+    write_text(
+        root / HELPERS_FIXTURE_REL,
+        json.dumps(
+            {
+                "rbtree": EXPECTED_RBTREE_FIXTURE_FIELDS,
+            },
+            indent=2,
+        )
+        + "\n",
+    )
 
     for checker_rel, _ in DELEGATED_CHECKERS:
         make_checker_stub(root / checker_rel)
@@ -473,6 +512,20 @@ def mutate_bad_review_value(root: Path, helper: str, key: str) -> None:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     manifest["review_anchors"][helper][key] = "drifted value"
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+
+def mutate_remove_fixture_key(root: Path, group: str, key: str) -> None:
+    fixture_path = root / HELPERS_FIXTURE_REL
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+    del fixture[group][key]
+    fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+
+
+def mutate_bad_fixture_value(root: Path, group: str, key: str) -> None:
+    fixture_path = root / HELPERS_FIXTURE_REL
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+    fixture[group][key] = "drifted value"
+    fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
 
 
 def insert_duplicate_manifest_line(root: Path, needle: str, duplicate_line: str) -> None:
@@ -525,6 +578,10 @@ def run_self_test() -> int:
         ("missing_rbtree_cached_root_alias_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/rbtree.zig", "cached_root_alias_anchor")),
         ("stale_rbtree_shared_replay_summary", lambda root: mutate_bad_review_value(root, "tools/lib/rbtree.zig", "shared_replay_summary")),
         ("stale_rbtree_cached_root_direct_review_summary", lambda root: mutate_bad_review_value(root, "tools/lib/rbtree.zig", "cached_root_direct_review_summary")),
+        ("missing_rbtree_cached_leftmost_fixture_key", lambda root: mutate_remove_fixture_key(root, "rbtree", "cached_leftmost_return_serials")),
+        ("stale_rbtree_cached_leftmost_fixture_key", lambda root: mutate_bad_fixture_value(root, "rbtree", "cached_leftmost_return_serials")),
+        ("missing_rbtree_transition_fixture_key", lambda root: mutate_remove_fixture_key(root, "rbtree", "cached_root_transition_serials")),
+        ("stale_rbtree_transition_fixture_key", lambda root: mutate_bad_fixture_value(root, "rbtree", "cached_root_transition_serials")),
         ("missing_bitmap_or_window_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "or_window_anchor")),
         ("missing_bitmap_copy_raw_alias_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "copy_raw_alias_anchor")),
         ("missing_bitmap_final_partial_word_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "final_partial_word_anchor")),
