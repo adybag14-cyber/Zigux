@@ -21,6 +21,7 @@ def infer_repo_root() -> Path:
 ROOT = infer_repo_root()
 
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
+BUILD_INVENTORY_CHECKER_PATH = "scripts/zigux/check-phase12-build-inventory.py"
 RELEASE_READINESS_CHECKER_PATH = (
     "scripts/zigux/check-phase12-release-readiness-packet.py"
 )
@@ -158,6 +159,7 @@ STALE_SHARED_ROUTE_MARKERS = [
 
 REQUIRED_FILES = [
     BUILD_ONLY_CHECKER_PATH,
+    BUILD_INVENTORY_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
     VALIDATOR_PATH,
     DOCS_ROOT_README_PATH,
@@ -189,6 +191,7 @@ REQUIRED_FILES = [
 REQUIRED_MARKERS = {
     VALIDATOR_PATH: [
         BUILD_ONLY_CHECKER_PATH,
+        BUILD_INVENTORY_CHECKER_PATH,
         RELEASE_READINESS_CHECKER_PATH,
         "make -C zigux phase12-validate",
         "stale reminder vocabulary",
@@ -238,6 +241,10 @@ REQUIRED_MARKERS = {
         "        run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
         "- name: Check current Phase 12 build-only surface",
         "        run: python3 scripts/zigux/check-build-only-phase12-surface.py",
+        "- name: Self-test current Phase 12 build inventory checker",
+        "        run: python3 scripts/zigux/check-phase12-build-inventory.py --self-test",
+        "- name: Check current Phase 12 build inventory packet",
+        "        run: python3 scripts/zigux/check-phase12-build-inventory.py",
         "- name: Self-test current Phase 12 release-readiness packet checker",
         "        run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
         "- name: Check current Phase 12 release-readiness packet",
@@ -798,7 +805,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current bounded Phase 12 build-only contract around the "
-            "returned smoke-and-test wrappers, the docs-root, review-checklist, "
+            "returned smoke-and-test wrappers, the build-inventory contract, the docs-root, review-checklist, "
             "release-sequencing, scripts-root, tests-root, and closure-checklist "
             "degraded fallback wording, the two fallback-note smoke-order reminders, "
             "and the split-helper virtio_net packet."
