@@ -17,7 +17,7 @@ Lane: `P2-L01`
 - The shared reminder packet in `Documentation/zigux/phase2-closure.md` and `zigux/tests/README.md` now also treats the fixdep helper, parity checker, fixture roster, and wrapper route as current repo evidence.
 - Those same shared reminder surfaces still do not enumerate `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md` alongside the genksyms survey, so the fixdep dual-implementation survey itself remains outside the shared Phase 2 reminder packet.
 - Current `master` now directly serves `Documentation/zigux/artifact-diff.md`, so the older reminder-side companion gap recorded in this survey is no longer live.
-- The live helper still keeps one open behavior-local parity gap: `describeFileReadError()` already maps `error.PermissionDenied` to `Permission denied`, but `captureOpenDependencyFileError()` still omits `error.PermissionDenied` from the dedicated `fixdep: error opening file:` path capture set.
+- Current `scripts/zigux/fixdep.zig` already captures `error.PermissionDenied` on the dedicated `fixdep: error opening file:` path, and the live helper also carries a focused regression test for that branch.
 - Exact-path authenticated contents reads still return missing for `scripts/basic/fixdep.c`, so the roadmap's C-side anchor remains unreadable through the primary repo-read path used for this survey refresh.
 
 ## Survey result
@@ -25,13 +25,14 @@ Lane: `P2-L01`
 - The roadmap-backed Zigux-side fixdep packet is currently present on `master`.
 - The live repo no longer supports the older survey claim that the fixdep fixture packet stops at twelve external cases. The bounded fixdep packet is now thirteen cases wide and already includes the later dependency-continuation, comment-continuation, and double-backslash-comment parity paths.
 - The live repo also no longer supports the older survey claim that `Documentation/zigux/artifact-diff.md` is missing: current authenticated contents readback now returns that reminder-side companion directly on `master`.
-- The honest remaining repo-versus-roadmap gap is not just read-path friction around the C anchor. Current `scripts/zigux/fixdep.zig` still carries a helper-local `PermissionDenied` open-error classification hole, the roadmap C-side anchor `scripts/basic/fixdep.c` still remains unreadable through authenticated exact-path contents reads in this runtime, and the shared Phase 2 closure and tests-root reminders still do not enumerate this fixdep survey even though they already enumerate the genksyms survey.
-- The honest lane result is therefore another survey-note truthfulness refresh and parking pass, not a new fixdep behavior, fixture, or route implementation. The implementation follow-through for the `PermissionDenied` branch belongs to the adjacent same-file behavior lane, while the shared reminder follow-through for the missing survey pointer belongs to the shared Phase 2 reminder lane rather than this survey lane.
+- The live repo no longer supports the older survey claim that the helper still omits `error.PermissionDenied` from the dedicated open-file capture set. Current `scripts/zigux/fixdep.zig` already captures that branch and ships a focused regression test for it.
+- The honest remaining repo-versus-roadmap gap is now narrower: the roadmap C-side anchor `scripts/basic/fixdep.c` still remains unreadable through authenticated exact-path contents reads in this runtime, and the shared Phase 2 closure and tests-root reminders still do not enumerate this fixdep survey even though they already enumerate the genksyms survey.
+- The honest lane result is therefore a survey-truthfulness refresh plus lane-local gate follow-through, not a new fixdep behavior, fixture, or route implementation. The shared reminder follow-through for the missing survey pointer still belongs to the shared Phase 2 reminder lane rather than this survey lane.
 
 ## Next bounded same-family step
 
 1. Keep `P2-L01` parked unless a fresh current-`master` reread finds new repo-versus-roadmap drift inside the fixdep helper, checker, fixture, or route packet.
 2. If the shared Phase 2 reminder lane reopens, wire `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md` into `Documentation/zigux/phase2-closure.md` and `zigux/tests/README.md` before widening the fixdep family again.
-3. Once the adjacent same-file behavior lane lands the missing `error.PermissionDenied` capture and its focused regression proof, refresh this survey note once so it no longer understates the remaining gap set.
-4. If a future current-head reread makes `scripts/basic/fixdep.c` directly readable through the authenticated exact-path contents route again, refresh this survey note to retire the degraded-read gap.
+3. If a future current-head reread makes `scripts/basic/fixdep.c` directly readable through the authenticated exact-path contents route again, refresh this survey note to retire the degraded-read gap.
+4. If a future fixdep behavior lane widens the helper-local regression packet again, keep the gate and survey aligned in the same run so the survey does not fall behind landed code.
 5. Do not widen from this survey into genksyms, kconfig, parser behavior, or shared Phase 2 reminder maintenance.
