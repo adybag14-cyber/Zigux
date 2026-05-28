@@ -127,6 +127,43 @@ static inline struct zigux_export_status zigux_uapi_validate_boundary_header(
         (uint16_t)ZIGUX_FACILITY_KERNEL);
 }
 
+static inline int zigux_uapi_interop_policy_is_recognized(
+    struct zigux_interop_policy policy)
+{
+    return zigux_interop_policy_is_recognized(policy);
+}
+
+static inline struct zigux_export_status zigux_uapi_validate_interop_policy(
+    struct zigux_interop_policy policy)
+{
+    if (zigux_uapi_interop_policy_is_recognized(policy))
+        return zigux_ok_status((uint16_t)ZIGUX_FACILITY_KERNEL);
+    return zigux_make_status(
+        (int32_t)ZIGUX_UAPI_INVALID_ARGUMENT,
+        (uint16_t)ZIGUX_FACILITY_KERNEL);
+}
+
+static inline int zigux_uapi_rbtree_root_view_is_valid(zigux_rbtree_root_view view)
+{
+    return zigux_rbtree_root_view_is_valid(view);
+}
+
+static inline zigux_rbtree_root_view zigux_uapi_rbtree_root_view_canonicalize(
+    zigux_rbtree_root_view view)
+{
+    return zigux_rbtree_root_view_canonicalize(view);
+}
+
+static inline struct zigux_export_status zigux_uapi_validate_rbtree_root_view(
+    zigux_rbtree_root_view view)
+{
+    if (zigux_uapi_rbtree_root_view_is_valid(view))
+        return zigux_ok_status((uint16_t)ZIGUX_FACILITY_KERNEL);
+    return zigux_make_status(
+        (int32_t)ZIGUX_UAPI_INVALID_ARGUMENT,
+        (uint16_t)ZIGUX_FACILITY_KERNEL);
+}
+
 static inline int zigux_uapi_facility_is_known(uint16_t facility)
 {
     return zigux_facility_is_known(facility);
