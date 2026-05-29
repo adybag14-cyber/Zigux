@@ -54,6 +54,7 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE3_POLICY_PACKET_GATE=python3 scripts/zigux/check-phase3-policy-starter-packet.py",
     "PHASE3_POLICY_PACKET_TEST_GATE=zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "PHASE3_POLICY_DUMP_GATE=python3 scripts/zigux/check-phase3-policy-dump.py",
+    "PHASE3_POLICY_UNSAFE_REPLAY_GATE=python3 scripts/zigux/check-phase3-policy-unsafe-replay.py",
     "PHASE3_POLICY_PACKET_MAKE_GATE=make -C zigux phase3-policy-starter-packet-test",
     "PHASE3_POLICY_DUMP_MAKE_GATE=make -C zigux phase3-policy-dump",
     "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
@@ -187,6 +188,7 @@ REQUIRED_FILE_MARKERS = {
         'test "phase3 policy unsafe replay keeps helper and narrow gates aligned" {',
         'test "phase3 policy unsafe replay keeps require gates fail closed" {',
         'test "phase3 policy unsafe replay keeps policy consequences explicit" {',
+        'test "phase3 policy unsafe replay keeps raw-pointer windows bounded" {',
     ),
     POLICY_UNSAFE_REPLAY_BUILD_PATH: (
         '.root_source_file = b.path("phase3_policy_unsafe.zig"),',
@@ -208,12 +210,13 @@ REQUIRED_FILE_MARKERS = {
 
 SELF_TEST_CASES = (
     ("missing survey gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[7], "marker"),
-    ("missing low-level wrapper test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[15], "marker"),
-    ("missing policy-unsafe make gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[16], "marker"),
-    ("missing next-step marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[17], "marker"),
-    ("missing dedicated replay path marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[19], "marker"),
-    ("missing dedicated replay build marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[20], "marker"),
-    ("missing policy-unsafe workflow paragraph", NOTE_PATH, REQUIRED_NOTE_MARKERS[22], "marker"),
+    ("missing policy-unsafe replay gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[12], "marker"),
+    ("missing low-level wrapper test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[16], "marker"),
+    ("missing policy-unsafe make gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[17], "marker"),
+    ("missing next-step marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[18], "marker"),
+    ("missing dedicated replay path marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[20], "marker"),
+    ("missing dedicated replay build marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[21], "marker"),
+    ("missing policy-unsafe workflow paragraph", NOTE_PATH, REQUIRED_NOTE_MARKERS[23], "marker"),
     (
         "layout assert blob drift",
         LAYOUT_ASSERT_PATH,
@@ -258,6 +261,12 @@ SELF_TEST_CASES = (
         "missing policy replay consequence proof",
         POLICY_UNSAFE_REPLAY_PATH,
         REQUIRED_FILE_MARKERS[POLICY_UNSAFE_REPLAY_PATH][3],
+        "marker",
+    ),
+    (
+        "missing raw-pointer window replay proof",
+        POLICY_UNSAFE_REPLAY_PATH,
+        REQUIRED_FILE_MARKERS[POLICY_UNSAFE_REPLAY_PATH][4],
         "marker",
     ),
     (
