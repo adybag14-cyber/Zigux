@@ -12,10 +12,12 @@ CHECK_NAME = "PHASE12_CROSS_COMPILE_SMOKE"
 
 NOTE_PATH = Path("Documentation/zigux/phase12-cross-compile-smoke.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_FILES = (
     NOTE_PATH,
     MAKEFILE_PATH,
+    WORKFLOW_PATH,
 )
 
 NOTE_MARKERS = (
@@ -34,6 +36,13 @@ MAKEFILE_MARKERS = (
     "phase12-virtio-net-throughput-parity-test:",
     "$(ZIG) build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all",
     "phase12: phase12-validate phase12-smoke phase12-test",
+)
+
+WORKFLOW_MARKERS = (
+    "- name: Self-test current Phase 12 cross-compile smoke checker",
+    "run: python3 scripts/zigux/check-phase12-cross-compile-smoke.py --self-test",
+    "- name: Check current Phase 12 cross-compile smoke packet",
+    "run: python3 scripts/zigux/check-phase12-cross-compile-smoke.py",
 )
 
 FORBIDDEN_NOTE_MARKERS = (
@@ -73,6 +82,7 @@ def check(root: Path) -> None:
     require_markers(note_text, NOTE_MARKERS, str(NOTE_PATH))
     require_absent(note_text, FORBIDDEN_NOTE_MARKERS, str(NOTE_PATH))
     require_markers(read_text(root, MAKEFILE_PATH), MAKEFILE_MARKERS, str(MAKEFILE_PATH))
+    require_markers(read_text(root, WORKFLOW_PATH), WORKFLOW_MARKERS, str(WORKFLOW_PATH))
 
 
 def write_fixture(root: Path) -> None:
@@ -84,6 +94,7 @@ def write_fixture(root: Path) -> None:
             "",
         )),
         MAKEFILE_PATH: "\n".join(MAKEFILE_MARKERS) + "\n",
+        WORKFLOW_PATH: "\n".join(WORKFLOW_MARKERS) + "\n",
     }
     for relative_path, text in files.items():
         path = root / relative_path
@@ -135,6 +146,17 @@ def run_self_test() -> int:
             cases += 1
         else:
             raise AssertionError("expected makefile marker failure")
+
+        write_fixture(root)
+        (root / WORKFLOW_PATH).write_text("broken\n", encoding="utf-8")
+        try:
+            check(root)
+        except CheckFailure as exc:
+            if "zigux-bootstrap.yml" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected workflow marker failure")
 
         write_fixture(root)
         path = root / NOTE_PATH
