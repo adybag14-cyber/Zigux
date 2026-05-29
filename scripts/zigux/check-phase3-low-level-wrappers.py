@@ -68,6 +68,7 @@ REQUIRED_MARKERS = {
         'phase3-low-level-wrappers-test:',
         '$(ZIG) build phase3-low-level-wrappers --build-file zigux/tests/build.zig',
         '$(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig',
+        'phase3: phase3-validate phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase3-policy-unsafe-test phase3-test phase3-policy-dump phase3-dump',
     ),
     ATOMIC_HELPER_PATH: (
         'pub fn validateCompareExchangeOrders(',
@@ -134,6 +135,7 @@ SELF_TEST_CASES = (
     (FOCUSED_BUILD_PATH, 'root_module.addImport("unsafe_policy", unsafe_policy);'),
     (FOCUSED_BUILD_PATH, 'root_module.addImport("narrow", narrow);'),
     (SHARED_BUILD_PATH, 'phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);'),
+    (MAKEFILE_PATH, 'phase3: phase3-validate phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase3-policy-unsafe-test phase3-test phase3-policy-dump phase3-dump'),
     (LAYOUT_ASSERT_HELPER_PATH, 'pub fn assertMmioRangeLayout() LayoutError!void {'),
     (MMIO_HELPER_PATH, 'pub fn readAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!T {'),
     (UNSAFE_POLICY_HELPER_PATH, 'pub fn permitsRawPointerBridgeByte(scope: u8) bool {'),
@@ -146,7 +148,7 @@ def _read(path: Path) -> str:
 
 
 def _write(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+    path.parent.mkdir(parents=True)
     path.write_text(text, encoding="utf-8")
 
 
