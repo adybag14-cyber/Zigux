@@ -7,8 +7,27 @@
     "Latest visible master commit on 2026-05-25 public GitHub commit readback: aba08e207f1742838c4b96b151b0a12d340b3676 (docs(zigux): restore phase10 validator in closure evidence).",
     "Current readable zigux/Makefile still exposes make -C zigux phase14-validate but does not expose make -C zigux phase14-smoke, make -C zigux phase14-test, or make -C zigux phase14.",
     "Current readable .github/workflows/zigux-bootstrap.yml still reruns make -C zigux phase14-validate and does not rerun a dedicated Phase 14 build or smoke-shard workflow step.",
-    "Current readable shared smoke manifest still records zig build phase14-smoke --build-file zigux/tests/phase14_build.zig only as a focused raw build-file shard, not as a Makefile-backed shared smoke route."
+    "Current readable shared smoke manifest still records zig build phase14-smoke --build-file zigux/tests/phase14_build.zig only as a focused raw build-file shard, not as a Makefile-backed shared smoke route.",
+    "P14-L05 current-master readback on 2026-05-29 confirmed the returned smoke route remains bounded to make -C zigux phase14-validate, with no phase14-smoke, phase14-test, or phase14 Makefile wrapper promoted."
   ],
+  "p14_l05_anti_regression_readback": {
+    "readback_on": "2026-05-29",
+    "scope": "end-to-end smoke lane validation evidence for existing Phase 14 work",
+    "shared_smoke_route_checker_sha": "f2bb6d69a9ba2051fc91ee20fa965f8635a6e7c1",
+    "phase14_validator_sha": "c1f45e1b6029c5435c0bcc13b1e45dff9d86d246",
+    "phase14_tests_readme_smoke_summary_checker_sha": "d2d7f587cadb2c479c5acdc2d96c569cf817cbcd",
+    "phase14_makefile_sha": "b590ef1bb4a3ddd6a817734ee2241442e8935927",
+    "phase14_workflow_sha": "5bdb136b8b6710c08c19566879d5a9da42b63445",
+    "manifest_sha_before_readback": "4fdee52d122e7d2651e5f51de3b80d8b4e5c1051",
+    "route_status": "bounded_validate_route_only",
+    "confirmed_absent_routes": [
+      "make -C zigux phase14-smoke",
+      "make -C zigux phase14-test",
+      "make -C zigux phase14"
+    ],
+    "observed_checker_gap": "scripts/zigux/validate-phase14.py already runs the ring-buffer compile-route checker and this manifest already records the ring-buffer summary booleans, but scripts/zigux/check-phase14-shared-smoke-route.py currently fail-closes only the validator-side skbuff and RCU compile-route calls.",
+    "next_checker_only_repair": "Teach scripts/zigux/check-phase14-shared-smoke-route.py to require RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH, its run_guardrail_checker call, and the existing phase14_validate_runs_ring_buffer_compile_route_checker plus shared_manifest_records_ring_buffer_compile_route_checker manifest booleans."
+  },
   "productization": {
     "owner": "Core-Adjacent Pod",
     "status_bucket": "study_only",
