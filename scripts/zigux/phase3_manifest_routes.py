@@ -26,14 +26,27 @@ def load_manifest_python_routes(
 
     replay_routes = manifest.get("replay_routes")
     if not isinstance(replay_routes, list):
-        return set(), []
+        return set(), [
+            f"phase3 manifest replay_routes is not a list: {manifest_path.as_posix()}"
+        ]
 
     expected: set[tuple[Path, tuple[str, ...]]] = set()
-    for route in replay_routes:
+    issues: list[str] = []
+    for index, route in enumerate(replay_routes):
         if not isinstance(route, str):
+            issues.append(
+                "phase3 manifest replay_routes has non-string entry "
+                f"at index {index}: {route!r}"
+            )
             continue
         parts = shlex.split(route)
-        if len(parts) < 2 or parts[0] != "python3":
+        if not parts or parts[0] != "python3":
+            continue
+        if len(parts) < 2:
+            issues.append(
+                "phase3 manifest python replay route missing script path "
+                f"at index {index}: {route!r}"
+            )
             continue
         args = tuple(parts[2:])
         has_selftest = "--self-test" in args
@@ -41,8 +54,12 @@ def load_manifest_python_routes(
             continue
         script_path = Path(parts[1])
         if script_path.parts[:2] != ("scripts", "zigux") or script_path.suffix != ".py":
+            issues.append(
+                "phase3 manifest python replay route outside scripts/zigux "
+                f"at index {index}: {route!r}"
+            )
             continue
         if script_path in ignored_scripts:
             continue
         expected.add((script_path, args))
-    return expected, []
+    return expected, issues
