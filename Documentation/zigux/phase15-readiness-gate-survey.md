@@ -80,6 +80,13 @@ These directly readable paths are enough to support maintenance-mode truthfulnes
 
 `zigux/tests/phase15_readiness_gap_matrix.json` keeps the remaining Phase 15 readiness posture explicit as requirement-to-evidence rows rather than leaving the roadmap and ledger comparison buried in prose.
 
+The matrix now also carries a `release_evidence` section and `release_evidence_count=4`, tying the readiness claim to these directly readable release surfaces:
+
+- `scripts/zigux/validate-phase15.py`
+- `scripts/zigux/check-phase15-readiness-gate-packet.py`
+- `zigux/tests/phase15_build.zig`
+- `zigux/tests/phase15_readiness_gap_matrix.json`
+
 Its current bounded conclusions are:
 
 - the roadmap-required freeze map is landed and reviewable, but no Architecture Council approval is currently recorded for a freeze-map status change
