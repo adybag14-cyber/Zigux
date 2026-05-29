@@ -37,7 +37,7 @@ Direct current-`master` readback in this run materialized these shared reminder 
 - `scripts/zigux/check-phase13-tests-readme-alignment.py`
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/README.md`
-- `scripts/zigux/validate-phase13-release.py` as shipped release-discipline support
+- shipped release-discipline support through `scripts/zigux/validate-phase13-release.py`
 - `zigux/tests/README.md`
 
 Those files keep the shared Phase 13 packet active and still not closed. Current `master` now also keeps the old missing-checker gap closed through `Documentation/zigux/phase13-shared-summary-guard-gap.md` and `scripts/zigux/check-phase13-shared-summary-surfaces.py`, and the broader docs-root `devres` reminder repair remains landed as a separate same-lane follow-through rather than an open shared-summary gap.
