@@ -76,6 +76,16 @@ pub const ListView = struct {
         return count;
     }
 
+    pub fn lenBounded(self: ListView, max_nodes: usize) ?usize {
+        var count: usize = 0;
+        var it = self.iterator();
+        while (it.next()) |_| {
+            if (count == max_nodes) return null;
+            count += 1;
+        }
+        return count;
+    }
+
     pub fn hasConsistentBacklinks(self: ListView) bool {
         return self.firstBrokenBacklink() == null;
     }
@@ -131,6 +141,7 @@ test "list view treats a sentinel-only list as empty" {
     const view = ListView.init(&head);
     try std.testing.expect(view.isEmpty());
     try std.testing.expectEqual(@as(usize, 0), view.len());
+    try std.testing.expectEqual(@as(?usize, 0), view.lenBounded(0));
     try std.testing.expectEqual(@as(?*const ListHead, null), view.first());
     try std.testing.expectEqual(@as(?*const ListHead, null), view.last());
     try std.testing.expect(view.hasConsistentBacklinks());
@@ -167,6 +178,8 @@ test "list view walks a circular list_head chain in order" {
     const view = ListView.init(&head);
     try std.testing.expect(!view.isEmpty());
     try std.testing.expectEqual(@as(usize, 2), view.len());
+    try std.testing.expectEqual(@as(?usize, 2), view.lenBounded(2));
+    try std.testing.expectEqual(@as(?usize, null), view.lenBounded(1));
     try std.testing.expectEqual(@as(?*const ListHead, &first), view.first());
     try std.testing.expectEqual(@as(?*const ListHead, &second), view.last());
 
@@ -194,4 +207,22 @@ test "list view reports the first broken backlink witness" {
     try std.testing.expectEqual(@as(usize, @intFromPtr(&first)), breakage.expected_prev);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head)), breakage.actual_prev);
     try std.testing.expect(!ListView.init(&head).hasConsistentBacklinks());
+}
+
+test "list view bounded length fails closed before a detached cycle can spin" {
+    var head = ListHead{ .next = 0, .prev = 0 };
+    var first = ListHead{ .next = 0, .prev = 0 };
+    var second = ListHead{ .next = 0, .prev = 0 };
+
+    head.next = @intFromPtr(&first);
+    head.prev = @intFromPtr(&second);
+    first.next = @intFromPtr(&second);
+    first.prev = @intFromPtr(&head);
+    second.next = @intFromPtr(&first);
+    second.prev = @intFromPtr(&first);
+
+    const view = ListView.init(&head);
+    try std.testing.expectEqual(@as(?usize, null), view.lenBounded(0));
+    try std.testing.expectEqual(@as(?usize, null), view.lenBounded(2));
+    try std.testing.expectEqual(@as(?usize, null), view.lenBounded(4));
 }
