@@ -1,0 +1,48 @@
+{
+  "lane_key": "P11-L07",
+  "phase": "Phase 11",
+  "survey_kind": "fixture_refresh_and_golden_output_tooling_gap",
+  "roadmap_requirements": [
+    "deterministic artifact generation where applicable",
+    "fixture or known-vector parity",
+    "hardware validation matrix",
+    "teardown and failure-mode parity"
+  ],
+  "current_packet_anchor": "zigux/tests/phase11_gpio_wdt_current_head_manifest.json",
+  "current_packet_statuses": [
+    "starter_landed",
+    "shared_gap_current_head",
+    "ready_next"
+  ],
+  "returned_current_head_routes": [
+    "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_registration_intent_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig"
+  ],
+  "blocked_golden_output_surfaces": [
+    {
+      "path": "zigux/tests/phase11_gpio_wdt_manifest.json",
+      "reason": "older wider manifest has not returned on current master"
+    },
+    {
+      "path": "zigux/tests/phase11_gpio_wdt_survey.zig",
+      "reason": "older wider survey gate has not returned on current master"
+    },
+    {
+      "path": "zigux/tests/phase11_gpio_wdt.zig",
+      "reason": "wider replay remains outside the current-head packet"
+    },
+    {
+      "path": "zigux/tests/phase11_gpio_wdt_platform_drvdata.zig",
+      "reason": "live drvdata replay remains outside the current-head packet"
+    },
+    {
+      "path": "zigux/tests/phase11_build.zig",
+      "reason": "shared Phase 11 build route has not returned on current master"
+    }
+  ],
+  "next_step": "refresh the older wider gpio watchdog fixture/manifest pair only after a fresh repo readback proves the wider replay or shared route has returned"
+}
