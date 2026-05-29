@@ -51,6 +51,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase10-core-packet.py",
     "scripts/zigux/check-phase10-shared-freeze-boundary.py",
     "scripts/zigux/check-phase10-ring-packet.py",
+    "scripts/zigux/check-phase10-ring-manifest-destinations.py",
     "scripts/zigux/check-phase10-input-packet.py",
     "scripts/zigux/check-phase10-mmio-packet.py",
     "scripts/zigux/check-phase10-harness-coverage.py",
@@ -106,6 +107,10 @@ CHECKS = (
     CheckSpec("phase10-core-packet", "scripts/zigux/check-phase10-core-packet.py"),
     CheckSpec("phase10-shared-freeze-boundary", "scripts/zigux/check-phase10-shared-freeze-boundary.py"),
     CheckSpec("phase10-ring-packet", "scripts/zigux/check-phase10-ring-packet.py"),
+    CheckSpec(
+        "phase10-ring-manifest-destinations",
+        "scripts/zigux/check-phase10-ring-manifest-destinations.py",
+    ),
     CheckSpec("phase10-input-packet", "scripts/zigux/check-phase10-input-packet.py"),
     CheckSpec("phase10-mmio-packet", "scripts/zigux/check-phase10-mmio-packet.py"),
     CheckSpec("phase10-harness-coverage", "scripts/zigux/check-phase10-harness-coverage.py"),
@@ -266,6 +271,10 @@ def run_self_test() -> int:
             "missing_ring_reset_readiness_path",
         )
         assert_missing_required_path(
+            "scripts/zigux/check-phase10-ring-manifest-destinations.py",
+            "missing_ring_manifest_destinations_path",
+        )
+        assert_missing_required_path(
             "drivers/virtio/virtio_mmio_apply_observation.zig",
             "missing_mmio_apply_observation_path",
         )
@@ -367,6 +376,11 @@ def run_self_test() -> int:
             "ring_subcommand_failure",
         )
         assert_subcommand_failure(
+            "scripts/zigux/check-phase10-ring-manifest-destinations.py",
+            "phase10-ring-manifest-destinations",
+            "ring_manifest_destinations_subcommand_failure",
+        )
+        assert_subcommand_failure(
             "scripts/zigux/check-phase10-input-packet.py",
             "phase10-input-packet",
             "input_subcommand_failure",
@@ -398,7 +412,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=33")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=35")
     return 0
 
 
