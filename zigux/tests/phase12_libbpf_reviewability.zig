@@ -31,6 +31,7 @@ const SnapshotVerificationEvidence = struct {
 const SnapshotFixture = struct {
     lane_key: []const u8,
     phase: []const u8,
+    surveyed_commit: []const u8,
     tracked_file_count: usize,
     tracked_paths: []const []const u8,
     supporting_notes: []const []const u8,
@@ -115,6 +116,7 @@ test "phase12 libbpf reviewability gate keeps the current snapshot anchor exact"
 
     try std.testing.expectEqualStrings("P12-L16", fixture.lane_key);
     try std.testing.expectEqualStrings("Phase 12", fixture.phase);
+    try std.testing.expect(isHexSha(fixture.surveyed_commit));
     try std.testing.expectEqual(expected_paths.len, fixture.tracked_file_count);
     try expectExactPaths(fixture.tracked_paths, &expected_paths);
     try expectExactPaths(fixture.supporting_notes, &expected_paths);
