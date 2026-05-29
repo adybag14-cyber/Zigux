@@ -28,6 +28,7 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
 
 - `scripts/zigux/check-phase2-tool-manifest.py`, `scripts/zigux/check-phase2-bootstrap-workflow-routes.py`, and `scripts/zigux/check-phase2-artifact-tools-manifest.py` keep the shared manifest, workflow-route, and artifact-support packet explicit from current `master`.
 - `scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`, `scripts/zigux/check-phase2-cross.py`, `zigux/tests/fixtures/phase2_cross_targets.json`, `scripts/zigux/check-phase2-fixdep-gate.py`, and `scripts/zigux/check-fixdep-diff.py` keep the helper-local kconfig, direct cross-route, and fixdep governance/parity packet directly replayable beside the closure note.
+- `Documentation/zigux/phase2-conf-bridge-survey.md` remains the dedicated current-master conf-side reminder note for the landed bridge source, checker, fixture roster, manifest, and parked helper-local explicit-override split.
 - `scripts/zigux/artifact_diff.py` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair instead of falling back into repo-reality-gap wording.
 - `python3 scripts/zigux/check-phase2-tool-manifest.py`
 - `python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py`
