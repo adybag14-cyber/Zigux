@@ -125,6 +125,8 @@ MANIFEST_MARKERS = [
     '"tranche": "virtio-lab-bundle"',
     "scripts/zigux/check-phase10-bootstrap-route.py",
     '"scripts/zigux/check-phase10-harness-coverage.py"',
+    '"exact_checks": [',
+    '"python3 scripts/zigux/check-phase10-harness-coverage.py"',
 ]
 
 COMMANDS = [
@@ -322,6 +324,11 @@ def run_self_test() -> int:
         original_manifest = manifest.read_text(encoding="utf-8")
         manifest.write_text(original_manifest.replace('"scripts/zigux/check-phase10-harness-coverage.py"', '"scripts/zigux/check-phase10-missing.py"', 1), encoding="utf-8")
         expect_contains(collect_missing_markers(root), 'manifest:"scripts/zigux/check-phase10-harness-coverage.py"', "phase10-closure-self-test")
+        cases += 1
+        manifest.write_text(original_manifest, encoding="utf-8")
+
+        manifest.write_text(original_manifest.replace('"python3 scripts/zigux/check-phase10-harness-coverage.py"', '"python3 scripts/zigux/check-phase10-stale-harness.py"', 1), encoding="utf-8")
+        expect_contains(collect_missing_markers(root), 'manifest:"python3 scripts/zigux/check-phase10-harness-coverage.py"', "phase10-closure-self-test")
         cases += 1
         manifest.write_text(original_manifest, encoding="utf-8")
 
