@@ -76,6 +76,17 @@ Current `master` does materialize both `zigux/tests/phase15_architecture_council
 
 These directly readable paths are enough to support maintenance-mode truthfulness work on the core readiness packet, and `python3 scripts/zigux/validate-phase15.py` now gives that packet a direct validator-first replay that also keeps the dedicated Architecture Council packet checker and the roadmap-versus-ledger gap matrix inside the same bounded maintenance family.
 
+## Release Evidence Quartet
+
+The current readiness note is intentionally narrower than a release claim. It now tracks a four-item release-evidence packet because substantive Phase 15 readiness infrastructure has landed since the older prose-only posture:
+
+- `scripts/zigux/validate-phase15.py` is the validator-first replay for the current maintenance gate
+- `scripts/zigux/check-phase15-readiness-gate-packet.py` keeps the readiness note, manifest, gap matrix, blocked-route posture, and repo evidence aligned
+- `zigux/tests/phase15_build.zig` is directly readable shared-build companion evidence, not proof that the missing wrappers exist
+- `zigux/tests/phase15_readiness_gap_matrix.json` keeps the roadmap-versus-ledger blockers explicit as data rather than relying on prose-only handoff notes
+
+Keep this quartet tied to `release_evidence_count=4` in `zigux/tests/phase15_readiness_gap_matrix.json` until one of the blocked wrapper or workflow routes lands. If those routes land, update the release-evidence count, the blocked-route rows, the manifest booleans, and this note together rather than restating only the prose.
+
 ## Roadmap and Ledger Gap Matrix
 
 `zigux/tests/phase15_readiness_gap_matrix.json` keeps the remaining Phase 15 readiness posture explicit as requirement-to-evidence rows rather than leaving the roadmap and ledger comparison buried in prose.
@@ -116,4 +127,4 @@ Although `zigux/Makefile` is present on current `master`, it still does not mate
 
 ## Next bounded step
 
-Keep this note parked until one of the blocked `phase15*` Makefile routes or a dedicated workflow route lands, or until one of the directly readable readiness-packet paths or roadmap-versus-ledger gap rows drifts enough that the validator-first posture above becomes stale.
+Keep this note parked until one of the blocked `phase15*` Makefile routes or a dedicated workflow route lands, or until one of the directly readable readiness-packet paths, release-evidence rows, or roadmap-versus-ledger gap rows drifts enough that the validator-first posture above becomes stale.
