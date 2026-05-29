@@ -154,6 +154,50 @@ test "phase12 virtio net syntax lab keeps throughput parity in compile-smoke ter
     try std.testing.expect(!envelope.runtime_execution_claimed);
 }
 
+test "phase12 virtio net syntax lab keeps stopped transmit recycle ahead of parity" {
+    const refill = try receive_refill_replay.summarizeReceiveRefillReplay(.{
+        .reset_generation = 15,
+        .receive_queue_pairs_before_reset = 2,
+        .receive_queue_pairs_after_restore = 2,
+        .receive_buffers_before_reset = 128,
+        .receive_buffers_after_restore = 128,
+        .descriptors_posted_after_restore = 128,
+        .control_queue_restored = true,
+    });
+    const parity = try throughput_parity.summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 2,
+        .queue_pairs_after_restore = 2,
+        .receive_buffers_before_reset = 128,
+        .receive_buffers_after_restore = 128,
+        .receive_descriptors_reposted = refill.replay_ready,
+        .recycled_transmit_descriptors = 1,
+        .wake_threshold = 2,
+        .transmit_queue_was_stopped = true,
+        .replay_checkpoint = .after_receive_refill,
+        .expected_min_ratio_pct = 90,
+    });
+    const envelope = CompileSmokeEnvelope{
+        .queue_registration_ready = true,
+        .queue_resume_ready = false,
+        .refill_replay_ready = refill.replay_ready,
+        .post_reset_driver_ready = false,
+        .throughput_ready = parity.status == .parity_gate_ready,
+        .runtime_execution_claimed = false,
+    };
+
+    try std.testing.expect(refill.replay_ready);
+    try std.testing.expectEqual(
+        throughput_parity.ThroughputParityStatus.needs_transmit_recycle,
+        parity.status,
+    );
+    try std.testing.expect(parity.receive_refill_ready);
+    try std.testing.expect(!parity.recycle_budget_ready);
+    try std.testing.expect(!parity.transmit_recycle_checkpoint_ready);
+    try std.testing.expect(!parity.transmit_recycle_ready);
+    try std.testing.expect(!envelope.throughput_ready);
+    try std.testing.expect(!envelope.runtime_execution_claimed);
+}
+
 test "phase12 virtio net syntax lab keeps no-control-queue recovery in compile-smoke review territory" {
     var core = try virtio.VirtioCoreLab.init(0x1041, 2);
     core.setStatusBits(virtio.status_acknowledge | virtio.status_driver);
