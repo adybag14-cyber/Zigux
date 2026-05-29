@@ -55,7 +55,13 @@ from __future__ import annotations
 from pathlib import Path
 
 LEGACY_IMPORT_MARKER = "from phase3_check_lib import run_from_wrapper"
-LEGACY_CALL_MARKER = "run_from_wrapper(__file__)"
+LEGACY_CALL_LINES = frozenset(
+    {
+        "run_from_wrapper(__file__)",
+        "return run_from_wrapper(__file__)",
+        "raise SystemExit(run_from_wrapper(__file__))",
+    }
+)
 WRAPPER_STUB = \"\"\"#!/usr/bin/env python3
 from __future__ import annotations
 
@@ -71,11 +77,16 @@ def render_wrapper_stub() -> str:
     return WRAPPER_STUB
 
 
+def _has_legacy_wrapper_lines(text: str) -> bool:
+    stripped_lines = {line.strip() for line in text.splitlines()}
+    return LEGACY_IMPORT_MARKER in stripped_lines and bool(
+        LEGACY_CALL_LINES.intersection(stripped_lines)
+    )
+
+
 def _is_generated_wrapper(path: Path, expected: str) -> bool:
     text = path.read_text(encoding="utf-8")
-    return text == expected or (
-        LEGACY_IMPORT_MARKER in text and LEGACY_CALL_MARKER in text
-    )
+    return text == expected or _has_legacy_wrapper_lines(text)
 
 
 def sync_wrappers(entries, expected, check, scripts_dir):
@@ -106,6 +117,13 @@ from phase3_check_lib import run_from_wrapper
 if __name__ == "__main__":
     print(sys.version_info[0])
     raise SystemExit(run_from_wrapper(__file__))
+"""
+
+    comment_only_support_text = """#!/usr/bin/env python3
+# Historical marker text should not make this a generated wrapper:
+# from phase3_check_lib import run_from_wrapper
+# run_from_wrapper(__file__)
+print('support checker')
 """
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_wrapper_templates_") as temp_dir:
@@ -156,8 +174,19 @@ if __name__ == "__main__":
             print("expected legacy shared-runner wrapper template was not reported")
             return 1
 
+        _write(root / SCRIPTS_DIR / "check-phase3-comment-only.py", comment_only_support_text)
+        issues = validate_repo(root)
+        unexpected_comment_only = (
+            "stale wrapper template: "
+            + str(root / SCRIPTS_DIR / "check-phase3-comment-only.py")
+        )
+        if unexpected_comment_only in issues:
+            print("PHASE3_WRAPPER_TEMPLATES_CHECK_SELF_TEST=fail")
+            print("comment-only marker text was reported as a stale wrapper")
+            return 1
+
     print("PHASE3_WRAPPER_TEMPLATES_CHECK_SELF_TEST=pass")
-    print("PHASE3_WRAPPER_TEMPLATES_CHECK_SELF_TEST_CASE_COUNT=5")
+    print("PHASE3_WRAPPER_TEMPLATES_CHECK_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
