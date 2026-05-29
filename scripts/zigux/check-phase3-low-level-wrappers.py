@@ -13,6 +13,7 @@ REPLAY_PATH = Path("zigux/tests/phase3_low_level_wrappers.zig")
 FOCUSED_BUILD_PATH = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
 SHARED_BUILD_PATH = Path("zigux/tests/build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 ATOMIC_HELPER_PATH = Path("zigux/helpers/atomic.zig")
 BARRIER_HELPER_PATH = Path("zigux/helpers/barrier.zig")
 LAYOUT_ASSERT_HELPER_PATH = Path("zigux/helpers/layout_assert.zig")
@@ -69,6 +70,14 @@ REQUIRED_MARKERS = {
         '$(ZIG) build phase3-low-level-wrappers --build-file zigux/tests/build.zig',
         '$(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig',
         'phase3: phase3-validate phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase3-policy-unsafe-test phase3-test phase3-policy-dump phase3-dump',
+    ),
+    WORKFLOW_PATH: (
+        'python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test',
+        'python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py',
+        'zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig',
+        'make -C zigux phase3-low-level-wrappers',
+        'make -C zigux phase3-low-level-wrappers-test',
+        'zig build phase3-test --build-file zigux/tests/build.zig',
     ),
     ATOMIC_HELPER_PATH: (
         'pub fn validateCompareExchangeOrders(',
@@ -136,6 +145,7 @@ SELF_TEST_CASES = (
     (FOCUSED_BUILD_PATH, 'root_module.addImport("narrow", narrow);'),
     (SHARED_BUILD_PATH, 'phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);'),
     (MAKEFILE_PATH, 'phase3: phase3-validate phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase3-policy-unsafe-test phase3-test phase3-policy-dump phase3-dump'),
+    (WORKFLOW_PATH, 'python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test'),
     (LAYOUT_ASSERT_HELPER_PATH, 'pub fn assertMmioRangeLayout() LayoutError!void {'),
     (MMIO_HELPER_PATH, 'pub fn readAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!T {'),
     (UNSAFE_POLICY_HELPER_PATH, 'pub fn permitsRawPointerBridgeByte(scope: u8) bool {'),
@@ -281,6 +291,7 @@ def main() -> int:
     print(f'validated {args.repo_root / FOCUSED_BUILD_PATH}')
     print(f'validated {args.repo_root / SHARED_BUILD_PATH}')
     print(f'validated {args.repo_root / MAKEFILE_PATH}')
+    print(f'validated {args.repo_root / WORKFLOW_PATH}')
     print(f'validated {args.repo_root / ATOMIC_HELPER_PATH}')
     print(f'validated {args.repo_root / BARRIER_HELPER_PATH}')
     print(f'validated {args.repo_root / LAYOUT_ASSERT_HELPER_PATH}')
