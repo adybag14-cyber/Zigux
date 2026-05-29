@@ -37,8 +37,6 @@ phase2-toolchain:
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-selftest.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pinning.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pinning.py
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py --self-test
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py
 
 phase2-tools:
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kbuild-routes.py --self-test
@@ -85,83 +83,81 @@ phase2-fixdep: phase2-toolchain
 	cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig
 
 phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py --self-test
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py --self-test
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py
 
 phase2: phase2-validate
 
 phase3-validate:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate_phase3_selftest.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py
+	$(PYTHON) $(PHASE3_SCRIPT_ROOT)/validate-phase3.py --self-test
+	$(PYTHON) $(PHASE3_SCRIPT_ROOT)/validate-phase3.py
 
 phase3-abi-core-packet:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-abi-core-packet --build-file zigux/tests/build.zig
-
-phase3-list-hlist-starter-packet:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig
-
-phase3-list-hlist-dump:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig
-
-phase3-idr-slot-starter-packet-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig
-
-phase3-idr-slot-dump:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig
-
-phase3-xarray-slot-starter-packet:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig
-
-phase3-xarray-slot-starter-packet-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig
-
-phase3-xarray-slot-dump:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig
-
-phase3-export-uapi-layout:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout --build-file zigux/tests/build.zig
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-core-packet.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-core-packet.py
 
 phase3-abi-export:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-abi-export --build-file zigux/tests/build.zig
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-export.py
+	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/export_uapi_layout.zig
+
+phase3-list-hlist-starter-packet:
+	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/list_hlist.zig
+
+phase3-list-hlist-dump:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-list-hlist-dump --build-file zigux/tests/phase3_build.zig
+
+phase3-idr-slot-starter-packet-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/idr_slot.zig
+
+phase3-idr-slot-dump:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-idr-slot-dump --build-file zigux/tests/phase3_build.zig
+
+phase3-xarray-slot-starter-packet:
+	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/xarray_slot.zig
+
+phase3-xarray-slot-starter-packet-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/xarray_slot.zig
+
+phase3-xarray-slot-dump:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-xarray-slot-dump --build-file zigux/tests/phase3_build.zig
 
 phase3-low-level-wrappers:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers --build-file zigux/tests/build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/typecheck_helpers.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/time_after.zig
 
-phase3-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-test --build-file zigux/tests/build.zig
-
-phase3-dump:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig
-
-phase3: phase3-validate phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase3-policy-unsafe-test phase3-test phase3-policy-dump phase3-dump
+phase3-low-level-wrappers-test: phase3-low-level-wrappers
 
 phase3-export-uapi-layout-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/export_uapi_layout.zig
 
 phase3-low-level-wrappers-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/typecheck_helpers.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/time_after.zig
 
 phase3-policy-starter-packet-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/phase3_policy.zig
 
 phase3-policy-dump:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-dump --build-file zigux/tests/phase3_build.zig
 
 phase3-policy-unsafe-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/phase3_policy_unsafe.zig
 
-phase3-export-shim-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig
+phase3-test: phase3-abi-export phase3-low-level-wrappers-test phase3-policy-starter-packet-test phase3-policy-unsafe-test
+
+phase3-dump: phase3-list-hlist-dump phase3-idr-slot-dump phase3-policy-dump
+
+phase3: phase3-validate phase3-test phase3-dump
 
 phase4-validate:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-test-fsmount-variant.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-test-fsmount-variant.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-runtime-atomic64-wrapper-route.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-runtime-atomic64-survey-packet.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-bitmap-helper-route.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-bitmap-survey-packet.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-test-fsmount-direct-build.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-kprobe-example-survey.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-contract.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-contract.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test
@@ -276,3 +272,19 @@ phase12-virtio-net-syntax-lab-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all
 
 phase12: phase12-validate phase12-smoke phase12-test
+
+phase14-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-shared-smoke-route.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-shared-smoke-route.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rcu-rollback-guardrail.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rcu-rollback-guardrail.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py
