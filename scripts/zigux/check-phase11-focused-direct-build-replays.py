@@ -35,13 +35,13 @@ REQUIRED_FOCUSED_DIRECT_BUILD_CHECKS = (
 REQUIRED_VALIDATE_PHASE11_MARKERS = (
     '("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test")',
     '("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py")',
-    '("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_restart_build.zig")',
-    '("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig")',
+    '("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_modem_control_proof_build.zig")',
+    '("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig")',
 )
 
 REQUIRED_MAKEFILE_MARKERS = (
-    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig",
-    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
 )
 
 REQUIRED_MODEM_BUILD_MARKERS = (
@@ -182,14 +182,14 @@ pub fn build(b: *std.Build) void {
 FIXTURE_VALIDATE_PHASE11_TEXT = """CHECKS = (
     ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test"),
     ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py"),
-    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_restart_build.zig"),
-    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig"),
+    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_modem_control_proof_build.zig"),
+    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"),
 )
 """
 
 FIXTURE_MAKEFILE_TEXT = """phase11-validate:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig
 """
 
 
@@ -209,6 +209,11 @@ def expect_failure(root: Path, fragment: str) -> None:
             raise AssertionError(f"expected {fragment!r}, got {exc!r}") from exc
         return
     raise AssertionError(f"expected failure containing {fragment!r}")
+
+
+def remove_marker(root: Path, path: Path, marker: str) -> None:
+    full_path = root / path
+    write(full_path, read_text(full_path).replace(marker, "", 1))
 
 
 def run_self_test() -> int:
@@ -235,220 +240,19 @@ def run_self_test() -> int:
         expect_failure(wrong_checks, "focused_direct_build_checks does not match")
         case_count += 1
 
-        missing_modem_driver_root_marker = tmpdir / "missing_modem_driver_root_marker"
-        shutil.copytree(fixture, missing_modem_driver_root_marker, dirs_exist_ok=True)
-        write(
-            missing_modem_driver_root_marker / MODEM_BUILD_PATH,
-            read_text(missing_modem_driver_root_marker / MODEM_BUILD_PATH).replace(
-                '.root_source_file = b.path("../../drivers/tty/hvc/hvc_console.zig"),\n',
-                "",
-                1,
-            ),
+        marker_cases = (
+            (MODEM_BUILD_PATH, REQUIRED_MODEM_BUILD_MARKERS),
+            (TARGETLESS_BUILD_PATH, REQUIRED_TARGETLESS_BUILD_MARKERS),
+            (VALIDATE_PHASE11_PATH, REQUIRED_VALIDATE_PHASE11_MARKERS),
+            (MAKEFILE_PATH, REQUIRED_MAKEFILE_MARKERS),
         )
-        expect_failure(
-            missing_modem_driver_root_marker,
-            '.root_source_file = b.path("../../drivers/tty/hvc/hvc_console.zig")',
-        )
-        case_count += 1
-
-        missing_modem_proof_root_marker = tmpdir / "missing_modem_proof_root_marker"
-        shutil.copytree(fixture, missing_modem_proof_root_marker, dirs_exist_ok=True)
-        write(
-            missing_modem_proof_root_marker / MODEM_BUILD_PATH,
-            read_text(missing_modem_proof_root_marker / MODEM_BUILD_PATH).replace(
-                '.root_source_file = b.path("phase11_hvc_modem_control_proof.zig"),\n',
-                "",
-                1,
-            ),
-        )
-        expect_failure(
-            missing_modem_proof_root_marker,
-            '.root_source_file = b.path("phase11_hvc_modem_control_proof.zig")',
-        )
-        case_count += 1
-
-        missing_modem_marker = tmpdir / "missing_modem_marker"
-        shutil.copytree(fixture, missing_modem_marker, dirs_exist_ok=True)
-        write(
-            missing_modem_marker / MODEM_BUILD_PATH,
-            read_text(missing_modem_marker / MODEM_BUILD_PATH).replace(
-                'root_module.addImport("hvc_console", hvc_console_module);\n',
-                "",
-                1,
-            ),
-        )
-        expect_failure(missing_modem_marker, 'root_module.addImport("hvc_console", hvc_console_module);')
-        case_count += 1
-
-        missing_modem_name_marker = tmpdir / "missing_modem_name_marker"
-        shutil.copytree(fixture, missing_modem_name_marker, dirs_exist_ok=True)
-        write(
-            missing_modem_name_marker / MODEM_BUILD_PATH,
-            read_text(missing_modem_name_marker / MODEM_BUILD_PATH).replace(
-                '.name = "phase11-hvc-modem-control-proof",\n',
-                "",
-                1,
-            ),
-        )
-        expect_failure(
-            missing_modem_name_marker,
-            '.name = "phase11-hvc-modem-control-proof",',
-        )
-        case_count += 1
-
-        missing_modem_step_marker = tmpdir / "missing_modem_step_marker"
-        shutil.copytree(fixture, missing_modem_step_marker, dirs_exist_ok=True)
-        write(
-            missing_modem_step_marker / MODEM_BUILD_PATH,
-            read_text(missing_modem_step_marker / MODEM_BUILD_PATH).replace(
-                'const test_step = b.step("test", "Run the focused Phase 11 HVC modem-control proof.");\n',
-                "",
-                1,
-            ),
-        )
-        expect_failure(
-            missing_modem_step_marker,
-            'const test_step = b.step("test", "Run the focused Phase 11 HVC modem-control proof.");',
-        )
-        case_count += 1
-
-        missing_targetless_root_marker = tmpdir / "missing_targetless_root_marker"
-        shutil.copytree(fixture, missing_targetless_root_marker, dirs_exist_ok=True)
-        write(
-            missing_targetless_root_marker / TARGETLESS_BUILD_PATH,
-            read_text(missing_targetless_root_marker / TARGETLESS_BUILD_PATH).replace(
-                '.root_source_file = b.path("phase11_hvc_targetless_unregister_gap.zig"),\n',
-                "",
-                1,
-            ),
-        )
-        expect_failure(
-            missing_targetless_root_marker,
-            '.root_source_file = b.path("phase11_hvc_targetless_unregister_gap.zig")',
-        )
-        case_count += 1
-
-        missing_targetless_marker = tmpdir / "missing_targetless_marker"
-        shutil.copytree(fixture, missing_targetless_marker, dirs_exist_ok=True)
-        write(
-            missing_targetless_marker / TARGETLESS_BUILD_PATH,
-            read_text(missing_targetless_marker / TARGETLESS_BUILD_PATH).replace(
-                '.name = "phase11-hvc-targetless-unregister-gap",\n',
-                "",
-                1,
-            ),
-        )
-        expect_failure(missing_targetless_marker, '.name = "phase11-hvc-targetless-unregister-gap",')
-        case_count += 1
-
-        missing_targetless_step_marker = tmpdir / "missing_targetless_step_marker"
-        shutil.copytree(fixture, missing_targetless_step_marker, dirs_exist_ok=True)
-        write(
-            missing_targetless_step_marker / TARGETLESS_BUILD_PATH,
-            read_text(missing_targetless_step_marker / TARGETLESS_BUILD_PATH).replace(
-                'const test_step = b.step("test", "Run the focused Phase 11 HVC targetless-unregister gap witness.");\n',
-                "",
-                1,
-            ),
-        )
-        expect_failure(
-            missing_targetless_step_marker,
-            'const test_step = b.step("test", "Run the focused Phase 11 HVC targetless-unregister gap witness.");',
-        )
-        case_count += 1
-
-        missing_validate_self_test_marker = tmpdir / "missing_validate_self_test_marker"
-        shutil.copytree(fixture, missing_validate_self_test_marker, dirs_exist_ok=True)
-        write(
-            missing_validate_self_test_marker / VALIDATE_PHASE11_PATH,
-            read_text(missing_validate_self_test_marker / VALIDATE_PHASE11_PATH).replace(
-                '    ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test"),\n',
-                "",
-                1,
-            ),
-        )
-        expect_failure(
-            missing_validate_self_test_marker,
-            '("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test")',
-        )
-        case_count += 1
-
-        missing_validate_marker = tmpdir / "missing_validate_marker"
-        shutil.copytree(fixture, missing_validate_marker, dirs_exist_ok=True)
-        write(
-            missing_validate_marker / VALIDATE_PHASE11_PATH,
-            read_text(missing_validate_marker / VALIDATE_PHASE11_PATH).replace(
-                '    ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py"),\n',
-                '',
-                1,
-            ),
-        )
-        expect_failure(missing_validate_marker, '("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py")')
-        case_count += 1
-
-        missing_validate_dw_restart_marker = tmpdir / "missing_validate_dw_restart_marker"
-        shutil.copytree(fixture, missing_validate_dw_restart_marker, dirs_exist_ok=True)
-        write(
-            missing_validate_dw_restart_marker / VALIDATE_PHASE11_PATH,
-            read_text(missing_validate_dw_restart_marker / VALIDATE_PHASE11_PATH).replace(
-                '    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_restart_build.zig"),\n',
-                '',
-                1,
-            ),
-        )
-        expect_failure(
-            missing_validate_dw_restart_marker,
-            '("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_restart_build.zig")',
-        )
-        case_count += 1
-
-        missing_validate_gpio_marker = tmpdir / "missing_validate_gpio_marker"
-        shutil.copytree(fixture, missing_validate_gpio_marker, dirs_exist_ok=True)
-        write(
-            missing_validate_gpio_marker / VALIDATE_PHASE11_PATH,
-            read_text(missing_validate_gpio_marker / VALIDATE_PHASE11_PATH).replace(
-                '    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig"),\n',
-                '',
-                1,
-            ),
-        )
-        expect_failure(
-            missing_validate_gpio_marker,
-            '("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig")',
-        )
-        case_count += 1
-
-        missing_makefile_dw_restart_marker = tmpdir / "missing_makefile_dw_restart_marker"
-        shutil.copytree(fixture, missing_makefile_dw_restart_marker, dirs_exist_ok=True)
-        write(
-            missing_makefile_dw_restart_marker / MAKEFILE_PATH,
-            read_text(missing_makefile_dw_restart_marker / MAKEFILE_PATH).replace(
-                "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig\n",
-                "",
-                1,
-            ),
-        )
-        expect_failure(
-            missing_makefile_dw_restart_marker,
-            "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig",
-        )
-        case_count += 1
-
-        missing_makefile_gpio_marker = tmpdir / "missing_makefile_gpio_marker"
-        shutil.copytree(fixture, missing_makefile_gpio_marker, dirs_exist_ok=True)
-        write(
-            missing_makefile_gpio_marker / MAKEFILE_PATH,
-            read_text(missing_makefile_gpio_marker / MAKEFILE_PATH).replace(
-                "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig\n",
-                "",
-                1,
-            ),
-        )
-        expect_failure(
-            missing_makefile_gpio_marker,
-            "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
-        )
-        case_count += 1
+        for path, markers in marker_cases:
+            for marker in markers:
+                case_root = tmpdir / f"missing_{case_count}"
+                shutil.copytree(fixture, case_root, dirs_exist_ok=True)
+                remove_marker(case_root, path, marker)
+                expect_failure(case_root, marker)
+                case_count += 1
 
         print("PHASE11_FOCUSED_DIRECT_BUILD_REPLAYS_SELF_TEST=pass")
         print(f"PHASE11_FOCUSED_DIRECT_BUILD_REPLAYS_SELF_TEST_CASE_COUNT={case_count}")
