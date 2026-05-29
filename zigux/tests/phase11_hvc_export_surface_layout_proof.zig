@@ -74,6 +74,15 @@ test "phase11 HVC exported helper proof keeps winsize layout explicit" {
     try layout_assert.expectOffset(WinsizeLayout, "ws_ypixel", 6);
 }
 
+test "phase11 HVC exported helper proof keeps local winsize field types exact" {
+    comptime {
+        assertExactType(@FieldType(WinsizeLayout, "ws_row"), u16);
+        assertExactType(@FieldType(WinsizeLayout, "ws_col"), u16);
+        assertExactType(@FieldType(WinsizeLayout, "ws_xpixel"), u16);
+        assertExactType(@FieldType(WinsizeLayout, "ws_ypixel"), u16);
+    }
+}
+
 test "phase11 HVC exported helper proof keeps imported winsize layout tied to current module" {
     try layout_assert.expectSize(hvc_console.Winsize, 8);
     try layout_assert.expectAlign(hvc_console.Winsize, 2);
