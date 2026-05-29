@@ -31,6 +31,7 @@ EXPECTED_INVENTORY_DETERMINISTIC_LANE = "P11-L07"
 EXPECTED_INVENTORY_DETERMINISTIC_FIXTURE_SURFACES = [
     "zigux/tests/fixtures/phase11_build_inventory.json",
     "zigux/tests/fixtures/phase11_validate_checks.json",
+    "zigux/tests/fixtures/phase11_shared_tooling_manifest.json",
     "zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json",
     "zigux/tests/phase11_dw_wdt_manifest.json",
 ]
@@ -42,12 +43,15 @@ EXPECTED_FOCUSED_TEARDOWN_FAILURE_MODE_BUILDS = [
 ]
 EXPECTED_DETERMINISTIC_GOLDEN_OUTPUT_GAP = (
     "phase11-validate now carries the dedicated golden-output fixture roster "
-    "`zigux/tests/fixtures/phase11_validate_checks.json` plus fail-closed "
-    "`scripts/zigux/check-phase11-validate-check-roster.py`, "
+    "`zigux/tests/fixtures/phase11_validate_checks.json`, the shared aggregate "
+    "tooling manifest `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`, "
+    "plus fail-closed `scripts/zigux/check-phase11-validate-check-roster.py`, "
     "`scripts/zigux/check-phase11-validate-route-alignment.py`, and "
-    "`scripts/zigux/check-phase11-dw-wdt-build-route.py` guards while keeping both "
-    "`zigux/tests/fixtures/phase11_build_inventory.json` and "
-    "`zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json` inside the deterministic validator packet"
+    "`scripts/zigux/check-phase11-dw-wdt-build-route.py` guards while keeping "
+    "`zigux/tests/fixtures/phase11_build_inventory.json`, "
+    "`zigux/tests/fixtures/phase11_shared_tooling_manifest.json`, and "
+    "`zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json` inside the "
+    "deterministic validator packet"
 )
 EXPECTED_REQUIRED_CHECKS = (
     ("phase11-validate-check-roster-self-test", ["python", SELF_CHECK_PATH, "--self-test"]),
@@ -217,7 +221,13 @@ def write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def build_fixture(root: Path, *, omit_required_path: str | None = None, wrong_fixture_command: bool = False, wrong_inventory_surfaces: bool = False) -> None:
+def build_fixture(
+    root: Path,
+    *,
+    omit_required_path: str | None = None,
+    wrong_fixture_command: bool = False,
+    wrong_inventory_surfaces: bool = False,
+) -> None:
     required_paths = [
         "scripts/zigux/validate-phase11.py",
         SELF_CHECK_PATH,
@@ -244,7 +254,7 @@ def build_fixture(root: Path, *, omit_required_path: str | None = None, wrong_fi
     ]
     fixture_checks = json.loads(json.dumps(checks))
     if wrong_fixture_command:
-        fixture_checks[-2]["command"] = ["python", DW_WDT_BUILD_ROUTE_CHECK_PATH]
+        fixture_checks[-2]["command"] = ["python", SELF_CHECK_PATH]
 
     validate_text = "\n".join(
         [
