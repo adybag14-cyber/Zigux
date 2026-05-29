@@ -7,9 +7,11 @@ import tempfile
 from pathlib import Path
 
 VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
+SYNTAX_LAB_NOTE_PATH = "Documentation/zigux/phase12-virtio-net-syntax-lab.md"
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase12-virtio-net-survey.md",
+    SYNTAX_LAB_NOTE_PATH,
     "drivers/net/virtio_net_queue_resume.zig",
     "drivers/net/virtio_net_receive_refill_replay.zig",
     "drivers/net/virtio_net_transmit_recycle.zig",
@@ -50,13 +52,24 @@ SURVEY_MARKERS = (
     "the packet still does not claim live DMA-safe receive ownership",
 )
 
+SYNTAX_LAB_NOTE_MARKERS = (
+    "`PHASE12_STATUS=standalone-syntax-lab-smoke-present`",
+    "phase12-virtio-net-syntax-lab-test",
+    "smoke remains the direct build-file route",
+    "shared Phase 12 sextet stays unchanged",
+    "stopped transmit queues still require recycle-budget and checkpoint proof before parity is claimed",
+)
+
 SURVEY_GATE_MARKERS = (
     "\"split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present\"",
     "\"split_helper_packet_direct_replays_and_survey_gate_present_shared_route_sextet_complete\"",
     "\"shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_throughput_and_survey_gate_replays\"",
+    "try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_note_present);",
     "try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);",
     "try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_build_present);",
     "try expectContains(gap.why_now, \"standalone syntax-lab compile-smoke pair\");",
+    "try expectContains(gap.why_now, \"dedicated syntax-lab note\");",
+    "try std.testing.expect(try pathExists(\"Documentation/zigux/phase12-virtio-net-syntax-lab.md\"));",
     "try std.testing.expect(try pathExists(\"zigux/tests/phase12_virtio_net_syntax_lab.zig\"));",
     "try std.testing.expect(try pathExists(\"zigux/tests/phase12_virtio_net_syntax_lab_build.zig\"));",
     "try expectNotContains(build_zig, \"phase12_virtio_net_syntax_lab.zig\");",
@@ -150,6 +163,7 @@ def run_check(root: Path) -> None:
         if manifest.get(key) != value:
             raise CheckError(f"{manifest_path.as_posix()}: {key} drifted from {value!r}")
     for marker in (
+        "\"preexisting_phase12_virtio_net_syntax_lab_note_present\": true",
         "\"preexisting_phase12_virtio_net_syntax_lab_present\": true",
         "\"preexisting_phase12_virtio_net_syntax_lab_build_present\": true",
         "\"status\": \"split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present\"",
@@ -163,6 +177,7 @@ def run_check(root: Path) -> None:
             raise CheckError(f"{manifest_path.as_posix()}: missing marker {marker!r}")
 
     require_markers(require_file(root, "Documentation/zigux/phase12-virtio-net-survey.md"), SURVEY_MARKERS)
+    require_markers(require_file(root, SYNTAX_LAB_NOTE_PATH), SYNTAX_LAB_NOTE_MARKERS)
     require_markers(require_file(root, VALIDATOR_PATH), VALIDATOR_MARKERS)
     build_text = require_markers(require_file(root, "zigux/tests/phase12_build.zig"), BUILD_MARKERS)
     for stale in (
@@ -189,6 +204,7 @@ def run_check(root: Path) -> None:
 def make_fixture_tree(root: Path) -> None:
     payloads = {
         "Documentation/zigux/phase12-virtio-net-survey.md": "\n".join(SURVEY_MARKERS) + "\n",
+        SYNTAX_LAB_NOTE_PATH: "\n".join(SYNTAX_LAB_NOTE_MARKERS) + "\n",
         "drivers/net/virtio_net_queue_resume.zig": "// fixture\n",
         "drivers/net/virtio_net_receive_refill_replay.zig": "// fixture\n",
         "drivers/net/virtio_net_transmit_recycle.zig": "// fixture\n",
@@ -214,6 +230,7 @@ def make_fixture_tree(root: Path) -> None:
                 "verified_on": "2026-05-25",
                 "anchor": "drivers/net/virtio_net.c",
                 "survey_summary": {
+                    "preexisting_phase12_virtio_net_syntax_lab_note_present": True,
                     "preexisting_phase12_virtio_net_syntax_lab_present": True,
                     "preexisting_phase12_virtio_net_syntax_lab_build_present": True,
                 },
@@ -235,7 +252,7 @@ def make_fixture_tree(root: Path) -> None:
                     },
                     {
                         "id": "phase12-virtio-net-survey-gate",
-                        "why_now": "standalone syntax-lab compile-smoke pair",
+                        "why_now": "standalone syntax-lab compile-smoke pair plus dedicated syntax-lab note",
                     },
                     {
                         "id": "phase12-virtio-net-runtime-data-path",
@@ -262,6 +279,7 @@ def run_self_test() -> None:
 
         for rel in (
             "Documentation/zigux/phase12-virtio-net-survey.md",
+            SYNTAX_LAB_NOTE_PATH,
             "zigux/tests/phase12_virtio_net_manifest.json",
             "scripts/zigux/validate-phase12.py",
             "zigux/tests/phase12_build.zig",
@@ -329,6 +347,19 @@ def run_self_test() -> None:
             pass
         else:
             raise AssertionError("expected syntax-lab build manifest drift failure")
+        cases += 1
+
+        make_fixture_tree(base)
+        broken_manifest = base / "zigux/tests/phase12_virtio_net_manifest.json"
+        payload = json.loads(broken_manifest.read_text(encoding="utf-8"))
+        payload["survey_summary"].pop("preexisting_phase12_virtio_net_syntax_lab_note_present")
+        broken_manifest.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        try:
+            run_check(base)
+        except CheckError:
+            pass
+        else:
+            raise AssertionError("expected syntax-lab note manifest drift failure")
         cases += 1
 
         make_fixture_tree(base)
