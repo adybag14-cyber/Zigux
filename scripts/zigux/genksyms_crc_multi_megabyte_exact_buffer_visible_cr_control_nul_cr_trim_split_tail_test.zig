@@ -2,6 +2,7 @@ const std = @import("std");
 const gen = @import("./genksyms_crc.zig");
 
 const old_cli_cap = 1024 * 1024;
+const c_line_payload_len = 4095;
 
 fn Capture(comptime capacity: usize) type {
     return struct {
@@ -37,21 +38,21 @@ fn Capture(comptime capacity: usize) type {
 
 test "lane19 multi-megabyte exact-buffer split preserves visible CR-led control bytes, truncates at NUL, trims carriage returns, and still reaches the next tail line beyond the old CLI cap" {
     const skipped_record_count = 257;
-    const skipped_record_len = gen.c_line_payload_len + 1;
+    const skipped_record_len = c_line_payload_len + 1;
 
     var input = try std.ArrayList(u8).initCapacity(
         std.testing.allocator,
-        skipped_record_count * skipped_record_len + gen.c_line_payload_len + 15,
+        skipped_record_count * skipped_record_len + c_line_payload_len + 15,
     );
     defer input.deinit(std.testing.allocator);
 
     for (0..skipped_record_count) |_| {
         try input.append(std.testing.allocator, 0);
-        try input.appendNTimes(std.testing.allocator, 'a', gen.c_line_payload_len - 1);
+        try input.appendNTimes(std.testing.allocator, 'a', c_line_payload_len - 1);
         try input.append(std.testing.allocator, '\n');
     }
 
-    try input.appendNTimes(std.testing.allocator, 'z', gen.c_line_payload_len);
+    try input.appendNTimes(std.testing.allocator, 'z', c_line_payload_len);
     try input.append(std.testing.allocator, '\r');
     try input.append(std.testing.allocator, '\r');
     try input.append(std.testing.allocator, '\x08');
@@ -75,7 +76,7 @@ test "lane19 multi-megabyte exact-buffer split preserves visible CR-led control 
     const exact_crc = try std.fmt.allocPrint(
         std.testing.allocator,
         "0x{x:0>8}",
-        .{gen.crc32(input.items[exact_start .. exact_start + gen.c_line_payload_len])},
+        .{gen.crc32(input.items[exact_start .. exact_start + c_line_payload_len])},
     );
     defer std.testing.allocator.free(exact_crc);
     const normalized_crc = try std.fmt.allocPrint(
