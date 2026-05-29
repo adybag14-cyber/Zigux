@@ -222,6 +222,27 @@ SELF_TEST_CASES = (
         "PHASE3_LAYOUT_ASSERT_BLOB_SHA",
     ),
     (
+        "panic policy blob drift",
+        PANIC_POLICY_PATH,
+        REQUIRED_FILE_MARKERS[PANIC_POLICY_PATH][1],
+        "blob",
+        "PHASE3_PANIC_POLICY_BLOB_SHA",
+    ),
+    (
+        "allocator policy blob drift",
+        ALLOCATOR_POLICY_PATH,
+        REQUIRED_FILE_MARKERS[ALLOCATOR_POLICY_PATH][4],
+        "blob",
+        "PHASE3_ALLOCATOR_POLICY_BLOB_SHA",
+    ),
+    (
+        "mmio policy blob drift",
+        MMIO_PATH,
+        REQUIRED_FILE_MARKERS[MMIO_PATH][3],
+        "blob",
+        "PHASE3_MMIO_BLOB_SHA",
+    ),
+    (
         "unsafe policy raw-bridge require alias drift",
         UNSAFE_POLICY_PATH,
         REQUIRED_FILE_MARKERS[UNSAFE_POLICY_PATH][8],
