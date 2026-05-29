@@ -1,1 +1,0 @@
-#define CONFIG_ZIGUX_MULTI 1

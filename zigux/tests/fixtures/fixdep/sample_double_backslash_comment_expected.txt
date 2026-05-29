@@ -1,6 +1,0 @@
-savedcmd_sample_double_backslash_comment.o := rustc --emit dep-info=sample_double_backslash_comment.d
-
-source_sample_double_backslash_comment.o := zigux/tests/fixtures/fixdep/sample_double_backslash_comment_source.rmeta
-
-deps_sample_double_backslash_comment.o := \
-  zigux/tests/fixtures/fixdep/missing\\ \

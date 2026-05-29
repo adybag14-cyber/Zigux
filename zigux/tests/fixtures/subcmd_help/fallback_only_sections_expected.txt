@@ -1,4 +1,0 @@
-subcommands available from elsewhere on your $PATH
---------------------------------------------------
- report script
-
