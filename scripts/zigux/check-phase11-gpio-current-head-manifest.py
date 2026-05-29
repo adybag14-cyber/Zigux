@@ -16,6 +16,9 @@ DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else Path.cwd(
 MANIFEST_PATH = "zigux/tests/phase11_gpio_wdt_current_head_manifest.json"
 SURVEY_PATH = "Documentation/zigux/phase11-gpio-wdt-survey.md"
 MATRIX_PATH = "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md"
+MODULE_PATH = "Documentation/zigux/phase11-gpio-wdt-module-slice.md"
+TEARDOWN_PATH = "Documentation/zigux/phase11-gpio-wdt-teardown-note.md"
+REMOVE_HANDOFF_PATH = "Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md"
 BUILD_PATH = "zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig"
 
 EXPECTED_CURRENT_HEAD_SURFACES = [
@@ -79,6 +82,27 @@ MATRIX_MARKERS = (
     "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`",
     "focused registration-intent proof",
     "packet aligned through",
+)
+
+MODULE_MARKERS = (
+    "`zigux/tests/phase11_gpio_wdt_current_head_manifest.json`",
+    "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig`",
+    "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig`",
+    "does not promote absent wider replay, manifest, survey-gate",
+)
+
+TEARDOWN_MARKERS = (
+    "`zigux/tests/phase11_gpio_wdt_verify_helper_build.zig`",
+    "`zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig`",
+    "`zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`",
+    "without promoting absent wider replay, survey, manifest, or shared-build files",
+)
+
+REMOVE_HANDOFF_MARKERS = (
+    "`zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig`",
+    "`zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`",
+    "`zigux/tests/phase11_build.zig`",
+    "instead of treating absent wider replay, manifest, or shared-build files",
 )
 
 BUILD_MARKERS = (
@@ -172,6 +196,9 @@ def validate(root: Path) -> None:
 
     require_markers(root, SURVEY_PATH, SURVEY_MARKERS)
     require_markers(root, MATRIX_PATH, MATRIX_MARKERS)
+    require_markers(root, MODULE_PATH, MODULE_MARKERS)
+    require_markers(root, TEARDOWN_PATH, TEARDOWN_MARKERS)
+    require_markers(root, REMOVE_HANDOFF_PATH, REMOVE_HANDOFF_MARKERS)
     require_markers(root, BUILD_PATH, BUILD_MARKERS)
 
 
@@ -227,6 +254,48 @@ def build_fixture(root: Path) -> None:
     )
     write_text(
         root,
+        MODULE_PATH,
+        "\n".join(
+            [
+                "# module",
+                "`zigux/tests/phase11_gpio_wdt_current_head_manifest.json`",
+                "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig`",
+                "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig`",
+                "does not promote absent wider replay, manifest, survey-gate",
+            ]
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        TEARDOWN_PATH,
+        "\n".join(
+            [
+                "# teardown",
+                "`zigux/tests/phase11_gpio_wdt_verify_helper_build.zig`",
+                "`zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig`",
+                "`zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`",
+                "without promoting absent wider replay, survey, manifest, or shared-build files",
+            ]
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        REMOVE_HANDOFF_PATH,
+        "\n".join(
+            [
+                "# remove",
+                "`zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig`",
+                "`zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`",
+                "`zigux/tests/phase11_build.zig`",
+                "instead of treating absent wider replay, manifest, or shared-build files",
+            ]
+        )
+        + "\n",
+    )
+    write_text(
+        root,
         BUILD_PATH,
         "\n".join(
             [
@@ -264,6 +333,9 @@ def run_self_test() -> int:
             (MANIFEST_PATH, '"packet_kind": "current_head_driver_docs_and_proof_packet"', '"packet_kind": "drifted_packet"', "packet_kind mismatch"),
             (SURVEY_PATH, "`zigux/tests/phase11_gpio_wdt_registration_intent_review.zig`", "", SURVEY_PATH),
             (MATRIX_PATH, "focused registration-intent proof", "", MATRIX_PATH),
+            (MODULE_PATH, "does not promote absent wider replay, manifest, survey-gate", "", MODULE_PATH),
+            (TEARDOWN_PATH, "without promoting absent wider replay, survey, manifest, or shared-build files", "", TEARDOWN_PATH),
+            (REMOVE_HANDOFF_PATH, "instead of treating absent wider replay, manifest, or shared-build files", "", REMOVE_HANDOFF_PATH),
             (BUILD_PATH, 'Run the focused Phase 11 gpio watchdog current-head manifest survey', 'Run a different survey', BUILD_PATH),
         )
 
