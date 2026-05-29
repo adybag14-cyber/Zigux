@@ -45,18 +45,19 @@ Current `master` readback on 2026-05-29 keeps the Phase 10 freeze-boundary behav
 - `zigux/tests/phase10_closure_manifest.json` at blob `8f80348772cd6ebe5fd040e492c5947892cb5528` still records `freeze_boundary_status: aligned`, `freeze_status_change_claimed: false`, `risky_transport_posture: blocked_on_risky_transport`, `architecture_council_reopen_required: true`, and `architecture_council_reopen_attached: false` for the shared Phase 10 closure packet.
 - `zigux/tests/phase10_virtio_ring_manifest.json` at blob `ab52719cf0e84c1786b88ff4bf838fc8a2cf3451`, `zigux/tests/phase10_virtio_input_manifest.json` at blob `294baeed622b378314036e80fa59e9d077f7db64`, and `zigux/tests/phase10_virtio_mmio_manifest.json` at blob `87e809bf6d8c0a0da25d2ec56bceab6fc6ad0ccd` all still keep `freeze_boundary_status: aligned`, `freeze_status_change_claimed: false`, `risky_transport_posture: blocked_on_risky_transport`, `architecture_council_reopen_required: true`, and `architecture_council_reopen_attached: false`.
 - `Documentation/zigux/README.md` at blob `1ea09dc5ec0f0ffd321a7d8a99873f4ee7c460cb`, `Documentation/zigux/review-checklist.md` at blob `ec333b158200aeed62eefbcfd6046a835dcec6c4`, and `Documentation/zigux/phase15-study-only-anchor-accounting.md` at blob `9faf403a7f6531e9dfce2deb7b513b8b9475a0d9` still route study-only anchor summaries back through the freeze map and the accounting note instead of treating `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` as Phase 10 runtime-substrate or bridge-readiness evidence.
+- `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md` at blob `c6a6b9a3725ee1bef8ef7bc2b8cae1ef94bc4a8b` now keeps the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet, so shared reviewer notes should not collapse those owner lanes into one generic freeze-boundary bucket.
 
 The behavior this evidence proves is intentionally narrow: current Phase 10 virtio lab evidence may describe driver-local lab slices, survey manifests, and shared validation gates, but any risky transport, lifecycle, deep-core, or freeze-map status-change claim remains blocked unless the Architecture Council process records a reopen decision with fresh linked evidence.
 
 ## Current Gap
 
-The returned Phase 10 closure packet already records general freeze-map alignment, but without a dedicated survey note the shared closure packet can drift into shorthand wording that hides the roadmap boundary between:
-- queue-local `virtio_ring` reviewability
-- helper-local `virtio_mmio` reviewability
+The returned Phase 10 closure packet already records general freeze-map alignment, but shared reminder wording can still drift if it hides the roadmap boundary between:
+- queue-local `P10-L10` `virtio_ring` reviewability
+- helper-local `P10-L11` `virtio_mmio` reviewability
 - blocked risky transport follow-through
 - separate Phase 14 study-only ownership for `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`
 
-This note closes that reminder gap by making the Phase 10 freeze boundary itself reviewable.
+This note closes that reminder gap by making the Phase 10 freeze boundary itself reviewable and by keeping the ring and MMIO owner lanes explicit beside the shared freeze-map policy.
 
 ## Allowed Evidence
 
@@ -78,4 +79,4 @@ Current Phase 10 evidence must not be used to claim:
 
 ## Next Bounded Step
 
-Keep this survey aligned with `zigux/tests/phase10_closure_manifest.json` and the shared freeze-boundary checker so future Phase 10 reminder refreshes fail closed if the virtio lab packet starts implying deep-core or study-only delivery progress.
+Keep this survey aligned with `zigux/tests/phase10_closure_manifest.json`, `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`, and the shared freeze-boundary checker so future Phase 10 reminder refreshes fail closed if the virtio lab packet starts implying deep-core or study-only delivery progress, or if shared reviewer wording collapses the `P10-L10` ring packet and `P10-L11` MMIO helper packet into one generic freeze-boundary bucket.
