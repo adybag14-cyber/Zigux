@@ -18,11 +18,15 @@ FIXTURE_PATH = Path("zigux/tests/fixtures/phase11_validate_checks.json")
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 SELF_CHECK_PATH = "scripts/zigux/check-phase11-validate-check-roster.py"
 SELF_FIXTURE_PATH = "zigux/tests/fixtures/phase11_validate_checks.json"
+VALIDATE_MANIFEST_ROSTER_CHECK_PATH = "scripts/zigux/check-phase11-validate-manifest-roster.py"
+VALIDATE_ROUTE_ALIGNMENT_CHECK_PATH = "scripts/zigux/check-phase11-validate-route-alignment.py"
 DW_WDT_BUILD_ROUTE_CHECK_PATH = "scripts/zigux/check-phase11-dw-wdt-build-route.py"
 DW_WDT_BUILD_INVENTORY_PATH = "zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json"
 SHARED_TOOLING_CHECK_PATH = "scripts/zigux/check-phase11-shared-tooling-manifest.py"
 SHARED_TOOLING_FIXTURE_PATH = "zigux/tests/fixtures/phase11_shared_tooling_manifest.json"
 SHARED_TOOLING_SURVEY_PATH = "Documentation/zigux/phase11-codegen-manifest-tooling-gap-survey.md"
+FOCUSED_DIRECT_BUILD_REPLAYS_CHECK_PATH = "scripts/zigux/check-phase11-focused-direct-build-replays.py"
+SHARED_REPLAY_CONTRACT_COUNTS_CHECK_PATH = "scripts/zigux/check-phase11-shared-replay-contract-counts.py"
 EXPECTED_VALIDATE_ROUTE = "make -C zigux phase11-validate"
 EXPECTED_VALIDATE_SCRIPT = "scripts/zigux/validate-phase11.py"
 EXPECTED_PHASE = "Phase 11"
@@ -54,10 +58,18 @@ EXPECTED_DETERMINISTIC_GOLDEN_OUTPUT_GAP = (
     "deterministic validator packet"
 )
 EXPECTED_REQUIRED_CHECKS = (
+    ("phase11-validate-manifest-roster-self-test", ["python", VALIDATE_MANIFEST_ROSTER_CHECK_PATH, "--self-test"]),
+    ("phase11-validate-manifest-roster", ["python", VALIDATE_MANIFEST_ROSTER_CHECK_PATH]),
     ("phase11-validate-check-roster-self-test", ["python", SELF_CHECK_PATH, "--self-test"]),
     ("phase11-validate-check-roster", ["python", SELF_CHECK_PATH]),
+    ("phase11-validate-route-alignment-self-test", ["python", VALIDATE_ROUTE_ALIGNMENT_CHECK_PATH, "--self-test"]),
+    ("phase11-validate-route-alignment", ["python", VALIDATE_ROUTE_ALIGNMENT_CHECK_PATH]),
     ("phase11-shared-tooling-manifest-self-test", ["python", SHARED_TOOLING_CHECK_PATH, "--self-test"]),
     ("phase11-shared-tooling-manifest", ["python", SHARED_TOOLING_CHECK_PATH]),
+    ("phase11-focused-direct-build-replays-self-test", ["python", FOCUSED_DIRECT_BUILD_REPLAYS_CHECK_PATH, "--self-test"]),
+    ("phase11-focused-direct-build-replays", ["python", FOCUSED_DIRECT_BUILD_REPLAYS_CHECK_PATH]),
+    ("phase11-shared-replay-contract-counts-self-test", ["python", SHARED_REPLAY_CONTRACT_COUNTS_CHECK_PATH, "--self-test"]),
+    ("phase11-shared-replay-contract-counts", ["python", SHARED_REPLAY_CONTRACT_COUNTS_CHECK_PATH]),
     ("phase11-dw-wdt-build-route-self-test", ["python", DW_WDT_BUILD_ROUTE_CHECK_PATH, "--self-test"]),
     ("phase11-dw-wdt-build-route", ["python", DW_WDT_BUILD_ROUTE_CHECK_PATH]),
 )
@@ -172,11 +184,15 @@ def run_check(root: Path) -> tuple[int, int]:
         SELF_CHECK_PATH,
         SELF_FIXTURE_PATH,
         str(INVENTORY_PATH),
+        VALIDATE_MANIFEST_ROSTER_CHECK_PATH,
+        VALIDATE_ROUTE_ALIGNMENT_CHECK_PATH,
         DW_WDT_BUILD_ROUTE_CHECK_PATH,
         DW_WDT_BUILD_INVENTORY_PATH,
         SHARED_TOOLING_CHECK_PATH,
         SHARED_TOOLING_FIXTURE_PATH,
         SHARED_TOOLING_SURVEY_PATH,
+        FOCUSED_DIRECT_BUILD_REPLAYS_CHECK_PATH,
+        SHARED_REPLAY_CONTRACT_COUNTS_CHECK_PATH,
     ):
         if required not in required_paths:
             raise CheckError(f"validate-phase11 REQUIRED_PATHS is missing {required}")
@@ -221,6 +237,15 @@ def write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def check_entry(name: str, command: list[str]) -> dict[str, object]:
+    return {"name": name, "command": command}
+
+
+def check_spec_line(name: str, command: list[str]) -> str:
+    command_literal = ", ".join(f'"{part}"' for part in command)
+    return f'    CheckSpec("{name}", ({command_literal})),'
+
+
 def build_fixture(
     root: Path,
     *,
@@ -233,24 +258,23 @@ def build_fixture(
         SELF_CHECK_PATH,
         SELF_FIXTURE_PATH,
         str(INVENTORY_PATH),
+        VALIDATE_MANIFEST_ROSTER_CHECK_PATH,
+        VALIDATE_ROUTE_ALIGNMENT_CHECK_PATH,
         DW_WDT_BUILD_ROUTE_CHECK_PATH,
         DW_WDT_BUILD_INVENTORY_PATH,
         SHARED_TOOLING_CHECK_PATH,
         SHARED_TOOLING_FIXTURE_PATH,
         SHARED_TOOLING_SURVEY_PATH,
+        FOCUSED_DIRECT_BUILD_REPLAYS_CHECK_PATH,
+        SHARED_REPLAY_CONTRACT_COUNTS_CHECK_PATH,
     ]
     if omit_required_path is not None:
         required_paths.remove(omit_required_path)
 
     checks = [
-        {"name": "phase11-validation-self-test", "command": ["python", "scripts/zigux/validate-phase11.py", "--self-test"]},
-        {"name": "phase11-validate-check-roster-self-test", "command": ["python", SELF_CHECK_PATH, "--self-test"]},
-        {"name": "phase11-validate-check-roster", "command": ["python", SELF_CHECK_PATH]},
-        {"name": "phase11-shared-tooling-manifest-self-test", "command": ["python", SHARED_TOOLING_CHECK_PATH, "--self-test"]},
-        {"name": "phase11-shared-tooling-manifest", "command": ["python", SHARED_TOOLING_CHECK_PATH]},
-        {"name": "phase11-dw-wdt-build-route-self-test", "command": ["python", DW_WDT_BUILD_ROUTE_CHECK_PATH, "--self-test"]},
-        {"name": "phase11-dw-wdt-build-route", "command": ["python", DW_WDT_BUILD_ROUTE_CHECK_PATH]},
-        {"name": "phase11-validation", "command": ["python", "scripts/zigux/validate-phase11.py"]},
+        check_entry("phase11-validation-self-test", ["python", "scripts/zigux/validate-phase11.py", "--self-test"]),
+        *(check_entry(name, command) for name, command in EXPECTED_REQUIRED_CHECKS),
+        check_entry("phase11-validation", ["python", "scripts/zigux/validate-phase11.py"]),
     ]
     fixture_checks = json.loads(json.dumps(checks))
     if wrong_fixture_command:
@@ -270,14 +294,7 @@ def build_fixture(
             ")",
             "",
             "CHECKS = (",
-            '    CheckSpec(\"phase11-validation-self-test\", (\"python\", \"scripts/zigux/validate-phase11.py\", \"--self-test\")),',
-            f'    CheckSpec(\"phase11-validate-check-roster-self-test\", (\"python\", \"{SELF_CHECK_PATH}\", \"--self-test\")),',
-            f'    CheckSpec(\"phase11-validate-check-roster\", (\"python\", \"{SELF_CHECK_PATH}\")),',
-            f'    CheckSpec(\"phase11-shared-tooling-manifest-self-test\", (\"python\", \"{SHARED_TOOLING_CHECK_PATH}\", \"--self-test\")),',
-            f'    CheckSpec(\"phase11-shared-tooling-manifest\", (\"python\", \"{SHARED_TOOLING_CHECK_PATH}\")),',
-            f'    CheckSpec(\"phase11-dw-wdt-build-route-self-test\", (\"python\", \"{DW_WDT_BUILD_ROUTE_CHECK_PATH}\", \"--self-test\")),',
-            f'    CheckSpec(\"phase11-dw-wdt-build-route\", (\"python\", \"{DW_WDT_BUILD_ROUTE_CHECK_PATH}\")),',
-            '    CheckSpec(\"phase11-validation\", (\"python\", \"scripts/zigux/validate-phase11.py\")),',
+            *(check_spec_line(str(item["name"]), list(item["command"])) for item in checks),
             ")",
             "",
         ]
@@ -294,7 +311,8 @@ def build_fixture(
                 "exact_checks": fixture_checks,
             },
             indent=2,
-        ) + "\n",
+        )
+        + "\n",
     )
     write(
         root / INVENTORY_PATH,
@@ -310,7 +328,8 @@ def build_fixture(
                 "deterministic_golden_output_gap": EXPECTED_DETERMINISTIC_GOLDEN_OUTPUT_GAP,
             },
             indent=2,
-        ) + "\n",
+        )
+        + "\n",
     )
 
 
@@ -333,8 +352,8 @@ def run_self_test() -> int:
         case_count = 1
 
         missing_required_path = tmpdir / "missing_required_path"
-        build_fixture(missing_required_path, omit_required_path=DW_WDT_BUILD_INVENTORY_PATH)
-        expect_failure(missing_required_path, DW_WDT_BUILD_INVENTORY_PATH)
+        build_fixture(missing_required_path, omit_required_path=SHARED_REPLAY_CONTRACT_COUNTS_CHECK_PATH)
+        expect_failure(missing_required_path, SHARED_REPLAY_CONTRACT_COUNTS_CHECK_PATH)
         case_count += 1
 
         wrong_fixture = tmpdir / "wrong_fixture"
@@ -352,17 +371,22 @@ def run_self_test() -> int:
         write(
             missing_required_check / VALIDATE_PATH,
             read_text(missing_required_check / VALIDATE_PATH).replace(
-                f'    CheckSpec(\"phase11-dw-wdt-build-route\", (\"python\", \"{DW_WDT_BUILD_ROUTE_CHECK_PATH}\")),\n',
+                check_spec_line("phase11-shared-replay-contract-counts", ["python", SHARED_REPLAY_CONTRACT_COUNTS_CHECK_PATH]) + "\n",
                 "",
                 1,
             ),
         )
         fixture = read_json(missing_required_check / FIXTURE_PATH)
         fixture["exact_checks"] = [
-            item for item in fixture["exact_checks"] if item.get("name") != "phase11-dw-wdt-build-route"
+            item
+            for item in fixture["exact_checks"]
+            if item.get("name") != "phase11-shared-replay-contract-counts"
         ]
         write(missing_required_check / FIXTURE_PATH, json.dumps(fixture, indent=2) + "\n")
-        expect_failure(missing_required_check, "validate-phase11 CHECKS is missing phase11-dw-wdt-build-route")
+        expect_failure(
+            missing_required_check,
+            "validate-phase11 CHECKS is missing phase11-shared-replay-contract-counts",
+        )
         case_count += 1
 
         syntax_error = tmpdir / "syntax_error"
