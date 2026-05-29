@@ -50,7 +50,8 @@ EXPECTED_DETERMINISTIC_GOLDEN_OUTPUT_GAP = (
     "`zigux/tests/fixtures/phase11_validate_checks.json`, the shared aggregate "
     "tooling manifest `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`, "
     "plus fail-closed `scripts/zigux/check-phase11-validate-check-roster.py`, "
-    "`scripts/zigux/check-phase11-validate-route-alignment.py`, and "
+    "`scripts/zigux/check-phase11-validate-route-alignment.py`, "
+    "`scripts/zigux/check-phase11-deterministic-fixture-golden-output.py`, and "
     "`scripts/zigux/check-phase11-dw-wdt-build-route.py` guards while keeping "
     "`zigux/tests/fixtures/phase11_build_inventory.json`, "
     "`zigux/tests/fixtures/phase11_shared_tooling_manifest.json`, and "
@@ -290,7 +291,7 @@ def build_fixture(
             "    command: tuple[str, ...]",
             "",
             "REQUIRED_PATHS = (",
-            *(f'    \"{path}\",' for path in required_paths),
+            *(f'    \\\"{path}\\\",' for path in required_paths),
             ")",
             "",
             "CHECKS = (",
