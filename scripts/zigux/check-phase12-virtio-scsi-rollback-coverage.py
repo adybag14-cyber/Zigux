@@ -13,6 +13,7 @@ FALLBACK_CATALOG_PATH = Path("Documentation/zigux/phase12-virtio-scsi-raw-github
 MANIFEST_PATH = Path("zigux/tests/phase12_virtio_scsi_manifest.json")
 FIXTURE_MANIFEST_PATH = Path("zigux/tests/fixtures/phase12_virtio_scsi_manifest.json")
 SURVEY_GATE_PATH = Path("zigux/tests/phase12_virtio_scsi_survey.zig")
+SURVEY_BUILD_PATH = Path("zigux/tests/phase12_virtio_scsi_survey_build.zig")
 BUILD_PATH = Path("zigux/tests/phase12_build.zig")
 
 REQUIRED_MARKERS = {
@@ -45,6 +46,11 @@ REQUIRED_MARKERS = {
         "try std.testing.expect(!manifest.survey_summary.preexisting_phase12_repeated_rollback_gate_present);",
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback-only split machine-checkable") != null);',
         'try std.testing.expect(!try pathExists("zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig"));',
+    ],
+    SURVEY_BUILD_PATH: [
+        'b.path("phase12_virtio_scsi_survey.zig")',
+        '"phase12-virtio-scsi-survey-tests"',
+        '"Run the Phase 12 virtio_scsi rollback-only survey tests"',
     ],
 }
 
@@ -133,6 +139,26 @@ def run_self_test() -> int:
             print("PHASE12_VIRTIO_SCSI_ROLLBACK_COVERAGE_SELF_TEST=fail")
             return 1
 
+        missing_build_root = root / "missing-survey-build"
+        for relative_path, markers in REQUIRED_MARKERS.items():
+            if relative_path == SURVEY_BUILD_PATH:
+                continue
+            path = missing_build_root / relative_path
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("\n".join(markers) + "\n", encoding="utf-8")
+        for relative_path in FORBIDDEN_MARKERS:
+            path = missing_build_root / relative_path
+            if not path.exists():
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("", encoding="utf-8")
+
+        missing_build_errors = validate(missing_build_root)
+        missing_build_expected = f"missing required file: {SURVEY_BUILD_PATH}"
+        if missing_build_expected not in missing_build_errors:
+            print("self-test did not catch missing survey-build replay", file=sys.stderr)
+            print("PHASE12_VIRTIO_SCSI_ROLLBACK_COVERAGE_SELF_TEST=fail")
+            return 1
+
         stale_root = root / "stale"
         for relative_path, markers in REQUIRED_MARKERS.items():
             path = stale_root / relative_path
@@ -157,7 +183,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE12_VIRTIO_SCSI_ROLLBACK_COVERAGE_SELF_TEST=pass")
-    print("PHASE12_VIRTIO_SCSI_ROLLBACK_COVERAGE_SELF_TEST_CASES=3")
+    print("PHASE12_VIRTIO_SCSI_ROLLBACK_COVERAGE_SELF_TEST_CASES=4")
     return 0
 
 
