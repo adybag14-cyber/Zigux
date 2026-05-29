@@ -45,11 +45,11 @@
     },
     "scripts/zigux/check-phase13-notifier-packet.py": {
       "sha": "be20b2bbd5c0b6bf73f0a5b1b03ea2d15bf06875",
-      "behavior": "Fail-closes the adjacent packet around the survey note, manifest, reviewability gate, read-only helpers, the exported list-empty, first-pprev, broken-prev, consistent-prev, and tail-next witnesses, HVC declarations, and repo-reality-gap wording."
+      "behavior": "Fail-closes the adjacent packet around the survey note, manifest, reviewability gate, read-only helpers, the exported list-empty, first-pprev, broken-prev, consistent-prev, and C-side tail-next witnesses, HVC declarations, and repo-reality-gap wording."
     },
     "zigux/tests/phase13_notifier_list_reviewability.zig": {
-      "sha": "833226bc6d81ac1f9e6e2b009ede4b10ecc0b559",
-      "behavior": "Keeps the manifest, survey, checker, binding, helper, ABI-header, HVC-header, the exported list-empty, first-pprev, broken-prev, consistent-prev, and tail-next witnesses, and returned zigux/Makefile versus missing shared-route distinction visible without widening into the shared Phase 13 build shard."
+      "sha": "6d89c65a0582ed3d3dfe35d99093d97be46c13e0",
+      "behavior": "Keeps the manifest, survey, checker, binding, helper, ABI-header, HVC-header, the exported list-empty, first-pprev, broken-prev, consistent-prev, and C-side tail-next witnesses, and returned zigux/Makefile versus missing shared-route distinction visible without widening into the shared Phase 13 build shard."
     },
     "scripts/zigux/validate-phase13-release.py": {
       "sha": "31c8bb1fb9be5fb023dfb429a02ff9014965042e",
@@ -87,7 +87,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "scripts/zigux/check-phase13-notifier-packet.py",
-      "why_now": "The focused checker now fail-closes on the survey, manifest, reviewability gate, ABI foothold, notifier-chain, list_head, and hlist helpers, exported list-empty, first-pprev, broken-prev, consistent-prev, and tail-next witnesses, and HVC notifier declarations for the shipped adjacent packet."
+      "why_now": "The focused checker now fail-closes on the survey, manifest, reviewability gate, ABI foothold, notifier-chain, list_head, and hlist helpers, exported list-empty, first-pprev, broken-prev, consistent-prev, and C-side tail-next witnesses, and HVC notifier declarations for the shipped adjacent packet."
     },
     {
       "id": "phase13-notifier-release-validator-companion",
@@ -101,7 +101,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_notifier_list_reviewability.zig",
-      "why_now": "A focused Zig reviewability gate now keeps the adjacent packet readable through exact manifest, survey, checker, list-empty, first-pprev, broken-prev, consistent-prev, and tail-next witnesses, and returned-Makefile-versus-missing-route markers without widening the shared Phase 13 replay bundle."
+      "why_now": "A focused Zig reviewability gate now keeps the adjacent packet readable through exact manifest, survey, checker, list-empty, first-pprev, broken-prev, consistent-prev, and C-side tail-next witnesses, and returned-Makefile-versus-missing-route markers without widening the shared Phase 13 replay bundle."
     },
     {
       "id": "phase13-notifier-chain-helper-gap",
