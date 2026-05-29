@@ -1,0 +1,21 @@
+{
+  "phase": "Phase 1",
+  "helper": "tools/lib/find_bit.zig",
+  "lane": "P1-L10",
+  "status": "active_review_anchor_addendum",
+  "reason": "Keep helper-local Linux-style alias review coverage visible without widening the shared Phase 1 helper manifest.",
+  "required_helper_tests": [
+    "test \"Linux-style next-or aliases clamp tail words and past-end starts\"",
+    "test \"Linux-style clump aliases mask tail bytes and preserve exhausted caller bytes\""
+  ],
+  "required_entrypoints": [
+    "find_next_or_bit",
+    "_find_next_or_bit",
+    "find_first_clump8",
+    "_find_first_clump8",
+    "find_next_clump8",
+    "_find_next_clump8"
+  ],
+  "shared_manifest_scope": "The shared phase1_helper_manifest.json still owns the broad find_bit review packet; this addendum is a helper-local cleanup for the newer Linux-style next-or and clump alias anchors.",
+  "next_safe_step_note": "If this helper lane reopens, keep repairs limited to find_bit alias review anchors or their committed fixture addendum unless the broad Phase 1 helper manifest itself is being safely refreshed."
+}
