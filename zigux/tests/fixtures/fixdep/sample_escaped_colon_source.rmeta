@@ -1,1 +1,3 @@
 placeholder rmeta fixture for escaped-colon fixdep coverage
+CONFIG_ZIGUX_ESCAPED_COLON_RMETA_SHOULD_STAY_IGNORED
+CONFIG_ZIGUX_ESCAPED_COLON_RMETA_SECOND=1
