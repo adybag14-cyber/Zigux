@@ -37,7 +37,7 @@ Phase 3 calls for the permanent C/Zigux boundary: explicit export shims, curated
 The landed boundary is still narrow and reviewable:
 
 - `zigux/kernel/export_shim.zig` exposes boundary-header, version, and `dev_t` validation relays plus focused interop-policy and rbtree-root status helpers instead of widening into a larger runtime surface.
-- `include/zigux/abi.h` and `include/linux/zigux.h` hold the public C-facing header contract and the Linux-facing UAPI aliases for the same starter packet, with `include/linux/zigux.h` now carrying thin interop-policy predicate relays and starter rbtree-view predicate relays that stay anchored in the canonical ABI header.
+- `include/zigux/abi.h` and `include/linux/zigux.h` hold the public C-facing header contract and the Linux-facing UAPI aliases for the same starter packet, with `include/linux/zigux.h` now carrying thin `dev_t` predicate relays anchored in `include/zigux/dev_t.h` plus interop-policy and rbtree-view predicate relays anchored in the canonical ABI header.
 - `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, `zigux/bindings/version.zig`, `zigux/bindings/dev_t.zig`, and `zigux/bindings/header_family.zig` provide the curated Zig-side view of that same boundary.
 - `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_export_shim_build.zig`, and `zigux/tests/phase3_export_uapi_c_header_smoke.c` keep the packet replayable from both Zig and C-facing entry points, while `.github/workflows/zigux-bootstrap.yml` now runs the direct C smoke route as its own Phase 3 bootstrap step.
 - `zigux/tests/build.zig` and `zigux/Makefile` now keep a shared `phase3-abi-export` replay route visible alongside the focused export-shim and export/UAPI layout replays so this packet can be rerun as one bounded gate.
@@ -55,7 +55,7 @@ Current `master` does not yet turn this lane into:
 
 `PHASE3_EXPORT_UAPI_GAP=broader curated UAPI families and wider export-shim coverage beyond the landed starter packet and focused runtime relays remain open`
 
-The detailed Linux-facing predicate relays above are part of the landed starter packet. They do not close the broader export/UAPI family gap tracked by this lane.
+The detailed Linux-facing predicate relays above are part of the landed starter packet. The `dev_t` validity and range predicates now delegate to the canonical `include/zigux/dev_t.h` helpers instead of restating the limits in the Linux-facing aggregation header, but that cleanup does not close the broader export/UAPI family gap tracked by this lane.
 
 ## Verification Routes
 
