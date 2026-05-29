@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L08",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-27",
+  "surveyed_commit": "master-readback-2026-05-29",
   "anchor": "lib/devres.c",
   "packet": "phase13-devres-scatterlist-planner",
   "status": "starter_landed",
@@ -11,6 +11,7 @@
     "Documentation/zigux/phase13-devres-scatterlist-slice.md",
     "zigux/tests/phase13_devres_scatterlist_planner_manifest.json",
     "zigux/tests/phase13_devres_scatterlist.zig",
+    "zigux/tests/phase13_devres_scatterlist_empty_table.zig",
     "zigux/tests/phase13_devres_scatterlist_build.zig",
     "scripts/zigux/check-phase13-devres-scatterlist-planner.py"
   ],
@@ -20,6 +21,7 @@
     "overmapped_request_owner": "zigux/tests/phase13_devres_scatterlist.zig",
     "warn_on_release_miss_owner": "zigux/tests/phase13_devres_scatterlist.zig",
     "scatterlist_table_teardown_owner": "zigux/tests/phase13_devres_scatterlist.zig",
+    "empty_table_warning_owner": "zigux/tests/phase13_devres_scatterlist_empty_table.zig",
     "slice_note_owner": "Documentation/zigux/phase13-devres-scatterlist-slice.md",
     "build_shard_owner": "zigux/tests/phase13_devres_scatterlist_build.zig",
     "validation_guard": "scripts/zigux/check-phase13-devres-scatterlist-planner.py",
@@ -40,6 +42,8 @@
     "scatterlistReleaseMatches",
     "planManagedScatterlistUnmap",
     "planManagedScatterlistTableTeardown",
+    "warns_on_empty_table",
+    "initialized zero-entry tables warn",
     "retains detach-time unmap ownership on success",
     "failed mapping frees the release record",
     "impossible over-mapped scatterlist results free the release record",
