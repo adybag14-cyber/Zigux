@@ -13,10 +13,17 @@ pub fn build(b: *std.Build) void {
     });
 
     const run_tests = b.addRunArtifact(tests);
-    const test_step = b.step(
+    const named_step = b.step(
         "lane17-phase1-bench-live-step-patch-applier",
         "Run the Lane 17 Phase 1 bench live-step patch-applier proof",
     );
+    named_step.dependOn(&run_tests.step);
+
+    const test_step = b.step(
+        "test",
+        "Run the Lane 17 Phase 1 bench live-step patch-applier proof",
+    );
     test_step.dependOn(&run_tests.step);
-    b.default_step.dependOn(test_step);
+
+    b.default_step.dependOn(named_step);
 }
