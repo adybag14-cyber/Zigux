@@ -37,6 +37,9 @@ test "phase13 notifier manifest records the checker-backed adjacent packet" {
     try requireContains(manifest_text, "firstPprevMatchesHead()");
     try requireContains(manifest_text, "listHasConsistentBacklinks()");
     try requireContains(manifest_text, "hlistHasConsistentPrevLinks()");
+    try requireContains(manifest_text, "\"zigux/helpers/notifier_chain_view.zig\": {");
+    try requireContains(manifest_text, "read-only notifier-chain view");
+    try requireContains(manifest_text, "firstPriorityIncrease()");
     try requireContains(manifest_text, "\"zigux/helpers/list_view.zig\": {");
     try requireContains(manifest_text, "read-only circular list_head view");
     try requireContains(manifest_text, "firstBrokenBacklink()");
@@ -150,6 +153,18 @@ test "phase13 notifier binding keeps the shipped read-only interop foothold expl
     try requireContains(binding, "pub fn firstPprevMatchesHead");
     try requireContains(binding, "pub fn firstBrokenPrevLink");
     try requireContains(binding, "pub fn hlistHasConsistentPrevLinks");
+}
+
+test "phase13 notifier-chain helper keeps the shipped read-only priority view explicit" {
+    const notifier_chain_view = try readRepoFile(std.testing.allocator, "zigux/helpers/notifier_chain_view.zig");
+    defer std.testing.allocator.free(notifier_chain_view);
+
+    try requireContains(notifier_chain_view, "pub const NotifierChainView = struct");
+    try requireContains(notifier_chain_view, "pub fn isEmpty(self: NotifierChainView) bool");
+    try requireContains(notifier_chain_view, "pub fn iterator(self: NotifierChainView) Iterator");
+    try requireContains(notifier_chain_view, "pub fn hasNonincreasingPriority(self: NotifierChainView) bool");
+    try requireContains(notifier_chain_view, "pub fn firstPriorityIncrease(self: NotifierChainView) ?PriorityIncrease");
+    try requireContains(notifier_chain_view, "notifier chain view reports the first priority increase witness");
 }
 
 test "phase13 list and hlist helpers keep the shipped read-only traversal packet explicit" {
