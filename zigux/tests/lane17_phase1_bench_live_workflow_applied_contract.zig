@@ -1,23 +1,23 @@
 const std = @import("std");
 
 const bench_self_test_step =
-    \\\\      - name: Self-test current Phase 1 bench checker
-    \\\\        run: python3 scripts/zigux/check-phase1-bench.py --self-test
+    \\      - name: Self-test current Phase 1 bench checker
+    \\        run: python3 scripts/zigux/check-phase1-bench.py --self-test
 ;
 
 const bench_live_check_step =
-    \\\\      - name: Check current Phase 1 bench packet
-    \\\\        run: python3 scripts/zigux/check-phase1-bench.py
+    \\      - name: Check current Phase 1 bench packet
+    \\        run: python3 scripts/zigux/check-phase1-bench.py
 ;
 
 const find_bit_self_test_step =
-    \\\\      - name: Self-test current Phase 1 find-bit bench anchor checker
-    \\\\        run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --self-test
+    \\      - name: Self-test current Phase 1 find-bit bench anchor checker
+    \\        run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --self-test
 ;
 
 const find_bit_live_check_step =
-    \\\\      - name: Check current Phase 1 find-bit bench anchor packet
-    \\\\        run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py
+    \\      - name: Check current Phase 1 find-bit bench anchor packet
+    \\        run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py
 ;
 
 const intended_phase1_bench_workflow_slice =
@@ -40,8 +40,8 @@ const duplicate_live_check_slice =
 
 const self_test_only_live_check_slice =
     bench_self_test_step ++ "\n\n" ++
-    \\\\      - name: Check current Phase 1 bench packet
-    \\\\        run: python3 scripts/zigux/check-phase1-bench.py --self-test
+    \\      - name: Check current Phase 1 bench packet
+    \\        run: python3 scripts/zigux/check-phase1-bench.py --self-test
     ++ "\n\n" ++
     find_bit_self_test_step ++ "\n\n" ++
     find_bit_live_check_step;
