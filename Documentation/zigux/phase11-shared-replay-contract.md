@@ -262,3 +262,18 @@ route:
 - no `make -C zigux phase11-contract`, `make -C zigux phase11`, or
   `make -C zigux phase11-hvc-survey` route on current `master`
 - no dedicated HVC survey workflow step on current `master`
+- no shared `zigux/tests/phase11_build.zig` replay route on current `master`
+- no `scripts/zigux/check-phase11-shared-replay-contract.py` or
+  `scripts/zigux/check-phase11-shared-summary-surfaces.py` route on current
+  `master`
+- no broader platform registration, PM plumbing, tty registration, notifier
+  execution, khvcd execution, sysrq dispatch, or hardware-backed validation
+  beyond the current bounded replay packet and parked reminder notes
+
+## Follow-Through Rule
+
+Future shared Phase 11 work should stay inside the next smallest
+reminder-surface truthfulness repair.
+Prefer one shared note or checker at a time so the shared reminder packet, the
+parked driver-local notes, and the inventory-backed validation surfaces remain
+aligned with the files current `master` can actually materialize.
