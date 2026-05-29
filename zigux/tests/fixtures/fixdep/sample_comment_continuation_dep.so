@@ -1,1 +1,2 @@
 placeholder shared-object fixture for fixdep comment continuation coverage
+CONFIG_ZIGUX_COMMENT_SO_SHOULD_NOT_PARSE
