@@ -29,6 +29,7 @@ REQUIRED_MARKERS = {
         "firstBrokenPrevLink()",
         "zigux_hlist_first_broken_prev_link()",
         "tailNextIsNull()",
+        "zigux_hlist_tail_next_is_null()",
     ),
     "Documentation/zigux/phase13-notifier-summary-gap.md": (
         "`scripts/zigux/check-phase13-notifier-packet.py`",
@@ -68,6 +69,7 @@ REQUIRED_MARKERS = {
         "firstBrokenPrevLink()",
         "zigux_hlist_first_broken_prev_link()",
         "tailNextIsNull()",
+        "zigux_hlist_tail_next_is_null()",
     ),
     "zigux/tests/phase13_notifier_list_reviewability.zig": (
         'const manifest_text = @embedFile("phase13_notifier_list_manifest.json");',
@@ -82,6 +84,7 @@ REQUIRED_MARKERS = {
         '"pub fn firstBrokenPrevLink"',
         '"zigux_hlist_first_broken_prev_link"',
         '"pub fn tailNextIsNull"',
+        '"zigux_hlist_tail_next_is_null"',
     ),
     "zigux/bindings/notifier_abi.zig": (
         "pub const NotifierBlock = extern struct",
@@ -114,6 +117,7 @@ REQUIRED_MARKERS = {
         "zigux_hlist_first_pprev_matches_head",
         "zigux_hlist_first_broken_prev_link",
         "zigux_hlist_has_consistent_prev_links",
+        "zigux_hlist_tail_next_is_null",
     ),
     "drivers/tty/hvc/hvc_console.h": (
         "int notifier_add_irq(struct hvc_struct *hp, int irq);",
@@ -249,6 +253,23 @@ def run_self_test() -> int:
 
         survey_path = tempdir / "Documentation/zigux/phase13-notifier-list-survey.md"
         survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
+                "zigux_hlist_tail_next_is_null()\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-notifier-list-survey.md:zigux_hlist_tail_next_is_null()"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        survey_path = tempdir / "Documentation/zigux/phase13-notifier-list-survey.md"
+        survey_path.write_text(
             survey_path.read_text(encoding="utf-8")
             + "`zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`\n",
             encoding="utf-8",
@@ -324,6 +345,23 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             'missing_marker:zigux/tests/phase13_notifier_list_manifest.json:tailNextIsNull()'
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        manifest_path = tempdir / "zigux/tests/phase13_notifier_list_manifest.json"
+        manifest_path.write_text(
+            manifest_path.read_text(encoding="utf-8").replace(
+                'zigux_hlist_tail_next_is_null()\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            'missing_marker:zigux/tests/phase13_notifier_list_manifest.json:zigux_hlist_tail_next_is_null()'
             in issues
         )
         populate_repo(tempdir)
@@ -519,6 +557,23 @@ def run_self_test() -> int:
         reviewability_path = tempdir / "zigux/tests/phase13_notifier_list_reviewability.zig"
         reviewability_path.write_text(
             reviewability_path.read_text(encoding="utf-8").replace(
+                '"zigux_hlist_tail_next_is_null"\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            'missing_marker:zigux/tests/phase13_notifier_list_reviewability.zig:"zigux_hlist_tail_next_is_null"'
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        reviewability_path = tempdir / "zigux/tests/phase13_notifier_list_reviewability.zig"
+        reviewability_path.write_text(
+            reviewability_path.read_text(encoding="utf-8").replace(
                 '"PHASE13_NOTIFIER_PACKET=pass"\n',
                 "",
                 1,
@@ -613,6 +668,23 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             "missing_marker:include/zigux/abi.h:zigux_hlist_first_broken_prev_link"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        abi_path = tempdir / "include/zigux/abi.h"
+        abi_path.write_text(
+            abi_path.read_text(encoding="utf-8").replace(
+                "zigux_hlist_tail_next_is_null\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:include/zigux/abi.h:zigux_hlist_tail_next_is_null"
             in issues
         )
         populate_repo(tempdir)
