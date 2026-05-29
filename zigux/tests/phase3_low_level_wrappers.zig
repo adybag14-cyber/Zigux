@@ -275,6 +275,8 @@ test "phase3 low-level wrappers keep subtractive, xor, and clamp-style atomic up
     try std.testing.expectEqual(@as(u16, 0x0088), state);
 
     try std.testing.expectError(error.InvalidRmwOrdering, atomic.fetchXor(u16, &state, 0x0001, .unordered));
+    try std.testing.expectError(error.InvalidRmwOrdering, atomic.fetchMin(u16, &state, 0x0001, .unordered));
+    try std.testing.expectError(error.InvalidRmwOrdering, atomic.fetchMax(u16, &state, 0x00FF, .unordered));
     try std.testing.expectEqual(@as(u16, 0x0088), state);
 
     var register: u16 = 0;
