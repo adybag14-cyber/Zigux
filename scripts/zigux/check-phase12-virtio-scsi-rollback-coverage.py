@@ -92,18 +92,22 @@ def validate(root: Path) -> list[str]:
     return errors
 
 
+def write_required_markers(root: Path) -> None:
+    for relative_path, markers in REQUIRED_MARKERS.items():
+        path = root / relative_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("\n".join(markers) + "\n", encoding="utf-8")
+    for relative_path in FORBIDDEN_MARKERS:
+        path = root / relative_path
+        if not path.exists():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("", encoding="utf-8")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
-        for relative_path, markers in REQUIRED_MARKERS.items():
-            path = root / relative_path
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text("\n".join(markers) + "\n", encoding="utf-8")
-        for relative_path in FORBIDDEN_MARKERS:
-            path = root / relative_path
-            if not path.exists():
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text("", encoding="utf-8")
+        write_required_markers(root)
 
         errors = validate(root)
         if errors:
@@ -136,6 +140,21 @@ def run_self_test() -> int:
         )
         if expected not in broken_errors:
             print("self-test did not catch missing manifest absence marker", file=sys.stderr)
+            print("PHASE12_VIRTIO_SCSI_ROLLBACK_COVERAGE_SELF_TEST=fail")
+            return 1
+
+        missing_reversible_root = root / "missing-reversible-delivery"
+        write_required_markers(missing_reversible_root)
+        reversible_marker = REQUIRED_MARKERS[SURVEY_PATH][3]
+        survey_path = missing_reversible_root / SURVEY_PATH
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(reversible_marker + "\n", ""),
+            encoding="utf-8",
+        )
+        reversible_errors = validate(missing_reversible_root)
+        reversible_expected = f"{SURVEY_PATH}: missing marker: {reversible_marker}"
+        if reversible_expected not in reversible_errors:
+            print("self-test did not catch missing reversible-delivery evidence marker", file=sys.stderr)
             print("PHASE12_VIRTIO_SCSI_ROLLBACK_COVERAGE_SELF_TEST=fail")
             return 1
 
@@ -183,7 +202,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE12_VIRTIO_SCSI_ROLLBACK_COVERAGE_SELF_TEST=pass")
-    print("PHASE12_VIRTIO_SCSI_ROLLBACK_COVERAGE_SELF_TEST_CASES=4")
+    print("PHASE12_VIRTIO_SCSI_ROLLBACK_COVERAGE_SELF_TEST_CASES=5")
     return 0
 
 
