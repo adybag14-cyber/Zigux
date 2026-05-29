@@ -101,4 +101,12 @@ pub fn build(b: *std.Build) void {
         "Run the focused Phase 1 helper replay anchor from zigux/tests",
     );
     phase1_helpers.dependOn(&run_tests.step);
+
+    const test_step = b.step(
+        "test",
+        "Run the focused Phase 1 helper replay anchor from zigux/tests",
+    );
+    test_step.dependOn(&run_tests.step);
+
+    b.default_step.dependOn(test_step);
 }
