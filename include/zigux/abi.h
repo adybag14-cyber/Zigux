@@ -325,6 +325,24 @@ static inline int zigux_hlist_has_consistent_prev_links(
     return head != NULL && zigux_hlist_first_broken_prev_link(head, NULL) == 0;
 }
 
+static inline int zigux_hlist_tail_next_is_null(
+    const struct zigux_hlist_head *head)
+{
+    const struct zigux_hlist_node *cursor;
+
+    if (!head)
+        return 0;
+
+    cursor = (const struct zigux_hlist_node *)(uintptr_t)head->first;
+    if (!cursor)
+        return 1;
+
+    while (cursor->next != (uintptr_t)0)
+        cursor = (const struct zigux_hlist_node *)(uintptr_t)cursor->next;
+
+    return cursor->next == (uintptr_t)0;
+}
+
 static inline zigux_boundary_header zigux_default_header(uint16_t flags)
 {
     zigux_boundary_header header = {
