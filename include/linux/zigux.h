@@ -301,8 +301,7 @@ static inline struct zigux_dev_t_fields zigux_uapi_dev_t_fields_from_device_numb
 
 static inline int zigux_uapi_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)
 {
-    return fields.major <= ZIGUX_DEV_MAJOR_MAX &&
-        fields.minor <= ZIGUX_DEV_MINOR_MASK;
+    return zigux_dev_t_fields_is_valid(fields);
 }
 
 static inline struct zigux_export_status zigux_uapi_validate_dev_t_fields(
@@ -327,11 +326,7 @@ static inline int zigux_uapi_dev_t_fields_range_is_valid(
     struct zigux_dev_t_fields end
 )
 {
-    if (!zigux_uapi_dev_t_fields_is_valid(start) ||
-        !zigux_uapi_dev_t_fields_is_valid(end))
-        return 0;
-    return start.major < end.major ||
-        (start.major == end.major && start.minor <= end.minor);
+    return zigux_dev_t_fields_range_is_valid(start, end);
 }
 
 static inline struct zigux_export_status zigux_uapi_validate_dev_t_range(
