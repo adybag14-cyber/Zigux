@@ -9,6 +9,26 @@ This survey records the current Phase 10 churn-control boundary for the virtio l
 - `zigux/Makefile` still exposes the shared `phase10-validate`, `phase10-test`, and `phase10` route family, so Phase 10 is active repo reality rather than a historical wrapper-only packet.
 - The current scripts-root reminder surface is a churn hotspot: recent readback emphasized other phase packets while older continuity still expected the Phase 10 shared checker roster there.
 
+## Exact Evidence Readback
+
+Current `master` readback on 2026-05-29 shows that the churn filter must not treat `scripts/zigux/check-phase10-core-packet.py` as stale wrapper debt:
+
+- `scripts/zigux/validate-phase10.py` (`8e63b13ee69855937f94e4022d2f8287ca0abd23`) lists `scripts/zigux/check-phase10-core-packet.py` in both `REQUIRED_PATHS` and the live `CHECKS` tuple as `phase10-core-packet`.
+- `scripts/zigux/validate-phase10-closure.py` (`f943e4e3fc233475e5666d1d5d7307f1550d06d0`) lists `scripts/zigux/check-phase10-core-packet.py` in `REQUIRED_FILES`, keeps core-packet provenance markers in the closure evidence checks, and keeps the Phase 10 exact-check count at 15.
+- `zigux/tests/phase10_closure_manifest.json` (`8f80348772cd6ebe5fd040e492c5947892cb5528`) includes `scripts/zigux/check-phase10-core-packet.py` in `roadmap_parity_scoreboard.lab_only_driver_validation.evidence` and in `exact_checks` as `python3 scripts/zigux/check-phase10-core-packet.py`.
+- `zigux-alpha/PHASE10_CLOSURE_LEDGER.md` (`1bac327ecdbecdc6ed3f820f2097a12b0dce08f9`) records `PHASE10_LEDGER_CORE_PACKET_VALIDATE=scripts/zigux/check-phase10-core-packet.py`, `PHASE10_LEDGER_REPO_REALITY_GAPS=none`, and the shared exact replay packet that includes `check-phase10-core-packet.py`.
+
+Filter verdict: this lane should classify the core packet checker as current shared Phase 10 validation evidence. A future cleanup pass should only remove or demote it if all four surfaces above drop it together; otherwise, deleting it would be churn, not cleanup.
+
+## Adjacent Wrapper-Generator Cross-Check
+
+The adjacent Phase 3 wrapper cleanup route remains a separate filter family:
+
+- `scripts/zigux/generate-phase3-check-wrappers.py` (`ec4aad66b1bf058235e8d34fed411e9ca4f2fb3e`) detects wrapper-shaped `check-phase3-*.py` files with `is_generated_wrapper_script(...)`, accepting either exact generated stub text or the legacy `run_from_wrapper(__file__)` import-plus-call shape.
+- `scripts/zigux/check-phase3-wrapper-templates.py` (`326f3f8c6a796b1fbe57d316cf60ea87e64ed71c`) fail-closes that route by loading the generator and reporting every generated or legacy wrapper-shaped Phase 3 checker as `stale wrapper template: ...`.
+
+That cross-check is useful evidence for stale-wrapper behavior, but it should not be used to reclassify the live Phase 10 core checker. Phase 10 closure evidence and Phase 3 wrapper-template retirement are adjacent churn-control lanes, not the same deletion target.
+
 ## Cleanup Boundary
 
 - Keep Phase 10 cleanup bounded to truthfulness repairs around shipped checker and route surfaces.
