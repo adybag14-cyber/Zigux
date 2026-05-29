@@ -73,12 +73,12 @@ TEXT_MARKERS = {
     FALLBACK_CATALOG_PATH: [
         "`PHASE12_STATUS=archival-raw-read-fallback`",
         "commit pin: `ee64eec272a352da1d967999c99bb3c3560c9b97`",
-        "- exact coverage evidence refreshed on `2026-05-27` against live current `master`",
-        "- authenticated contents view now returns this refreshed archival catalog body on current `master` with exact blob `46c4cc86cb2f164a9709ffbe46e1b8cd563a3259`",
-        "- public blob page and public raw `master` fallback now match this same `46c4cc86cb2f164a9709ffbe46e1b8cd563a3259` current-master catalog body as of `2026-05-27`",
+        "- exact coverage evidence refreshed on `2026-05-29` against live current `master`",
+        "- authenticated contents readback before this refresh returned this catalog path at blob `e24ff02b887278a38992da1bf63a5d9b4983fbef`; this edit intentionally replaces the stale `2026-05-27` self-blob claim instead of trying to pin the catalog to its own post-edit blob inside the same commit",
         "`zigux/tests/phase12_virtio_scsi_survey_build.zig` `2d502aad14ed244c614095060be986dd4514652e`",
-        "`zigux/tests/phase12_build.zig` `e0d297f50d2805948b93ca421ae9ec20ddfceafa`",
+        "`zigux/tests/phase12_build.zig` `eacfc63df9670ba22fd1f88e4ee33212d1818e29`",
         "`scripts/zigux/check-phase12-libbpf-lane-marker.py` `7be88fe75bda8cc9d71eba627cb3309d8d6a0ccf`",
+        "- direct same-runtime raw access remains unavailable here: `curl -I -L --fail` against the raw catalog URL returned `curl: (22) The requested URL returned error: 403`",
         "- survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`",
         "- survey-build replay: `zigux/tests/phase12_virtio_scsi_survey_build.zig`",
         "- survey note: `Documentation/zigux/phase12-virtio-scsi-survey.md`",
@@ -129,6 +129,8 @@ FORBIDDEN_MARKERS = [
     "PHASE12_STATUS=starter-present-queue-submit-completion-and-recovery-survey",
     "current `master` now carries `zigux/tests/phase12_virtio_scsi.zig` as the direct bounded replay",
     "`make -C zigux phase12-validate` stays reminder-only validator wrapper vocabulary until that wrapper returns on current `master`",
+    "- exact coverage evidence refreshed on `2026-05-27` against live current `master`",
+    "- public blob page and public raw `master` fallback now match this same `46c4cc86cb2f164a9709ffbe46e1b8cd563a3259` current-master catalog body as of `2026-05-27`",
 ]
 
 EXPECTED_ABSENT = [
