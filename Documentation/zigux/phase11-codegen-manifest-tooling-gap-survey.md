@@ -44,9 +44,11 @@ Current shared Phase 11 tooling evidence on `master` now centers on the returned
 - `scripts/zigux/check-phase11-hvc-current-head-manifest.py`
 - `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`
 - `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
+- `scripts/zigux/check-phase11-dw-wdt-build-route.py`
 - `scripts/zigux/check-phase11-shared-tooling-manifest.py`
 - `scripts/zigux/validate-phase11.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
+- `zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json`
 - `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`
 - `zigux/tests/fixtures/phase11_validate_checks.json`
 - `zigux/Makefile`
@@ -54,7 +56,63 @@ Current shared Phase 11 tooling evidence on `master` now centers on the returned
 
 That shared packet is stronger than the older replay-only story: `scripts/zigux/validate-phase11.py` exists, `make -C zigux phase11-validate` is the live shared route, and the aggregate manifest now records the shared checker stack and proof fan-out without pretending it replaces the narrower HVC continuity inventory.
 `scripts/zigux/check-phase11-shared-tooling-manifest.py` is already wired into `scripts/zigux/validate-phase11.py`, and `zigux/tests/fixtures/phase11_validate_checks.json` records both the shared tooling-manifest self-test and live validator entries.
-The aggregate surface now also carries the shared watchdog lifecycle note plus the cleanup-prerequisite and current-head manifest guards that the validator route already ships.
+The aggregate surface now also carries the shared watchdog lifecycle note plus the cleanup-prerequisite, current-head manifest, and DesignWare build-route guards that the validator route already ships.
+
+The exact deterministic command set recorded by the current shared validator fixture is:
+
+- `python3 scripts/zigux/validate-phase11.py --self-test`
+- `python3 scripts/zigux/check-phase11-validate-manifest-roster.py --self-test`
+- `python3 scripts/zigux/check-phase11-validate-manifest-roster.py`
+- `python3 scripts/zigux/check-phase11-validate-check-roster.py --self-test`
+- `python3 scripts/zigux/check-phase11-validate-check-roster.py`
+- `python3 scripts/zigux/check-phase11-validate-route-alignment.py --self-test`
+- `python3 scripts/zigux/check-phase11-validate-route-alignment.py`
+- `python3 scripts/zigux/check-phase11-shared-tooling-manifest.py --self-test`
+- `python3 scripts/zigux/check-phase11-shared-tooling-manifest.py`
+- `python3 scripts/zigux/check-phase11-build-inventory.py --self-test`
+- `python3 scripts/zigux/check-phase11-build-inventory.py`
+- `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test`
+- `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`
+- `python3 scripts/zigux/check-phase11-shared-replay-contract-counts.py --self-test`
+- `python3 scripts/zigux/check-phase11-shared-replay-contract-counts.py`
+- `python3 scripts/zigux/check-phase11-matrix-gap-survey.py --self-test`
+- `python3 scripts/zigux/check-phase11-matrix-gap-survey.py`
+- `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py --self-test`
+- `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
+- `python3 scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py --self-test`
+- `python3 scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py`
+- `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test`
+- `python3 scripts/zigux/check-phase11-header-boundary-packet.py`
+- `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test`
+- `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py --self-test`
+- `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`
+- `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test`
+- `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
+- `python3 scripts/zigux/check-phase11-hvc-current-head-manifest.py --self-test`
+- `python3 scripts/zigux/check-phase11-hvc-current-head-manifest.py`
+- `python3 scripts/zigux/check-phase11-dw-wdt-teardown-packet.py --self-test`
+- `python3 scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`
+- `python3 scripts/zigux/check-phase11-dw-wdt-verify-alignment.py --self-test`
+- `python3 scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
+- `python3 scripts/zigux/check-phase11-dw-wdt-build-route.py --self-test`
+- `python3 scripts/zigux/check-phase11-dw-wdt-build-route.py`
+- `zig build test --build-file zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig`
+- `zig build test --build-file zigux/tests/phase11_dw_wdt_build.zig`
+- `zig build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig`
+- `zig build test --build-file zigux/tests/phase11_dw_wdt_pm_build.zig`
+- `zig build test --build-file zigux/tests/phase11_gpio_wdt_verify_helper_build.zig`
+- `zig build test --build-file zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`
+- `zig build test --build-file zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
+- `zig build test --build-file zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`
+- `zig build test --build-file zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`
+- `zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
+- `zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig`
+- `zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+- `zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig`
+- `zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
+
+Use `python3 scripts/zigux/validate-phase11.py --skip-zig-builds` when a scheduled environment cannot expose the pinned Zig toolchain or a runnable checkout; that still verifies the Python checker chain and records the skipped Zig proof-build count.
 
 ## Live Gap Versus The Roadmap
 
