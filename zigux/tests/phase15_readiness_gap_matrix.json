@@ -9,8 +9,35 @@
     "ledger_anchor_count": 1,
     "remaining_readiness_gap_count": 3,
     "blocked_make_route_count": 3,
-    "blocked_workflow_route_count": 1
+    "blocked_workflow_route_count": 1,
+    "release_evidence_count": 4
   },
+  "release_evidence": [
+    {
+      "evidence": "validator_first_replay",
+      "status": "materialized",
+      "path": "scripts/zigux/validate-phase15.py",
+      "why_it_matters": "keeps the readiness packet replayable as a direct maintenance gate while broader make and workflow routes remain absent"
+    },
+    {
+      "evidence": "readiness_packet_checker",
+      "status": "materialized",
+      "path": "scripts/zigux/check-phase15-readiness-gate-packet.py",
+      "why_it_matters": "keeps the readiness survey, manifest, gap matrix, blocked-route posture, and repo evidence aligned"
+    },
+    {
+      "evidence": "shared_build_companion",
+      "status": "materialized",
+      "path": "zigux/tests/phase15_build.zig",
+      "why_it_matters": "records that the shared Phase 15 build companion is present without claiming the missing one-command wrappers"
+    },
+    {
+      "evidence": "readiness_gap_matrix",
+      "status": "materialized",
+      "path": "zigux/tests/phase15_readiness_gap_matrix.json",
+      "why_it_matters": "keeps the roadmap-versus-ledger release blockers explicit as data rather than prose-only handoff notes"
+    }
+  ],
   "roadmap_required_features": [
     {
       "requirement": "freeze map",
