@@ -135,6 +135,7 @@ test "phase13 notifier checker stays explicit in the focused reviewability gate"
     try requireContains(checker, "drivers/tty/hvc/hvc_console.h");
     try requireContains(checker, "zigux_list_is_empty");
     try requireContains(checker, "zigux_hlist_first_pprev_matches_head");
+    try requireContains(checker, "\"pub fn tailNextIsNull\"");
     try requireContains(checker, "zigux_hlist_tail_next_is_null");
 }
 
