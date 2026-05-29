@@ -217,12 +217,12 @@ test "phase12 virtio scsi fallback catalog keeps archival replay distinct from c
 
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "PHASE12_STATUS=archival-raw-read-fallback") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "commit pin: `ee64eec272a352da1d967999c99bb3c3560c9b97`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "exact coverage evidence refreshed on `2026-05-27`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "authenticated contents view now returns this refreshed archival catalog body on current `master` with exact blob `46c4cc86cb2f164a9709ffbe46e1b8cd563a3259`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "public blob page and public raw `master` fallback now match this same `46c4cc86cb2f164a9709ffbe46e1b8cd563a3259` current-master catalog body as of `2026-05-27`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "exact coverage evidence refreshed on `2026-05-29`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "authenticated contents readback before this refresh returned this catalog path at blob `e24ff02b887278a38992da1bf63a5d9b4983fbef`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "because this runtime cannot fetch raw URLs or clone the repo directly") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "`zigux/tests/phase12_virtio_scsi_survey_build.zig` `2d502aad14ed244c614095060be986dd4514652e`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "`zigux/tests/phase12_build.zig` `e0d297f50d2805948b93ca421ae9ec20ddfceafa`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "`scripts/zigux/check-phase12-libbpf-lane-marker.py` `7be88fe75bda8cc9d71eba627cb3309d8d6a0ccf`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "`zigux/tests/phase12_build.zig` `eacfc63df9670ba22fd1f88e4ee33212d1818e29`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "`scripts/zigux/validate-phase12.py` `8b64ad4545a1f4de35294a25d5ff01217d533394`") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "current `master` no longer serves `drivers/scsi/virtio_scsi.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "archival commit-pinned history only") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "matching current-master archival evidence for this path") != null);
