@@ -61,7 +61,7 @@ PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=24
 
 The stricter cross-surface checker blob reread for this lane is:
 
-- `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`: `429c4f01ebaa9832791c5e8d3d0e4a82ab603939`
+- `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`: `2ec8d6d2db9f3992cf8dcacfb7418ed780c72676`
 
 That checker currently validates the shared survey against all of these surfaces together:
 
@@ -80,11 +80,11 @@ Its current behavior requires:
 - exact `zigux/Makefile` command markers for the same four focused build checks
 - exact `phase11_validate_checks.json` entries for `phase11-validation-matrix-gap-survey-self-test` and `phase11-validation-matrix-gap-survey`
 
-Its self-test behavior is expected to print:
+Its self-test now iterates over every `SURVEY_MARKERS` entry instead of only the first seven survey markers, so stale roadmap-anchor, four-matrix roster, deterministic-tooling-gap, or review-boundary wording should all fail the fixture replay. Its self-test behavior is expected to print:
 
 ```text
 PHASE11_MATRIX_GAP_SURVEY_CHECK=pass
-PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=13
+PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=23
 ```
 
 ## Fixture Evidence
@@ -124,6 +124,6 @@ The current parity-matrix behavior is matrix-roster-present and build-proof-firs
 - current `master` keeps the four driver-local matrix notes named by the Phase 11 roadmap explicit
 - current `master` keeps focused teardown-or-failure-mode proof builds visible beside the matrix roster
 - current `master` has machine-readable inventory and validate-check fixtures for the shared packet
-- current `master` has checkers that fail-close on stale matrix-roster wording, inventory drift, validate-route drift, Makefile command drift, and missing shared matrix-gap check entries
+- current `master` has checkers that fail-close on stale matrix-roster wording, inventory drift, validate-route drift, Makefile command drift, missing shared matrix-gap check entries, and any omitted strict survey marker in the validation-matrix-gap replay fixture
 
 The current packet still does not provide a refresh helper route or artifact-diff-style deterministic output comparison for the driver-local proof builds. That is the exact remaining behavior boundary: `phase11-validate` proves the current shared packet through checkers and build replays, but it does not yet refresh and diff stable expected-output artifacts for the Phase 11 proof fan-out.
