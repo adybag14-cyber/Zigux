@@ -44,11 +44,11 @@ Current `master` maps the four roadmap anchors to these bounded packet states:
 
 ## Adjacent Evidence
 
-Adjacent notifier evidence can support release-surface truthfulness, but it does not become a fifth roadmap anchor. Keep `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `include/zigux/abi.h`, and `drivers/tty/hvc/hvc_console.h` explicit as the adjacent current-`master` packet while `zigux/helpers/notifier_chain_view.zig`, `include/zigux/notifier_abi.h`, and `scripts/zigux/check-phase13-notifier-priority-signal.py` stay recorded as repo-reality gaps.
+Adjacent notifier evidence can support release-surface truthfulness, but it does not become a fifth roadmap anchor. Keep `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `include/zigux/abi.h`, and `drivers/tty/hvc/hvc_console.h` explicit as the adjacent current-`master` packet while `include/zigux/notifier_abi.h` and `scripts/zigux/check-phase13-notifier-priority-signal.py` stay recorded as repo-reality gaps.
 
 ## Release Discipline
 
-Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and missing notifier-chain companion.
+Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and still-missing dedicated notifier ABI header or priority-signal companion.
 
 Current `master` also now materializes `scripts/zigux/check-phase13-roadmap-traceability.py`, so keep that checker explicit as the note-level guard for this roadmap-to-repo owner map rather than treating traceability as a reminder-only surface with no dedicated replay.
 
@@ -67,7 +67,6 @@ Keep the remaining current gaps explicit:
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
-- `zigux/helpers/notifier_chain_view.zig`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `include/zigux/notifier_abi.h`
 - live `libfs` filesystem mutation, inode-state, cursor traversal, cursor unlinking, and close-path lock-ordering ownership
