@@ -42,6 +42,12 @@
       "modified_at_utc": "2026-05-25T19:05:31Z",
       "self_test_case_count": 30
     },
+    "reviewability_gate": {
+      "checked_at_utc": "2026-05-29T18:55:00Z",
+      "path": "zigux/tests/phase12_libbpf_reviewability.zig",
+      "blob_sha": "8a483df7446ce67c52cfea2106bb50aba590876b",
+      "evidence": "primary snapshot replay parses surveyed_commit and asserts it is a lowercase 40-character hex SHA"
+    },
     "current_note_blobs": [
       {
         "path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
