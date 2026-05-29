@@ -113,6 +113,7 @@ REQUIRED_SOURCE_MARKERS = {
     "bitmap_scnprintf_alias_assert": "const alias_len = bitmap_scnprintf(&alias_range, nbits, &alias_buffer);",
     "bitmap_alloc_alias_assert": "var plain_alias: ?[]Word = try bitmap_alloc(allocator, nbits);",
     "bitmap_zalloc_alias_assert": "var zeroed_alias: ?[]Word = try bitmap_zalloc(allocator, nbits);",
+    "bitmap_free_alias_assert": "bitmap_free(allocator, &plain_alias);",
 }
 
 
