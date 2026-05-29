@@ -161,3 +161,56 @@ test "phase3 policy unsafe replay keeps policy consequences explicit" {
     try testing.expect(narrow.requiresDedicatedAuditInteropPolicy(mmioPolicy()));
     try testing.expect(narrow.requiresDedicatedAuditInteropPolicy(rawPolicy()));
 }
+
+test "phase3 policy unsafe replay keeps raw-pointer windows bounded" {
+    const raw = rawPolicy();
+    const reserved = abi.InteropPolicy{
+        .panic_mode = abi.PANIC_WARN,
+        .allocator_mode = abi.ALLOC_ARENA,
+        .unsafe_scope = abi.UNSAFE_RAW_POINTER_BRIDGE,
+        .reserved = 1,
+    };
+
+    var bridge_words = [_]u32{ 31, 47, 59 };
+    const base_addr = @intFromPtr(&bridge_words[0]);
+    const byte_len = @sizeOf(@TypeOf(bridge_words));
+
+    const window = try unsafe_policy.windowInteropPolicy(base_addr, byte_len, raw);
+    try testing.expectEqual(base_addr, window.base_addr);
+    try testing.expectEqual(byte_len, window.byte_len);
+    try testing.expectEqual(window, try unsafe_policy.windowByte(base_addr, byte_len, abi.UNSAFE_RAW_POINTER_BRIDGE));
+
+    const first = try unsafe_policy.pointerAtWindow(u32, window, 0);
+    try testing.expectEqual(@as(u32, 31), first.*);
+
+    const second = try unsafe_policy.constPointerAtWindow(u32, window, @sizeOf(u32));
+    try testing.expectEqual(@as(u32, 47), second.*);
+
+    const mutable_slice = try unsafe_policy.sliceAtWindow(u32, window, 0, bridge_words.len);
+    mutable_slice[2] = 71;
+    try testing.expectEqual(@as(u32, 71), bridge_words[2]);
+
+    const replay_slice = try unsafe_policy.constSliceAtWindow(u32, window, 0, bridge_words.len);
+    try testing.expectEqual(@as(usize, bridge_words.len), replay_slice.len);
+    try testing.expectEqual(@as(u32, 71), replay_slice[2]);
+
+    try testing.expectEqual(@as(u32, 47), try unsafe_policy.readValueAtWindow(u32, window, @sizeOf(u32)));
+
+    try unsafe_policy.writeValueAtWindow(u32, window, @sizeOf(u32) * 2, 73);
+    try testing.expectEqual(@as(u32, 73), bridge_words[2]);
+
+    try testing.expectEqual(
+        @as(u32, 73),
+        try unsafe_policy.exchangeValueAtWindow(u32, window, @sizeOf(u32) * 2, 79),
+    );
+    try testing.expectEqual(@as(u32, 79), bridge_words[2]);
+
+    try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.windowInteropPolicy(base_addr, byte_len, safePolicy()));
+    try testing.expectError(error.UnsafeScopeDenied, unsafe_policy.windowInteropPolicy(base_addr, byte_len, reserved));
+    try testing.expectError(error.AccessOutsideWindow, unsafe_policy.pointerAtWindow(u32, window, byte_len));
+    try testing.expectError(
+        error.AccessOutsideWindow,
+        unsafe_policy.sliceAtWindow(u32, window, @sizeOf(u32), bridge_words.len),
+    );
+    try testing.expectError(error.OffsetOverflow, unsafe_policy.readValueAtWindow(u32, window, std.math.maxInt(usize)));
+}
