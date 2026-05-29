@@ -47,6 +47,7 @@ reminder surfaces:
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`
 - `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
+- `scripts/zigux/check-phase11-dw-wdt-build-route.py`
 - `scripts/zigux/validate-phase11.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
@@ -151,7 +152,8 @@ deterministic and reviewable:
   `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py --self-test`,
   `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test`,
   `python3 scripts/zigux/check-phase11-dw-wdt-teardown-packet.py --self-test`,
-  and `python3 scripts/zigux/check-phase11-dw-wdt-verify-alignment.py --self-test`
+  `python3 scripts/zigux/check-phase11-dw-wdt-verify-alignment.py --self-test`,
+  and `python3 scripts/zigux/check-phase11-dw-wdt-build-route.py --self-test`
 - shared checker live routes:
   `python3 scripts/zigux/check-phase11-validate-manifest-roster.py`,
   `python3 scripts/zigux/check-phase11-validate-check-roster.py`,
@@ -166,7 +168,8 @@ deterministic and reviewable:
   `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`,
   `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,
   `python3 scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
-  and `python3 scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
+  `python3 scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
+  and `python3 scripts/zigux/check-phase11-dw-wdt-build-route.py`
 - shared validator route: `python3 scripts/zigux/validate-phase11.py`
 - shared validator fixture: `zigux/tests/fixtures/phase11_validate_checks.json`
 - shared Makefile route: `make -C zigux phase11-validate`
@@ -204,6 +207,7 @@ route:
   `Documentation/zigux/phase11-dw-wdt-survey.md`,
   `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
   `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
+  `scripts/zigux/check-phase11-dw-wdt-build-route.py`,
   `zigux/tests/phase11_dw_wdt_manifest.json`,
   `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
   `zigux/tests/phase11_dw_wdt_survey.zig`,
@@ -258,18 +262,3 @@ route:
 - no `make -C zigux phase11-contract`, `make -C zigux phase11`, or
   `make -C zigux phase11-hvc-survey` route on current `master`
 - no dedicated HVC survey workflow step on current `master`
-- no shared `zigux/tests/phase11_build.zig` replay route on current `master`
-- no `scripts/zigux/check-phase11-shared-replay-contract.py` or
-  `scripts/zigux/check-phase11-shared-summary-surfaces.py` route on current
-  `master`
-- no broader platform registration, PM plumbing, tty registration, notifier
-  execution, khvcd execution, sysrq dispatch, or hardware-backed validation
-  beyond the current bounded replay packet and parked reminder notes
-
-## Follow-Through Rule
-
-Future shared Phase 11 work should stay inside the next smallest
-reminder-surface truthfulness repair.
-Prefer one shared note or checker at a time so the shared reminder packet, the
-parked driver-local notes, and the inventory-backed validation surfaces remain
-aligned with the files current `master` can actually materialize.
