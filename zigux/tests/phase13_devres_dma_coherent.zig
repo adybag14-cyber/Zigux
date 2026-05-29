@@ -47,6 +47,12 @@ test "phase13 devres dma coherent replay proves lib/devres stays planning-only a
     try requireAbsent(helper, "struct scatterlist");
     try requireAbsent(helper, "sg_table");
     try requireAbsent(helper, "sg_init_table(");
+    try requireAbsent(helper, "dma_map_sg(");
+    try requireAbsent(helper, "dma_unmap_sg(");
+    try requireAbsent(helper, "sg_alloc_table(");
+    try requireAbsent(helper, "sg_free_table(");
+    try requireAbsent(helper, "sg_dma_address(");
+    try requireAbsent(helper, "sg_dma_len(");
 }
 
 test "phase13 devres dma coherent replay anchors the current slice reality" {
