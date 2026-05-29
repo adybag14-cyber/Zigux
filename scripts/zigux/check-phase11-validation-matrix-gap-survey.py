@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 FILES = {
     "matrix_gap_note": "Documentation/zigux/phase11-validation-matrix-gap-survey.md",
     "inventory": "zigux/tests/fixtures/phase11_build_inventory.json",
+    "dw_inventory": "zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json",
     "validate_checks": "zigux/tests/fixtures/phase11_validate_checks.json",
     "validate_phase11": "scripts/zigux/validate-phase11.py",
     "makefile": "zigux/Makefile",
@@ -145,6 +146,7 @@ def run_check(root: Path) -> None:
     require_text_markers("matrix_gap_note", survey_text, SURVEY_MARKERS)
 
     inventory = read_json(root, FILES["inventory"])
+    read_json(root, FILES["dw_inventory"])
     for key, expected in EXPECTED_INVENTORY_LISTS.items():
         if expect_string_list(key, inventory.get(key)) != expected:
             raise CheckError(f"{key} does not match the current-head Phase 11 packet")
@@ -232,6 +234,7 @@ def expect_failure(root: Path, fragment: str) -> None:
 def build_fixture(root: Path, survey_text: str) -> None:
     write(root / FILES["matrix_gap_note"], survey_text)
     write(root / FILES["inventory"], json.dumps(fixture_inventory(), indent=2) + "\n")
+    write(root / FILES["dw_inventory"], "{}\n")
     write(root / FILES["validate_checks"], json.dumps(fixture_validate_checks(), indent=2) + "\n")
     write(root / FILES["validate_phase11"], "\n".join(REQUIRED_VALIDATE_PHASE11_MARKERS) + "\n")
     write(root / FILES["makefile"], "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
@@ -268,6 +271,12 @@ def run_self_test() -> None:
         inventory["deterministic_fixture_surfaces"] = inventory["deterministic_fixture_surfaces"][:-1]
         write(inventory_list_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
         expect_failure(inventory_list_root, "deterministic_fixture_surfaces does not match")
+        case_count += 1
+
+        dw_inventory_root = tmpdir / "dw_inventory"
+        shutil.copytree(fixture_root, dw_inventory_root, dirs_exist_ok=True)
+        (dw_inventory_root / FILES["dw_inventory"]).unlink()
+        expect_failure(dw_inventory_root, f"missing required file: {FILES['dw_inventory']}")
         case_count += 1
 
         validate_root = tmpdir / "validate"
