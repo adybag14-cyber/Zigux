@@ -1,5 +1,5 @@
 {
-  "lane_key": "P11-L15",
+  "lane_key": "P11-L16",
   "phase": "Phase 11",
   "packet_status": "current_hvc_layout_assertion_suite",
   "scope": "Verify the current HVC ABI layout assertions and record the exact winsize, hv_ops, and exported helper surface evidence without widening into live tty lifecycle, notifier execution, khvcd work, or host-backed teardown.",
