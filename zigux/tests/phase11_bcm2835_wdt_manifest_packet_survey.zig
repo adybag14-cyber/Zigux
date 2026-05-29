@@ -41,6 +41,29 @@ test "phase11 bcm2835 manifest packet survey keeps the returned driver proof tru
     try expectNotContains(survey_note, "direct current `master` readback still does not return `Documentation/zigux/phase11-bcm2835-wdt-slice.md` or `Documentation/zigux/phase11-bcm2835-wdt-teardown-note.md`");
 }
 
+test "phase11 bcm2835 manifest packet survey keeps the machine-readable manifest aligned" {
+    const manifest = try readFile(std.testing.allocator, "zigux/tests/phase11_bcm2835_wdt_manifest.json", 16 * 1024);
+    defer std.testing.allocator.free(manifest);
+
+    try expectContains(manifest, "\"lane_key\": \"P11-L08\"");
+    try expectContains(manifest, "\"archival_packet_identity\": \"P11-L08\"");
+    try expectContains(manifest, "\"current_scheduled_continuity_lane\": \"P11-L10\"");
+    try expectContains(manifest, "\"bcm2835_wdt_zig_present\": true");
+    try expectContains(manifest, "\"bcm2835_wdt_verify_helper_present\": true");
+    try expectContains(manifest, "\"bcm2835_wdt_tests_root_replay_present\": true");
+    try expectContains(manifest, "\"bcm2835_wdt_manifest_present\": true");
+    try expectContains(manifest, "\"bcm2835_wdt_slice_note_present\": false");
+    try expectContains(manifest, "\"bcm2835_wdt_teardown_note_present\": true");
+    try expectContains(manifest, "\"bcm2835_platform_validation_plan_present\": true");
+    try expectContains(manifest, "\"bcm2835_validation_matrix_present\": true");
+    try expectContains(manifest, "\"bcm2835_manifest_packet_survey_present\": true");
+    try expectContains(manifest, "\"bcm2835_manifest_packet_build_present\": true");
+    try expectContains(manifest, "phase11-bcm2835-platform-registration");
+    try expectContains(manifest, "phase11-bcm2835-shared-poweroff-callback-ownership");
+    try expectContains(manifest, "phase11-bcm2835-hardware-backed-validation");
+    try expectNotContains(manifest, "\"bcm2835_wdt_slice_note_present\": true");
+}
+
 test "phase11 bcm2835 manifest packet survey keeps the blocker plan aligned with current master" {
     const validation_plan = try readFile(std.testing.allocator, "Documentation/zigux/phase11-bcm2835-wdt-platform-validation-plan.md", 16 * 1024);
     defer std.testing.allocator.free(validation_plan);
