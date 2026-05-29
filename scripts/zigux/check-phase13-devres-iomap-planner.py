@@ -58,6 +58,7 @@ REQUIRED_MARKERS = {
         "phase13 devres iomap planning keeps the blocked non-posted wrapper requirement explicit",
         "phase13 devres iomap cleanup handoff materializes helper-first iounmap cleanup after successful remap",
         "phase13 devres iomap cleanup handoff keeps missing release records warnable",
+        "phase13 devres iomap cleanup handoff stays inert before remap readiness",
         "phase13 devres iomap planner manifest records the landed helper-first mmio scope",
         "phase13 devres iomap planner note keeps the helper-first mmio slice bounded",
         "phase13 devres iomap planner checker stays packet-local",
@@ -256,6 +257,25 @@ def run_self_test() -> int:
                 "zigux/tests/phase13_devres_iomap_planner_manifest.json:missing_marker:\"id\": \"phase13-devres-live-arch-memtype-mutation\"",
             ],
             "missing_arch_memtype_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / REPLAY_PATH,
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS[REPLAY_PATH]
+                if marker != "phase13 devres iomap cleanup handoff stays inert before remap readiness"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "zigux/tests/phase13_devres_iomap_planner.zig:missing_marker:phase13 devres iomap cleanup handoff stays inert before remap readiness",
+            ],
+            "missing_inert_handoff_replay_failed",
         )
         case_count += 1
 
