@@ -71,6 +71,8 @@ phase2-cross:
 phase2-genksyms: phase2-toolchain
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py
 	cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms_version_before_invalid_long_option_test.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig
