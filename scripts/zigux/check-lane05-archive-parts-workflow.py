@@ -12,6 +12,7 @@ WORKFLOW_NAME = "name: zigux-bootstrap-archive-parts-packet"
 PUSH_BRANCH = "branches: [ master ]"
 CHECKER_PATH = "- 'scripts/zigux/check-lane05-archive-parts-workflow.py'"
 PACKET_CHECKER_PATH = "- 'scripts/zigux/check-lane05-archive-parts-packet.py'"
+TEXT_CEILING_CHECKER_PATH = "- 'scripts/zigux/check-lane05-archive-parts-text-ceiling.py'"
 POLICY_PATH = "- 'scripts/zigux/zig-toolchain-policy.json'"
 THIRD_PARTY_PATH = "- 'third_party/**'"
 WORKFLOW_PATH_FILTER = "- '.github/workflows/zigux-bootstrap-archive-parts-packet.yml'"
@@ -23,18 +24,91 @@ COMPILE_CMD = (
     "python3 -m py_compile "
     "scripts/zigux/check-zig-toolchain.py "
     "scripts/zigux/check-lane05-archive-parts-packet.py "
+    "scripts/zigux/check-lane05-archive-parts-text-ceiling.py "
     "scripts/zigux/check-lane05-archive-parts-workflow.py"
 )
 WORKFLOW_CHECKER_SELF_TEST_STEP = "- name: Self-test current Lane 05 archive-parts workflow checker"
-WORKFLOW_CHECKER_SELF_TEST_CMD = (
-    "python3 scripts/zigux/check-lane05-archive-parts-workflow.py --self-test"
-)
+WORKFLOW_CHECKER_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-archive-parts-workflow.py --self-test"
 WORKFLOW_CHECKER_STEP = "- name: Check current Lane 05 archive-parts workflow packet"
 WORKFLOW_CHECKER_CMD = "python3 scripts/zigux/check-lane05-archive-parts-workflow.py"
 PACKET_SELF_TEST_STEP = "- name: Self-test current Lane 05 archive parts packet checker"
 PACKET_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-archive-parts-packet.py --self-test"
 PACKET_CHECK_STEP = "- name: Check current Lane 05 archive parts packet"
 PACKET_CHECK_CMD = "python3 scripts/zigux/check-lane05-archive-parts-packet.py --allow-missing"
+TEXT_CEILING_SELF_TEST_STEP = "- name: Self-test current Lane 05 archive parts text ceiling checker"
+TEXT_CEILING_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-archive-parts-text-ceiling.py --self-test"
+TEXT_CEILING_CHECK_STEP = "- name: Check current Lane 05 archive parts text ceiling"
+TEXT_CEILING_CHECK_CMD = "python3 scripts/zigux/check-lane05-archive-parts-text-ceiling.py --allow-missing"
+
+
+REQUIRED_MARKERS = (
+    (WORKFLOW_NAME, "workflow name"),
+    (PUSH_BRANCH, "master push trigger"),
+    (CHECKER_PATH, "workflow checker path filter"),
+    (PACKET_CHECKER_PATH, "packet checker path filter"),
+    (TEXT_CEILING_CHECKER_PATH, "text ceiling checker path filter"),
+    (POLICY_PATH, "policy path filter"),
+    (THIRD_PARTY_PATH, "third-party path filter"),
+    (WORKFLOW_PATH_FILTER, "workflow path filter"),
+    (PERMISSIONS, "contents permission"),
+    (CHECKOUT_STEP, "checkout step"),
+    (SETUP_PYTHON_STEP, "python setup step"),
+    (COMPILE_STEP, "compile step"),
+    (COMPILE_CMD, "compile command"),
+    (WORKFLOW_CHECKER_SELF_TEST_STEP, "workflow checker self-test step"),
+    (WORKFLOW_CHECKER_SELF_TEST_CMD, "workflow checker self-test command"),
+    (WORKFLOW_CHECKER_STEP, "workflow checker step"),
+    (WORKFLOW_CHECKER_CMD, "workflow checker command"),
+    (PACKET_SELF_TEST_STEP, "packet checker self-test step"),
+    (PACKET_SELF_TEST_CMD, "packet checker self-test command"),
+    (PACKET_CHECK_STEP, "packet check step"),
+    (PACKET_CHECK_CMD, "packet check command"),
+    (TEXT_CEILING_SELF_TEST_STEP, "text ceiling checker self-test step"),
+    (TEXT_CEILING_SELF_TEST_CMD, "text ceiling checker self-test command"),
+    (TEXT_CEILING_CHECK_STEP, "text ceiling check step"),
+    (TEXT_CEILING_CHECK_CMD, "text ceiling check command"),
+)
+
+EXACT_LINES = (
+    (PUSH_BRANCH, "master push trigger"),
+    (CHECKER_PATH, "workflow checker path filter"),
+    (PACKET_CHECKER_PATH, "packet checker path filter"),
+    (TEXT_CEILING_CHECKER_PATH, "text ceiling checker path filter"),
+    (POLICY_PATH, "policy path filter"),
+    (THIRD_PARTY_PATH, "third-party path filter"),
+    (WORKFLOW_PATH_FILTER, "workflow path filter"),
+    (PERMISSIONS, "contents permission"),
+    (f"run: {COMPILE_CMD}", "compile command"),
+    (f"run: {WORKFLOW_CHECKER_SELF_TEST_CMD}", "workflow checker self-test command"),
+    (f"run: {WORKFLOW_CHECKER_CMD}", "workflow checker command"),
+    (f"run: {PACKET_SELF_TEST_CMD}", "packet checker self-test command"),
+    (f"run: {PACKET_CHECK_CMD}", "packet check command"),
+    (f"run: {TEXT_CEILING_SELF_TEST_CMD}", "text ceiling checker self-test command"),
+    (f"run: {TEXT_CEILING_CHECK_CMD}", "text ceiling check command"),
+    (COMPILE_STEP, "compile step"),
+    (WORKFLOW_CHECKER_SELF_TEST_STEP, "workflow checker self-test step"),
+    (WORKFLOW_CHECKER_STEP, "workflow checker step"),
+    (PACKET_SELF_TEST_STEP, "packet checker self-test step"),
+    (PACKET_CHECK_STEP, "packet check step"),
+    (TEXT_CEILING_SELF_TEST_STEP, "text ceiling checker self-test step"),
+    (TEXT_CEILING_CHECK_STEP, "text ceiling check step"),
+)
+
+ORDERED_MARKERS = (
+    (CHECKER_PATH, PACKET_CHECKER_PATH, "pull_request path order"),
+    (PACKET_CHECKER_PATH, TEXT_CEILING_CHECKER_PATH, "pull_request path order"),
+    (TEXT_CEILING_CHECKER_PATH, POLICY_PATH, "pull_request path order"),
+    (POLICY_PATH, THIRD_PARTY_PATH, "pull_request path order"),
+    (THIRD_PARTY_PATH, WORKFLOW_PATH_FILTER, "pull_request path order"),
+    (CHECKOUT_STEP, SETUP_PYTHON_STEP, "step order"),
+    (SETUP_PYTHON_STEP, COMPILE_STEP, "step order"),
+    (COMPILE_STEP, WORKFLOW_CHECKER_SELF_TEST_STEP, "step order"),
+    (WORKFLOW_CHECKER_SELF_TEST_STEP, WORKFLOW_CHECKER_STEP, "step order"),
+    (WORKFLOW_CHECKER_STEP, PACKET_SELF_TEST_STEP, "step order"),
+    (PACKET_SELF_TEST_STEP, PACKET_CHECK_STEP, "step order"),
+    (PACKET_CHECK_STEP, TEXT_CEILING_SELF_TEST_STEP, "step order"),
+    (TEXT_CEILING_SELF_TEST_STEP, TEXT_CEILING_CHECK_STEP, "step order"),
+)
 
 
 def require_marker(text: str, marker: str, label: str) -> None:
@@ -55,9 +129,7 @@ def require_order(text: str, earlier: str, later: str, label: str) -> None:
     earlier_index = text.find(earlier)
     later_index = text.find(later)
     if earlier_index == -1 or later_index == -1:
-        raise SystemExit(
-            f"lane05 archive-parts workflow checker missing ordered markers for {label}"
-        )
+        raise SystemExit(f"lane05 archive-parts workflow checker missing ordered markers for {label}")
     if earlier_index >= later_index:
         raise SystemExit(
             "lane05 archive-parts workflow checker expected "
@@ -66,65 +138,12 @@ def require_order(text: str, earlier: str, later: str, label: str) -> None:
 
 
 def check_workflow(text: str) -> None:
-    for marker, label in (
-        (WORKFLOW_NAME, "workflow name"),
-        (PUSH_BRANCH, "master push trigger"),
-        (CHECKER_PATH, "workflow checker path filter"),
-        (PACKET_CHECKER_PATH, "packet checker path filter"),
-        (POLICY_PATH, "policy path filter"),
-        (THIRD_PARTY_PATH, "third-party path filter"),
-        (WORKFLOW_PATH_FILTER, "workflow path filter"),
-        (PERMISSIONS, "contents permission"),
-        (CHECKOUT_STEP, "checkout step"),
-        (SETUP_PYTHON_STEP, "python setup step"),
-        (COMPILE_STEP, "compile step"),
-        (COMPILE_CMD, "compile command"),
-        (WORKFLOW_CHECKER_SELF_TEST_STEP, "workflow checker self-test step"),
-        (WORKFLOW_CHECKER_SELF_TEST_CMD, "workflow checker self-test command"),
-        (WORKFLOW_CHECKER_STEP, "workflow checker step"),
-        (WORKFLOW_CHECKER_CMD, "workflow checker command"),
-        (PACKET_SELF_TEST_STEP, "packet checker self-test step"),
-        (PACKET_SELF_TEST_CMD, "packet checker self-test command"),
-        (PACKET_CHECK_STEP, "packet check step"),
-        (PACKET_CHECK_CMD, "packet check command"),
-    ):
+    for marker, label in REQUIRED_MARKERS:
         require_marker(text, marker, label)
-
-    for line, label in (
-        (PUSH_BRANCH, "master push trigger"),
-        (CHECKER_PATH, "workflow checker path filter"),
-        (PACKET_CHECKER_PATH, "packet checker path filter"),
-        (POLICY_PATH, "policy path filter"),
-        (THIRD_PARTY_PATH, "third-party path filter"),
-        (WORKFLOW_PATH_FILTER, "workflow path filter"),
-        (PERMISSIONS, "contents permission"),
-        (f"run: {COMPILE_CMD}", "compile command"),
-        (f"run: {WORKFLOW_CHECKER_SELF_TEST_CMD}", "workflow checker self-test command"),
-        (f"run: {WORKFLOW_CHECKER_CMD}", "workflow checker command"),
-        (f"run: {PACKET_SELF_TEST_CMD}", "packet checker self-test command"),
-        (f"run: {PACKET_CHECK_CMD}", "packet check command"),
-    ):
+    for line, label in EXACT_LINES:
         require_exact_line(text, line, label)
-
-    for line, label in (
-        (COMPILE_STEP, "compile step"),
-        (WORKFLOW_CHECKER_SELF_TEST_STEP, "workflow checker self-test step"),
-        (WORKFLOW_CHECKER_STEP, "workflow checker step"),
-        (PACKET_SELF_TEST_STEP, "packet checker self-test step"),
-        (PACKET_CHECK_STEP, "packet check step"),
-    ):
-        require_exact_line(text, line, label)
-
-    require_order(text, CHECKER_PATH, PACKET_CHECKER_PATH, "pull_request path order")
-    require_order(text, PACKET_CHECKER_PATH, POLICY_PATH, "pull_request path order")
-    require_order(text, POLICY_PATH, THIRD_PARTY_PATH, "pull_request path order")
-    require_order(text, THIRD_PARTY_PATH, WORKFLOW_PATH_FILTER, "pull_request path order")
-    require_order(text, CHECKOUT_STEP, SETUP_PYTHON_STEP, "step order")
-    require_order(text, SETUP_PYTHON_STEP, COMPILE_STEP, "step order")
-    require_order(text, COMPILE_STEP, WORKFLOW_CHECKER_SELF_TEST_STEP, "step order")
-    require_order(text, WORKFLOW_CHECKER_SELF_TEST_STEP, WORKFLOW_CHECKER_STEP, "step order")
-    require_order(text, WORKFLOW_CHECKER_STEP, PACKET_SELF_TEST_STEP, "step order")
-    require_order(text, PACKET_SELF_TEST_STEP, PACKET_CHECK_STEP, "step order")
+    for earlier, later, label in ORDERED_MARKERS:
+        require_order(text, earlier, later, label)
 
 
 def run_self_test() -> int:
@@ -137,6 +156,7 @@ on:
     paths:
       - 'scripts/zigux/check-lane05-archive-parts-workflow.py'
       - 'scripts/zigux/check-lane05-archive-parts-packet.py'
+      - 'scripts/zigux/check-lane05-archive-parts-text-ceiling.py'
       - 'scripts/zigux/zig-toolchain-policy.json'
       - 'third_party/**'
       - '.github/workflows/zigux-bootstrap-archive-parts-packet.yml'
@@ -167,7 +187,7 @@ jobs:
           python-version: '3.x'
 
       - name: Compile current Lane 05 archive-parts workflow scripts
-        run: python3 -m py_compile scripts/zigux/check-zig-toolchain.py scripts/zigux/check-lane05-archive-parts-packet.py scripts/zigux/check-lane05-archive-parts-workflow.py
+        run: python3 -m py_compile scripts/zigux/check-zig-toolchain.py scripts/zigux/check-lane05-archive-parts-packet.py scripts/zigux/check-lane05-archive-parts-text-ceiling.py scripts/zigux/check-lane05-archive-parts-workflow.py
 
       - name: Self-test current Lane 05 archive-parts workflow checker
         run: python3 scripts/zigux/check-lane05-archive-parts-workflow.py --self-test
@@ -180,56 +200,21 @@ jobs:
 
       - name: Check current Lane 05 archive parts packet
         run: python3 scripts/zigux/check-lane05-archive-parts-packet.py --allow-missing
+
+      - name: Self-test current Lane 05 archive parts text ceiling checker
+        run: python3 scripts/zigux/check-lane05-archive-parts-text-ceiling.py --self-test
+
+      - name: Check current Lane 05 archive parts text ceiling
+        run: python3 scripts/zigux/check-lane05-archive-parts-text-ceiling.py --allow-missing
 """
     check_workflow(good_workflow)
     case_count = 1
 
     for broken_text, expected in (
-        (
-            good_workflow.replace(
-                "      - name: Compile current Lane 05 archive-parts workflow scripts\n"
-                "        run: python3 -m py_compile scripts/zigux/check-zig-toolchain.py scripts/zigux/check-lane05-archive-parts-packet.py scripts/zigux/check-lane05-archive-parts-workflow.py\n",
-                "",
-                1,
-            ),
-            COMPILE_STEP,
-        ),
-        (
-            good_workflow.replace(
-                "      - name: Self-test current Lane 05 archive-parts workflow checker\n"
-                "        run: python3 scripts/zigux/check-lane05-archive-parts-workflow.py --self-test\n",
-                "",
-                1,
-            ),
-            WORKFLOW_CHECKER_SELF_TEST_STEP,
-        ),
-        (
-            good_workflow.replace(
-                "      - name: Check current Lane 05 archive-parts workflow packet\n"
-                "        run: python3 scripts/zigux/check-lane05-archive-parts-workflow.py\n",
-                "",
-                1,
-            ),
-            WORKFLOW_CHECKER_STEP,
-        ),
-        (
-            good_workflow.replace(
-                "      - name: Self-test current Lane 05 archive parts packet checker\n"
-                "        run: python3 scripts/zigux/check-lane05-archive-parts-packet.py --self-test\n",
-                "",
-                1,
-            ),
-            PACKET_SELF_TEST_STEP,
-        ),
-        (
-            good_workflow.replace(
-                "      - name: Check current Lane 05 archive parts packet\n"
-                "        run: python3 scripts/zigux/check-lane05-archive-parts-packet.py --allow-missing\n",
-                "",
-                1,
-            ),
-            PACKET_CHECK_STEP,
-        ),
+        (good_workflow.replace(TEXT_CEILING_CHECKER_PATH + "\n", "", 1), TEXT_CEILING_CHECKER_PATH),
+        (good_workflow.replace(TEXT_CEILING_SELF_TEST_STEP + "\n", "", 1), TEXT_CEILING_SELF_TEST_STEP),
+        (good_workflow.replace(TEXT_CEILING_CHECK_STEP + "\n", "", 1), TEXT_CEILING_CHECK_STEP),
+        (good_workflow.replace(f"        run: {TEXT_CEILING_CHECK_CMD}\n", "", 1), TEXT_CEILING_CHECK_CMD),
     ):
         try:
             check_workflow(broken_text)
@@ -240,14 +225,16 @@ jobs:
             raise AssertionError(f"expected failure for {expected}")
 
     reordered_steps = good_workflow.replace(
-        "      - name: Check current Lane 05 archive-parts workflow packet\n"
-        "        run: python3 scripts/zigux/check-lane05-archive-parts-workflow.py\n\n"
-        "      - name: Self-test current Lane 05 archive parts packet checker\n"
-        "        run: python3 scripts/zigux/check-lane05-archive-parts-packet.py --self-test\n",
-        "      - name: Self-test current Lane 05 archive parts packet checker\n"
-        "        run: python3 scripts/zigux/check-lane05-archive-parts-packet.py --self-test\n\n"
-        "      - name: Check current Lane 05 archive-parts workflow packet\n"
-        "        run: python3 scripts/zigux/check-lane05-archive-parts-workflow.py\n",
+        TEXT_CEILING_SELF_TEST_STEP,
+        "- name: TEMP-TEXT-CEILING-SELF-TEST",
+        1,
+    ).replace(
+        PACKET_CHECK_STEP,
+        TEXT_CEILING_SELF_TEST_STEP,
+        1,
+    ).replace(
+        "- name: TEMP-TEXT-CEILING-SELF-TEST",
+        PACKET_CHECK_STEP,
         1,
     )
     try:
