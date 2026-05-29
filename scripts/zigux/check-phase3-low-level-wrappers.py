@@ -89,8 +89,12 @@ REQUIRED_MARKERS = {
     BARRIER_HELPER_PATH: (
         'pub fn fence(comptime order: Ordering) FenceError!void {',
         'pub fn validateFenceOrder(comptime order: Ordering) FenceError!void {',
+        'pub fn acquireAfterControlDependency() void {',
         'pub fn storeLoad() void {',
+        'pub fn afterAtomic() void {',
         'test "phase3 barrier wrappers keep seq-cst aliases aligned" {',
+        'test "phase3 barrier wrappers keep acquire-after-control-dependency handoffs reviewable" {',
+        'test "phase3 barrier wrappers keep post-atomic full barriers explicit" {',
     ),
     LAYOUT_ASSERT_HELPER_PATH: (
         'pub const MmioRange = extern struct {',
@@ -146,6 +150,8 @@ SELF_TEST_CASES = (
     (SHARED_BUILD_PATH, 'phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);'),
     (MAKEFILE_PATH, 'phase3: phase3-validate phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase3-policy-unsafe-test phase3-test phase3-policy-dump phase3-dump'),
     (WORKFLOW_PATH, 'python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test'),
+    (BARRIER_HELPER_PATH, 'pub fn afterAtomic() void {'),
+    (BARRIER_HELPER_PATH, 'test "phase3 barrier wrappers keep post-atomic full barriers explicit" {'),
     (LAYOUT_ASSERT_HELPER_PATH, 'pub fn assertMmioRangeLayout() LayoutError!void {'),
     (MMIO_HELPER_PATH, 'pub fn readAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!T {'),
     (UNSAFE_POLICY_HELPER_PATH, 'pub fn permitsRawPointerBridgeByte(scope: u8) bool {'),
