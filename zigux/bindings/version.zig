@@ -1,4 +1,5 @@
 const std = @import("std");
+const testing = std.testing;
 const uapi = @import("uapi_version");
 
 pub const abi_major = uapi.abi_major;
@@ -10,6 +11,10 @@ pub const abi_major_offset: usize = uapi.abi_major_offset;
 pub const abi_minor_offset: usize = uapi.abi_minor_offset;
 pub const header_family_revision_offset: usize = uapi.header_family_revision_offset;
 pub const header_size: u32 = uapi.header_size;
+pub const header_align: usize = uapi.header_align;
+pub const header_size_offset: usize = uapi.header_size_offset;
+pub const header_abi_version_offset: usize = uapi.header_abi_version_offset;
+pub const header_flags_offset: usize = uapi.header_flags_offset;
 
 pub const Version = uapi.Version;
 pub const Header = uapi.Header;
@@ -36,3 +41,16 @@ pub fn extendsBoundary(header: Header) bool { return uapi.extendsBoundary(header
 pub fn requestedExtraBytes(header: Header) u32 { return uapi.requestedExtraBytes(header); }
 pub fn canonicalizeHeader(header: Header) Header { return uapi.canonicalizeHeader(header); }
 pub fn validateBoundaryHeader(header: Header) ExportStatus { return uapi.validateBoundaryHeader(header); }
+
+test "version binding relays boundary header layout constants" {
+    try testing.expectEqual(uapi.header_size, header_size);
+    try testing.expectEqual(uapi.header_align, header_align);
+    try testing.expectEqual(uapi.header_size_offset, header_size_offset);
+    try testing.expectEqual(uapi.header_abi_version_offset, header_abi_version_offset);
+    try testing.expectEqual(uapi.header_flags_offset, header_flags_offset);
+    try testing.expectEqual(@as(u32, @sizeOf(Header)), header_size);
+    try testing.expectEqual(@alignOf(Header), header_align);
+    try testing.expectEqual(@offsetOf(Header, "size"), header_size_offset);
+    try testing.expectEqual(@offsetOf(Header, "abi_version"), header_abi_version_offset);
+    try testing.expectEqual(@offsetOf(Header, "flags"), header_flags_offset);
+}
