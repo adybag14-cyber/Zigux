@@ -83,10 +83,15 @@ pub fn fromErrorCode(code: isize) SlotView {
     return .{ .raw = err_ptr.fromErrorCode(code) };
 }
 
-pub fn fromPointer(pointer: usize) SlotView {
-    std.debug.assert(pointer != 0);
-    std.debug.assert(!isTaggedInternalEntry(pointer));
+pub fn fromPointerOrNull(pointer: usize) ?SlotView {
+    if (pointer == 0 or isTaggedInternalEntry(pointer)) {
+        return null;
+    }
     return .{ .raw = pointer };
+}
+
+pub fn fromPointer(pointer: usize) SlotView {
+    return fromPointerOrNull(pointer).?;
 }
 
 pub fn isTaggedInternalEntry(raw: usize) bool {
@@ -175,4 +180,21 @@ test "value constructor still rejects entries that would overlap err_ptr space" 
         error.ValueWouldOverlapErrPtr,
         fromValue(xa_value.safe_inline_limit + 1),
     );
+}
+
+test "checked pointer constructor accepts only untagged non-null slots" {
+    const pointer_slot = fromPointerOrNull(0x1000) orelse return error.ExpectedPointerSlot;
+
+    try std.testing.expectEqual(SlotKind.pointer, pointer_slot.kind());
+    try std.testing.expectEqual(@as(?usize, 0x1000), pointer_slot.pointerValue());
+    try std.testing.expectEqual(@as(?SlotView, null), fromPointerOrNull(0));
+    try std.testing.expectEqual(@as(?SlotView, null), fromPointerOrNull(try xa_value.makeValue(29)));
+    try std.testing.expectEqual(@as(?SlotView, null), fromPointerOrNull(err_ptr.fromErrorCode(-22)));
+}
+
+test "asserting pointer constructor reuses the checked pointer lane" {
+    const pointer_slot = fromPointer(0x2000);
+
+    try std.testing.expectEqual(SlotKind.pointer, pointer_slot.kind());
+    try std.testing.expectEqual(@as(usize, 0x2000), pointer_slot.rawValue());
 }
