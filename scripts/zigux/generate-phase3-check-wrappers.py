@@ -11,7 +11,6 @@ import tempfile
 
 SCRIPT_PREFIX = "check-phase3-"
 LEGACY_IMPORT_MARKER = "from phase3_check_lib import run_from_wrapper"
-LEGACY_CALL_MARKER = "run_from_wrapper(__file__)"
 LEGACY_CALL_LINES = frozenset(
     {
         "run_from_wrapper(__file__)",
