@@ -154,6 +154,54 @@ test "phase12 virtio net syntax lab keeps throughput parity in compile-smoke ter
     try std.testing.expect(!envelope.runtime_execution_claimed);
 }
 
+test "phase12 virtio net syntax lab counts preexisting free descriptors before parity" {
+    const recycle = try transmit_recycle.summarizeTransmitRecycle(.{
+        .in_flight_descriptors = 4,
+        .free_descriptors_before = 1,
+        .completed_descriptors = 1,
+        .wake_threshold = 2,
+        .queue_stopped = true,
+    });
+    const parity = try throughput_parity.summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 2,
+        .queue_pairs_after_restore = 2,
+        .receive_buffers_before_reset = 128,
+        .receive_buffers_after_restore = 128,
+        .receive_descriptors_reposted = true,
+        .free_transmit_descriptors_before_recycle = recycle.free_descriptors_before,
+        .recycled_transmit_descriptors = recycle.recycled_descriptors,
+        .wake_threshold = recycle.wake_threshold,
+        .transmit_queue_was_stopped = recycle.queue_was_stopped,
+        .replay_checkpoint = .after_transmit_queue_restore,
+        .expected_min_ratio_pct = 90,
+    });
+    const envelope = CompileSmokeEnvelope{
+        .queue_registration_ready = true,
+        .queue_resume_ready = true,
+        .refill_replay_ready = true,
+        .post_reset_driver_ready = true,
+        .throughput_ready = parity.status == .parity_gate_ready,
+        .runtime_execution_claimed = false,
+    };
+
+    try std.testing.expectEqual(@as(u16, 1), recycle.free_descriptors_before);
+    try std.testing.expectEqual(@as(u16, 2), recycle.free_descriptors_after);
+    try std.testing.expectEqual(
+        transmit_recycle.RecycleDisposition.wake_queue,
+        recycle.disposition,
+    );
+    try std.testing.expectEqual(@as(u16, 1), parity.free_transmit_descriptors_before_recycle);
+    try std.testing.expectEqual(@as(u16, 2), parity.free_transmit_descriptors_after_recycle);
+    try std.testing.expect(parity.recycle_budget_ready);
+    try std.testing.expect(parity.transmit_recycle_ready);
+    try std.testing.expectEqual(
+        throughput_parity.ThroughputParityStatus.parity_gate_ready,
+        parity.status,
+    );
+    try std.testing.expect(envelope.throughput_ready);
+    try std.testing.expect(!envelope.runtime_execution_claimed);
+}
+
 test "phase12 virtio net syntax lab keeps stopped transmit recycle ahead of parity" {
     const refill = try receive_refill_replay.summarizeReceiveRefillReplay(.{
         .reset_generation = 15,
