@@ -198,6 +198,14 @@ def remove_marker(text: str, marker: str) -> str:
     return updated
 
 
+def remove_all_marker_occurrences(text: str, marker: str) -> str:
+    pattern = r"\s+".join(re.escape(part) for part in marker.split())
+    updated, count = re.subn(pattern, "", text, flags=re.MULTILINE)
+    if count == 0:
+        raise AssertionError(marker)
+    return updated
+
+
 def expect_failure(root: Path, fragment: str) -> None:
     try:
         run_check(root)
@@ -206,6 +214,48 @@ def expect_failure(root: Path, fragment: str) -> None:
             raise AssertionError(f"expected {fragment!r}, got {exc!r}") from exc
         return
     raise AssertionError(f"expected failure containing {fragment!r}")
+
+
+def expect_required_marker_failure(
+    tmpdir: Path,
+    fixture_root: Path,
+    label: str,
+    relative_path: Path,
+    markers: tuple[str, ...],
+) -> int:
+    case_count = 0
+    for index, marker in enumerate(markers):
+        missing_root = tmpdir / f"{label}_required_{index:02d}"
+        shutil.copytree(fixture_root, missing_root, dirs_exist_ok=True)
+        path = missing_root / relative_path
+        path.write_text(
+            remove_all_marker_occurrences(path.read_text(encoding="utf-8"), marker),
+            encoding="utf-8",
+        )
+        expect_failure(missing_root, marker)
+        case_count += 1
+    return case_count
+
+
+def expect_forbidden_marker_failure(
+    tmpdir: Path,
+    fixture_root: Path,
+    label: str,
+    relative_path: Path,
+    markers: tuple[str, ...],
+) -> int:
+    case_count = 0
+    for index, marker in enumerate(markers):
+        forbidden_root = tmpdir / f"{label}_forbidden_{index:02d}"
+        shutil.copytree(fixture_root, forbidden_root, dirs_exist_ok=True)
+        path = forbidden_root / relative_path
+        path.write_text(
+            path.read_text(encoding="utf-8") + f"\n{marker}\n",
+            encoding="utf-8",
+        )
+        expect_failure(forbidden_root, marker)
+        case_count += 1
+    return case_count
 
 
 def run_self_test() -> int:
@@ -223,79 +273,46 @@ def run_self_test() -> int:
         run_check(fixture_root)
         case_count = 1
 
-        survey_missing = tmpdir / "survey_missing"
-        shutil.copytree(fixture_root, survey_missing, dirs_exist_ok=True)
-        path = survey_missing / SURVEY_PATH
-        survey_unique_marker = "documentation-level continuity evidence"
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), survey_unique_marker), encoding="utf-8")
-        expect_failure(survey_missing, survey_unique_marker)
-        case_count += 1
-
-        survey_gap_missing = tmpdir / "survey_gap_missing"
-        shutil.copytree(fixture_root, survey_gap_missing, dirs_exist_ok=True)
-        path = survey_gap_missing / SURVEY_PATH
-        survey_gap_marker = "`phase11-shared-reminder-surface-gap`"
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), survey_gap_marker), encoding="utf-8")
-        expect_failure(survey_gap_missing, survey_gap_marker)
-        case_count += 1
-
-        matrix_missing = tmpdir / "matrix_missing"
-        shutil.copytree(fixture_root, matrix_missing, dirs_exist_ok=True)
-        path = matrix_missing / MATRIX_PATH
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), MATRIX_REQUIRED_MARKERS[-1]), encoding="utf-8")
-        expect_failure(matrix_missing, MATRIX_REQUIRED_MARKERS[-1])
-        case_count += 1
-
-        checker_missing = tmpdir / "checker_missing"
-        shutil.copytree(fixture_root, checker_missing, dirs_exist_ok=True)
-        path = checker_missing / CHECKER_COVERAGE_PATH
-        path.write_text(
-            remove_marker(path.read_text(encoding="utf-8"), CHECKER_COVERAGE_REQUIRED_MARKERS[10]),
-            encoding="utf-8",
+        case_count += expect_required_marker_failure(
+            tmpdir, fixture_root, "survey", SURVEY_PATH, SURVEY_REQUIRED_MARKERS
         )
-        expect_failure(checker_missing, CHECKER_COVERAGE_REQUIRED_MARKERS[10])
-        case_count += 1
-
-        hv_ops_missing = tmpdir / "hv_ops_missing"
-        shutil.copytree(fixture_root, hv_ops_missing, dirs_exist_ok=True)
-        path = hv_ops_missing / HV_OPS_FOLLOWUP_PATH
-        path.write_text(
-            remove_marker(path.read_text(encoding="utf-8"), HV_OPS_FOLLOWUP_REQUIRED_MARKERS[1]),
-            encoding="utf-8",
+        case_count += expect_required_marker_failure(
+            tmpdir, fixture_root, "matrix", MATRIX_PATH, MATRIX_REQUIRED_MARKERS
         )
-        expect_failure(hv_ops_missing, HV_OPS_FOLLOWUP_REQUIRED_MARKERS[1])
-        case_count += 1
-
-        hv_ops_fail_close_missing = tmpdir / "hv_ops_fail_close_missing"
-        shutil.copytree(fixture_root, hv_ops_fail_close_missing, dirs_exist_ok=True)
-        path = hv_ops_fail_close_missing / HV_OPS_FOLLOWUP_PATH
-        path.write_text(
-            remove_marker(path.read_text(encoding="utf-8"), HV_OPS_FOLLOWUP_REQUIRED_MARKERS[-1]),
-            encoding="utf-8",
+        case_count += expect_required_marker_failure(
+            tmpdir,
+            fixture_root,
+            "checker_coverage",
+            CHECKER_COVERAGE_PATH,
+            CHECKER_COVERAGE_REQUIRED_MARKERS,
         )
-        expect_failure(hv_ops_fail_close_missing, HV_OPS_FOLLOWUP_REQUIRED_MARKERS[-1])
-        case_count += 1
-
-        checker_forbidden = tmpdir / "checker_forbidden"
-        shutil.copytree(fixture_root, checker_forbidden, dirs_exist_ok=True)
-        path = checker_forbidden / CHECKER_COVERAGE_PATH
-        path.write_text(
-            path.read_text(encoding="utf-8")
-            + "\nthe dedicated shared checker itself does not read back on current `master`\n",
-            encoding="utf-8",
+        case_count += expect_required_marker_failure(
+            tmpdir,
+            fixture_root,
+            "hv_ops_followup",
+            HV_OPS_FOLLOWUP_PATH,
+            HV_OPS_FOLLOWUP_REQUIRED_MARKERS,
         )
-        expect_failure(checker_forbidden, CHECKER_COVERAGE_FORBIDDEN_MARKERS[0])
-        case_count += 1
-
-        hv_ops_forbidden = tmpdir / "hv_ops_forbidden"
-        shutil.copytree(fixture_root, hv_ops_forbidden, dirs_exist_ok=True)
-        path = hv_ops_forbidden / HV_OPS_FOLLOWUP_PATH
-        path.write_text(
-            path.read_text(encoding="utf-8") + "\nDraft PR `#302` remains the active source.\n",
-            encoding="utf-8",
+        case_count += expect_forbidden_marker_failure(
+            tmpdir, fixture_root, "survey", SURVEY_PATH, SURVEY_FORBIDDEN_MARKERS
         )
-        expect_failure(hv_ops_forbidden, HV_OPS_FOLLOWUP_FORBIDDEN_MARKERS[0])
-        case_count += 1
+        case_count += expect_forbidden_marker_failure(
+            tmpdir, fixture_root, "matrix", MATRIX_PATH, MATRIX_FORBIDDEN_MARKERS
+        )
+        case_count += expect_forbidden_marker_failure(
+            tmpdir,
+            fixture_root,
+            "checker_coverage",
+            CHECKER_COVERAGE_PATH,
+            CHECKER_COVERAGE_FORBIDDEN_MARKERS,
+        )
+        case_count += expect_forbidden_marker_failure(
+            tmpdir,
+            fixture_root,
+            "hv_ops_followup",
+            HV_OPS_FOLLOWUP_PATH,
+            HV_OPS_FOLLOWUP_FORBIDDEN_MARKERS,
+        )
 
         print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST=pass")
         print(f"PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT={case_count}")
