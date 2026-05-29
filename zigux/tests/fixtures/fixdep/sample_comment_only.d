@@ -8,4 +8,5 @@ and include/generated/autoconf.h sample_comment_continuation_dep.so still stay i
 while shared\:config.h escaped\ space-config.h sample_comment_continuation_dep.so sample.rlib remain comment-only too \
 before sample_missing_dep.h include/generated/autoconf.h shared\#config.h still vanish inside the continued comment \
 while sample2.so sample.rmeta sample.rlib escaped\ space-config.h shared\:config.h \
-and include/generated/autoconf.h sample_dependency_continuation_dep.so shared\#config.h still remain invisible
+and include/generated/autoconf.h sample_dependency_continuation_dep.so shared\#config.h still remain invisible \
+plus sample_missing_dep.h sample2.so shared\:config.h sample.rmeta remain invisible at the tail
