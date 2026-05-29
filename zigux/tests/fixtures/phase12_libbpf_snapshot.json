@@ -22,7 +22,7 @@
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
-      "blob_sha": "a906ae48435d26b87c0c99ef5cca083c5183a215"
+      "blob_sha": "8b7cf35b8c1c7e257fcb11e40b04894ff6bfba0e"
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
@@ -34,7 +34,7 @@
     }
   ],
   "verification_evidence": {
-    "checked_at_utc": "2026-05-28T18:52:55Z",
+    "checked_at_utc": "2026-05-29T18:44:10Z",
     "readback_mode": "github-contents-readback",
     "checker": {
       "path": "scripts/zigux/check-phase12-libbpf-snapshot.py",
@@ -49,7 +49,7 @@
       },
       {
         "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
-        "blob_sha": "a906ae48435d26b87c0c99ef5cca083c5183a215"
+        "blob_sha": "8b7cf35b8c1c7e257fcb11e40b04894ff6bfba0e"
       },
       {
         "path": "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
