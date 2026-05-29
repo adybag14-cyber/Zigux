@@ -24,8 +24,10 @@ Focused validation route:
 
 Current `master` exposes only the dedicated standalone test wrapper; smoke remains the direct build-file route so the shared Phase 12 sextet stays unchanged.
 
-The shared `phase12` smoke-and-test sextet remains unchanged; this lab is a separate compile-smoke packet that proves three bounded properties:
+The shared `phase12` smoke-and-test sextet remains unchanged; this lab is a separate compile-smoke packet that now proves five bounded properties:
 
 - refill replay still blocks queue resume until restore budgets are back in range
 - transmit recycle and post-reset ownership remain review-only until probe replay clears
 - throughput parity stays in compile-smoke territory once the bounded replay cues line up
+- stopped transmit queues still require recycle-budget and checkpoint proof before parity is claimed
+- no-control-queue recovery stays review-only until post-reset probe replay clears
