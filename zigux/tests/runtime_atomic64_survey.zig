@@ -48,7 +48,7 @@ const diff_markers = [_][]const u8{
 
 const manifest_markers = [_][]const u8{
     "\"phase\": \"Phase 9\"",
-    "\"lane_key\": \"P9-L07\"",
+    "\"lane_key\": \"P9-L16\"",
     "\"sample_path\": \"samples/zigux/runtime_atomic64.zig\"",
     "\"loader_path\": \"samples/zigux/runtime_atomic64_loader.zig\"",
     "\"module_path\": \"zigux/tests/runtime_atomic64_module.zig\"",
