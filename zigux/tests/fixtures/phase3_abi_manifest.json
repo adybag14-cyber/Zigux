@@ -8,6 +8,17 @@
     "current_dump": "zigux/tests/phase3_abi_dump_current.zig",
     "retired_dump": "zigux/tests/phase3_abi_dump.zig",
     "retired_expected_fixture": "zigux/tests/fixtures/phase3_abi/expected.json",
+    "retired_generated_guard": {
+      "must_stay_out_of_packet_files": [
+        "zigux/tests/phase3_abi_dump.zig",
+        "zigux/tests/fixtures/phase3_abi/expected.json"
+      ],
+      "must_stay_out_of_replay_routes": [
+        "zigux/tests/phase3_abi_dump.zig",
+        "zigux/tests/fixtures/phase3_abi/expected.json"
+      ],
+      "note": "These retired generated paths are historical markers only; the live export/UAPI-adjacent ABI packet must keep the dump_current replay as its only generated dump surface."
+    },
     "note": "The live Phase 3 ABI evidence packet is the dump_current-era manifest replay; the older generated dump name and expected snapshot fixture are intentionally retired."
   },
   "packet_files": [
@@ -234,5 +245,5 @@
     "zig build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig"
   ],
   "repo_reality_gaps": [],
-  "next_safe_step": "keep the shared Phase 3 policy, export/UAPI, and low-level wrapper packet aligned with the dedicated replay routes and only reopen this manifest if the checker, focused builds, or reminder surfaces drift again"
+  "next_safe_step": "keep the shared Phase 3 policy, export/UAPI, low-level wrapper packet, and retired generated-packet guard aligned with the dedicated replay routes and only reopen this manifest if the checker, focused builds, or reminder surfaces drift again"
 }
