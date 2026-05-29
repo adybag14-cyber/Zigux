@@ -47,6 +47,7 @@ SURVEY_REQUIRED_MARKERS = (
     "documentation-level continuity evidence",
     "bounded modem-control callback proof",
     "`phase11-focused-direct-build-checker`",
+    "`phase11-shared-reminder-surface-gap`",
     "`scripts/zigux/check-phase11-focused-direct-build-replays.py`",
     "machine-checked evidence rather than inventory-only prose",
     "`zigux/tests/fixtures/phase11_build_inventory.json`",
@@ -228,6 +229,14 @@ def run_self_test() -> int:
         survey_unique_marker = "documentation-level continuity evidence"
         path.write_text(remove_marker(path.read_text(encoding="utf-8"), survey_unique_marker), encoding="utf-8")
         expect_failure(survey_missing, survey_unique_marker)
+        case_count += 1
+
+        survey_gap_missing = tmpdir / "survey_gap_missing"
+        shutil.copytree(fixture_root, survey_gap_missing, dirs_exist_ok=True)
+        path = survey_gap_missing / SURVEY_PATH
+        survey_gap_marker = "`phase11-shared-reminder-surface-gap`"
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), survey_gap_marker), encoding="utf-8")
+        expect_failure(survey_gap_missing, survey_gap_marker)
         case_count += 1
 
         matrix_missing = tmpdir / "matrix_missing"
