@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+SURVEY_PATH = Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md")
 REPLAY_PATH = Path("zigux/tests/phase3_policy_unsafe.zig")
 BUILD_PATH = Path("zigux/tests/phase3_policy_unsafe_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -21,6 +22,11 @@ UNSAFE_POLICY_PATH = Path("zigux/helpers/unsafe_policy.zig")
 NARROW_PATH = Path("zigux/unsafe/narrow.zig")
 
 REQUIRED_MARKERS = {
+    SURVEY_PATH: (
+        "PHASE3_POLICY_UNSAFE_REPLAY_GATE=python3 scripts/zigux/check-phase3-policy-unsafe-replay.py",
+        "scripts/zigux/check-phase3-policy-unsafe-replay.py",
+        "packet-local replay checker",
+    ),
     REPLAY_PATH: (
         'test "phase3 policy unsafe replay decodes shared policy records" {',
         'test "phase3 policy unsafe replay keeps ABI recognition aligned with helper decoders" {',
@@ -90,6 +96,7 @@ REQUIRED_REPLAY_ROUTES = (
 )
 
 SELF_TEST_CASES = (
+    (SURVEY_PATH, REQUIRED_MARKERS[SURVEY_PATH][0]),
     (REPLAY_PATH, REQUIRED_MARKERS[REPLAY_PATH][0]),
     (BUILD_PATH, REQUIRED_MARKERS[BUILD_PATH][-2]),
     (MAKEFILE_PATH, REQUIRED_MARKERS[MAKEFILE_PATH][0]),
@@ -274,6 +281,7 @@ def main() -> int:
         print("\n".join(issues))
         return 1
 
+    print(f"validated {args.repo_root / SURVEY_PATH}")
     print(f"validated {args.repo_root / REPLAY_PATH}")
     print(f"validated {args.repo_root / BUILD_PATH}")
     print(f"validated {args.repo_root / MAKEFILE_PATH}")
