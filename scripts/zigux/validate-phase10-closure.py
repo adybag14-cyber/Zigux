@@ -20,6 +20,7 @@ REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase10-closure-evidence.md",
+    "Documentation/zigux/phase10-stale-wrapper-cleanup-survey.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
@@ -87,6 +88,13 @@ CLOSURE_DOC_MARKERS = [
     "shared reminder-surface drift",
     "manifest-backed survey provenance for the core packet now stays explicit through `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`",
     "core survey lane `P10-L01` remains tied to surveyed commit `c11221dc7a68d7511ae1c69d64b3f08528287ed8`",
+]
+
+STALE_WRAPPER_SURVEY_MARKERS = [
+    "`scripts/zigux/validate-phase10.py` is the shared Phase 10 gate",
+    "`scripts/zigux/validate-phase10-closure.py`",
+    "Filter verdict: this lane should classify the core packet checker as current shared Phase 10 validation evidence.",
+    "teach an existing Phase 10 shared checker to fail when the scripts-root reminder loses the shipped Phase 10 checker roster.",
 ]
 
 LANE_MARKERS = [
@@ -174,6 +182,7 @@ def collect_missing_markers(root: Path) -> list[str]:
         ("make", "zigux/Makefile", MAKE_MARKERS),
         ("docs-root", "Documentation/zigux/README.md", DOCS_ROOT_MARKERS),
         ("closure", "Documentation/zigux/phase10-closure-evidence.md", CLOSURE_DOC_MARKERS),
+        ("stale-wrapper-survey", "Documentation/zigux/phase10-stale-wrapper-cleanup-survey.md", STALE_WRAPPER_SURVEY_MARKERS),
         ("lane", "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", LANE_MARKERS),
         ("review", "Documentation/zigux/review-checklist.md", REVIEW_CHECKLIST_MARKERS),
         ("ledger", "zigux-alpha/PHASE10_CLOSURE_LEDGER.md", LEDGER_MARKERS),
@@ -218,6 +227,7 @@ def write_fixture(root: Path) -> None:
     for rel_path, markers in {
         "Documentation/zigux/README.md": DOCS_ROOT_MARKERS,
         "Documentation/zigux/phase10-closure-evidence.md": CLOSURE_DOC_MARKERS,
+        "Documentation/zigux/phase10-stale-wrapper-cleanup-survey.md": STALE_WRAPPER_SURVEY_MARKERS,
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": LANE_MARKERS,
         "Documentation/zigux/review-checklist.md": REVIEW_CHECKLIST_MARKERS,
         "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": LEDGER_MARKERS,
@@ -280,6 +290,24 @@ def run_self_test() -> int:
         expect_contains(collect_missing_markers(root), "closure:shared reminder-surface drift", "phase10-closure-self-test")
         cases += 1
         closure_doc.write_text(original_doc, encoding="utf-8")
+
+        stale_wrapper_survey = root / "Documentation/zigux/phase10-stale-wrapper-cleanup-survey.md"
+        original_stale_wrapper_survey = stale_wrapper_survey.read_text(encoding="utf-8")
+        stale_wrapper_survey.write_text(
+            original_stale_wrapper_survey.replace(
+                "Filter verdict: this lane should classify the core packet checker as current shared Phase 10 validation evidence.",
+                "Filter verdict: this lane should classify the core packet checker as stale wrapper debt.",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_contains(
+            collect_missing_markers(root),
+            "stale-wrapper-survey:Filter verdict: this lane should classify the core packet checker as current shared Phase 10 validation evidence.",
+            "phase10-closure-self-test",
+        )
+        cases += 1
+        stale_wrapper_survey.write_text(original_stale_wrapper_survey, encoding="utf-8")
 
         closure_doc.write_text(
             original_doc.replace(
@@ -440,7 +468,7 @@ def main() -> int:
 
     print("PHASE10_CLOSURE_VALIDATION=pass")
     print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE10_CLOSURE_REQUIRED_MARKER_COUNT={len(MAKE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(LEDGER_MARKERS) + len(MANIFEST_MARKERS)}")
+    print(f"PHASE10_CLOSURE_REQUIRED_MARKER_COUNT={len(MAKE_MARKERS) + len(DOCS_ROOT_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(STALE_WRAPPER_SURVEY_MARKERS) + len(LANE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(LEDGER_MARKERS) + len(MANIFEST_MARKERS)}")
     print(f"PHASE10_CLOSURE_EXACT_CHECK_COUNT={EXACT_CHECK_COUNT}")
     return 0
 
