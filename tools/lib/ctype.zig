@@ -124,6 +124,27 @@ test "ctype transforms and ascii helpers behave" {
     try std.testing.expect(!isodigit('8'));
 }
 
+test "ctype digit helpers keep decimal octal and hex boundaries distinct" {
+    try std.testing.expect(!isdigit('/'));
+    try std.testing.expect(isdigit('0'));
+    try std.testing.expect(isdigit('9'));
+    try std.testing.expect(!isdigit(':'));
+
+    try std.testing.expect(isodigit('0'));
+    try std.testing.expect(isodigit('7'));
+    try std.testing.expect(!isodigit('8'));
+    try std.testing.expect(!isodigit('9'));
+
+    try std.testing.expect(isxdigit('0'));
+    try std.testing.expect(isxdigit('9'));
+    try std.testing.expect(isxdigit('A'));
+    try std.testing.expect(isxdigit('F'));
+    try std.testing.expect(isxdigit('a'));
+    try std.testing.expect(isxdigit('f'));
+    try std.testing.expect(!isxdigit('G'));
+    try std.testing.expect(!isxdigit('g'));
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
