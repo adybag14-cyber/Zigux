@@ -55,10 +55,10 @@
     },
     {
       "id": "phase11-dw-wdt-slice-note",
-      "status": "starter_landed",
+      "status": "ready_next",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-dw-wdt-slice.md",
-      "why_now": "The slice note keeps the current starter, the validation matrix, and the deferred platform-backed boundary explicit in one reviewable Phase 11 owner surface once the broader reminder stack returns on the same contents bridge."
+      "why_now": "The current DesignWare survey note explicitly records that the older slice note still does not rematerialize on current `master`, so this manifest keeps the slice-note path as a ready-next documentation gap instead of overstating it as landed evidence."
     },
     {
       "id": "phase11-dw-wdt-probe-summary",
