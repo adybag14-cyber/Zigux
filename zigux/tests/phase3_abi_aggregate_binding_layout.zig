@@ -1,9 +1,9 @@
 const std = @import("std");
 const abi = @import("../bindings/abi.zig");
 
-fn expectLayout(comptime T: type, size: usize, align: usize) !void {
+fn expectLayout(comptime T: type, size: usize, alignment: usize) !void {
     try std.testing.expectEqual(size, @sizeOf(T));
-    try std.testing.expectEqual(align, @alignOf(T));
+    try std.testing.expectEqual(alignment, @alignOf(T));
 }
 
 test "aggregate ABI binding exposes notifier/list/hlist layout records" {
