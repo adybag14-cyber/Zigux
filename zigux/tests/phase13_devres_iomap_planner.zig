@@ -158,6 +158,26 @@ test "phase13 devres iomap cleanup handoff keeps missing release records warnabl
     try std.testing.expect(handoff.warns_on_release_miss);
 }
 
+test "phase13 devres iomap cleanup handoff stays inert before remap readiness" {
+    const iomap_plan = devres.DevresHelperLab.planDeviceTreeIomap(.{
+        .index = 0,
+        .translated_size = 4096,
+        .translation_ready = true,
+        .requests_region = true,
+        .request_region_available = true,
+        .remap_succeeds = false,
+        .nonposted = true,
+    });
+    const handoff = devres.DevresHelperLab.planDeviceTreeIomapCleanupHandoff(iomap_plan, true);
+
+    try std.testing.expect(!handoff.remap_ready);
+    try std.testing.expect(!handoff.hands_off_to_iounmap_cleanup);
+    try std.testing.expect(!handoff.unmaps_mapping);
+    try std.testing.expect(!handoff.releases_from_devres);
+    try std.testing.expect(!handoff.release_record_consumed);
+    try std.testing.expect(!handoff.warns_on_release_miss);
+}
+
 test "phase13 devres iomap planner manifest records the landed helper-first mmio scope" {
     const manifest = try readRepoFile(std.testing.allocator, "zigux/tests/phase13_devres_iomap_planner_manifest.json");
     defer std.testing.allocator.free(manifest);
