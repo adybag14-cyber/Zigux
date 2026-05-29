@@ -1,6 +1,6 @@
 {
   "phase": "Phase 9",
-  "lane_key": "P9-L07",
+  "lane_key": "P9-L16",
   "status": "active",
   "surveyed_commit": "master-readback-2026-05-27",
   "scope": "bounded runtime atomic64 reminder packet, direct sample proof, direct loader proof, direct module proof, direct diff proof, and ownership-map visibility without broader shared runtime-loader closure claims",
