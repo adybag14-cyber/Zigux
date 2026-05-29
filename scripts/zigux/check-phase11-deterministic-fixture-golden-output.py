@@ -69,6 +69,12 @@ def expect_string(label: str, value: object) -> str:
     return value
 
 
+def expect_existing_paths(root: Path, label: str, values: list[str]) -> None:
+    missing = [value for value in values if not (root / value).is_file()]
+    if missing:
+        raise CheckError(f"missing fixture surface file in {label}: {', '.join(missing)}")
+
+
 def run_check(root: Path) -> None:
     inventory = read_json(root / INVENTORY_PATH)
 
@@ -78,6 +84,7 @@ def run_check(root: Path) -> None:
     )
     if fixture_surfaces != list(EXPECTED_DETERMINISTIC_FIXTURE_SURFACES):
         raise CheckError("deterministic_fixture_surfaces does not match the Phase 11 fixture packet")
+    expect_existing_paths(root, "deterministic_fixture_surfaces", fixture_surfaces)
 
     golden_output_gap = expect_string(
         "deterministic_golden_output_gap",
@@ -91,6 +98,15 @@ def run_check(root: Path) -> None:
 def write_inventory(path: Path, payload: dict[str, object]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def write_fixture_surfaces(root: Path) -> None:
+    for rel in EXPECTED_DETERMINISTIC_FIXTURE_SURFACES:
+        if rel == str(INVENTORY_PATH):
+            continue
+        path = root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("{}\n", encoding="utf-8")
 
 
 def fixture_inventory() -> dict[str, object]:
@@ -115,6 +131,7 @@ def run_self_test() -> int:
     try:
         fixture = tmpdir / "fixture"
         write_inventory(fixture / INVENTORY_PATH, fixture_inventory())
+        write_fixture_surfaces(fixture)
         run_check(fixture)
         case_count = 1
 
@@ -124,6 +141,15 @@ def run_self_test() -> int:
         payload.pop("deterministic_fixture_surfaces")
         write_inventory(missing_fixture_surfaces / INVENTORY_PATH, payload)
         expect_failure(missing_fixture_surfaces, "expected string list for deterministic_fixture_surfaces")
+        case_count += 1
+
+        missing_fixture_surface_file = tmpdir / "missing_fixture_surface_file"
+        shutil.copytree(fixture, missing_fixture_surface_file, dirs_exist_ok=True)
+        (missing_fixture_surface_file / "zigux/tests/fixtures/phase11_validate_checks.json").unlink()
+        expect_failure(
+            missing_fixture_surface_file,
+            "missing fixture surface file in deterministic_fixture_surfaces",
+        )
         case_count += 1
 
         duplicate_fixture_surface = tmpdir / "duplicate_fixture_surface"
