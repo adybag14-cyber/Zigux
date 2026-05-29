@@ -23,6 +23,7 @@ It narrows the guidance to the ring-buffer packet and avoids reopening the broad
 If the run has the attached archive but no checkout-capable Zigux tree, stop at environment-only sanity checks:
 - `/workspace/.toolchains/p14-l08/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig version`
 - `/workspace/.toolchains/p14-l08/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig env`
+- `/workspace/.toolchains/p14-l08/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig env | rg -n "zig_exe|lib_dir|std_dir|global_cache_dir|version|target"`
 
 Passing those checks confirms that the attached compiler bundle is usable in the scheduled builder runtime.
 Do not treat them as ring-buffer replay evidence without a checkout-capable Zigux tree in the same run.
@@ -30,8 +31,10 @@ Do not treat them as ring-buffer replay evidence without a checkout-capable Zigu
 ## Environment-only recording rule
 If a run stops after `zig version` and `zig env`, record the result as environment context only:
 - capture the exact `zig version` output line
-- capture that `zig env` reported an `x86_64-linux` target environment
-- capture that `zig env` exposed the extracted bundle paths for `lib_dir`, `std_dir`, `global_cache_dir`, and `local_cache_dir`
+- capture that `zig env` reported an `x86_64-linux` target environment through the `.target` field
+- capture the extracted bundle identity through the `.zig_exe`, `.lib_dir`, `.std_dir`, and `.version` fields
+- capture the `.global_cache_dir` field as runtime cache context
+- do not require or invent a top-level `.local_cache_dir` field; this attached dev build's `zig env` output does not print one
 - capture that no checkout-capable Zigux tree was present, so no packet-local replay was claimed
 
 Keep those notes as run-log facts, not as survey replay evidence.
