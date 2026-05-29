@@ -46,15 +46,27 @@ pub fn build(b: *std.Build) void {
     export_shim_module.addImport("dev_t_binding", dev_t_binding_module);
     export_shim_module.addImport("version_binding", version_binding_module);
 
-    const tests = b.addTest(.{
+    const export_shim_tests = b.addTest(.{
         .name = "phase3-export-shim-test",
         .root_module = export_shim_module,
     });
+    const uapi_dev_t_tests = b.addTest(.{
+        .name = "phase3-export-shim-uapi-dev-t-test",
+        .root_module = uapi_dev_t_module,
+    });
+    const uapi_version_tests = b.addTest(.{
+        .name = "phase3-export-shim-uapi-version-test",
+        .root_module = uapi_version_module,
+    });
 
-    const run_tests = b.addRunArtifact(tests);
+    const run_export_shim_tests = b.addRunArtifact(export_shim_tests);
+    const run_uapi_dev_t_tests = b.addRunArtifact(uapi_dev_t_tests);
+    const run_uapi_version_tests = b.addRunArtifact(uapi_version_tests);
     const test_step = b.step(
         "phase3-export-shim-test",
-        "Run the focused Phase 3 export shim replay",
+        "Run the focused Phase 3 export shim and UAPI replay",
     );
-    test_step.dependOn(&run_tests.step);
+    test_step.dependOn(&run_export_shim_tests.step);
+    test_step.dependOn(&run_uapi_dev_t_tests.step);
+    test_step.dependOn(&run_uapi_version_tests.step);
 }
