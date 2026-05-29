@@ -97,7 +97,7 @@ test "phase13 devres dma coherent replay anchors the survey-side scatterlist bou
     defer std.testing.allocator.free(survey);
 
     try requireContains(survey, "helper-first scatterlist helper and replay");
-    try requireContains(survey, "`Documentation/zigux/phase13-devres-scatterlist-planner.md` records a landed pure scatterlist lifetime planning surface");
+    try requireContains(survey, "`Documentation/zigux/phase13-devres-scatterlist-planner.md` records a landed pure scatterlist lifetime and `sg_table` teardown planning surfaces");
     try requireContains(survey, "`zigux/tests/phase13_devres_scatterlist_planner_manifest.json` marks the packet as `starter_landed`");
     try requireContains(survey, "blocked `phase13-devres-live-scatterlist-ownership`");
     try requireContains(survey, "blocked `phase13-devres-live-sg-table-lifecycle`");
