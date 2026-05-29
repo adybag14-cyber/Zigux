@@ -67,6 +67,7 @@ REQUIRED_MARKERS = {
 
 FORBIDDEN_HELPER_MARKERS = [
     "devm_ioremap_np(",
+    "devm_iounmap(",
     "devm_of_iomap(",
     "devm_arch_phys_wc_add(",
     "devm_arch_io_reserve_memtype_wc(",
@@ -304,6 +305,15 @@ def run_self_test() -> int:
             validate(root),
             ["helper:unexpected_marker:devm_ioremap_np("],
             "unexpected_live_mmio_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(root / HELPER_PATH, "\n".join(REQUIRED_MARKERS[HELPER_PATH] + ["devm_iounmap("]) + "\n")
+        assert_only(
+            validate(root),
+            ["helper:unexpected_marker:devm_iounmap("],
+            "unexpected_live_iounmap_failed",
         )
         case_count += 1
 
