@@ -46,6 +46,7 @@ EXPORT_PROOF_MARKERS = (
     'const layout_assert = @import("layout_assert");',
     "try layout_assert.expectSize(WinsizeLayout, 8);",
     'try layout_assert.expectOffset(WinsizeLayout, "ws_ypixel", 6);',
+    'assertExactType(@FieldType(WinsizeLayout, "ws_row"), u16);',
     "try layout_assert.expectSize(HvcExportSurface, 72);",
     'try layout_assert.expectOffset(HvcExportSurface, "notifier_hangup_irq", 64);',
     "@TypeOf(hvc_console.notifier_hangup_irq)",
@@ -124,6 +125,7 @@ def run_self_test() -> int:
         cases = (
             (UAPI_SURVEY, "current `master` still lacks the broader shared ABI replay", "missing_marker"),
             (HV_OPS_PROOF, "try layout_assert.expectSize(HvOps, 72);", "missing_marker"),
+            (EXPORT_SURFACE_PROOF, 'assertExactType(@FieldType(WinsizeLayout, "ws_row"), u16);', "missing_marker"),
             (EXPORT_SURFACE_PROOF, 'try layout_assert.expectOffset(HvcExportSurface, "notifier_hangup_irq", 64);', "missing_marker"),
             (BUILD_INVENTORY, '"phase11-hvc-export-surface-layout-proof-tests"', "missing_marker"),
         )
