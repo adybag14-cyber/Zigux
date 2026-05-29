@@ -10,6 +10,7 @@ const SurveySummary = struct {
     preexisting_phase12_build_present: bool,
     preexisting_phase12_virtio_net_survey_present: bool,
     preexisting_phase12_survey_note_present: bool,
+    preexisting_phase12_virtio_net_syntax_lab_note_present: bool,
     preexisting_virtio_net_queue_resume_zig_present: bool,
     preexisting_virtio_net_receive_refill_replay_zig_present: bool,
     preexisting_virtio_net_transmit_recycle_zig_present: bool,
@@ -107,6 +108,7 @@ test "phase12 virtio net survey manifest tracks the shared-build survey-gate cov
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_build_present);
 
@@ -153,6 +155,7 @@ test "phase12 virtio net survey manifest tracks the shared-build survey-gate cov
             try std.testing.expectEqualStrings("survey_present_shared_route_present", gap.status);
             try expectContains(gap.why_now, "`phase12-validate`");
             try expectContains(gap.why_now, "standalone syntax-lab compile-smoke pair");
+            try expectContains(gap.why_now, "dedicated syntax-lab note");
             try expectContains(gap.why_now, "phase12-virtio-net-syntax-lab-test");
             try expectContains(gap.why_now, "direct build-file command");
             try expectContains(gap.why_now, "blocked runtime-data-path boundary");
