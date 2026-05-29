@@ -59,7 +59,7 @@ The attached `ZAR-Zig-Agent-Runtime-main (11).zip` now contributes bounded Phase
 Archive readback in this run shows a broad probe corpus around the same classes of runtime behavior that keep the workqueue anchor in study-only posture:
 
   * `64` scheduler probe scripts
-  * `97` timer probe scripts
+  * `96` timer probe scripts
   * `85` wake-queue probe scripts
   * `62` interrupt-timeout probe scripts
   * representative archive members include `scripts/baremetal-qemu-scheduler-disable-enable-probe-check.ps1`, `scripts/baremetal-qemu-scheduler-wake-timer-clear-probe-check.ps1`, `scripts/baremetal-qemu-periodic-timer-probe-check.ps1`, `scripts/baremetal-qemu-timer-cancel-task-interrupt-timeout-probe-check.ps1`, `scripts/baremetal-qemu-wake-queue-fifo-probe-check.ps1`, and `scripts/baremetal-qemu-wake-queue-reason-vector-pop-probe-check.ps1`
