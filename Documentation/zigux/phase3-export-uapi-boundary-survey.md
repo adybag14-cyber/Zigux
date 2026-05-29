@@ -51,7 +51,9 @@ Current `master` does not yet turn this lane into:
 - a wider export-shim surface beyond the landed boundary-header, version, `dev_t`, interop-policy, and rbtree-root relays
 - full Phase 3 closure for policy, low-level wrapper, or other interop slices that live on adjacent lanes
 
-`PHASE3_EXPORT_UAPI_GAP=broader curated UAPI families and wider export-shim coverage beyond the landed starter packet, Linux-facing starter predicates, and focused runtime relays remain open`
+`PHASE3_EXPORT_UAPI_GAP=broader curated UAPI families and wider export-shim coverage beyond the landed starter packet and focused runtime relays remain open`
+
+The detailed Linux-facing predicate relays above are part of the landed starter packet. They do not close the broader export/UAPI family gap tracked by this lane.
 
 ## Verification Routes
 
