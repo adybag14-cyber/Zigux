@@ -50,6 +50,7 @@ pub const ManagedScatterlistTableTeardownPlan = struct {
     free_table_ready: bool,
     requires_unmap_before_free: bool,
     warns_on_missing_release_record: bool,
+    warns_on_empty_table: bool,
     warns_on_overmapped_release: bool,
 };
 
@@ -181,6 +182,7 @@ pub const DevresScatterlistHelper = struct {
             .free_table_ready = free_table_ready,
             .requires_unmap_before_free = requires_unmap_before_free,
             .warns_on_missing_release_record = input.table_initialized and !input.release_record_present,
+            .warns_on_empty_table = input.table_initialized and input.original_entries == 0,
             .warns_on_overmapped_release = input.table_initialized and
                 input.mapped_entries > input.original_entries,
         };
