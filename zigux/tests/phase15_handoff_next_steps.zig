@@ -13,6 +13,7 @@ const HandoffManifest = struct {
     handoff_rule_markers: []const []const u8,
     roadmap_alignment_markers: []const []const u8,
     pending_next_step_markers: []const []const u8,
+    next_bounded_future_target_markers: []const []const u8,
     missing_route_markers: []const []const u8,
 };
 
@@ -38,7 +39,7 @@ fn expectSliceContains(haystack: []const []const u8, needle: []const u8) !void {
 }
 
 test "phase 15 handoff manifest records the focused replay, scripts-root checker, and shared build companion as landed packet evidence" {
-    const manifest_json = try readRepoFile("zigux/tests/phase15_handoff_next_steps_manifest.json", 32 * 1024);
+    const manifest_json = try readRepoFile("zigux/tests/phase15_handoff_next_steps_manifest.json", 64 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
     const parsed = try std.json.parseFromSlice(HandoffManifest, std.testing.allocator, manifest_json, .{
@@ -59,6 +60,7 @@ test "phase 15 handoff manifest records the focused replay, scripts-root checker
     try std.testing.expectEqual(@as(usize, 2), manifest.handoff_rule_markers.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_alignment_markers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.pending_next_step_markers.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.next_bounded_future_target_markers.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.missing_route_markers.len);
 
     try expectSliceContains(manifest.present_paths, "Documentation/zigux/phase15-deep-core-blocker-survey.md");
@@ -79,15 +81,18 @@ test "phase 15 handoff manifest records the focused replay, scripts-root checker
     try expectSliceContains(manifest.present_paths, "scripts/zigux/check-phase15-architecture-council-packet.py");
     try expectSliceContains(manifest.present_paths, "scripts/zigux/check-phase15-handoff-note-alignment.py");
     try expectSliceContains(manifest.present_paths, "scripts/zigux/validate-phase15.py");
+    try expectSliceContains(manifest.next_bounded_future_target_markers, "reread `Documentation/zigux/review-checklist.md` together with `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, and the current directly materialized governance packet whenever the shared Architecture Council prompts drift");
+    try expectSliceContains(manifest.next_bounded_future_target_markers, "reread `zigux/tests/README.md` together with `scripts/zigux/check-phase15-tests-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the current directly materialized governance packet whenever the tests-root reminder drifts, rather than treating a dedicated Phase 15 review section as still-unlanded by default");
+    try expectSliceContains(manifest.next_bounded_future_target_markers, "if future work touches `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, keep it study-only unless a smaller-than-boundary seam is explicitly recorded in the governance packet");
     try expectSliceContains(manifest.missing_route_markers, "no directly readable `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`");
     try expectSliceContains(manifest.missing_route_markers, "no dedicated shared-CI Phase 15 validate, test, or aggregate route is materialized in `.github/workflows/zigux-bootstrap.yml` on current `master`");
 }
 
 test "phase 15 handoff note treats the focused replay, scripts-root checker, and shared build companion as present while wrapper and shared-CI routes stay blocked" {
-    const handoff_note = try readRepoFile("Documentation/zigux/phase15-handoff-next-steps-survey.md", 32 * 1024);
+    const handoff_note = try readRepoFile("Documentation/zigux/phase15-handoff-next-steps-survey.md", 64 * 1024);
     defer std.testing.allocator.free(handoff_note);
 
-    const manifest_json = try readRepoFile("zigux/tests/phase15_handoff_next_steps_manifest.json", 32 * 1024);
+    const manifest_json = try readRepoFile("zigux/tests/phase15_handoff_next_steps_manifest.json", 64 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
     const parsed = try std.json.parseFromSlice(HandoffManifest, std.testing.allocator, manifest_json, .{
@@ -124,6 +129,9 @@ test "phase 15 handoff note treats the focused replay, scripts-root checker, and
         try expectContains(handoff_note, marker);
     }
     for (manifest.pending_next_step_markers) |marker| {
+        try expectContains(handoff_note, marker);
+    }
+    for (manifest.next_bounded_future_target_markers) |marker| {
         try expectContains(handoff_note, marker);
     }
     for (manifest.missing_route_markers) |marker| {
