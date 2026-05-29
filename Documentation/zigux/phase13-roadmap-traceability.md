@@ -64,7 +64,6 @@ Current `master` also now materializes `scripts/zigux/check-phase13-roadmap-trac
 ## Repo-Reality Gaps
 
 Keep the remaining current gaps explicit:
-- keep the dedicated Phase 13 reminder block in `Documentation/zigux/README.md` aligned with the stable contributor-facing handle instead of treating docs-root coverage as missing again
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 - `zigux/tests/phase13_build.zig`
