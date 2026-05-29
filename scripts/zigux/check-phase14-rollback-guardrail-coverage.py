@@ -54,6 +54,15 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def makefile_command_lines(text: str) -> set[str]:
+    commands: set[str] = set()
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("cd $(ZIGUX_ROOT) && $(PYTHON) "):
+            commands.add(stripped.removeprefix("cd $(ZIGUX_ROOT) && $(PYTHON) "))
+    return commands
+
+
 def validate(root: Path) -> list[str]:
     validator = root / VALIDATOR_PATH
     if not validator.exists():
@@ -80,9 +89,9 @@ def validate(root: Path) -> list[str]:
     if not makefile.exists():
         failures.append(f"missing_file:{MAKEFILE_PATH}")
     else:
-        makefile_text = read_text(makefile)
+        command_lines = makefile_command_lines(read_text(makefile))
         for marker in MAKEFILE_DIRECT_ROLLBACK_GUARDRAILS:
-            if marker not in makefile_text:
+            if marker not in command_lines:
                 failures.append(f"missing_makefile_rollback_guardrail:{marker}")
 
     return failures
@@ -97,7 +106,10 @@ def write_fixture(root: Path, text: str) -> None:
 def write_makefile_fixture(root: Path, text: str | None = None) -> None:
     target = root / MAKEFILE_PATH
     target.parent.mkdir(parents=True, exist_ok=True)
-    body = text if text is not None else "\n".join(MAKEFILE_DIRECT_ROLLBACK_GUARDRAILS) + "\n"
+    body = text if text is not None else "\n".join(
+        f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {command}"
+        for command in MAKEFILE_DIRECT_ROLLBACK_GUARDRAILS
+    ) + "\n"
     target.write_text(body, encoding="utf-8")
 
 
@@ -151,7 +163,8 @@ def run_self_test() -> int:
         for marker in MAKEFILE_DIRECT_ROLLBACK_GUARDRAILS:
             write_fixture(base, fixture_validator())
             write_makefile_fixture(base, "\n".join(
-                candidate for candidate in MAKEFILE_DIRECT_ROLLBACK_GUARDRAILS if candidate != marker
+                f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {candidate}"
+                for candidate in MAKEFILE_DIRECT_ROLLBACK_GUARDRAILS if candidate != marker
             ) + "\n")
             expected = f"missing_makefile_rollback_guardrail:{marker}"
             failures = validate(base)
