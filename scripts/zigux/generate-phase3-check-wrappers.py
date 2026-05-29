@@ -12,6 +12,13 @@ import tempfile
 SCRIPT_PREFIX = "check-phase3-"
 LEGACY_IMPORT_MARKER = "from phase3_check_lib import run_from_wrapper"
 LEGACY_CALL_MARKER = "run_from_wrapper(__file__)"
+LEGACY_CALL_LINES = frozenset(
+    {
+        "run_from_wrapper(__file__)",
+        "return run_from_wrapper(__file__)",
+        "raise SystemExit(run_from_wrapper(__file__))",
+    }
+)
 DEFAULT_SCRIPTS_DIR = Path(__file__).resolve().parent
 
 WRAPPER_STUB = """#!/usr/bin/env python3
@@ -71,6 +78,13 @@ def build_expected_entries(
     ]
 
 
+def has_legacy_wrapper_lines(current: str) -> bool:
+    stripped_lines = {line.strip() for line in current.splitlines()}
+    return LEGACY_IMPORT_MARKER in stripped_lines and bool(
+        LEGACY_CALL_LINES.intersection(stripped_lines)
+    )
+
+
 def is_generated_wrapper_script(path: Path, expected: str) -> bool:
     try:
         current = path.read_text(encoding="utf-8")
@@ -78,7 +92,7 @@ def is_generated_wrapper_script(path: Path, expected: str) -> bool:
         return False
     if current == expected:
         return True
-    return LEGACY_IMPORT_MARKER in current and LEGACY_CALL_MARKER in current
+    return has_legacy_wrapper_lines(current)
 
 
 def discover_wrapper_scripts(scripts_dir: Path, expected: str) -> list[Path]:
@@ -142,6 +156,16 @@ def run_self_test() -> int:
             "",
         ]
     )
+    comment_only_support = "\n".join(
+        [
+            "#!/usr/bin/env python3",
+            "# Historical marker text should not make this a generated wrapper:",
+            "# from phase3_check_lib import run_from_wrapper",
+            "# run_from_wrapper(__file__)",
+            "print('support checker')",
+            "",
+        ]
+    )
     case_count = 0
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_wrapper_selftest_") as tmp_dir_str:
@@ -155,6 +179,12 @@ def run_self_test() -> int:
         obsolete_shared_runner_wrapper = tmp_dir / "check-phase3-shared-runner.py"
         obsolete_shared_runner_wrapper.write_text(
             shared_runner_wrapper,
+            encoding="utf-8",
+            newline="\n",
+        )
+        comment_only_checker = tmp_dir / "check-phase3-comment-only.py"
+        comment_only_checker.write_text(
+            comment_only_support,
             encoding="utf-8",
             newline="\n",
         )
@@ -177,6 +207,7 @@ def run_self_test() -> int:
         assert stale_wrapper.read_text(encoding="utf-8") == stale
         assert obsolete_shared_runner_wrapper.exists()
         assert obsolete_wrapper.exists()
+        assert comment_only_checker.exists()
         assert support_checker.exists()
         case_count += 1
 
@@ -191,11 +222,13 @@ def run_self_test() -> int:
         assert stale_wrapper.read_text(encoding="utf-8") == expected
         assert not obsolete_shared_runner_wrapper.exists()
         assert not obsolete_wrapper.exists()
+        assert comment_only_checker.exists()
         assert support_checker.exists()
         case_count += 1
 
         mismatches = sync_wrappers(entries, expected, check=True, scripts_dir=tmp_dir)
         assert mismatches == []
+        assert comment_only_checker.exists()
         case_count += 1
 
         expected_entries = build_expected_entries(
