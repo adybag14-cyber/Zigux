@@ -38,17 +38,21 @@ def validate_mmio(mmio_path: Path) -> list[str]:
 
     issues: list[str] = []
     for marker in WIDTH_ALIAS_MARKERS:
-        if marker not in text:
+        count = text.count(marker)
+        if count == 0:
             issues.append(f"missing MMIO width alias marker: {marker}")
+        elif count > 1:
+            issues.append(f"duplicate MMIO width alias marker: {marker} (found {count})")
     return issues
 
 
 def run_self_test() -> int:
+    alias_source = "\n".join(WIDTH_ALIAS_MARKERS) + "\n"
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_mmio_width_aliases_") as temp_dir:
         root = Path(temp_dir)
         mmio_path = root / MMIO_PATH
         mmio_path.parent.mkdir(parents=True)
-        mmio_path.write_text("\n".join(WIDTH_ALIAS_MARKERS) + "\n", encoding="utf-8")
+        mmio_path.write_text(alias_source, encoding="utf-8")
 
         issues = validate_mmio(mmio_path)
         if issues:
@@ -57,10 +61,7 @@ def run_self_test() -> int:
             return 1
 
         for marker in WIDTH_ALIAS_MARKERS:
-            mmio_path.write_text(
-                ("\n".join(WIDTH_ALIAS_MARKERS) + "\n").replace(marker + "\n", ""),
-                encoding="utf-8",
-            )
+            mmio_path.write_text(alias_source.replace(marker + "\n", ""), encoding="utf-8")
             issues = validate_mmio(mmio_path)
             expected = f"missing MMIO width alias marker: {marker}"
             if expected not in issues:
@@ -68,8 +69,16 @@ def run_self_test() -> int:
                 print(f"expected missing marker was not reported: {expected}")
                 return 1
 
+            mmio_path.write_text(alias_source + marker + "\n", encoding="utf-8")
+            issues = validate_mmio(mmio_path)
+            expected = f"duplicate MMIO width alias marker: {marker} (found 2)"
+            if expected not in issues:
+                print("PHASE3_MMIO_WIDTH_ALIASES_SELF_TEST=fail")
+                print(f"expected duplicate marker was not reported: {expected}")
+                return 1
+
     print("PHASE3_MMIO_WIDTH_ALIASES_SELF_TEST=pass")
-    print(f"PHASE3_MMIO_WIDTH_ALIASES_SELF_TEST_CASE_COUNT={len(WIDTH_ALIAS_MARKERS)}")
+    print(f"PHASE3_MMIO_WIDTH_ALIASES_SELF_TEST_CASE_COUNT={len(WIDTH_ALIAS_MARKERS) * 2}")
     return 0
 
 
