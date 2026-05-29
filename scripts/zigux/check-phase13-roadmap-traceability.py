@@ -26,13 +26,16 @@ REQUIRED_MARKERS = [
     "direct replay and direct reviewability companions through `zigux/tests/phase13_landlock_syscalls.zig` and `zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
     "Adjacent notifier evidence can support release-surface truthfulness, but it does not become a fifth roadmap anchor.",
     "`zigux/tests/phase13_landlock_syscalls_manifest.json`",
-    "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and missing notifier-chain companion.",
-    "- `zigux/helpers/notifier_chain_view.zig`",
+    "Keep `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `include/zigux/abi.h`, and `drivers/tty/hvc/hvc_console.h` explicit as the adjacent current-`master` packet while `include/zigux/notifier_abi.h` and `scripts/zigux/check-phase13-notifier-priority-signal.py` stay recorded as repo-reality gaps.",
+    "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and still-missing dedicated notifier ABI header or priority-signal companion.",
     "- This note does not promote adjacent evidence into a fifth helper anchor.",
 ]
 
 FORBIDDEN_MARKERS = [
     "keep `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` framed as repo-reality gaps until current `master` materializes them again.",
+    "while `zigux/helpers/notifier_chain_view.zig`, `include/zigux/notifier_abi.h`, and `scripts/zigux/check-phase13-notifier-priority-signal.py` stay recorded as repo-reality gaps.",
+    "and missing notifier-chain companion.",
+    "- `zigux/helpers/notifier_chain_view.zig`\n- `scripts/zigux/check-phase13-notifier-priority-signal.py`",
 ]
 
 
@@ -165,14 +168,36 @@ def run_self_test() -> int:
             tempdir,
             ROADMAP_NOTE,
             source_text.replace(
+                "`zigux/helpers/notifier_chain_view.zig`, ",
+                "",
+                1,
+            ),
+        )
+        issues = collect_issues(tempdir)
+        assert any(
+            issue.startswith(
+                "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:Keep `Documentation/zigux/phase13-notifier-list-survey.md`"
+            )
+            for issue in issues
+        )
+        checks_run += 1
+
+        write_text(
+            tempdir,
+            ROADMAP_NOTE,
+            source_text.replace(
+                "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and still-missing dedicated notifier ABI header or priority-signal companion.",
                 "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and missing notifier-chain companion.",
-                "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, still-missing direct Landlock syscall companions, older direct devres companions, and missing notifier-chain companion.",
                 1,
             ),
         )
         issues = collect_issues(tempdir)
         assert (
-            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and missing notifier-chain companion."
+            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and still-missing dedicated notifier ABI header or priority-signal companion."
+            in issues
+        )
+        assert (
+            "forbidden_marker:Documentation/zigux/phase13-roadmap-traceability.md:and missing notifier-chain companion."
             in issues
         )
         checks_run += 1
@@ -181,6 +206,14 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             "forbidden_marker:Documentation/zigux/phase13-roadmap-traceability.md:" + FORBIDDEN_MARKERS[0]
+            in issues
+        )
+        checks_run += 1
+
+        write_text(tempdir, ROADMAP_NOTE, source_text + FORBIDDEN_MARKERS[1] + "\n")
+        issues = collect_issues(tempdir)
+        assert (
+            "forbidden_marker:Documentation/zigux/phase13-roadmap-traceability.md:" + FORBIDDEN_MARKERS[1]
             in issues
         )
         checks_run += 1
