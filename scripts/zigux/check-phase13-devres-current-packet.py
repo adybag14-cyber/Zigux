@@ -59,9 +59,11 @@ REQUIRED_FILES = [
 ]
 
 SLICE_MARKERS = [
-    "`scripts/zigux/check-phase13-devres-current-packet.py` keeps the same-lane survey, planner, helper, replay, and checker surfaces aligned before widening into any missing non-posted or arch-memtype helper work",
+    "`scripts/zigux/check-phase13-devres-current-packet.py` keeps the same-lane survey, planner, helper, replay, and checker surfaces aligned before widening into any missing non-posted, live ioport-unmap, or arch-memtype helper work",
     "the dedicated packet checkers, and the new current-packet checker",
+    "helper-local ioport unmap planning",
     "helper-local arch-WC add or detach-cleanup footholds",
+    "`planManagedIoportUnmap(...)` as a helper-local ioport release-match foothold",
     "`planManagedArchPhysWcAdd(...)` and `planManagedArchPhysWcDetachCleanup(...)` as helper-local arch-WC footholds",
     "rerun `python3 scripts/zigux/check-phase13-devres-current-packet.py` before widening anything else",
 ]
@@ -71,9 +73,10 @@ SURVEY_MARKERS = [
     "`scripts/zigux/check-phase13-devres-current-packet.py` now fail-closes across the slice, survey, helper, planner, replay, and existing checker surfaces",
     "scripts/zigux/check-phase13-devres-current-packet.py",
     "landed `phase13-devres-current-packet-checker`",
-    "Only rematerialize a helper-first non-posted or arch-memtype planner if `scripts/zigux/check-phase13-devres-current-packet.py`",
+    "Only rematerialize a helper-first non-posted, live ioport-unmap, or arch-memtype planner if `scripts/zigux/check-phase13-devres-current-packet.py`",
+    "helper-local ioport unmap planning",
     "helper-local arch-WC add and detach-cleanup footholds",
-    "`.provides_arch_phys_wc_add_planning = true`, `planManagedArchPhysWcAdd(...)`, and `planManagedArchPhysWcDetachCleanup(...)`",
+    "`.provides_ioport_unmap_call_planning = true`, `.provides_arch_phys_wc_add_planning = true`, `planDeviceTreeIomapCleanupHandoff(...)`, `planManagedIoportUnmap(...)`, `planManagedArchPhysWcAdd(...)`, and `planManagedArchPhysWcDetachCleanup(...)`",
 ]
 
 HELPER_MARKERS = [
@@ -84,6 +87,7 @@ HELPER_MARKERS = [
     ".provides_of_iomap_planning = true",
     ".provides_of_iomap_cleanup_handoff_planning = true",
     ".provides_iounmap_cleanup_planning = true",
+    ".provides_ioport_unmap_call_planning = true",
     ".provides_arch_phys_wc_add_planning = true",
     ".touches_live_dma = false",
     ".touches_live_scatterlist = false",
@@ -93,6 +97,7 @@ HELPER_MARKERS = [
     "pub fn planDeviceTreeIomap(",
     "pub fn planDeviceTreeIomapCleanupHandoff(",
     "pub fn planManagedIounmapCleanup(",
+    "pub fn planManagedIoportUnmap(",
     "pub fn planManagedArchPhysWcAdd(",
     "pub fn planManagedArchPhysWcDetachCleanup(",
 ]
@@ -107,8 +112,10 @@ SCATTERLIST_HELPER_MARKERS = [
 ]
 
 FORBIDDEN_HELPER_MARKERS = [
+    "devm_iounmap(",
     "devm_ioremap_np(",
     "devm_of_iomap(",
+    "devm_ioport_unmap(",
     "devm_arch_phys_wc_add(",
     "devm_arch_io_reserve_memtype_wc(",
 ]
