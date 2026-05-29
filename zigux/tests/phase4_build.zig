@@ -111,6 +111,8 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run Phase 4 differential validation tests");
     test_step.dependOn(&run_atomic64_diff_tests.step);
     test_step.dependOn(&run_runtime_atomic64_diff_survey_tests.step);
+    test_step.dependOn(&run_perf_baseline_survey_tests.step);
+    test_step.dependOn(&run_test_fsmount_survey_tests.step);
     test_step.dependOn(&run_bitmap_diff_tests.step);
     test_step.dependOn(&run_bitmap_diff_survey_tests.step);
     test_step.dependOn(&run_bitmap_live_helper_replay_tests.step);
