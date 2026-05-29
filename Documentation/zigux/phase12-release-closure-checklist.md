@@ -15,7 +15,7 @@ It is a PMO release artifact only. It does not claim that Phase 12 is already cl
 - shared fallback companion: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
 - support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`
-- validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, and the shipped wrapper name `make -C zigux phase12-validate`
+- validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, and the shipped wrapper name `make -C zigux phase12-validate`
 - shared replay wiring: `zigux/tests/phase12_build.zig` and `.github/workflows/zigux-bootstrap.yml`; `zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` on `master`
 
 ## Closure Gates
@@ -23,7 +23,7 @@ It is a PMO release artifact only. It does not claim that Phase 12 is already cl
 Keep Phase 12 marked open until every item below is true on current `master`:
 
 - The shared PMO packet stays aligned across `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, this checklist, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
-- The directly readable validator-first support bundle still reruns as `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-lane-marker.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test`, and `python3 scripts/zigux/validate-phase12.py`; keep `make -C zigux phase12-validate` explicit here as shipped wrapper evidence again on current `master`.
+- The directly readable validator-first support bundle still reruns as `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-cross-compile-smoke.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-lane-marker.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test`, and `python3 scripts/zigux/validate-phase12.py`; keep `make -C zigux phase12-validate` explicit here as shipped wrapper evidence again on current `master`.
 - The shared build-and-make replay path stays visible through `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`, while current `zigux/Makefile` now keeps `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` explicit as shipped wrapper evidence.
 - The shared smoke-first replay packet still stays wired through `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`; treat `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` as shipped wrapper evidence again.
 - The active shared build packet on current `master` is the six-file `virtio_net` follow-up sextet wired through `zigux/tests/phase12_build.zig`: `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, `zigux/tests/phase12_virtio_net_throughput_parity.zig`, and `zigux/tests/phase12_virtio_net_survey.zig`.
@@ -46,7 +46,7 @@ Keep the checklist in the open state while these Phase 12 closure blockers remai
 - `virtio_scsi` remains a survey-backed rollback-evidence-only packet outside the shared `phase12` smoke-and-test route; the dedicated `zigux/tests/phase12_virtio_scsi_survey_build.zig` rerun stays part of that rollback-only evidence while the driver-local starter, direct replay, syntax lab, repeated replan gate, and repeated rollback gate remain absent on current `master`, so it is not yet a deeper runtime-delivery or transport-complete packet.
 - `nvme_pci` remains driver-local and outside the shared `phase12` smoke-and-test route.
 - The libbpf Phase 12 packet remains parked behind survey, snapshot, and verify-shard reminder surfaces rather than a shipped direct replay bundle.
-- The directly readable validator-first support bundle still lives in `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, and current `zigux/Makefile` now ships `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12`; those returned wrappers still do not close the broader complex-driver tranche by themselves.
+- The directly readable validator-first support bundle still lives in `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, and current `zigux/Makefile` now ships `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12`; those returned wrappers still do not close the broader complex-driver tranche by themselves.
 - The shared support packet still has mixed evidence roles on current `master`: the contents bridge now directly reads the scripts-side support bundle, workflow, scripts-root README, current Makefile, and `zigux/tests/phase12_build.zig`, but `Documentation/zigux/phase12-raw-github-coverage-survey.md` still keeps that set framed as bounded reminder evidence rather than broad shared-packet proof while the returned NVMe fallback note stays a driver-local current-master gap-note companion in this runtime.
 
 ## Degraded Validation Path
@@ -55,14 +55,15 @@ If `zig` is unavailable on `PATH`, keep the same validator-first then smoke-firs
 
 1. `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
 2. `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
-3. `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`
-4. `python3 scripts/zigux/check-phase12-libbpf-lane-marker.py --self-test`
-5. `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test`
-6. `python3 scripts/zigux/validate-phase12.py`
-7. shipped wrapper evidence on current `master`: `make -C zigux phase12-validate`
-8. attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
-9. attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12-test ZIG=<attached-zig-path>`
-10. attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12 ZIG=<attached-zig-path>`
+3. `python3 scripts/zigux/check-phase12-cross-compile-smoke.py --self-test`
+4. `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`
+5. `python3 scripts/zigux/check-phase12-libbpf-lane-marker.py --self-test`
+6. `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test`
+7. `python3 scripts/zigux/validate-phase12.py`
+8. shipped wrapper evidence on current `master`: `make -C zigux phase12-validate`
+9. attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
+10. attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12-test ZIG=<attached-zig-path>`
+11. attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12 ZIG=<attached-zig-path>`
 
 Do not invent a focused libbpf-only replay, a cross-build replay, or another unshipped closure route while using the degraded path.
 
@@ -90,7 +91,7 @@ Before changing this checklist from open to closed, reread these files together:
 
 ## Next Bounded Step
 
-If the shared Phase 12 PMO packet drifts again, reread this checklist beside the shared release companions, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, current `zigux/Makefile`, the shared checker pair, and `.github/workflows/zigux-bootstrap.yml`, then refresh only the next smallest release-owned reminder or checker surface that understates the directly readable support bundle, the shipped `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper set, or the docs-root and tests-root shared build gate.
+If the shared Phase 12 PMO packet drifts again, reread this checklist beside the shared release companions, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, current `zigux/Makefile`, the shared checker bundle including the cross-compile smoke guard, and `.github/workflows/zigux-bootstrap.yml`, then refresh only the next smallest release-owned reminder or checker surface that understates the directly readable support bundle, the shipped `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper set, or the docs-root and tests-root shared build gate.
 
 Fresh repo-first rereads now keep the review-checklist fallback and validator-bundle checker hardening current on `master`, so future same-lane follow-through should not loop back into that already-landed repair.
 
