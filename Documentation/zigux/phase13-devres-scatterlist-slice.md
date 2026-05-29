@@ -7,6 +7,7 @@ This slice adds one helper-first scatterlist planner beside the existing `lib/de
 - anchor: `lib/devres.c`
 - Zigux helper: `lib/devres_scatterlist.zig`
 - focused replay: `zigux/tests/phase13_devres_scatterlist.zig`
+- empty-table replay: `zigux/tests/phase13_devres_scatterlist_empty_table.zig`
 - lane intent: keep one reviewable scatterlist bookkeeping foothold without widening into live DMA-backed execution or live `sg_*` traversal
 
 ## What landed
@@ -16,6 +17,7 @@ This slice adds one helper-first scatterlist planner beside the existing `lib/de
 - `planManagedScatterlistUnmap()` keeps the release match exact across original and mapped segment counts so the detach bookkeeping surface stays reviewable
 - `planManagedScatterlistTableTeardown()` models helper-first `sg_table` teardown readiness around original and mapped counts, table initialization, and release-record presence without claiming live teardown side effects
 - the focused replay proves success retention, zero-segment cleanup, impossible over-mapped cleanup, allocation failure, exact-versus-mismatched unmap matching, uninitialized-table hold, free-ready teardown, unmap-before-free planning, missing-release-record warning, and overmapped teardown warning
+- the empty-table replay proves initialized zero-entry tables warn instead of silently becoming free-ready
 
 ## Non-goals
 
