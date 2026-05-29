@@ -46,6 +46,7 @@ test "phase3 barrier wrappers compile" {
     writeBarrier();
     full();
     acquireRelease();
+    acquireAfterControlDependency();
     fullFence();
     storeLoad();
     try fence(.acquire);
@@ -104,6 +105,7 @@ test "phase3 barrier wrappers keep barrier locality reviewable" {
     release();
     full();
     acquireRelease();
+    acquireAfterControlDependency();
 
     try std.testing.expectEqual(before_left, left);
     try std.testing.expectEqual(before_right, right);
@@ -137,6 +139,7 @@ test "phase3 barrier wrappers stay side-effect free on unrelated storage" {
     writeBarrier();
     full();
     acquireRelease();
+    acquireAfterControlDependency();
     storeLoad();
 
     try std.testing.expectEqual(before.ready, packet.ready);
@@ -358,6 +361,42 @@ test "phase3 barrier wrappers keep seq-cst aliases aligned" {
     try std.testing.expectEqual(@as(u32, 0x22), packet.consumed);
 }
 
+test "phase3 barrier wrappers keep acquire-after-control-dependency handoffs reviewable" {
+    const Packet = struct {
+        ready: bool,
+        staged: u32,
+        consumed: u32,
+    };
+
+    var packet = Packet{
+        .ready = false,
+        .staged = 0,
+        .consumed = 0,
+    };
+
+    packet.staged = 0x61;
+    release();
+    packet.ready = true;
+
+    if (packet.ready) {
+        acquireAfterControlDependency();
+        packet.consumed = packet.staged;
+    }
+
+    try std.testing.expectEqual(@as(u32, 0x61), packet.consumed);
+
+    packet.ready = false;
+    packet.staged = 0x92;
+    compiler();
+
+    if (packet.ready) {
+        acquireAfterControlDependency();
+        packet.consumed = packet.staged;
+    }
+
+    try std.testing.expectEqual(@as(u32, 0x61), packet.consumed);
+}
+
 pub fn compiler() void {
     asm volatile ("" ::: .{ .memory = true });
 }
@@ -396,6 +435,11 @@ pub fn full() void {
 
 pub fn acquireRelease() void {
     fence(.acq_rel) catch unreachable;
+}
+
+pub fn acquireAfterControlDependency() void {
+    compiler();
+    acquire();
 }
 
 pub fn fullFence() void {
