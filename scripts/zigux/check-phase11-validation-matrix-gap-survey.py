@@ -60,6 +60,28 @@ EXPECTED_INVENTORY_SCALARS = {
     "deterministic_golden_output_gap": "phase11-validate now carries the dedicated golden-output fixture roster `zigux/tests/fixtures/phase11_validate_checks.json` plus fail-closed `scripts/zigux/check-phase11-validate-check-roster.py`, `scripts/zigux/check-phase11-validate-route-alignment.py`, and `scripts/zigux/check-phase11-dw-wdt-build-route.py` guards while keeping both `zigux/tests/fixtures/phase11_build_inventory.json` and `zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json` inside the deterministic validator packet",
 }
 
+EXPECTED_DW_INVENTORY_LISTS = {
+    "build_test_names": [
+        "phase11-dw-wdt-registration-scaffold-tests",
+        "phase11-dw-wdt-live-mmio-review-tests",
+        "phase11-dw-wdt-pm-tests",
+        "phase11-dw-wdt-restart-tests",
+        "phase11-dw-wdt-verify-tests",
+        "phase11-dw-wdt-direct-replay-tests",
+    ],
+    "exact_current_checks": [
+        "python3 scripts/zigux/check-phase11-dw-wdt-build-route.py --self-test",
+        "python3 scripts/zigux/check-phase11-dw-wdt-build-route.py",
+        "zig build test --build-file zigux/tests/phase11_dw_wdt_build.zig",
+    ],
+}
+
+EXPECTED_DW_INVENTORY_SCALARS = {
+    "shared_build_file": "zigux/tests/phase11_dw_wdt_build.zig",
+    "shared_replay_command": "zig build test --build-file zigux/tests/phase11_dw_wdt_build.zig",
+    "shared_step_name": "test",
+}
+
 SURVEY_MARKERS = (
     "`PHASE11_MATRIX_GAP_STATUS=all_simple_driver_matrices_present`",
     "shared packet lane: `P11-Y06`",
@@ -146,13 +168,19 @@ def run_check(root: Path) -> None:
     require_text_markers("matrix_gap_note", survey_text, SURVEY_MARKERS)
 
     inventory = read_json(root, FILES["inventory"])
-    read_json(root, FILES["dw_inventory"])
+    dw_inventory = read_json(root, FILES["dw_inventory"])
     for key, expected in EXPECTED_INVENTORY_LISTS.items():
         if expect_string_list(key, inventory.get(key)) != expected:
             raise CheckError(f"{key} does not match the current-head Phase 11 packet")
     for key, expected in EXPECTED_INVENTORY_SCALARS.items():
         if inventory.get(key) != expected:
             raise CheckError(f"{key} does not match the current-head Phase 11 packet")
+    for key, expected in EXPECTED_DW_INVENTORY_LISTS.items():
+        if expect_string_list(f"dw_inventory.{key}", dw_inventory.get(key)) != expected:
+            raise CheckError(f"dw_inventory.{key} does not match the current-head Phase 11 packet")
+    for key, expected in EXPECTED_DW_INVENTORY_SCALARS.items():
+        if dw_inventory.get(key) != expected:
+            raise CheckError(f"dw_inventory.{key} does not match the current-head Phase 11 packet")
 
     validate_phase11_text = read_text(root, FILES["validate_phase11"])
     require_text_markers("validate_phase11", validate_phase11_text, REQUIRED_VALIDATE_PHASE11_MARKERS)
@@ -199,6 +227,16 @@ def fixture_inventory() -> dict[str, object]:
     }
 
 
+def fixture_dw_inventory() -> dict[str, object]:
+    return {
+        "shared_build_file": EXPECTED_DW_INVENTORY_SCALARS["shared_build_file"],
+        "shared_replay_command": EXPECTED_DW_INVENTORY_SCALARS["shared_replay_command"],
+        "shared_step_name": EXPECTED_DW_INVENTORY_SCALARS["shared_step_name"],
+        "build_test_names": EXPECTED_DW_INVENTORY_LISTS["build_test_names"],
+        "exact_current_checks": EXPECTED_DW_INVENTORY_LISTS["exact_current_checks"],
+    }
+
+
 def fixture_validate_checks() -> dict[str, object]:
     return {
         "exact_checks": [
@@ -234,7 +272,7 @@ def expect_failure(root: Path, fragment: str) -> None:
 def build_fixture(root: Path, survey_text: str) -> None:
     write(root / FILES["matrix_gap_note"], survey_text)
     write(root / FILES["inventory"], json.dumps(fixture_inventory(), indent=2) + "\n")
-    write(root / FILES["dw_inventory"], "{}\n")
+    write(root / FILES["dw_inventory"], json.dumps(fixture_dw_inventory(), indent=2) + "\n")
     write(root / FILES["validate_checks"], json.dumps(fixture_validate_checks(), indent=2) + "\n")
     write(root / FILES["validate_phase11"], "\n".join(REQUIRED_VALIDATE_PHASE11_MARKERS) + "\n")
     write(root / FILES["makefile"], "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
@@ -277,6 +315,14 @@ def run_self_test() -> None:
         shutil.copytree(fixture_root, dw_inventory_root, dirs_exist_ok=True)
         (dw_inventory_root / FILES["dw_inventory"]).unlink()
         expect_failure(dw_inventory_root, f"missing required file: {FILES['dw_inventory']}")
+        case_count += 1
+
+        stale_dw_inventory_root = tmpdir / "stale_dw_inventory"
+        shutil.copytree(fixture_root, stale_dw_inventory_root, dirs_exist_ok=True)
+        dw_inventory = read_json(stale_dw_inventory_root, FILES["dw_inventory"])
+        dw_inventory["build_test_names"] = dw_inventory["build_test_names"][:-1]
+        write(stale_dw_inventory_root / FILES["dw_inventory"], json.dumps(dw_inventory, indent=2) + "\n")
+        expect_failure(stale_dw_inventory_root, "dw_inventory.build_test_names does not match")
         case_count += 1
 
         validate_root = tmpdir / "validate"
