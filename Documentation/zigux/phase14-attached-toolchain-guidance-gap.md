@@ -2,10 +2,10 @@
 
 ## Scope
 
-- lane: `P14-L10`
+- lane: `P14-L10 / P14-L12`
 - phase: `Phase 14`
 - packet: shared attached-toolchain and environment-guidance reminder packet for the bounded Phase 14 smoke route
-- status: `current-master reminder truthfulness follow-through`
+- status: `current-master reminder truthfulness follow-through; P14-L12 attached-toolchain replay addendum`
 - refreshed: `2026-05-29`
 
 ## Why this note exists
@@ -22,6 +22,17 @@ Fresh builder-environment validation on `2026-05-29` confirms that the attached 
 - no `ZIG_GLOBAL_CACHE_DIR`, `ZIG_LOCAL_CACHE_DIR`, `ZIG_LIB_DIR`, `ZIG_LIBC`, `CC`, or related Zig environment override was set during that readback
 
 This local replay does not change repo status. It only proves that the attached bundle remains a valid bounded fallback for this scheduled-builder environment when a focused Zig syntax or build check is otherwise justified.
+
+## P14-L12 operational replay addendum
+
+The P14-L12 scheduled run repeated the attached-toolchain replay on `2026-05-29` before changing this note. That replay adds operational evidence without widening Phase 14 delivery scope:
+
+- unpacking the same attached archive into `/workspace/.toolchains/p14-l12/` succeeded in the current scheduled-builder environment
+- `/workspace/.toolchains/p14-l12/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig version` returned `0.17.0-dev.87+9b177a7d2`
+- `/workspace/.toolchains/p14-l12/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig env` reported `.zig_exe = "/workspace/.toolchains/p14-l12/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig"`, `.lib_dir = ".toolchains/p14-l12/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/lib"`, `.std_dir = ".toolchains/p14-l12/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/lib/std"`, `.global_cache_dir = "/root/.cache/zig"`, and `.version = "0.17.0-dev.87+9b177a7d2"`
+- the replay still showed no `ZIG_GLOBAL_CACHE_DIR`, `ZIG_LOCAL_CACHE_DIR`, `ZIG_LIB_DIR`, `ZIG_LIBC`, `CC`, `C_INCLUDE_PATH`, `CPLUS_INCLUDE_PATH`, or `LIBRARY_PATH` override in the toolchain environment
+
+The only conclusion from this addendum is operational: future Phase 14 runs may keep using the attached bundle for narrow Zig syntax or focused build checks when a checkout is available, but this evidence does not create a new Phase 14 Make route or change any study-only or freeze-in-C posture.
 
 ## Current Makefile readback
 
