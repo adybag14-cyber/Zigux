@@ -84,13 +84,16 @@ pub fn fromErrorCode(code: isize) SlotView {
 }
 
 pub fn fromPointer(pointer: usize) SlotView {
-    std.debug.assert(pointer != 0);
-    std.debug.assert(!isTaggedInternalEntry(pointer));
+    std.debug.assert(isPointerEntry(pointer));
     return .{ .raw = pointer };
 }
 
 pub fn isTaggedInternalEntry(raw: usize) bool {
     return err_ptr.isErrValue(raw) or xa_value.isValue(raw);
+}
+
+pub fn isPointerEntry(raw: usize) bool {
+    return raw != 0 and !isTaggedInternalEntry(raw);
 }
 
 test "err floor stays in the err lane even with the xa_value low tag bit set" {
@@ -175,4 +178,41 @@ test "value constructor still rejects entries that would overlap err_ptr space" 
         error.ValueWouldOverlapErrPtr,
         fromValue(xa_value.safe_inline_limit + 1),
     );
+}
+
+test "pointer admission predicate matches the decoded pointer lane" {
+    const samples = [_]usize{
+        0,
+        try xa_value.makeValue(0),
+        2,
+        0x1000,
+        err_ptr.err_floor - 2,
+        err_ptr.err_floor - 1,
+        err_ptr.err_floor,
+        err_ptr.fromErrorCode(-1),
+    };
+
+    for (samples) |raw| {
+        const slot = fromRaw(raw);
+
+        try std.testing.expectEqual(slot.isPointer(), isPointerEntry(raw));
+        try std.testing.expectEqual(raw != 0 and !isTaggedInternalEntry(raw), isPointerEntry(raw));
+    }
+}
+
+test "fromPointer admits the same raw values exposed by pointerValue" {
+    const pointer_entries = [_]usize{
+        2,
+        0x1000,
+        err_ptr.err_floor - 1,
+    };
+
+    for (pointer_entries) |raw| {
+        try std.testing.expect(isPointerEntry(raw));
+
+        const slot = fromPointer(raw);
+        try std.testing.expectEqual(SlotKind.pointer, slot.kind());
+        try std.testing.expectEqual(@as(?usize, raw), slot.pointerValue());
+        try std.testing.expectEqual(@as(?usize, raw), fromRaw(raw).pointerValue());
+    }
 }
