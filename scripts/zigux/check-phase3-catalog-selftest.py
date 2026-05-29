@@ -50,9 +50,11 @@ REQUIRED_MARKERS = {
         '"scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"',
         '"scripts/zigux/check-phase3-xarray-slot.py"',
         '"scripts/zigux/check-phase3-idr-slot-starter-packet.py"',
+        '"scripts/zigux/check-phase3-idr-slot.py"',
         '"scripts/zigux/check-phase3-bitmap-cpumask.py"',
         '"scripts/zigux/check-phase3-list-hlist-starter-packet.py"',
         '"scripts/zigux/check-phase3-list-hlist.py"',
+        '"scripts/zigux/check-phase3-low-level-wrappers.py"',
         '"zigux/helpers/idr_slot_view.zig"',
         '"zigux/tests/phase3_idr_slot_starter_packet.zig"',
         '"zigux/tests/phase3_idr_slot_starter_packet_build.zig"',
@@ -67,9 +69,15 @@ REQUIRED_MARKERS = {
         '"python3 scripts/zigux/check-phase3-wrapper-templates.py --self-test"',
         '"python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --self-test"',
         '"python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --repo-root ."',
+        '"python3 scripts/zigux/check-phase3-idr-slot.py --self-test"',
+        '"python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc"',
         '"python3 scripts/zigux/check-phase3-bitmap-cpumask.py --self-test"',
         '"python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc"',
+        '"zig build phase3-abi-export --build-file zigux/tests/build.zig"',
+        '"make -C zigux phase3-abi-export"',
+        '"zig build phase3-idr-slot --build-file zigux/tests/build.zig"',
         '"zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig"',
+        '"zig build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig"',
         '"zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig"',
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
@@ -77,10 +85,16 @@ REQUIRED_MARKERS = {
         '"Documentation/zigux/phase3-list-hlist-slice.md"',
         '"scripts/zigux/check-phase3-catalog-selftest.py"',
         '"scripts/zigux/check-phase3-list-hlist.py"',
+        '"scripts/zigux/check-phase3-low-level-wrappers.py"',
         '"zigux/tests/fixtures/phase3_bitmap_cpumask/phase3_bitmap_cpumask_c_harness.c"',
         '"zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c"',
         '"zigux/tests/phase3_list_hlist_dump.zig"',
         '"zigux/tests/phase3_list_hlist_dump_build.zig"',
+        '"zig build phase3-abi-export --build-file zigux/tests/build.zig"',
+        '"make -C zigux phase3-abi-export"',
+        '"python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc"',
+        '"zig build phase3-idr-slot --build-file zigux/tests/build.zig"',
+        '"zig build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig"',
         '"python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc"',
         '"zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig"',
     ),
@@ -195,6 +209,24 @@ def run_self_test() -> int:
             ),
             (
                 CATALOG_PATH,
+                '"python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc"',
+                'missing scripts/zigux/phase3_catalog.py marker: "python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc"',
+                "expected missing idr-slot verification replay marker was not reported",
+            ),
+            (
+                CATALOG_PATH,
+                '"zig build phase3-abi-export --build-file zigux/tests/build.zig"',
+                'missing scripts/zigux/phase3_catalog.py marker: "zig build phase3-abi-export --build-file zigux/tests/build.zig"',
+                "expected missing ABI export build marker was not reported",
+            ),
+            (
+                CATALOG_PATH,
+                '"zig build phase3-idr-slot --build-file zigux/tests/build.zig"',
+                'missing scripts/zigux/phase3_catalog.py marker: "zig build phase3-idr-slot --build-file zigux/tests/build.zig"',
+                "expected missing idr-slot aggregate build marker was not reported",
+            ),
+            (
+                CATALOG_PATH,
                 '"zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig"',
                 'missing scripts/zigux/phase3_catalog.py marker: "zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig"',
                 "expected missing idr-slot build marker was not reported",
@@ -204,6 +236,12 @@ def run_self_test() -> int:
                 '"zigux/tests/fixtures/phase3_idr_slot_manifest.json"',
                 'missing scripts/zigux/phase3_catalog.py marker: "zigux/tests/fixtures/phase3_idr_slot_manifest.json"',
                 "expected missing idr-slot manifest marker was not reported",
+            ),
+            (
+                CATALOG_PATH,
+                '"scripts/zigux/check-phase3-low-level-wrappers.py"',
+                'missing scripts/zigux/phase3_catalog.py marker: "scripts/zigux/check-phase3-low-level-wrappers.py"',
+                "expected missing low-level wrapper checker marker was not reported",
             ),
             (
                 CATALOG_PATH,
@@ -267,7 +305,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the current Phase 3 catalog selftest guard."
+        description="Validate the current Phase 3 catalog packet."
     )
     parser.add_argument(
         "--repo-root",
