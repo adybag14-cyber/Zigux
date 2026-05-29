@@ -145,6 +145,14 @@ test "phase 15 release blockers stay mirrored in manifest and gap matrix" {
     const gap_matrix = try readRepoFile("zigux/tests/phase15_readiness_gap_matrix.json", 24 * 1024);
     defer std.testing.allocator.free(gap_matrix);
 
+    try expectContains(gap_matrix, "\"remaining_readiness_gap_count\": 3");
+    try expectContains(gap_matrix, "\"release_evidence_count\": 4");
+    try expectContains(gap_matrix, "\"release_evidence\": [");
+    try expectContains(gap_matrix, "\"evidence\": \"validator_first_replay\"");
+    try expectContains(gap_matrix, "\"evidence\": \"readiness_packet_checker\"");
+    try expectContains(gap_matrix, "\"evidence\": \"shared_build_companion\"");
+    try expectContains(gap_matrix, "\"evidence\": \"readiness_gap_matrix\"");
+    try expectContains(gap_matrix, "keeps the roadmap-versus-ledger release blockers explicit as data rather than prose-only handoff notes");
     try expectContains(gap_matrix, "\"gap\": \"missing_make_routes\"");
     try expectContains(gap_matrix, "\"gap\": \"missing_workflow_route\"");
     try expectContains(gap_matrix, "\"gap\": \"no_architecture_council_status_change_approval\"");
