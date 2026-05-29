@@ -26,8 +26,8 @@ REQUIRED_MARKERS = [
     "direct replay and direct reviewability companions through `zigux/tests/phase13_landlock_syscalls.zig` and `zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
     "Adjacent notifier evidence can support release-surface truthfulness, but it does not become a fifth roadmap anchor.",
     "`zigux/tests/phase13_landlock_syscalls_manifest.json`",
-    "Keep `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `include/zigux/abi.h`, and `drivers/tty/hvc/hvc_console.h` explicit as the adjacent current-`master` packet while `include/zigux/notifier_abi.h` and `scripts/zigux/check-phase13-notifier-priority-signal.py` stay recorded as repo-reality gaps.",
-    "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and still-missing dedicated notifier ABI header or priority-signal companion.",
+    "Keep `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `include/zigux/abi.h`, `include/zigux/notifier_abi.h`, and `drivers/tty/hvc/hvc_console.h` explicit as the adjacent current-`master` packet while `scripts/zigux/check-phase13-notifier-priority-signal.py` stays recorded as a repo-reality gap.",
+    "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and the still-missing notifier priority-signal companion.",
     "- This note does not promote adjacent evidence into a fifth helper anchor.",
 ]
 
@@ -186,14 +186,14 @@ def run_self_test() -> int:
             tempdir,
             ROADMAP_NOTE,
             source_text.replace(
-                "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and still-missing dedicated notifier ABI header or priority-signal companion.",
+                "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and the still-missing notifier priority-signal companion.",
                 "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and missing notifier-chain companion.",
                 1,
             ),
         )
         issues = collect_issues(tempdir)
         assert (
-            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and still-missing dedicated notifier ABI header or priority-signal companion."
+            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and the still-missing notifier priority-signal companion."
             in issues
         )
         assert (
