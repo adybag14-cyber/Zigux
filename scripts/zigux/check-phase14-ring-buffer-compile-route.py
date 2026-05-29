@@ -4,8 +4,9 @@
 Fail-closed checker for the Phase 14 ring-buffer compile-route packet.
 
 This guard keeps the compile-shard story honest across the dedicated
-ring-buffer survey note and the shared Phase 14 smoke manifest without
-promoting the lane beyond its study-only maintenance posture.
+ring-buffer survey note, the shared Phase 14 smoke manifest, and the returned
+Phase 14 validator route without promoting the lane beyond its study-only
+maintenance posture.
 """
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ from pathlib import Path
 MARKER = "PHASE14_CHECK_PACKET=ring_buffer_compile_route"
 NOTE_PATH = Path("Documentation/zigux/phase14-ring-buffer-survey.md")
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
+VALIDATOR_PATH = Path("scripts/zigux/validate-phase14.py")
 
 NOTE_MARKERS = [
     "current public raw-file readback now recovers `zigux/tests/phase14_ring_buffer_survey.zig`, while `zigux/tests/phase14_build.zig` still does not return through this lane's exact contents path",
@@ -28,10 +30,17 @@ NOTE_MARKERS = [
     "shared smoke manifest still records that focused build-shard command as historical vocabulary only",
 ]
 
+VALIDATOR_MARKERS = [
+    'RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH = "scripts/zigux/check-phase14-ring-buffer-compile-route.py"',
+    "run_guardrail_checker(\n                args.root,\n                RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,\n                self_test=False,",
+]
+
 REQUIRED_MANIFEST_VALUES = {
     ("smoke_shard_commands",): [
         "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig"
     ],
+    ("survey_summary", "phase14_validate_runs_ring_buffer_compile_route_checker"): True,
+    ("survey_summary", "shared_manifest_records_ring_buffer_compile_route_checker"): True,
 }
 
 
@@ -140,7 +149,7 @@ def check(root: Path) -> list[str]:
     if MARKER not in Path(__file__).read_text(encoding="utf-8"):
         errors.append("missing_checker_marker:self")
 
-    required_paths = [NOTE_PATH, MANIFEST_PATH]
+    required_paths = [NOTE_PATH, MANIFEST_PATH, VALIDATOR_PATH]
     for rel in required_paths:
         if not (root / rel).exists():
             errors.append(f"missing_file:{rel.as_posix()}")
@@ -148,7 +157,9 @@ def check(root: Path) -> list[str]:
         return errors
 
     note = read_text(root, NOTE_PATH)
+    validator = read_text(root, VALIDATOR_PATH)
     require_markers(errors, NOTE_PATH, note, NOTE_MARKERS)
+    require_markers(errors, VALIDATOR_PATH, validator, VALIDATOR_MARKERS)
 
     manifest_text = read_text(root, MANIFEST_PATH)
     try:
@@ -193,8 +204,28 @@ def fixture_manifest() -> str:
                 "blocked_gap": "phase14-ring-buffer-zig-port-blocker",
             }
         ],
+        "survey_summary": {
+            "phase14_validate_runs_ring_buffer_compile_route_checker": True,
+            "shared_manifest_records_ring_buffer_compile_route_checker": True,
+        },
     }
     return json.dumps(payload, indent=2) + "\n"
+
+
+def fixture_validator() -> str:
+    return """#!/usr/bin/env python3
+RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH = \"scripts/zigux/check-phase14-ring-buffer-compile-route.py\"
+
+def run_guardrail_checker(root, rel_path, *, self_test):
+    return []
+
+def main(args):
+    run_guardrail_checker(
+                args.root,
+                RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
+                self_test=False,
+            )
+"""
 
 
 def write_fixture_tree(root: Path) -> None:
@@ -202,6 +233,7 @@ def write_fixture_tree(root: Path) -> None:
         shutil.rmtree(root)
     write_text(root, NOTE_PATH, fixture_note())
     write_text(root, MANIFEST_PATH, fixture_manifest())
+    write_text(root, VALIDATOR_PATH, fixture_validator())
 
 
 def remove_line(root: Path, rel: Path, marker: str) -> None:
@@ -258,8 +290,30 @@ def run_self_test() -> int:
             print("expected anchor lane drift to fail")
             return 1
 
+        write_fixture_tree(base)
+        remove_line(base, VALIDATOR_PATH, VALIDATOR_MARKERS[0])
+        if not any(VALIDATOR_MARKERS[0] in error for error in check(base)):
+            print("PHASE14_RING_BUFFER_COMPILE_ROUTE_SELF_TEST=fail")
+            print("expected validator constant drift to fail")
+            return 1
+
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"][
+            "phase14_validate_runs_ring_buffer_compile_route_checker"
+        ] = False
+        write_manifest_payload(base, manifest)
+        if not any(
+            "manifest_value_mismatch:survey_summary.phase14_validate_runs_ring_buffer_compile_route_checker"
+            in error
+            for error in check(base)
+        ):
+            print("PHASE14_RING_BUFFER_COMPILE_ROUTE_SELF_TEST=fail")
+            print("expected validator-route manifest drift to fail")
+            return 1
+
         print("PHASE14_RING_BUFFER_COMPILE_ROUTE_SELF_TEST=pass")
-        print("PHASE14_RING_BUFFER_COMPILE_ROUTE_SELF_TEST_CASE_COUNT=3")
+        print("PHASE14_RING_BUFFER_COMPILE_ROUTE_SELF_TEST_CASE_COUNT=5")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -285,6 +339,14 @@ def main() -> int:
 
     print("PHASE14_RING_BUFFER_COMPILE_ROUTE=pass")
     print(f"PHASE14_RING_BUFFER_COMPILE_ROUTE_NOTE_MARKER_COUNT={len(NOTE_MARKERS)}")
+    print(
+        "PHASE14_RING_BUFFER_COMPILE_ROUTE_VALIDATOR_MARKER_COUNT="
+        f"{len(VALIDATOR_MARKERS)}"
+    )
+    print(
+        "PHASE14_RING_BUFFER_COMPILE_ROUTE_MANIFEST_ASSERTION_COUNT="
+        f"{len(REQUIRED_MANIFEST_VALUES)}"
+    )
     return 0
 
 
