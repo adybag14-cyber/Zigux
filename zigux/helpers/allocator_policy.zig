@@ -7,6 +7,12 @@ pub const InitFlow = enum {
     helper_owned_with_reset,
 };
 
+pub const Ownership = enum {
+    caller_managed,
+    helper_managed,
+    helper_managed_resettable,
+};
+
 pub const InitFlowError = error{
     InvalidInteropPolicy,
     UnexpectedInitFlow,
@@ -60,6 +66,26 @@ pub fn initFlowFromInteropPolicy(policy: abi.InteropPolicy) ?InitFlow {
 
 pub fn initFlowFromByte(mode: u8) ?InitFlow {
     return initFlowFromInteropPolicyBytes(mode, 0);
+}
+
+pub fn ownershipFor(mode: abi.AllocatorMode) Ownership {
+    return switch (initFlowFor(mode)) {
+        .caller_prepared => .caller_managed,
+        .helper_owned => .helper_managed,
+        .helper_owned_with_reset => .helper_managed_resettable,
+    };
+}
+
+pub fn ownershipFromInteropPolicyBytes(mode: u8, reserved: u8) ?Ownership {
+    return ownershipFor(modeFromInteropPolicyBytes(mode, reserved) orelse return null);
+}
+
+pub fn ownershipFromInteropPolicy(policy: abi.InteropPolicy) ?Ownership {
+    return ownershipFromInteropPolicyBytes(policy.allocator_mode, policy.reserved);
+}
+
+pub fn ownershipFromByte(mode: u8) ?Ownership {
+    return ownershipFromInteropPolicyBytes(mode, 0);
 }
 
 pub fn requireInitFlow(mode: abi.AllocatorMode, expected: InitFlow) InitFlowError!void {
@@ -161,10 +187,19 @@ test "phase3 allocator policy keeps init ownership explicit" {
     try std.testing.expectEqual(InitFlow.helper_owned, initFlowFor(.kernel_heap));
     try std.testing.expectEqual(InitFlow.helper_owned_with_reset, initFlowFor(.arena));
 
+    try std.testing.expectEqual(Ownership.caller_managed, ownershipFor(.caller_provided));
+    try std.testing.expectEqual(Ownership.helper_managed, ownershipFor(.kernel_heap));
+    try std.testing.expectEqual(Ownership.helper_managed_resettable, ownershipFor(.arena));
+
     try std.testing.expectEqual(@as(?InitFlow, .caller_prepared), initFlowFromByte(0));
     try std.testing.expectEqual(@as(?InitFlow, .helper_owned), initFlowFromByte(1));
     try std.testing.expectEqual(@as(?InitFlow, .helper_owned_with_reset), initFlowFromByte(2));
     try std.testing.expectEqual(@as(?InitFlow, null), initFlowFromByte(9));
+
+    try std.testing.expectEqual(@as(?Ownership, .caller_managed), ownershipFromByte(0));
+    try std.testing.expectEqual(@as(?Ownership, .helper_managed), ownershipFromByte(1));
+    try std.testing.expectEqual(@as(?Ownership, .helper_managed_resettable), ownershipFromByte(2));
+    try std.testing.expectEqual(@as(?Ownership, null), ownershipFromByte(9));
 
     try std.testing.expect(!initializesOwnedState(.caller_provided));
     try std.testing.expect(initializesOwnedState(.kernel_heap));
@@ -202,6 +237,10 @@ test "phase3 allocator policy ignores unrelated interop-policy bytes when reserv
     try std.testing.expectEqual(@as(?InitFlow, .caller_prepared), initFlowFromInteropPolicy(caller_policy));
     try std.testing.expectEqual(@as(?InitFlow, .helper_owned), initFlowFromInteropPolicy(heap_policy));
     try std.testing.expectEqual(@as(?InitFlow, .helper_owned_with_reset), initFlowFromInteropPolicy(arena_policy));
+
+    try std.testing.expectEqual(@as(?Ownership, .caller_managed), ownershipFromInteropPolicy(caller_policy));
+    try std.testing.expectEqual(@as(?Ownership, .helper_managed), ownershipFromInteropPolicy(heap_policy));
+    try std.testing.expectEqual(@as(?Ownership, .helper_managed_resettable), ownershipFromInteropPolicy(arena_policy));
 
     try std.testing.expect(recognizesInteropPolicy(caller_policy));
     try std.testing.expect(recognizesInteropPolicy(heap_policy));
@@ -278,6 +317,11 @@ test "phase3 allocator policy stays explicit" {
     try std.testing.expectEqual(@as(?InitFlow, .helper_owned_with_reset), initFlowFromByte(2));
     try std.testing.expectEqual(@as(?InitFlow, null), initFlowFromByte(9));
 
+    try std.testing.expectEqual(@as(?Ownership, .caller_managed), ownershipFromByte(0));
+    try std.testing.expectEqual(@as(?Ownership, .helper_managed), ownershipFromByte(1));
+    try std.testing.expectEqual(@as(?Ownership, .helper_managed_resettable), ownershipFromByte(2));
+    try std.testing.expectEqual(@as(?Ownership, null), ownershipFromByte(9));
+
     try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), modeFromInteropPolicyBytes(0, 0));
     try std.testing.expectEqual(@as(?abi.AllocatorMode, .kernel_heap), modeFromInteropPolicyBytes(1, 0));
     try std.testing.expectEqual(@as(?abi.AllocatorMode, .arena), modeFromInteropPolicyBytes(2, 0));
@@ -289,6 +333,12 @@ test "phase3 allocator policy stays explicit" {
     try std.testing.expectEqual(@as(?InitFlow, .helper_owned_with_reset), initFlowFromInteropPolicyBytes(2, 0));
     try std.testing.expectEqual(@as(?InitFlow, null), initFlowFromInteropPolicyBytes(9, 0));
     try std.testing.expectEqual(@as(?InitFlow, null), initFlowFromInteropPolicyBytes(2, 1));
+
+    try std.testing.expectEqual(@as(?Ownership, .caller_managed), ownershipFromInteropPolicyBytes(0, 0));
+    try std.testing.expectEqual(@as(?Ownership, .helper_managed), ownershipFromInteropPolicyBytes(1, 0));
+    try std.testing.expectEqual(@as(?Ownership, .helper_managed_resettable), ownershipFromInteropPolicyBytes(2, 0));
+    try std.testing.expectEqual(@as(?Ownership, null), ownershipFromInteropPolicyBytes(9, 0));
+    try std.testing.expectEqual(@as(?Ownership, null), ownershipFromInteropPolicyBytes(2, 1));
 
     try std.testing.expect(recognizesInteropPolicyBytes(0, 0));
     try std.testing.expect(recognizesInteropPolicyBytes(1, 0));
@@ -343,6 +393,12 @@ test "phase3 allocator policy stays explicit" {
     try std.testing.expectEqual(@as(?InitFlow, .helper_owned_with_reset), initFlowFromInteropPolicy(arena_policy));
     try std.testing.expectEqual(@as(?InitFlow, null), initFlowFromInteropPolicy(unknown_policy));
     try std.testing.expectEqual(@as(?InitFlow, null), initFlowFromInteropPolicy(reserved_policy));
+
+    try std.testing.expectEqual(@as(?Ownership, .caller_managed), ownershipFromInteropPolicy(caller_policy));
+    try std.testing.expectEqual(@as(?Ownership, .helper_managed), ownershipFromInteropPolicy(heap_policy));
+    try std.testing.expectEqual(@as(?Ownership, .helper_managed_resettable), ownershipFromInteropPolicy(arena_policy));
+    try std.testing.expectEqual(@as(?Ownership, null), ownershipFromInteropPolicy(unknown_policy));
+    try std.testing.expectEqual(@as(?Ownership, null), ownershipFromInteropPolicy(reserved_policy));
 
     try std.testing.expect(recognizesInteropPolicy(caller_policy));
     try std.testing.expect(recognizesInteropPolicy(heap_policy));
