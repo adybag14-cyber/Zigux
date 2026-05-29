@@ -8,7 +8,8 @@
     "Current readable zigux/Makefile still exposes make -C zigux phase14-validate but does not expose make -C zigux phase14-smoke, make -C zigux phase14-test, or make -C zigux phase14.",
     "Current readable .github/workflows/zigux-bootstrap.yml still reruns make -C zigux phase14-validate and does not rerun a dedicated Phase 14 build or smoke-shard workflow step.",
     "Current readable shared smoke manifest still records zig build phase14-smoke --build-file zigux/tests/phase14_build.zig only as a focused raw build-file shard, not as a Makefile-backed shared smoke route.",
-    "P14-L05 current-master readback on 2026-05-29 confirmed the returned smoke route remains bounded to make -C zigux phase14-validate, with no phase14-smoke, phase14-test, or phase14 Makefile wrapper promoted."
+    "P14-L05 current-master readback on 2026-05-29 confirmed the returned smoke route remains bounded to make -C zigux phase14-validate, with no phase14-smoke, phase14-test, or phase14 Makefile wrapper promoted.",
+    "P14-L03 current-master readback on 2026-05-29 confirmed the productization behavior remains study-only and bounded to the single make -C zigux phase14-validate gate; the exact same readback also confirmed the next checker-only repair is still limited to teaching scripts/zigux/check-phase14-shared-smoke-route.py to fail-close the validator-side ring-buffer compile-route checker."
   ],
   "p14_l05_anti_regression_readback": {
     "readback_on": "2026-05-29",
@@ -26,6 +27,47 @@
       "make -C zigux phase14"
     ],
     "observed_checker_gap": "scripts/zigux/validate-phase14.py already runs the ring-buffer compile-route checker and this manifest already records the ring-buffer summary booleans, but scripts/zigux/check-phase14-shared-smoke-route.py currently fail-closes only the validator-side skbuff and RCU compile-route calls.",
+    "next_checker_only_repair": "Teach scripts/zigux/check-phase14-shared-smoke-route.py to require RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH, its run_guardrail_checker call, and the existing phase14_validate_runs_ring_buffer_compile_route_checker plus shared_manifest_records_ring_buffer_compile_route_checker manifest booleans."
+  },
+  "p14_l03_productization_readback": {
+    "readback_on": "2026-05-29",
+    "scope": "ZAR runtime research absorption shared-smoke productization verification for the current bounded Phase 14 step",
+    "roadmap_posture_checked": "Phase 14 remains a core-adjacent bounded-internals study-only or wrapper-first phase; this readback did not promote parity or import ZAR runtime-core behavior.",
+    "shared_smoke_survey_sha": "83793609ada351c5c46b8f2b0b3e2d22b3c59c99",
+    "shared_smoke_route_checker_sha": "f2bb6d69a9ba2051fc91ee20fa965f8635a6e7c1",
+    "phase14_validator_sha": "c1f45e1b6029c5435c0bcc13b1e45dff9d86d246",
+    "phase14_makefile_sha": "b590ef1bb4a3ddd6a817734ee2241442e8935927",
+    "manifest_sha_before_readback": "7a0e181726154facb514affd9323b80b8cfc09ed",
+    "route_status": "bounded_validate_route_only",
+    "confirmed_present_checks": [
+      "make -C zigux phase14-validate",
+      "python3 scripts/zigux/check-phase14-shared-smoke-route.py --self-test",
+      "python3 scripts/zigux/check-phase14-shared-smoke-route.py",
+      "python3 scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test",
+      "python3 scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
+      "python3 scripts/zigux/validate-phase14.py --self-test",
+      "python3 scripts/zigux/validate-phase14.py",
+      "python3 scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
+      "python3 scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+      "python3 scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py --self-test",
+      "python3 scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py",
+      "python3 scripts/zigux/check-phase14-rcu-rollback-guardrail.py --self-test",
+      "python3 scripts/zigux/check-phase14-rcu-rollback-guardrail.py",
+      "python3 scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
+      "python3 scripts/zigux/check-phase14-release-boundary-exact-counts.py"
+    ],
+    "confirmed_absent_routes": [
+      "make -C zigux phase14-smoke",
+      "make -C zigux phase14-test",
+      "make -C zigux phase14"
+    ],
+    "validator_side_checks_confirmed_by_readback": [
+      "scripts/zigux/check-phase14-skbuff-compile-route.py",
+      "scripts/zigux/check-phase14-ring-buffer-compile-route.py",
+      "scripts/zigux/check-phase14-rcu-compile-route.py"
+    ],
+    "productization_behavior": "The current bounded productization behavior is still evidence absorption and fail-closed reminder validation, not a Phase 14 implementation or parity claim.",
+    "observed_checker_gap": "scripts/zigux/validate-phase14.py includes the ring-buffer compile-route checker in SUBCHECKER_PATHS, but scripts/zigux/check-phase14-shared-smoke-route.py currently requires only the validator-side skbuff and RCU compile-route markers.",
     "next_checker_only_repair": "Teach scripts/zigux/check-phase14-shared-smoke-route.py to require RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH, its run_guardrail_checker call, and the existing phase14_validate_runs_ring_buffer_compile_route_checker plus shared_manifest_records_ring_buffer_compile_route_checker manifest booleans."
   },
   "productization": {
