@@ -37,6 +37,17 @@ Study-only anchors that remain outside Phase 10 delivery and stay parked in the 
 Phase 10 may summarize those anchors only as boundary context.
 It must not present them as active virtio closure evidence, bridge-readiness proof, or status-change candidates.
 
+## Current Readback Evidence
+
+Current `master` readback on 2026-05-29 keeps the Phase 10 freeze-boundary behavior fail-closed:
+- `Documentation/zigux/freeze-map.md` at blob `80f2eea51dfd3effc4aac2cbf067344b74791895` still lists `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c` as freeze-in-C anchors, lists `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` as study or boundary-only anchors, and says there is no silent exception path around the stay-in-C policy.
+- `scripts/zigux/check-phase10-shared-freeze-boundary.py` at blob `acb641090725a8e507389456d4967684de4d4b97` still requires the freeze map, docs-root reminder, review checklist, study-only accounting note, closure evidence, lane sequencing notes, Phase 10 closure manifest, Phase 10 closure ledger, and the ring, input, and MMIO manifests before passing the shared freeze-boundary guard.
+- `zigux/tests/phase10_closure_manifest.json` at blob `8f80348772cd6ebe5fd040e492c5947892cb5528` still records `freeze_boundary_status: aligned`, `freeze_status_change_claimed: false`, `risky_transport_posture: blocked_on_risky_transport`, `architecture_council_reopen_required: true`, and `architecture_council_reopen_attached: false` for the shared Phase 10 closure packet.
+- `zigux/tests/phase10_virtio_ring_manifest.json` at blob `ab52719cf0e84c1786b88ff4bf838fc8a2cf3451`, `zigux/tests/phase10_virtio_input_manifest.json` at blob `294baeed622b378314036e80fa59e9d077f7db64`, and `zigux/tests/phase10_virtio_mmio_manifest.json` at blob `87e809bf6d8c0a0da25d2ec56bceab6fc6ad0ccd` all still keep `freeze_boundary_status: aligned`, `freeze_status_change_claimed: false`, `risky_transport_posture: blocked_on_risky_transport`, `architecture_council_reopen_required: true`, and `architecture_council_reopen_attached: false`.
+- `Documentation/zigux/README.md` at blob `1ea09dc5ec0f0ffd321a7d8a99873f4ee7c460cb`, `Documentation/zigux/review-checklist.md` at blob `ec333b158200aeed62eefbcfd6046a835dcec6c4`, and `Documentation/zigux/phase15-study-only-anchor-accounting.md` at blob `9faf403a7f6531e9dfce2deb7b513b8b9475a0d9` still route study-only anchor summaries back through the freeze map and the accounting note instead of treating `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` as Phase 10 runtime-substrate or bridge-readiness evidence.
+
+The behavior this evidence proves is intentionally narrow: current Phase 10 virtio lab evidence may describe driver-local lab slices, survey manifests, and shared validation gates, but any risky transport, lifecycle, deep-core, or freeze-map status-change claim remains blocked unless the Architecture Council process records a reopen decision with fresh linked evidence.
+
 ## Current Gap
 
 The returned Phase 10 closure packet already records general freeze-map alignment, but without a dedicated survey note the shared closure packet can drift into shorthand wording that hides the roadmap boundary between:
