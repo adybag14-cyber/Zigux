@@ -4,7 +4,7 @@
 
 - `PHASE11_HV_OPS_FOLLOWUP_STATUS=adjacent_hv_ops_proof_returned_shared_replay_still_missing`
 - lane: `P11-L05`
-- reviewed against current `master` on `2026-05-27`
+- reviewed against current `master` on `2026-05-29`
 - scope: keep the shared Phase 11 header-parity packet honest about the returned
   `hv_ops` proof shard while preserving the boundary between adjacent proof
   evidence and the still-missing shared replay family
@@ -30,6 +30,28 @@
   `zigux/tests/phase11_uapi_header_parity_survey.zig`, or
   `zigux/tests/phase11_build.zig`, so the shared manifest, survey source, and
   build route remain absent on current `master`.
+
+## Exact Layout Evidence Captured
+
+The returned `hv_ops` proof shard is not just a path-level reminder. Current
+`master` records the exact ABI layout values in
+`zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`:
+
+- `HvOps` remains size `72` with alignment `8`.
+- `get_chars`, `put_chars`, `flush`, `notifier_add`, `notifier_del`,
+  `notifier_hangup`, `tiocmget`, `tiocmset`, and `dtr_rts` stay pinned at
+  offsets `0`, `8`, `16`, `24`, `32`, `40`, `48`, `56`, and `64`.
+- The imported `hvc_console.HvOps` surface is checked against the same size,
+  alignment, and offset sequence, so drift in `drivers/tty/hvc/hvc_console.zig`
+  cannot be hidden behind the local mirror struct.
+- The proof also exact-checks every callback signature and rereads
+  `drivers/tty/hvc/hvc_console.h` for the matching exported `struct hv_ops`
+  declarations.
+
+Those numbers are the ABI evidence this follow-up is preserving. They do not
+restore the missing shared replay route by themselves, but they make the
+surviving adjacent proof shard reviewable without depending on prose-only layout
+claims.
 
 ## Why This Note Exists
 
