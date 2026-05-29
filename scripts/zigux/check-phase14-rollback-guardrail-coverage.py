@@ -8,6 +8,7 @@ from pathlib import Path
 
 SELF_PATH = Path(__file__).resolve()
 VALIDATOR_PATH = "scripts/zigux/validate-phase14.py"
+MAKEFILE_PATH = "zigux/Makefile"
 
 ROLLBACK_AND_GUARDRAIL_CHECKERS = [
     "ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH",
@@ -16,6 +17,15 @@ ROLLBACK_AND_GUARDRAIL_CHECKERS = [
     "RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH",
     "RCU_COMPILE_ROUTE_CHECKER_PATH",
     "RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH",
+]
+
+MAKEFILE_DIRECT_ROLLBACK_GUARDRAILS = [
+    "scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
+    "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+    "scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py --self-test",
+    "scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py",
+    "scripts/zigux/check-phase14-rcu-rollback-guardrail.py --self-test",
+    "scripts/zigux/check-phase14-rcu-rollback-guardrail.py",
 ]
 
 VALIDATOR_REQUIRED_MARKERS = [
@@ -66,6 +76,15 @@ def validate(root: Path) -> list[str]:
         if required_marker_lookup not in text:
             failures.append(f"missing_required_marker_lookup:{checker_name}")
 
+    makefile = root / MAKEFILE_PATH
+    if not makefile.exists():
+        failures.append(f"missing_file:{MAKEFILE_PATH}")
+    else:
+        makefile_text = read_text(makefile)
+        for marker in MAKEFILE_DIRECT_ROLLBACK_GUARDRAILS:
+            if marker not in makefile_text:
+                failures.append(f"missing_makefile_rollback_guardrail:{marker}")
+
     return failures
 
 
@@ -73,6 +92,13 @@ def write_fixture(root: Path, text: str) -> None:
     target = root / VALIDATOR_PATH
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(text, encoding="utf-8")
+
+
+def write_makefile_fixture(root: Path, text: str | None = None) -> None:
+    target = root / MAKEFILE_PATH
+    target.parent.mkdir(parents=True, exist_ok=True)
+    body = text if text is not None else "\n".join(MAKEFILE_DIRECT_ROLLBACK_GUARDRAILS) + "\n"
+    target.write_text(body, encoding="utf-8")
 
 
 def fixture_validator() -> str:
@@ -109,18 +135,31 @@ def run_self_test() -> int:
     base = Path(tempfile.mkdtemp(prefix="phase14-guardrail-coverage-"))
     try:
         write_fixture(base, fixture_validator())
+        write_makefile_fixture(base)
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture should pass but failed: {failures!r}")
 
         for checker_name in ROLLBACK_AND_GUARDRAIL_CHECKERS:
             write_fixture(base, fixture_validator().replace(f"    {checker_name},\n", "", 1))
+            write_makefile_fixture(base)
             expected = f"missing_subchecker_entry:{checker_name}"
             failures = validate(base)
             if expected not in failures:
                 raise SystemExit(f"expected {expected!r}, got {failures!r}")
 
+        for marker in MAKEFILE_DIRECT_ROLLBACK_GUARDRAILS:
+            write_fixture(base, fixture_validator())
+            write_makefile_fixture(base, "\n".join(
+                candidate for candidate in MAKEFILE_DIRECT_ROLLBACK_GUARDRAILS if candidate != marker
+            ) + "\n")
+            expected = f"missing_makefile_rollback_guardrail:{marker}"
+            failures = validate(base)
+            if expected not in failures:
+                raise SystemExit(f"expected {expected!r}, got {failures!r}")
+
         write_fixture(base, fixture_validator().replace("self_test=False", "", 1))
+        write_makefile_fixture(base)
         failures = validate(base)
         if "missing_validator_marker:self_test=False" not in failures:
             raise SystemExit(f"expected self_test=False marker failure, got {failures!r}")
@@ -133,10 +172,19 @@ def run_self_test() -> int:
         finally:
             shutil.rmtree(empty, ignore_errors=True)
 
+        missing_makefile = Path(tempfile.mkdtemp(prefix="phase14-guardrail-coverage-missing-makefile-"))
+        try:
+            write_fixture(missing_makefile, fixture_validator())
+            failures = validate(missing_makefile)
+            if f"missing_file:{MAKEFILE_PATH}" not in failures:
+                raise SystemExit(f"expected missing Makefile failure, got {failures!r}")
+        finally:
+            shutil.rmtree(missing_makefile, ignore_errors=True)
+
         print("PHASE14_ROLLBACK_GUARDRAIL_COVERAGE_SELF_TEST=pass")
         print(
             "PHASE14_ROLLBACK_GUARDRAIL_COVERAGE_SELF_TEST_CASE_COUNT="
-            f"{len(ROLLBACK_AND_GUARDRAIL_CHECKERS) + 2}"
+            f"{len(ROLLBACK_AND_GUARDRAIL_CHECKERS) + len(MAKEFILE_DIRECT_ROLLBACK_GUARDRAILS) + 3}"
         )
         return 0
     finally:
@@ -147,7 +195,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Check that the Phase 14 validator still runs the rollback-threshold and "
-            "guardrail subcheckers in both fixture-backed self-test and live validation modes."
+            "guardrail subcheckers in both fixture-backed self-test and live validation modes, "
+            "and that the returned Makefile route still directly replays the rollback "
+            "threshold plus skbuff/RCU rollback guardrails."
         )
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate.")
@@ -169,6 +219,7 @@ def main() -> int:
     print("PHASE14_ROLLBACK_GUARDRAIL_COVERAGE=pass")
     print(f"PHASE14_ROLLBACK_GUARDRAIL_COVERAGE_CHECKER_COUNT={len(ROLLBACK_AND_GUARDRAIL_CHECKERS)}")
     print(f"PHASE14_ROLLBACK_GUARDRAIL_COVERAGE_MARKER_COUNT={len(VALIDATOR_REQUIRED_MARKERS)}")
+    print(f"PHASE14_ROLLBACK_GUARDRAIL_COVERAGE_MAKEFILE_ROUTE_COUNT={len(MAKEFILE_DIRECT_ROLLBACK_GUARDRAILS)}")
     return 0
 
 
