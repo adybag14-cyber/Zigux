@@ -24,14 +24,23 @@ const RepoEvidence = struct {
     phase15_replay_green_on_current_master: bool,
 };
 
+const BlockedBroaderRoutes = struct {
+    makefile_path: []const u8,
+    missing_make_targets: []const []const u8,
+    workflow_path: []const u8,
+    missing_workflow_phase15_route: bool,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     surveyed_commit_mode: []const u8,
     surveyed_commit: []const u8,
     readiness_packet_checker: []const u8,
+    roadmap_ledger_gap_matrix: []const u8,
     direct_packet_paths: []const []const u8,
     still_missing_broader_paths: []const []const u8,
+    blocked_broader_routes: BlockedBroaderRoutes,
     repo_evidence: RepoEvidence,
     phase15_validate_checkers: []const []const u8,
 };
@@ -112,6 +121,38 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
     try std.testing.expect(!manifest.repo_evidence.phase15_aggregate_target_present);
     try std.testing.expect(!manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_replay_green_on_current_master);
+}
+
+test "phase 15 release blockers stay mirrored in manifest and gap matrix" {
+    const manifest_json = try readRepoFile("zigux/tests/phase15_readiness_gate_manifest.json", 24 * 1024);
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
+        .ignore_unknown_fields = true,
+    });
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+    try std.testing.expectEqualStrings("zigux/tests/phase15_readiness_gap_matrix.json", manifest.roadmap_ledger_gap_matrix);
+    try std.testing.expectEqualStrings("zigux/Makefile", manifest.blocked_broader_routes.makefile_path);
+    try std.testing.expectEqual(@as(usize, 3), manifest.blocked_broader_routes.missing_make_targets.len);
+    try expectSliceContains(manifest.blocked_broader_routes.missing_make_targets, "phase15-validate");
+    try expectSliceContains(manifest.blocked_broader_routes.missing_make_targets, "phase15-test");
+    try expectSliceContains(manifest.blocked_broader_routes.missing_make_targets, "phase15");
+    try std.testing.expectEqualStrings(".github/workflows/zigux-bootstrap.yml", manifest.blocked_broader_routes.workflow_path);
+    try std.testing.expect(manifest.blocked_broader_routes.missing_workflow_phase15_route);
+
+    const gap_matrix = try readRepoFile("zigux/tests/phase15_readiness_gap_matrix.json", 24 * 1024);
+    defer std.testing.allocator.free(gap_matrix);
+
+    try expectContains(gap_matrix, "\"gap\": \"missing_make_routes\"");
+    try expectContains(gap_matrix, "\"gap\": \"missing_workflow_route\"");
+    try expectContains(gap_matrix, "\"gap\": \"no_architecture_council_status_change_approval\"");
+    try expectContains(gap_matrix, "\"status\": \"blocked\"");
+    try expectContains(gap_matrix, "\"phase15-validate\"");
+    try expectContains(gap_matrix, "\"phase15-test\"");
+    try expectContains(gap_matrix, "without dedicated wrapper routes, the broader Phase 15 replay packet is not one-command ready");
+    try expectContains(gap_matrix, "without a dedicated workflow route, the broader Phase 15 replay packet is not shared-CI ready");
 }
 
 test "phase 15 readiness note stays aligned with the validator-first packet" {
