@@ -14,15 +14,21 @@ ROADMAP_NOTE = "Documentation/zigux/phase13-roadmap-traceability.md"
 REQUIRED_MARKERS = [
     "This note restores the roadmap-to-repo owner map for the active Phase 13 shared-helper packet on current `master`.",
     "Phase 13 in the Zigux roadmap is the shared-subsystem-helper tranche bounded to four Linux anchors:",
+    "- `fs/libfs.c`",
+    "- `lib/devres.c`",
+    "- `security/landlock/ruleset.c`",
+    "- `security/landlock/syscalls.c`",
     "- stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
     "- stable roadmap-traceability guard: `python3 scripts/zigux/check-phase13-roadmap-traceability.py`",
     "Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface",
     "`Documentation/zigux/phase13-devres-iomap-planner.md`",
     "`scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py`",
     "direct replay and direct reviewability companions through `zigux/tests/phase13_landlock_syscalls.zig` and `zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
+    "Adjacent notifier evidence can support release-surface truthfulness, but it does not become a fifth roadmap anchor.",
     "`zigux/tests/phase13_landlock_syscalls_manifest.json`",
     "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and missing notifier-chain companion.",
     "- `zigux/helpers/notifier_chain_view.zig`",
+    "- This note does not promote adjacent evidence into a fifth helper anchor.",
 ]
 
 FORBIDDEN_MARKERS = [
@@ -96,6 +102,18 @@ def run_self_test() -> int:
         )
         checks_run += 1
 
+        write_text(
+            tempdir,
+            ROADMAP_NOTE,
+            source_text.replace("- `security/landlock/syscalls.c`\n", "", 1),
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:- `security/landlock/syscalls.c`"
+            in issues
+        )
+        checks_run += 1
+
         note_path = tempdir / ROADMAP_NOTE
         note_path.write_text(
             source_text.replace(
@@ -108,6 +126,22 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:direct replay and direct reviewability companions through `zigux/tests/phase13_landlock_syscalls.zig` and `zigux/tests/phase13_landlock_syscalls_reviewability.zig`"
+            in issues
+        )
+        checks_run += 1
+
+        write_text(
+            tempdir,
+            ROADMAP_NOTE,
+            source_text.replace(
+                "Adjacent notifier evidence can support release-surface truthfulness, but it does not become a fifth roadmap anchor.",
+                "Adjacent notifier evidence can support release-surface truthfulness.",
+                1,
+            ),
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:Adjacent notifier evidence can support release-surface truthfulness, but it does not become a fifth roadmap anchor."
             in issues
         )
         checks_run += 1
