@@ -287,7 +287,7 @@ def run_self_test() -> None:
         run_check(fixture_root)
         case_count = 1
 
-        for marker in SURVEY_MARKERS[:7]:
+        for marker in SURVEY_MARKERS:
             case_root = tmpdir / f"survey_{case_count}"
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / FILES["matrix_gap_note"]
