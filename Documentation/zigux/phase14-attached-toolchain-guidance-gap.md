@@ -1,68 +1,71 @@
 # Phase 14 Attached Toolchain Guidance Gap
 
 ## Scope
+
 - lane: `P14-L10`
 - phase: `Phase 14`
 - packet: shared attached-toolchain and environment-guidance reminder packet for the bounded Phase 14 smoke route
 - status: `current-master reminder truthfulness follow-through`
+- refreshed: `2026-05-29`
 
 ## Why this note exists
-The Phase 14 roadmap keeps the shared smoke packet in a study-only, reviewability-first posture. That means the shipped guidance needs to stay explicit about how reviewers reason about the attached Zig toolchain when it is the only available compiler, and this note needs to describe the current reminder split truthfully instead of replaying older route-gap wording that current `master` has already closed.
 
-## Current repo readback
-Fresh rereads on 2026-05-27 keep the attached-toolchain reminder split narrower than older note wording implied.
+The Phase 14 roadmap keeps the shared smoke packet in a study-only, reviewability-first posture. That means rerun guidance must stay exact about the attached Zig toolchain, the current `zigux/Makefile` route surface, and the missing Phase 14 wrapper targets. This note is an environment truthfulness note, not a new bridge, parity, ownership, or release-readiness claim.
 
-Fresh builder-environment validation on 2026-05-27 also confirms that the attached Zig bundle used by this lane still behaves like a usable bounded-check fallback rather than a stale archival assumption:
-- unpacking `agent_files/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz` into the scheduled runtime succeeded without extra environment overrides
+## Current attached-toolchain readback
+
+Fresh builder-environment validation on `2026-05-29` confirms that the attached Zig bundle used by this lane still behaves like a usable bounded-check fallback rather than a stale archival assumption:
+
+- unpacking `agent_files/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz` into `/workspace/.toolchains/p14-l10/` succeeded without extra environment overrides
 - `/workspace/.toolchains/p14-l10/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig version` returned `0.17.0-dev.87+9b177a7d2`
-- `/workspace/.toolchains/p14-l10/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig env` reported the expected bundled library path, the normal `/root/.cache/zig` global cache path, and an `x86_64-linux` target string
-- readable current `zigux/Makefile` evidence keeps the attached-toolchain fallback narrower than older note wording implied: `ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)` prefers the pinned extracted bundle or a local `.zig-toolchain/*/zig` candidate before falling back to `zig` on `PATH`, so manual `ZIG=/absolute/path/to/attached-zig/zig ...` overrides remain optional packet-local escape hatches rather than the primary current rerun path when a checkout can stage the bundle where the Makefile already looks for it
+- `/workspace/.toolchains/p14-l10/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig env` reported `.lib_dir = ".toolchains/p14-l10/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/lib"`, `.global_cache_dir = "/root/.cache/zig"`, `.version = "0.17.0-dev.87+9b177a7d2"`, and `.target = "x86_64-linux.6.12.47...6.12.47-gnu.2.39"`
+- no `ZIG_GLOBAL_CACHE_DIR`, `ZIG_LOCAL_CACHE_DIR`, `ZIG_LIB_DIR`, `ZIG_LIBC`, `CC`, or related Zig environment override was set during that readback
 
-That local replay does not change current repo evidence or promote a broader Phase 14 rerun claim. It keeps the narrower same-lane environment evidence explicit while the readable current `zigux/Makefile` continues to expose only `phase14-validate` from the shared Phase 14 route family.
+This local replay does not change repo status. It only proves that the attached bundle remains a valid bounded fallback for this scheduled-builder environment when a focused Zig syntax or build check is otherwise justified.
 
-- `Documentation/zigux/phase14-end-to-end-smoke-survey.md` keeps the attached-toolchain boundary explicit, but it no longer presents the older `phase14-*` wrapper examples as current usable fallback commands; instead it records those names only as historical packet-local rerun vocabulary while the readable `zigux/Makefile` body now exposes `phase14-validate` but still lacks `phase14-smoke`, `phase14-test`, and `phase14`
-- `Documentation/zigux/phase14-release-boundary-survey.md` matches that narrower posture too: it keeps the same older `phase14-*` wrapper names only as archival packet-local vocabulary and explicitly avoids restating the attached-toolchain triplet as current fallback guidance while the readable `zigux/Makefile` still omits those broader targets
-- `Documentation/zigux/README.md` is now aligned with that returned split: its Phase 14 docs-root reminder block keeps `Documentation/zigux/phase14-skbuff-bridge-survey.md`, `Documentation/zigux/freeze-map.md`, and `Documentation/zigux/phase15-study-only-anchor-accounting.md` explicit beside the already-listed shared smoke packet members, so the docs-root summary no longer owns the smallest same-lane follow-through
-- `Documentation/zigux/review-checklist.md` is already aligned with the returned Phase 14 route split: its shared-smoke checkpoint keeps the readable `zigux/Makefile` posture explicit, keeps the returned `make -C zigux phase14-validate` gate explicit, keeps the returned workqueue and ring-buffer study-only companions explicit, and still leaves the broader `phase14-smoke`, `phase14-test`, and `phase14` wrappers in packet-local or repo-reality-gap vocabulary
-- `scripts/zigux/README.md` now carries its own explicit Phase 14 section on current `master`, and that section now includes `scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py`, `scripts/zigux/check-phase14-skbuff-compile-route.py`, `scripts/zigux/check-phase14-ring-buffer-compile-route.py`, `scripts/zigux/check-phase14-rcu-compile-route.py`, and `scripts/zigux/check-phase14-rcu-rollback-guardrail.py` in the shared reminder family, so the scripts-root reminder no longer owns a separate same-lane repair
-- `zigux/tests/README.md` stays aligned on the returned route split and keeps `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`, and `zigux/tests/phase14_ring_buffer_survey.zig` explicit in the shared Phase 14 tests-root reminder packet beside the shared smoke note, the productization note, the shared-gap note, the route checker, the validator, the release-boundary checker, the readable Makefile posture, and the workqueue reviewability shard without promoting the missing executable-layer paths
-- `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` is directly readable again through the current contents path and keeps that aligned tests-root reminder section machine-checkable instead of leaving the current packet split implicit in neighboring note prose
-- `scripts/zigux/check-phase14-shared-smoke-route.py` is directly readable again through the current contents path and keeps the returned `phase14-validate` Makefile route plus workflow gate explicit rather than leaving that shared-smoke route proof implicit in neighboring reminder text
-- `scripts/zigux/validate-phase14.py` is directly readable again through the current contents path and carries a real shared-smoke validator surface rather than the older placeholder-only body
-- `scripts/zigux/check-phase14-release-boundary-exact-counts.py` is directly readable again through the current contents path and keeps the release-facing exact-count posture aligned with the same reminder packet
-- `scripts/zigux/check-phase14-rcu-rollback-guardrail.py` is directly readable again through the current contents path and keeps the dedicated `kernel/rcu/tree.c` freeze-in-C rollback guard explicit beside the shared smoke packet instead of leaving that returned RCU posture implicit in neighboring reminder prose
-- `Documentation/zigux/phase14-rcu-tree-survey.md` is directly readable again through the current contents path as the dedicated freeze-in-C RCU companion note, so the shared reminder family should keep that returned note explicit without promoting the still-partial RCU executable layer into a direct replay claim
-- `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, and `zigux/tests/phase14_workqueue_bridge_manifest.json` remain directly readable as the workqueue-local reviewability shard, so the attached-toolchain note should keep that returned study-only foothold explicit beside the reminder split
+## Current Makefile readback
 
-That means the older stale-summary framing recorded by this note is now closed across the docs-root, checklist, scripts-root, and tests-root reminder surfaces on current `master`.
+Fresh authenticated readback of current `master` keeps the route split narrow:
 
-The remaining readback split is narrower:
-- the shared smoke note, release-boundary note, docs-root summary, checklist, scripts-root reminder, and tests-root reminder all keep the attached-toolchain boundary explicit while treating the older `phase14-*` wrapper names as historical packet-local vocabulary rather than current fallback guidance
-- the readable `zigux/Makefile` now exposes `phase14-validate`, the readable `ZIG ?=` chain already prefers a staged bundle when present, the returned dedicated `scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py`, `scripts/zigux/check-phase14-skbuff-compile-route.py`, `scripts/zigux/check-phase14-ring-buffer-compile-route.py`, `scripts/zigux/check-phase14-rcu-compile-route.py`, and `scripts/zigux/check-phase14-rcu-rollback-guardrail.py` guards plus `Documentation/zigux/phase14-rcu-tree-survey.md` companion belong to the same bounded shared reminder family, the returned `Documentation/zigux/phase14-skbuff-bridge-survey.md`, `Documentation/zigux/freeze-map.md`, and `Documentation/zigux/phase15-study-only-anchor-accounting.md` companions stay explicit where they already returned, and the broader `phase14-smoke`, `phase14-test`, and `phase14` names remain historical packet-local or repo-reality-gap vocabulary
-- the landed tests-root packet section stays explicit, preserving the recovered release-boundary survey note, this attached-toolchain guidance note, the returned ring-buffer survey companion, and the checker-backed route split beside the already-listed shared smoke packet members without promoting the missing executable-layer paths
-- `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` keeps that aligned tests-root reminder section machine-checkable, so later same-lane follow-through should treat the checker as current reminder evidence instead of assuming the tests-root packet is still open
-- `scripts/zigux/check-phase14-shared-smoke-route.py` keeps the shared `phase14-validate` gate explicit in both the readable Makefile body and the readable bootstrap workflow, so later same-lane follow-through should treat that checker as current route evidence instead of leaving it implied by adjacent reminder prose
-- `zigux/Makefile` is readable again, and its live body currently exposes the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes together with the returned `phase14-validate` gate, but no `phase14-smoke`, `phase14-test`, or `phase14` targets; the same readable body also prefers the pinned extracted bundle or a local `.zig-toolchain/*/zig` candidate before falling back to `zig` on `PATH`, so this note should treat manual `ZIG=/absolute/path/to/attached-zig/zig ...` overrides as optional packet-local escapes rather than the default current fallback
-- the broader executable packet still remains only partially recoverable in this lane even though the directly readable route checker, the directly readable validator surface, the directly readable release-boundary guard, the directly readable dedicated RCU rollback guard, the directly readable dedicated RCU survey note, and the directly readable workqueue reviewability shard have returned
-- the next same-lane reminder reread should therefore start from the surviving executable-layer readback split instead of replaying a shared-reminder undercount that current `master` has already closed
+- `zigux/Makefile` still resolves `ZIG` through `ZIG_PINNED_TOOLCHAIN`, a staged `.zig-toolchain/*/zig` candidate, or finally `zig` on `PATH`
+- the readable Phase 14 Make route remains `phase14-validate`
+- the broader `phase14-smoke`, `phase14-test`, and `phase14` Make targets are still absent and must stay historical packet-local or repo-reality-gap vocabulary
+- manual `ZIG=/absolute/path/to/attached-zig/zig ...` overrides are optional packet-local escape hatches, not the primary current rerun path when a checkout can stage the bundle where the Makefile already looks for it
+
+This refresh intentionally removes the older route-family shorthand that said the live Makefile exposed a selected list of shipped phase routes. That shorthand was not the important P14-L10 claim and had started to obscure the exact current boundary: Phase 14 exposes one shared validation route, while other phase route names include a mix of recipe-backed targets and phony entries outside this lane.
+
+## Aligned reminder surfaces
+
+The current same-lane reminder family should continue to say only this:
+
+- `Documentation/zigux/phase14-end-to-end-smoke-survey.md` may reference older `phase14-*` names only as historical packet-local rerun vocabulary unless a future Makefile change lands those targets
+- `Documentation/zigux/phase14-release-boundary-survey.md` should keep the same single-gate posture and avoid restating the attached-toolchain triplet as current fallback guidance
+- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` should keep the readable `phase14-validate` route, the returned checker-backed shared-smoke packet, and the study-only or freeze-in-C posture explicit without promoting missing executable-layer paths
+- the dedicated skbuff, ring-buffer, and RCU checkers stay part of the bounded shared reminder family only where current validators or manifests already require them
 
 ## Why this matters
-This is still a real operational-truthfulness issue rather than a new delivery claim:
+
+This is still an operational-truthfulness issue rather than a delivery claim:
+
 - the roadmap says Phase 14 stays bounded, study-only, and reviewability-first
 - the bootstrap ledger favors exact rerun guidance over implied routes
-- the attached toolchain is already part of the operating environment for bounded Zig validation
-- the current reminder packet should now record the narrower split truthfully, so later same-lane work does not reopen already-closed docs-root, checklist, scripts-root, or tests-root alignment points, does not re-promote the older wrapper names as active Makefile-backed proof by mistake, does not imply that manual `ZIG=/...` overrides are the primary current rerun path when the readable Makefile already prefers a staged bundle automatically, and does not widen past the still-partial executable-layer boundary before a fresh repo reread justifies it
+- the attached toolchain is part of the scheduled-builder environment for bounded Zig validation
+- stale route shorthand can make future runs reopen already-closed reminder work or imply a broader Phase 14 executable surface than current `master` actually exposes
 
 ## Smallest honest same-lane conclusion
-The attached-toolchain boundary itself is no longer the gap.
 
-The shared reminder family is aligned on current `master`, and the active same-lane boundary is now the still-partial executable-layer readback split rather than a reminder-surface undercount:
-1. keep `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-productization-gap-survey.md`, `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` aligned on the fact that the attached-toolchain boundary is still explicit, the readable `zigux/Makefile` now exposes `phase14-validate`, the readable `ZIG ?=` chain already prefers a staged bundle when present, the returned dedicated `scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py`, `scripts/zigux/check-phase14-skbuff-compile-route.py`, `scripts/zigux/check-phase14-ring-buffer-compile-route.py`, `scripts/zigux/check-phase14-rcu-compile-route.py`, and `scripts/zigux/check-phase14-rcu-rollback-guardrail.py` guards plus `Documentation/zigux/phase14-rcu-tree-survey.md` companion belong to the same bounded shared reminder family, the returned `Documentation/zigux/phase14-skbuff-bridge-survey.md`, `Documentation/zigux/freeze-map.md`, and `Documentation/zigux/phase15-study-only-anchor-accounting.md` companions stay explicit where they already returned, and the broader `phase14-smoke`, `phase14-test`, and `phase14` names remain historical packet-local or repo-reality-gap vocabulary
-2. keep the landed tests-root packet section explicit so it continues to preserve the recovered release-boundary survey note, this attached-toolchain guidance note, the returned ring-buffer survey companion, and the checker-backed route split beside the already-listed shared smoke packet members without promoting the missing executable-layer paths
-3. treat the docs-root, checklist, scripts-root, and tests-root reminder surfaces as aligned on current `master`, and reopen the lane only when a fresh shared-note drift or a changed executable-layer readback boundary creates a new one-note follow-through inside this reminder family
-4. once another same-family drift appears, keep the repair inside the smallest shared note that actually drifted instead of replaying a closed reminder undercount by default
+The attached-toolchain boundary itself is not the gap. The attached bundle still extracts cleanly and reports the expected Zig version.
+
+The active same-lane discipline is keeping environment and route wording exact:
+
+1. prefer the staged pinned-toolchain path that the Makefile already detects when a checkout can stage the bundle
+2. use a manual `ZIG=/absolute/path/to/attached-zig/zig` override only as an explicit packet-local fallback
+3. keep `make -C zigux phase14-validate` as the only current Phase 14 Make route
+4. keep `phase14-smoke`, `phase14-test`, and `phase14` out of current fallback guidance until those Make targets exist on `master`
+5. do not treat attached-toolchain availability as proof of deep-core execution ownership, parity, or release-readiness
 
 ## Non-goals
+
 - do not reopen workqueue, ring-buffer, skbuff, or RCU packet contents
 - do not introduce a new Phase 14 replay route
 - do not imply any live deep-core execution ownership or status change
