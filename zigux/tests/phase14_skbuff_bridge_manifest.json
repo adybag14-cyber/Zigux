@@ -1,0 +1,77 @@
+{
+  "lane_key": "P14-L11",
+  "phase": "Phase 14",
+  "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb",
+  "anchor": "net/core/skbuff.c",
+  "roadmap_destinations": [
+    "net/core/skbuff_bridge.zig",
+    "Documentation/zigux/phase14-skbuff-bridge-survey.md",
+    "zigux/tests/phase14_skbuff_bridge.zig"
+  ],
+  "decision_checklist": [
+    {
+      "id": "shared-info-refcount-ownership",
+      "summary": "Keep skb shared-info refcount and cloned-header ownership in C.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "struct skb_shared_info",
+        "dataref",
+        "skb_header_cloned"
+      ],
+      "rationale": "The bridge packet can map the boundary, but it does not own refcount mutation or header writeability."
+    },
+    {
+      "id": "destructor-and-free-path",
+      "summary": "Keep destructor ordering and free-path sequencing in C.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "skb_release_head_state",
+        "skb_release_data",
+        "consume_skb"
+      ],
+      "rationale": "Destructor callbacks, data release, and final consumption stay tied to the C lifetime model."
+    },
+    {
+      "id": "segmentation-partial-tail-owner-transfer",
+      "summary": "Keep partial segmentation tail ownership transfer in C.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "skb_segment",
+        "SKB_GSO_PARTIAL",
+        "sock_wfree"
+      ],
+      "rationale": "The final sock-owned tail transfer is boundary evidence, not a Zig ownership claim."
+    },
+    {
+      "id": "segmentation-checksum-data-offset-crossover",
+      "summary": "Keep segmentation checksum and data-offset crossover in C.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "skb_segment",
+        "SKB_GSO_CB",
+        "remcsum_offload"
+      ],
+      "rationale": "Checksum-state transitions still require the C packet-lifetime context."
+    },
+    {
+      "id": "segmentation-tail-publication-consumer-contract",
+      "summary": "Keep tail publication and consumer reset semantics in C.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "skb_segment",
+        "segs->prev",
+        "validate_xmit_skb_list"
+      ],
+      "rationale": "The bridge records the consumer contract while `tail->next`, `skb_mark_not_on_list()`, and `tail = skb->prev` stay C-owned."
+    }
+  ],
+  "gaps": [
+    {
+      "id": "phase14-skbuff-live-ownership-blocker",
+      "status": "blocked_on_stay_in_c_evidence",
+      "kind": "live_ownership",
+      "zigux_destination": "net/core/skbuff_bridge.zig",
+      "why_now": "Current Phase 14 evidence supports only boundary-map and lifetime-audit review, not parity or runtime ownership transfer."
+    }
+  ]
+}
