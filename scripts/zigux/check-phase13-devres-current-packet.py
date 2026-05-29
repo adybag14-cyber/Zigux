@@ -104,11 +104,13 @@ HELPER_MARKERS = [
 
 SCATTERLIST_HELPER_MARKERS = [
     ".provides_scatterlist_lifetime_planning = true",
+    ".provides_scatterlist_table_teardown_planning = true",
     ".touches_live_dma = false",
     ".touches_live_scatterlist = false",
     "pub fn planManagedScatterlistMap",
     "pub fn scatterlistReleaseMatches",
     "pub fn planManagedScatterlistUnmap",
+    "pub fn planManagedScatterlistTableTeardown",
 ]
 
 FORBIDDEN_HELPER_MARKERS = [
@@ -126,6 +128,10 @@ FORBIDDEN_SCATTERLIST_HELPER_MARKERS = [
     "dma_map_sgtable(",
     "sg_alloc_table(",
     "sg_free_table(",
+    "sg_dma_address(",
+    "sg_dma_len(",
+    "struct scatterlist",
+    "sg_table",
 ]
 
 PATH_MARKERS = {
@@ -316,6 +322,24 @@ def run_self_test() -> int:
             validate(root),
             ["helper_scope:unexpected_marker:devm_ioremap_np("],
             "unexpected_helper_scope_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(root / SCATTERLIST_HELPER_PATH, "\n".join(SCATTERLIST_HELPER_MARKERS[:-1]) + "\n")
+        assert_only(
+            validate(root),
+            ["scatterlist_helper:missing_marker:pub fn planManagedScatterlistTableTeardown"],
+            "missing_scatterlist_teardown_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(root / SCATTERLIST_HELPER_PATH, "\n".join(SCATTERLIST_HELPER_MARKERS + ["sg_table"]) + "\n")
+        assert_only(
+            validate(root),
+            ["scatterlist_helper_scope:unexpected_marker:sg_table"],
+            "unexpected_scatterlist_scope_failed",
         )
         case_count += 1
 
