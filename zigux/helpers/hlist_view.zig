@@ -59,6 +59,16 @@ pub const HListView = struct {
         return count;
     }
 
+    pub fn lenBounded(self: HListView, max_nodes: usize) ?usize {
+        var count: usize = 0;
+        var it = self.iterator();
+        while (it.next()) |_| {
+            if (count == max_nodes) return null;
+            count += 1;
+        }
+        return count;
+    }
+
     pub fn firstPprevMatchesHead(self: HListView) bool {
         const first_node = self.first() orelse return true;
         return first_node.pprev == @intFromPtr(&self.head.first);
@@ -106,6 +116,7 @@ test "hlist view treats an empty head as empty" {
 
     try std.testing.expect(view.isEmpty());
     try std.testing.expectEqual(@as(usize, 0), view.len());
+    try std.testing.expectEqual(@as(?usize, 0), view.lenBounded(0));
     try std.testing.expectEqual(@as(?*const HListNode, null), view.first());
     try std.testing.expect(view.firstPprevMatchesHead());
     try std.testing.expect(view.hasConsistentPrevLinks());
@@ -127,6 +138,8 @@ test "hlist view walks a bounded chain in order" {
     const view = HListView.init(&head);
     try std.testing.expect(!view.isEmpty());
     try std.testing.expectEqual(@as(usize, 2), view.len());
+    try std.testing.expectEqual(@as(?usize, 2), view.lenBounded(2));
+    try std.testing.expectEqual(@as(?usize, null), view.lenBounded(1));
     try std.testing.expectEqual(@as(?*const HListNode, &first), view.first());
     try std.testing.expect(view.firstPprevMatchesHead());
     try std.testing.expect(view.hasConsistentPrevLinks());
@@ -154,4 +167,21 @@ test "hlist view reports the first broken prev-link witness" {
     try std.testing.expectEqual(@as(usize, @intFromPtr(&first.next)), breakage.expected_pprev);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.actual_pprev);
     try std.testing.expect(!HListView.init(&head).hasConsistentPrevLinks());
+}
+
+test "hlist view bounded length fails closed before a malformed cycle can spin" {
+    var head = HListHead{ .first = 0 };
+    var first = HListNode{ .next = 0, .pprev = 0 };
+    var second = HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&first);
+    first.next = @intFromPtr(&second);
+    first.pprev = @intFromPtr(&head.first);
+    second.next = @intFromPtr(&first);
+    second.pprev = @intFromPtr(&first.next);
+
+    const view = HListView.init(&head);
+    try std.testing.expectEqual(@as(?usize, null), view.lenBounded(0));
+    try std.testing.expectEqual(@as(?usize, null), view.lenBounded(2));
+    try std.testing.expectEqual(@as(?usize, null), view.lenBounded(4));
 }
