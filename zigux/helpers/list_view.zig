@@ -76,6 +76,15 @@ pub const ListView = struct {
         return count;
     }
 
+    pub fn tailNextMatchesHead(self: ListView) bool {
+        var tail: ?*const ListHead = null;
+        var it = self.iterator();
+        while (it.next()) |node| {
+            tail = node;
+        }
+        return if (tail) |node| node.next == @intFromPtr(self.head) else true;
+    }
+
     pub fn hasConsistentBacklinks(self: ListView) bool {
         return self.firstBrokenBacklink() == null;
     }
@@ -133,6 +142,7 @@ test "list view treats a sentinel-only list as empty" {
     try std.testing.expectEqual(@as(usize, 0), view.len());
     try std.testing.expectEqual(@as(?*const ListHead, null), view.first());
     try std.testing.expectEqual(@as(?*const ListHead, null), view.last());
+    try std.testing.expect(view.tailNextMatchesHead());
     try std.testing.expect(view.hasConsistentBacklinks());
     try std.testing.expect(view.firstBrokenBacklink() == null);
 }
@@ -144,6 +154,7 @@ test "list view does not treat a broken sentinel backlink as empty" {
 
     const view = ListView.init(&head);
     try std.testing.expect(!view.isEmpty());
+    try std.testing.expect(view.tailNextMatchesHead());
 
     const breakage = view.firstBrokenBacklink().?;
     try std.testing.expectEqual(@as(usize, 0), breakage.current_index);
@@ -169,6 +180,7 @@ test "list view walks a circular list_head chain in order" {
     try std.testing.expectEqual(@as(usize, 2), view.len());
     try std.testing.expectEqual(@as(?*const ListHead, &first), view.first());
     try std.testing.expectEqual(@as(?*const ListHead, &second), view.last());
+    try std.testing.expect(view.tailNextMatchesHead());
 
     var it = view.iterator();
     try std.testing.expectEqual(@as(?*const ListHead, &first), it.next());
@@ -193,5 +205,25 @@ test "list view reports the first broken backlink witness" {
     try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&first)), breakage.expected_prev);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head)), breakage.actual_prev);
+    try std.testing.expect(ListView.init(&head).tailNextMatchesHead());
     try std.testing.expect(!ListView.init(&head).hasConsistentBacklinks());
+}
+
+test "list view reports whether the forward tail returns to the sentinel" {
+    var head = ListHead{ .next = 0, .prev = 0 };
+    var first = ListHead{ .next = 0, .prev = 0 };
+    var second = ListHead{ .next = 0, .prev = 0 };
+
+    head.next = @intFromPtr(&first);
+    head.prev = @intFromPtr(&second);
+    first.next = @intFromPtr(&second);
+    first.prev = @intFromPtr(&head);
+    second.next = 0;
+    second.prev = @intFromPtr(&first);
+
+    const view = ListView.init(&head);
+    try std.testing.expectEqual(@as(usize, 2), view.len());
+    try std.testing.expectEqual(@as(?*const ListHead, &second), view.last());
+    try std.testing.expect(!view.tailNextMatchesHead());
+    try std.testing.expect(!view.hasConsistentBacklinks());
 }
