@@ -11,6 +11,7 @@ NOTE_PATH = Path("Documentation/zigux/phase13-devres-scatterlist-planner.md")
 SLICE_PATH = Path("Documentation/zigux/phase13-devres-scatterlist-slice.md")
 MANIFEST_PATH = Path("zigux/tests/phase13_devres_scatterlist_planner_manifest.json")
 REPLAY_PATH = Path("zigux/tests/phase13_devres_scatterlist.zig")
+EMPTY_TABLE_REPLAY_PATH = Path("zigux/tests/phase13_devres_scatterlist_empty_table.zig")
 BUILD_PATH = Path("zigux/tests/phase13_devres_scatterlist_build.zig")
 
 REQUIRED_MARKERS = {
@@ -23,6 +24,8 @@ REQUIRED_MARKERS = {
         "pub fn scatterlistReleaseMatches",
         "pub fn planManagedScatterlistUnmap",
         "pub fn planManagedScatterlistTableTeardown",
+        "warns_on_empty_table: bool",
+        ".warns_on_empty_table = input.table_initialized and input.original_entries == 0",
     ],
     NOTE_PATH: [
         "pure scatterlist lifetime planning surface",
@@ -33,8 +36,10 @@ REQUIRED_MARKERS = {
         "warn-on-release-miss outcome",
         "helper-first `sg_table` free eligibility stays reviewable",
         "records whether uninitialized tables stay neither free-ready nor unmap-requiring until table initialization is explicit",
+        "records whether initialized zero-entry tables warn as malformed teardown inputs instead of silently becoming free-ready",
         "requires unmap-before-free planning",
         "warn rather than claiming live `sg_table` lifecycle mutation",
+        "zigux/tests/phase13_devres_scatterlist_empty_table.zig",
         "dma_map_sgtable()",
         "sg_table",
         "zig build test --build-file zigux/tests/phase13_devres_scatterlist_build.zig",
@@ -42,9 +47,11 @@ REQUIRED_MARKERS = {
     SLICE_PATH: [
         "helper-first scatterlist planner beside the existing `lib/devres.zig` and `lib/devres_dma_coherent.zig` packet",
         "focused replay: `zigux/tests/phase13_devres_scatterlist.zig`",
+        "empty-table replay: `zigux/tests/phase13_devres_scatterlist_empty_table.zig`",
         "provides_scatterlist_table_teardown_planning = true",
         "`planManagedScatterlistTableTeardown()` models helper-first `sg_table` teardown readiness",
         "uninitialized-table hold",
+        "initialized zero-entry tables warn instead of silently becoming free-ready",
         "no live `dma_map_sgtable()` or `dma_unmap_sgtable()` execution",
         "no `struct scatterlist`, `sg_table`, or `sg_*` iteration helpers",
         "no live `sg_free_table()` lifecycle mutation or `sg_alloc_table()` ownership claims",
@@ -54,10 +61,13 @@ REQUIRED_MARKERS = {
         "\"status\": \"starter_landed\"",
         "\"scatterlist_lifetime_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"",
         "\"scatterlist_table_teardown_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"",
+        "\"empty_table_warning_owner\": \"zigux/tests/phase13_devres_scatterlist_empty_table.zig\"",
         "\"slice_note_owner\": \"Documentation/zigux/phase13-devres-scatterlist-slice.md\"",
         "\"build_shard_owner\": \"zigux/tests/phase13_devres_scatterlist_build.zig\"",
         "\"validation_guard\": \"scripts/zigux/check-phase13-devres-scatterlist-planner.py\"",
         "planManagedScatterlistTableTeardown",
+        "warns_on_empty_table",
+        "initialized zero-entry tables warn",
         "helper-first `sg_table` free eligibility stays reviewable",
         "\"id\": \"phase13-devres-live-scatterlist-ownership\"",
         "\"id\": \"phase13-devres-live-sg-table-lifecycle\"",
@@ -72,11 +82,20 @@ REQUIRED_MARKERS = {
         "phase13 devres scatterlist table teardown warns on overmapped release drift",
         "phase13 devres scatterlist planner checker stays packet-local",
     ],
+    EMPTY_TABLE_REPLAY_PATH: [
+        "phase13 devres scatterlist table teardown warns on initialized empty tables",
+        "phase13 devres scatterlist empty-table replay stays helper-local",
+        "warns_on_empty_table",
+        ".touches_live_dma = false",
+        ".touches_live_scatterlist = false",
+    ],
     BUILD_PATH: [
         "phase13-devres-scatterlist-tests",
+        "phase13-devres-scatterlist-empty-table-tests",
         "Run Phase 13 devres scatterlist helper tests",
         "../../lib/devres_scatterlist.zig",
         "phase13_devres_scatterlist.zig",
+        "phase13_devres_scatterlist_empty_table.zig",
     ],
 }
 
@@ -145,29 +164,26 @@ def run_self_test() -> int:
 
         seed_fixture_tree(root)
         (root / NOTE_PATH).unlink()
-        assert_only(
-            validate(root),
-            [f"missing_file:{NOTE_PATH.as_posix()}"],
-            "missing_note_failed",
-        )
+        assert_only(validate(root), [f"missing_file:{NOTE_PATH.as_posix()}"], "missing_note_failed")
         case_count += 1
 
         seed_fixture_tree(root)
         (root / BUILD_PATH).unlink()
+        assert_only(validate(root), [f"missing_file:{BUILD_PATH.as_posix()}"], "missing_build_shard_failed")
+        case_count += 1
+
+        seed_fixture_tree(root)
+        (root / EMPTY_TABLE_REPLAY_PATH).unlink()
         assert_only(
             validate(root),
-            [f"missing_file:{BUILD_PATH.as_posix()}"],
-            "missing_build_shard_failed",
+            [f"missing_file:{EMPTY_TABLE_REPLAY_PATH.as_posix()}"],
+            "missing_empty_table_replay_failed",
         )
         case_count += 1
 
         seed_fixture_tree(root)
         write_text(root / HELPER_PATH, "\n".join(REQUIRED_MARKERS[HELPER_PATH] + ["dma_map_sg("]) + "\n")
-        assert_only(
-            validate(root),
-            ["helper:unexpected_marker:dma_map_sg("],
-            "unexpected_live_dma_failed",
-        )
+        assert_only(validate(root), ["helper:unexpected_marker:dma_map_sg("], "unexpected_live_dma_failed")
         case_count += 1
 
         seed_fixture_tree(root)
@@ -176,16 +192,16 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_MARKERS[MANIFEST_PATH]
-                if marker != "\"scatterlist_table_teardown_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\""
+                if marker != "\"empty_table_warning_owner\": \"zigux/tests/phase13_devres_scatterlist_empty_table.zig\""
             )
             + "\n",
         )
         assert_only(
             validate(root),
             [
-                "zigux/tests/phase13_devres_scatterlist_planner_manifest.json:missing_marker:\"scatterlist_table_teardown_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\""
+                "zigux/tests/phase13_devres_scatterlist_planner_manifest.json:missing_marker:\"empty_table_warning_owner\": \"zigux/tests/phase13_devres_scatterlist_empty_table.zig\""
             ],
-            "missing_table_owner_failed",
+            "missing_empty_table_owner_failed",
         )
         case_count += 1
 
