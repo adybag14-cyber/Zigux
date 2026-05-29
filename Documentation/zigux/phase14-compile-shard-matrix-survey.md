@@ -27,7 +27,9 @@ The roadmap keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the s
 - checker: `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
 - skbuff compile-route checker: `scripts/zigux/check-phase14-skbuff-compile-route.py`
 - ring-buffer compile-route checker: `scripts/zigux/check-phase14-ring-buffer-compile-route.py`
+- ring-buffer matrix booleans: `phase14_validate_runs_ring_buffer_compile_route_checker=true`, `shared_manifest_records_ring_buffer_compile_route_checker=true`
 - rcu compile-route checker: `scripts/zigux/check-phase14-rcu-compile-route.py`
+- rcu matrix booleans: `phase14_validate_runs_rcu_compile_route_checker=true`, `shared_manifest_records_rcu_compile_route_checker=true`
 - shared survey shard: `phase14-end-to-end-smoke-tests` (`focused_and_full_bundle`)
 
 ## Anchor coverage
@@ -57,6 +59,8 @@ The skbuff compile-route packet is narrower but stronger too: the dedicated skbu
 
 The ring-buffer row is stronger too: `scripts/zigux/check-phase14-ring-buffer-compile-route.py` exact-requires the shared-manifest compile row for `phase14-ring-buffer-survey-tests` and the note's returned ring-buffer-local replay wording, so that anchor is no longer represented here as prose-only matrix evidence even though it remains study-only. The honest gap is now narrower and more specific: the shared packet exposes the build-file shard, but the ring-buffer anchor-local manifest still advertises stale `preexisting_phase14_build_present=false` and `preexisting_phase14_make_target_present=false` state, so the compile-shard matrix must keep calling out that undercount until the anchor-local packet catches up.
 
+The current matrix readback also keeps the dedicated compile-route booleans explicit for both ring-buffer and RCU. That matters because the shared manifest is already stronger than the old prose-only posture: ring-buffer and RCU each have a validator-side compile-route checker marker plus a shared-manifest marker, and both anchors remain bounded to evidence and reviewability rather than delivery claims.
+
 There is also one shared-route checker undercount that belongs in this matrix survey: `zigux/tests/phase14_end_to_end_smoke_manifest.json` already records `phase14_validate_runs_ring_buffer_compile_route_checker=true` and `shared_manifest_records_ring_buffer_compile_route_checker=true`, and `scripts/zigux/validate-phase14.py` already runs the ring-buffer compile-route checker, but `scripts/zigux/check-phase14-shared-smoke-route.py` still only fail-closes on the skbuff and RCU compile-route validator markers. That does not remove the ring-buffer row guard; it means the shared smoke route checker is still the smallest checker-only follow-up for keeping the ring-buffer compile-shard evidence as strongly guarded as the other dedicated compile-route rows.
 
 RCU is no longer a manifest-only compile row in the packet: `scripts/zigux/check-phase14-rcu-compile-route.py` now cross-reads the shared-manifest row, the focused Phase 14 build shard, and the dedicated survey note's replay wording so compile-route drift can fail closed without softening the freeze-in-C boundary.
@@ -71,10 +75,12 @@ The honest same-lane conclusion stays narrow:
 - keep the returned exact-count checker explicit through `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
 - keep the ring-buffer row framed as study-only coverage with a dedicated shared-manifest row guard, not a delivery claim
 - keep the ring-buffer compile-route checker explicit through `scripts/zigux/check-phase14-ring-buffer-compile-route.py`
+- keep the ring-buffer manifest booleans explicit through `phase14_validate_runs_ring_buffer_compile_route_checker=true` and `shared_manifest_records_ring_buffer_compile_route_checker=true`
 - keep the ring-buffer anchor-local build-presence undercount explicit until `zigux/tests/phase14_ring_buffer_manifest.json` stops advertising the stale `false / false` build-route pair
 - keep the shared smoke route checker undercount explicit until `scripts/zigux/check-phase14-shared-smoke-route.py` requires the validator-side ring-buffer compile-route marker and the two existing shared-manifest ring-buffer booleans
 - keep the skbuff compile-route checker explicit through `scripts/zigux/check-phase14-skbuff-compile-route.py`
 - keep the rcu compile-route checker explicit through `scripts/zigux/check-phase14-rcu-compile-route.py`
+- keep the rcu manifest booleans explicit through `phase14_validate_runs_rcu_compile_route_checker=true` and `shared_manifest_records_rcu_compile_route_checker=true`
 - keep workqueue framed as a study-only compile-adjacent foothold that still relies on shared bundle wiring plus reviewability evidence
 - keep skbuff framed as a manifest-backed compile row with dedicated route-check coverage that still does not justify a delivery claim or a freeze-map status change
 - keep RCU framed as a manifest-backed compile row with dedicated route-check coverage that still does not justify a delivery claim, a freeze-map status change, or a bridge-opening claim
