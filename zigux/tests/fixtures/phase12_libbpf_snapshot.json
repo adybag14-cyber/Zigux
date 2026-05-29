@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L16",
   "phase": "Phase 12",
-  "surveyed_commit": "8721d226e2a5170b11a1506e3579129cbf4289bb",
+  "surveyed_commit": "77b77a7d411cd118ffb4c4dd40117d4dd72833f2",
   "tracked_file_count": 4,
   "tracked_paths": [
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
@@ -34,7 +34,7 @@
     }
   ],
   "verification_evidence": {
-    "checked_at_utc": "2026-05-29T18:44:10Z",
+    "checked_at_utc": "2026-05-29T18:55:02Z",
     "readback_mode": "github-contents-readback",
     "checker": {
       "path": "scripts/zigux/check-phase12-libbpf-snapshot.py",
