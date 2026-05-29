@@ -4,6 +4,12 @@
   "slug": "phase3-abi-packet",
   "status": "shared_abi_and_header_family_binding_surface_present",
   "scope": "shared ABI bindings, directly coupled helper decoding, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
+  "generated_packet": {
+    "current_dump": "zigux/tests/phase3_abi_dump_current.zig",
+    "retired_dump": "zigux/tests/phase3_abi_dump.zig",
+    "retired_expected_fixture": "zigux/tests/fixtures/phase3_abi/expected.json",
+    "note": "The live Phase 3 ABI evidence packet is the dump_current-era manifest replay; the older generated dump name and expected snapshot fixture are intentionally retired."
+  },
   "packet_files": [
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
