@@ -46,6 +46,7 @@ REQUIRED_REPLAY_ROUTES = (
     "make -C zigux phase3-abi-export",
 )
 
+CURRENT_GENERATED_DUMP = "zigux/tests/phase3_abi_dump_current.zig"
 RETIRED_GENERATED_PATHS = (
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/fixtures/phase3_abi/expected.json",
@@ -83,6 +84,37 @@ def _check_retired_absent(packet_files: list[object], replay_routes: list[object
             issues.append(f"phase3 ABI/export parity scoreboard includes retired replay route: {retired_path}")
 
 
+def _check_retired_generated_guard(manifest: dict[str, object], issues: list[str]) -> None:
+    generated_packet = manifest.get("generated_packet")
+    if not isinstance(generated_packet, dict):
+        issues.append("phase3 ABI/export parity scoreboard missing generated_packet evidence")
+        return
+    if generated_packet.get("current_dump") != CURRENT_GENERATED_DUMP:
+        issues.append(
+            "phase3 ABI/export parity scoreboard current dump is not dump_current: "
+            f"{CURRENT_GENERATED_DUMP}"
+        )
+    retired_guard = generated_packet.get("retired_generated_guard")
+    if not isinstance(retired_guard, dict):
+        issues.append("phase3 ABI/export parity scoreboard missing retired generated guard")
+        return
+    guard_fields = (
+        ("must_stay_out_of_packet_files", "packet exclusion"),
+        ("must_stay_out_of_replay_routes", "replay-route exclusion"),
+    )
+    for field, label in guard_fields:
+        guarded = retired_guard.get(field)
+        if not isinstance(guarded, list):
+            issues.append(f"phase3 ABI/export parity scoreboard retired guard {field} is not a list")
+            continue
+        for retired_path in RETIRED_GENERATED_PATHS:
+            if retired_path not in guarded:
+                issues.append(
+                    "phase3 ABI/export parity scoreboard retired guard missing "
+                    f"{label}: {retired_path}"
+                )
+
+
 def validate_manifest(manifest: object) -> list[str]:
     issues: list[str] = []
     if not isinstance(manifest, dict):
@@ -96,6 +128,7 @@ def validate_manifest(manifest: object) -> list[str]:
     _check_required("packet file", packet_files, REQUIRED_PACKET_FILES, issues)
     _check_required("replay route", replay_routes, REQUIRED_REPLAY_ROUTES, issues)
     _check_retired_absent(packet_files, replay_routes, issues)
+    _check_retired_generated_guard(manifest, issues)
     return issues
 
 
@@ -110,10 +143,23 @@ def validate_repo(repo_root: Path) -> list[str]:
     return validate_manifest(manifest)
 
 
+def _sample_generated_packet() -> dict[str, object]:
+    return {
+        "current_dump": CURRENT_GENERATED_DUMP,
+        "retired_dump": RETIRED_GENERATED_PATHS[0],
+        "retired_expected_fixture": RETIRED_GENERATED_PATHS[1],
+        "retired_generated_guard": {
+            "must_stay_out_of_packet_files": list(RETIRED_GENERATED_PATHS),
+            "must_stay_out_of_replay_routes": list(RETIRED_GENERATED_PATHS),
+        },
+    }
+
+
 def _sample_manifest() -> dict[str, object]:
     return {
         "phase": "Phase 3",
         "lane": "abi-runtime",
+        "generated_packet": _sample_generated_packet(),
         "packet_files": list(REQUIRED_PACKET_FILES),
         "replay_routes": list(REQUIRED_REPLAY_ROUTES),
     }
@@ -163,6 +209,22 @@ def run_self_test() -> int:
             (
                 lambda m: m["replay_routes"].append(RETIRED_GENERATED_PATHS[1]),
                 "phase3 ABI/export parity scoreboard includes retired replay route: zigux/tests/fixtures/phase3_abi/expected.json",
+            ),
+            (
+                lambda m: m.pop("generated_packet"),
+                "phase3 ABI/export parity scoreboard missing generated_packet evidence",
+            ),
+            (
+                lambda m: m["generated_packet"].pop("retired_generated_guard"),
+                "phase3 ABI/export parity scoreboard missing retired generated guard",
+            ),
+            (
+                lambda m: m["generated_packet"]["retired_generated_guard"]["must_stay_out_of_packet_files"].remove(RETIRED_GENERATED_PATHS[0]),
+                "phase3 ABI/export parity scoreboard retired guard missing packet exclusion: zigux/tests/phase3_abi_dump.zig",
+            ),
+            (
+                lambda m: m["generated_packet"]["retired_generated_guard"]["must_stay_out_of_replay_routes"].remove(RETIRED_GENERATED_PATHS[1]),
+                "phase3 ABI/export parity scoreboard retired guard missing replay-route exclusion: zigux/tests/fixtures/phase3_abi/expected.json",
             ),
         ]
         for mutate, expected in checks:
