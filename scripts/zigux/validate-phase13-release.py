@@ -64,7 +64,7 @@ REQUIRED_MARKERS = {
         "This note restores the roadmap-to-repo owner map for the active Phase 13 shared-helper packet on current `master`.",
         "- stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
         "Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface",
-        "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and missing notifier-chain companion.",
+        "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, older direct devres companions, and the still-missing notifier priority-signal companion.",
     ],
     "Documentation/zigux/phase13-notifier-summary-gap.md": [
         "Public current-`master` readback now materializes these adjacent notifier or list surfaces:",
