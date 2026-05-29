@@ -56,7 +56,8 @@ Current shared Phase 11 tooling evidence on `master` now centers on the returned
 
 That shared packet is stronger than the older replay-only story: `scripts/zigux/validate-phase11.py` exists, `make -C zigux phase11-validate` is the live shared route, and the aggregate manifest now records the shared checker stack and proof fan-out without pretending it replaces the narrower HVC continuity inventory.
 `scripts/zigux/check-phase11-shared-tooling-manifest.py` is already wired into `scripts/zigux/validate-phase11.py`, and `zigux/tests/fixtures/phase11_validate_checks.json` records both the shared tooling-manifest self-test and live validator entries.
-The aggregate surface now also carries the shared watchdog lifecycle note plus the cleanup-prerequisite, current-head manifest, and DesignWare build-route guards that the validator route already ships.
+The aggregate surface now also carries the shared watchdog lifecycle note plus the cleanup-prerequisite and current-head manifest guards that the validator route already ships.
+The same current validator fixture also records the DesignWare build-route guard and its `zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json` fixture.
 
 The exact deterministic command set recorded by the current shared validator fixture is:
 
