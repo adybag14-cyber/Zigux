@@ -49,6 +49,7 @@ test "phase3 barrier wrappers compile" {
     acquireAfterControlDependency();
     fullFence();
     storeLoad();
+    afterAtomic();
     try fence(.acquire);
     try fence(.release);
     try fence(.acq_rel);
@@ -397,6 +398,26 @@ test "phase3 barrier wrappers keep acquire-after-control-dependency handoffs rev
     try std.testing.expectEqual(@as(u32, 0x61), packet.consumed);
 }
 
+test "phase3 barrier wrappers keep post-atomic full barriers explicit" {
+    const Packet = struct {
+        counter: u32,
+        published: u32,
+    };
+
+    var packet = Packet{
+        .counter = 1,
+        .published = 0,
+    };
+
+    try std.testing.expectEqual(@as(u32, 1), @atomicRmw(u32, &packet.counter, .Add, 6, .acq_rel));
+    afterAtomic();
+    packet.published = packet.counter;
+    fullFence();
+
+    try std.testing.expectEqual(@as(u32, 7), packet.counter);
+    try std.testing.expectEqual(packet.counter, packet.published);
+}
+
 pub fn compiler() void {
     asm volatile ("" ::: .{ .memory = true });
 }
@@ -447,5 +468,9 @@ pub fn fullFence() void {
 }
 
 pub fn storeLoad() void {
+    fence(.seq_cst) catch unreachable;
+}
+
+pub fn afterAtomic() void {
     fence(.seq_cst) catch unreachable;
 }
