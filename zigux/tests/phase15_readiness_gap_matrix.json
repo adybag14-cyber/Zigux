@@ -4,6 +4,13 @@
   "surveyed_commit_mode": "dated_master_readback",
   "surveyed_commit": "current-master-readback-2026-05-27",
   "scope": "tranche readiness gate survey remaining readiness gaps vs roadmap and ledger",
+  "summary_counts": {
+    "roadmap_required_feature_count": 4,
+    "ledger_anchor_count": 1,
+    "remaining_readiness_gap_count": 3,
+    "blocked_make_route_count": 3,
+    "blocked_workflow_route_count": 1
+  },
   "roadmap_required_features": [
     {
       "requirement": "freeze map",
