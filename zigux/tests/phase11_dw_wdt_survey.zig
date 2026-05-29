@@ -75,8 +75,8 @@ test "phase11 dw_wdt manifest records the current P11-L10 packet truth" {
     try std.testing.expect(!manifest.survey_summary.preexisting_phase11_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_gpio_lane_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_bcm2835_lane_present);
-    try std.testing.expect(!manifest.survey_summary.dw_wdt_zig_present);
-    try std.testing.expect(!manifest.survey_summary.dw_wdt_test_present);
+    try std.testing.expect(manifest.survey_summary.dw_wdt_zig_present);
+    try std.testing.expect(manifest.survey_summary.dw_wdt_test_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_registration_scaffold_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_registration_order_present);
     try std.testing.expect(!manifest.survey_summary.dw_wdt_slice_note_present);
@@ -95,6 +95,7 @@ test "phase11 dw_wdt manifest records the current P11-L10 packet truth" {
     var saw_platform_scaffold = false;
     var saw_pm_helper = false;
     var saw_verify_helper = false;
+    var saw_slice_note_gap = false;
     var saw_mmio_ready_next = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -115,6 +116,11 @@ test "phase11 dw_wdt manifest records the current P11-L10 packet truth" {
             saw_build_gate = true;
             try std.testing.expectEqualStrings("shared_gap_current_head", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase11_build.zig", gap.zigux_destination);
+        }
+        if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-slice-note")) {
+            saw_slice_note_gap = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase11-dw-wdt-slice.md", gap.zigux_destination);
         }
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-platform-registration-scaffold")) {
             saw_platform_scaffold = true;
@@ -142,10 +148,11 @@ test "phase11 dw_wdt manifest records the current P11-L10 packet truth" {
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 2), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), shared_gap_count);
     try std.testing.expect(saw_build_gate);
+    try std.testing.expect(saw_slice_note_gap);
     try std.testing.expect(saw_platform_scaffold);
     try std.testing.expect(saw_pm_helper);
     try std.testing.expect(saw_verify_helper);
