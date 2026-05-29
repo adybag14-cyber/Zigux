@@ -12,6 +12,7 @@ It stays roadmap-aligned to the Phase 12 complex-driver tranche by describing on
 - roadmap anchor: `drivers/net/virtio_net.c`
 - shared packet companions: `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, and `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
 - support checker: `scripts/zigux/check-phase12-cross-compile-smoke.py`
+- inventory companion checker: `scripts/zigux/check-phase12-build-inventory.py`
 
 ## Current-master reading
 
@@ -21,6 +22,7 @@ It stays roadmap-aligned to the Phase 12 complex-driver tranche by describing on
 - that same survey note also keeps `zigux/tests/phase12_virtio_net_syntax_lab.zig` and `zigux/tests/phase12_virtio_net_syntax_lab_build.zig` explicit as surviving standalone compile-smoke companions outside the shared six-file `phase12-validate` / `phase12-smoke` / `phase12-test` route
 - the isolated syntax-lab rerun handles are `zig build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all` and `make -C zigux phase12-virtio-net-syntax-lab-test`, so the companion stays reviewable without joining the shared packet
 - the dedicated throughput-parity rerun handles are `zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12-virtio-net-throughput-parity-test`, so the perf-focused replay stays reviewable without widening the shared packet
+- current `scripts/zigux/check-phase12-build-inventory.py` now keeps the shared build inventory, syntax-lab companion inventory, Makefile rerun handles, and fixture-backed dependency map explicit beside the cross-compile note, so future compile-smoke wording should stay paired with that inventory guard before claiming a changed build shape
 - current `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` also keeps the older `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, and `zigux/tests/phase12_virtio_net_syntax_lab.zig` vocabulary out of the live packet on `master`
 - substantive same-family lab progress has therefore landed since the earlier cross-note packet: the shared route is now the six-file split-helper smoke-and-test sextet with returned wrapper evidence rather than the older syntax-lab-era shape
 - the shipped cross-compile checker now keeps that returned wrapper wording plus the isolated syntax-lab rerun hook and the dedicated throughput-parity rerun hook fail-closed across this note and `zigux/Makefile`
@@ -32,11 +34,12 @@ It stays roadmap-aligned to the Phase 12 complex-driver tranche by describing on
 - this note treats the split-helper `virtio_net` sextet as compile-smoke and reviewability evidence only
 - this note treats the isolated syntax-lab rerun as standalone compile-smoke coverage only, not as a signal that the older monolithic starter returned
 - this note treats the dedicated throughput-parity rerun hook as perf-focused reviewability evidence only, not as a claim that broader throughput delivery or transport-backed performance closure has landed
+- this note treats the build-inventory checker as a build-shape guard only, not as a driver-delivery or runtime-parity claim
 
 ## Next Bounded Step
 
-Leave this note parked unless the shared six-file `virtio_net` smoke-and-test packet changes again across `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `zigux/Makefile`, or `zigux/tests/phase12_build.zig`.
+Leave this note parked unless the shared six-file `virtio_net` smoke-and-test packet changes again across `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `scripts/zigux/check-phase12-build-inventory.py`, `zigux/tests/fixtures/phase12_build_inventory.json`, `zigux/Makefile`, or `zigux/tests/phase12_build.zig`.
 
-If the shared packet changes again, leave the next same-lane follow-through note-local and rerun `scripts/zigux/check-phase12-cross-compile-smoke.py` before widening compile-smoke claims again.
+If the shared packet changes again, leave the next same-lane follow-through note-local and rerun `scripts/zigux/check-phase12-cross-compile-smoke.py` plus `scripts/zigux/check-phase12-build-inventory.py` before widening compile-smoke claims again.
 
 If only the isolated syntax-lab rerun hook or the dedicated throughput-parity rerun hook drifts, repair just that narrower rerun handle around `zigux/tests/phase12_virtio_net_syntax_lab_build.zig`, `zigux/tests/phase12_build.zig`, `zigux/Makefile`, and this note instead of widening the shared packet.
