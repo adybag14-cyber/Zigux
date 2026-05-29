@@ -145,6 +145,8 @@ REQUIRED_MARKERS = {
         "phase12: phase12-validate phase12-smoke phase12-test",
     ],
     TESTS_README_PATH: [
+        "Documentation/zigux/phase12-release-coordination-matrix.md",
+        "Tests-root reviewer prompt:",
         "scripts/zigux/check-phase12-libbpf-lane-marker.py",
         "zigux/tests/phase12_virtio_scsi_survey_build.zig",
         "zigux/tests/phase12_virtio_net_throughput_parity.zig",
