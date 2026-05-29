@@ -14,7 +14,14 @@ Phase 13 in the Zigux roadmap is the shared-subsystem-helper tranche bounded to 
 
 When shared Phase 13 wording changes, keep these reminder surfaces aligned first:
 - `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `Documentation/zigux/phase12-phase13-release-handoff.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
+- `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase13-release-packet-index.md`
+- `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
@@ -23,14 +30,16 @@ When shared Phase 13 wording changes, keep these reminder surfaces aligned first
 - `zigux/tests/README.md`
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/check-phase13-tests-readme-alignment.py`
+- `scripts/zigux/check-phase13-roadmap-traceability.py`
 - `scripts/zigux/validate-phase13-release.py`
 
 - stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- stable tests-root alignment guard: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
 - stable roadmap-traceability guard: `python3 scripts/zigux/check-phase13-roadmap-traceability.py`
 
-Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep `zigux/Makefile` distinct from the still-missing shared wrapper names `make -C zigux phase13-validate` and `make -C zigux phase13`.
+Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep the release-packet index, release-coordination matrix, release handoff, contributor companion, and tests-root companion aligned with that same survey packet rather than letting this roadmap traceability note lag behind the current release-facing map.
 
-Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep `python3 scripts/zigux/check-phase13-roadmap-traceability.py` explicit as the shipped note-level guard for this four-anchor owner map rather than leaving the roadmap traceability proof note-only.
+Keep `zigux/Makefile` distinct from the still-missing shared wrapper names `make -C zigux phase13-validate` and `make -C zigux phase13`, and keep `python3 scripts/zigux/check-phase13-roadmap-traceability.py` explicit as the shipped note-level guard for this four-anchor owner map rather than leaving the roadmap traceability proof note-only.
 
 Keep the stable contributor-facing handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` while the dedicated Phase 13 reminder block in `Documentation/zigux/README.md` stays aligned with that shared packet rather than being treated as a repo-reality gap.
 
