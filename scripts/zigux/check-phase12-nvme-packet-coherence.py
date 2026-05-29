@@ -16,6 +16,7 @@ DIRECT_BUILD_PATH = Path("zigux/tests/phase12_nvme_pci_build.zig")
 SURVEY_BUILD_PATH = Path("zigux/tests/phase12_nvme_pci_survey_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 GOVERNANCE_PATH = Path("Documentation/zigux/phase12-nvme-pci-reopen-governance.md")
+FALLBACK_MAP_PATH = Path("Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md")
 
 REQUIRED_FILES = (
     MANIFEST_PATH,
@@ -24,6 +25,7 @@ REQUIRED_FILES = (
     SURVEY_BUILD_PATH,
     MAKEFILE_PATH,
     GOVERNANCE_PATH,
+    FALLBACK_MAP_PATH,
 )
 
 DIRECT_ROUTE_MARKERS = (
@@ -49,6 +51,32 @@ GOVERNANCE_MARKERS = (
     "stays outside the shared `phase12-smoke`, `phase12-test`, and aggregate `phase12` route",
     "`make -C zigux phase12-nvme-pci-direct-test`",
     "`make -C zigux phase12-nvme-pci-survey-test`",
+)
+
+FALLBACK_MAP_MARKERS = (
+    "## Current-Master Raw Path Map",
+    "Base raw URL prefix:",
+    "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/",
+    "starter shard raw path: `drivers/nvme/host/pci.zig`",
+    "verifier shard raw path: `drivers/nvme/host/pci_verify.zig`",
+    "direct replay raw path: `zigux/tests/phase12_nvme_pci.zig`",
+    "dedicated direct-build raw path: `zigux/tests/phase12_nvme_pci_build.zig`",
+    "survey-build raw path: `zigux/tests/phase12_nvme_pci_survey_build.zig`",
+    "slice note raw path: `Documentation/zigux/phase12-nvme-pci-slice.md`",
+    "survey note raw path: `Documentation/zigux/phase12-nvme-pci-survey.md`",
+    "survey gate raw path: `zigux/tests/phase12_nvme_pci_survey.zig`",
+    "manifest anchor raw path: `zigux/tests/phase12_nvme_pci_manifest.json`",
+    "reopen-governance raw path: `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`",
+    "## Current-Master Support Raw Path Map",
+    "packet checker raw path: `scripts/zigux/check-phase12-nvme-pci-packet.py`",
+    "build-only checker raw path: `scripts/zigux/check-build-only-phase12-surface.py`",
+    "cross-compile smoke checker raw path: `scripts/zigux/check-phase12-cross-compile-smoke.py`",
+    "release-readiness checker raw path: `scripts/zigux/check-phase12-release-readiness-packet.py`",
+    "validator raw path: `scripts/zigux/validate-phase12.py`",
+    "scripts-root reminder raw path: `scripts/zigux/README.md`",
+    "workflow raw path: `.github/workflows/zigux-bootstrap.yml`",
+    "shared build raw path: `zigux/tests/phase12_build.zig`",
+    "shared route owner raw path: `zigux/Makefile`",
 )
 
 FORBIDDEN_SHARED_BUILD_MARKERS = (
@@ -141,6 +169,7 @@ def check(root: Path) -> None:
     require_markers(read_text(root, SURVEY_BUILD_PATH), SURVEY_ROUTE_MARKERS, SURVEY_BUILD_PATH)
     require_markers(read_text(root, MAKEFILE_PATH), MAKEFILE_MARKERS, MAKEFILE_PATH)
     require_markers(read_text(root, GOVERNANCE_PATH), GOVERNANCE_MARKERS, GOVERNANCE_PATH)
+    require_markers(read_text(root, FALLBACK_MAP_PATH), FALLBACK_MAP_MARKERS, FALLBACK_MAP_PATH)
 
 
 def write_fixture(root: Path) -> None:
@@ -181,6 +210,7 @@ def write_fixture(root: Path) -> None:
         SURVEY_BUILD_PATH: "\n".join(SURVEY_ROUTE_MARKERS) + "\n",
         MAKEFILE_PATH: "\n".join(MAKEFILE_MARKERS) + "\n",
         GOVERNANCE_PATH: "\n".join(GOVERNANCE_MARKERS) + "\n",
+        FALLBACK_MAP_PATH: "\n".join(FALLBACK_MAP_MARKERS) + "\n",
     }
     for rel_path, text in files.items():
         target = root / rel_path
@@ -240,6 +270,11 @@ def run_self_test() -> int:
         write_fixture(root)
         (root / GOVERNANCE_PATH).write_text("broken\n", encoding="utf-8")
         expect_failure(root, GOVERNANCE_PATH.as_posix())
+        cases += 1
+
+        write_fixture(root)
+        (root / FALLBACK_MAP_PATH).write_text("broken\n", encoding="utf-8")
+        expect_failure(root, FALLBACK_MAP_PATH.as_posix())
         cases += 1
 
     print(f"{CHECK_NAME}_SELF_TEST=pass")
