@@ -66,6 +66,23 @@ test "Linux-style hweight aliases mirror the primary helper surface" {
     try std.testing.expectEqual(hweightLong(0xf0f0), hweight_long(0xf0f0));
 }
 
+test "narrow hweight helpers count only their declared low-width lanes" {
+    const samples = [_]u32{
+        0x0000_0000,
+        0x0000_00ff,
+        0x0000_01ff,
+        0x0000_ff00,
+        0x1234_5678,
+        0xffff_0000,
+        0xffff_ffff,
+    };
+
+    for (samples) |sample| {
+        try std.testing.expectEqual(@as(u32, @popCount(@as(u8, @truncate(sample)))), swHweight8(sample));
+        try std.testing.expectEqual(@as(u32, @popCount(@as(u16, @truncate(sample)))), swHweight16(sample));
+    }
+}
+
 test "hweight helpers stay additive for disjoint masks" {
     const low8: u32 = 0b0001_0101;
     const high8: u32 = 0b1010_0000;
