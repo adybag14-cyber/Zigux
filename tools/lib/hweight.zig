@@ -92,3 +92,31 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "narrow hweight helpers ignore bits outside their lane width" {
+    const byte_cases = [_]u32{
+        0x0000_0000,
+        0xffff_ff00,
+        0x1234_56f0,
+        0xffff_ffff,
+    };
+    for (byte_cases) |case| {
+        const low_byte: u8 = @truncate(case);
+        const expected: u32 = @intCast(@popCount(low_byte));
+        try std.testing.expectEqual(expected, swHweight8(case));
+        try std.testing.expectEqual(expected, __sw_hweight8(case));
+    }
+
+    const word_cases = [_]u32{
+        0x0000_0000,
+        0xffff_0000,
+        0x1234_a5a5,
+        0xffff_ffff,
+    };
+    for (word_cases) |case| {
+        const low_word: u16 = @truncate(case);
+        const expected: u32 = @intCast(@popCount(low_word));
+        try std.testing.expectEqual(expected, swHweight16(case));
+        try std.testing.expectEqual(expected, __sw_hweight16(case));
+    }
+}
