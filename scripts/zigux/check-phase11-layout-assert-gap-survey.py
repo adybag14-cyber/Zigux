@@ -19,11 +19,11 @@ UAPI_SURVEY = Path("Documentation/zigux/phase11-uapi-header-parity-survey.md")
 HV_OPS_PROOF = Path("zigux/tests/phase11_hvc_hv_ops_layout_proof.zig")
 EXPORT_SURFACE_PROOF = Path("zigux/tests/phase11_hvc_export_surface_layout_proof.zig")
 BUILD_INVENTORY = Path("zigux/tests/fixtures/phase11_build_inventory.json")
+SIMPLE_DRIVER_BUILD = Path("zigux/tests/phase11_build.zig")
 
 RETIRED_SHARED_REPLAY_PATHS = (
     Path("zigux/tests/phase11_uapi_header_parity_manifest.json"),
     Path("zigux/tests/phase11_uapi_header_parity_survey.zig"),
-    Path("zigux/tests/phase11_build.zig"),
 )
 
 SURVEY_MARKERS = (
@@ -59,6 +59,13 @@ INVENTORY_MARKERS = (
     '"zigux/tests/phase11_hvc_export_surface_layout_build.zig"',
 )
 
+SIMPLE_DRIVER_BUILD_MARKERS = (
+    '"phase11-gpio-wdt-verify-tests"',
+    '"phase11-hvc-console-verify-tests"',
+    '"phase11-simple-drivers"',
+    "Run Phase 11 simple-driver verification replays",
+)
+
 
 class CheckError(Exception):
     pass
@@ -83,6 +90,7 @@ def run_check(root: Path) -> None:
     require_markers(root, HV_OPS_PROOF, HV_OPS_PROOF_MARKERS)
     require_markers(root, EXPORT_SURFACE_PROOF, EXPORT_PROOF_MARKERS)
     require_markers(root, BUILD_INVENTORY, INVENTORY_MARKERS)
+    require_markers(root, SIMPLE_DRIVER_BUILD, SIMPLE_DRIVER_BUILD_MARKERS)
 
     for relpath in RETIRED_SHARED_REPLAY_PATHS:
         if (root / relpath).exists():
@@ -111,6 +119,7 @@ def build_fixture(root: Path) -> None:
     write(root / HV_OPS_PROOF, "\n".join(HV_OPS_PROOF_MARKERS) + "\n")
     write(root / EXPORT_SURFACE_PROOF, "\n".join(EXPORT_PROOF_MARKERS) + "\n")
     write(root / BUILD_INVENTORY, "\n".join(INVENTORY_MARKERS) + "\n")
+    write(root / SIMPLE_DRIVER_BUILD, "\n".join(SIMPLE_DRIVER_BUILD_MARKERS) + "\n")
 
 
 def run_self_test() -> int:
@@ -126,6 +135,7 @@ def run_self_test() -> int:
             (HV_OPS_PROOF, "try layout_assert.expectSize(HvOps, 72);", "missing_marker"),
             (EXPORT_SURFACE_PROOF, 'try layout_assert.expectOffset(HvcExportSurface, "notifier_hangup_irq", 64);', "missing_marker"),
             (BUILD_INVENTORY, '"phase11-hvc-export-surface-layout-proof-tests"', "missing_marker"),
+            (SIMPLE_DRIVER_BUILD, '"phase11-simple-drivers"', "missing_marker"),
         )
         for relpath, marker, expected in cases:
             case_root = tmpdir / f"case-{case_count}"
