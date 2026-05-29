@@ -14,6 +14,7 @@ DUMP_PATH = Path("zigux/tests/phase3_policy_dump.zig")
 BUILD_PATH = Path("zigux/tests/phase3_policy_dump_build.zig")
 EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")
 MAKEFILE_PATH = Path("zigux/Makefile")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_DOC_MARKERS = (
     "zigux/tests/phase3_policy_dump.zig",
@@ -70,6 +71,13 @@ REQUIRED_MAKEFILE_MARKERS = (
     "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
 )
 
+REQUIRED_WORKFLOW_MARKERS = (
+    "Run current Phase 3 policy dump replay",
+    "run: zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
+    "Run current Phase 3 policy dump make wrapper",
+    "run: make -C zigux phase3-policy-dump",
+)
+
 EXPECTED_LINES = (
     "safe-default|panic=abort|allocator=caller_provided|init_flow=caller_prepared|explicit_caller=true|owned_state=false|reset_on_init=false|unsafe=none|boundary=typed_safe|surface=safe_only|typed_only=true|global_fallback=false|warn_only=false|mmio=false|raw_bridge=false|audit=false|bridge_read_ok=false|bridge_write_ok=false|narrow=none|narrow_boundary=typed_safe|narrow_surface=safe_only",
     "mmio-bug|panic=bug|allocator=kernel_heap|init_flow=helper_owned|explicit_caller=false|owned_state=true|reset_on_init=false|unsafe=volatile_mmio|boundary=volatile_mmio_window|surface=mmio_only|typed_only=false|global_fallback=true|warn_only=false|mmio=true|raw_bridge=false|audit=true|bridge_read_ok=false|bridge_write_ok=false|narrow=volatile_mmio|narrow_boundary=volatile_mmio_window|narrow_surface=mmio_only",
@@ -98,6 +106,7 @@ def validate_repo(repo_root: Path) -> list[str]:
         (DUMP_PATH, REQUIRED_DUMP_MARKERS),
         (BUILD_PATH, REQUIRED_BUILD_MARKERS),
         (MAKEFILE_PATH, REQUIRED_MAKEFILE_MARKERS),
+        (WORKFLOW_PATH, REQUIRED_WORKFLOW_MARKERS),
     )
     for relative_path, markers in files_and_markers:
         path = repo_root / relative_path
@@ -163,6 +172,7 @@ def run_self_test() -> int:
         _write(root / DUMP_PATH, "\n".join(REQUIRED_DUMP_MARKERS) + "\n")
         _write(root / BUILD_PATH, "\n".join(REQUIRED_BUILD_MARKERS) + "\n")
         _write(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
+        _write(root / WORKFLOW_PATH, "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n")
         _write(root / EXPECTED_PATH, "\n".join(EXPECTED_LINES) + "\n")
 
         issues = validate_repo(root)
@@ -201,6 +211,16 @@ def run_self_test() -> int:
                 MAKEFILE_PATH,
                 "phase3-policy-dump:\n",
                 "missing zigux/Makefile marker: phase3-policy-dump:",
+            ),
+            (
+                WORKFLOW_PATH,
+                "Run current Phase 3 policy dump make wrapper\n",
+                "missing .github/workflows/zigux-bootstrap.yml marker: Run current Phase 3 policy dump make wrapper",
+            ),
+            (
+                WORKFLOW_PATH,
+                "run: zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig\n",
+                "missing .github/workflows/zigux-bootstrap.yml marker: run: zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
             ),
         )
 
