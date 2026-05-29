@@ -31,6 +31,7 @@ EXPECTED_GOLDEN_OUTPUT_MARKERS = (
     "zigux/tests/fixtures/phase11_shared_tooling_manifest.json",
     "scripts/zigux/check-phase11-validate-check-roster.py",
     "scripts/zigux/check-phase11-validate-route-alignment.py",
+    "scripts/zigux/check-phase11-deterministic-fixture-golden-output.py",
     "scripts/zigux/check-phase11-dw-wdt-build-route.py",
     "zigux/tests/fixtures/phase11_build_inventory.json",
     "zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json",
