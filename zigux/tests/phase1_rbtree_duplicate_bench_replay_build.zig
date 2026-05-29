@@ -23,9 +23,12 @@ pub fn build(b: *std.Build) void {
     });
 
     const run_tests = b.addRunArtifact(tests);
-    const test_step = b.step(
+    const bench_replay_step = b.step(
         "phase1-rbtree-duplicate-bench-replay",
         "Run the focused Phase 1 rbtree duplicate-range replay",
     );
+    bench_replay_step.dependOn(&run_tests.step);
+
+    const test_step = b.step("test", "Run the focused Phase 1 rbtree duplicate-range replay");
     test_step.dependOn(&run_tests.step);
 }
