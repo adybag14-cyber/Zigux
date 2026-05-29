@@ -17,7 +17,7 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
 test "phase13 notifier manifest records the checker-backed adjacent packet" {
     try requireContains(manifest_text, "\"lane_key\": \"P13-L18\"");
     try requireContains(manifest_text, "\"anchor\": \"drivers/tty/hvc/hvc_console.h\"");
-    try requireContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-25\"");
+    try requireContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-29\"");
     try requireContains(manifest_text, "\"exact_current_evidence\": {");
     try requireContains(manifest_text, "\"current_notifier_packet_checker_present\": true");
     try requireContains(manifest_text, "\"current_phase13_notifier_list_manifest_present\": true");
@@ -47,6 +47,7 @@ test "phase13 notifier manifest records the checker-backed adjacent packet" {
     try requireContains(manifest_text, "zigux_list_is_empty()");
     try requireContains(manifest_text, "zigux_hlist_first_pprev_matches_head()");
     try requireContains(manifest_text, "zigux_hlist_has_consistent_prev_links()");
+    try requireContains(manifest_text, "zigux_hlist_tail_next_is_null()");
     try requireContains(manifest_text, "\"drivers/tty/hvc/hvc_console.h\": {");
     try requireContains(manifest_text, "notifier_hangup_irq");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-list-view-helper\"");
@@ -80,6 +81,7 @@ test "phase13 notifier survey keeps the checker-backed adjacent packet explicit"
     try requireContains(survey, "zigux_list_is_empty()");
     try requireContains(survey, "firstPprevMatchesHead()");
     try requireContains(survey, "zigux_hlist_first_pprev_matches_head()");
+    try requireContains(survey, "zigux_hlist_tail_next_is_null()");
 }
 
 test "phase13 notifier summary gap and release validator keep the adjacent packet explicit" {
@@ -130,6 +132,7 @@ test "phase13 notifier checker stays explicit in the focused reviewability gate"
     try requireContains(checker, "drivers/tty/hvc/hvc_console.h");
     try requireContains(checker, "zigux_list_is_empty");
     try requireContains(checker, "zigux_hlist_first_pprev_matches_head");
+    try requireContains(checker, "zigux_hlist_tail_next_is_null");
 }
 
 test "phase13 notifier binding keeps the shipped read-only interop foothold explicit" {
@@ -163,6 +166,7 @@ test "phase13 list and hlist helpers keep the shipped read-only traversal packet
     try requireContains(hlist_view, "pub fn firstPprevMatchesHead(self: HListView) bool");
     try requireContains(hlist_view, "pub fn hasConsistentPrevLinks(self: HListView) bool");
     try requireContains(hlist_view, "pub fn firstBrokenPrevLink(self: HListView) ?PrevLinkBreak");
+    try requireContains(hlist_view, "pub fn tailNextIsNull(self: HListView) bool");
 }
 
 test "phase13 exported abi header keeps the C-side list and notifier witnesses explicit" {
@@ -180,6 +184,7 @@ test "phase13 exported abi header keeps the C-side list and notifier witnesses e
     try requireContains(abi_header, "zigux_hlist_first_pprev_matches_head");
     try requireContains(abi_header, "zigux_hlist_first_broken_prev_link");
     try requireContains(abi_header, "zigux_hlist_has_consistent_prev_links");
+    try requireContains(abi_header, "zigux_hlist_tail_next_is_null");
 }
 
 test "phase13 hvc header keeps the notifier declarations visible to the adjacent packet" {
