@@ -14,7 +14,7 @@ This note records the bounded `P12-L18` follow-up for the Phase 12 libbpf determ
 The bounded product gap was not a new libbpf helper or a broader Phase 12 replay claim. It was a deterministic snapshot evidence gap: the fixture could name the reviewability gate while a future edit loosened the gate, changed the referenced path, or let the recorded gate blob drift without an immediate fail-closed check.
 
 ## Guardrail
-` scripts/zigux/check-phase12-libbpf-reviewability-gate-snapshot.py` is intentionally narrow. It checks:
+`scripts/zigux/check-phase12-libbpf-reviewability-gate-snapshot.py` is intentionally narrow. It checks:
 - the primary libbpf snapshot fixture exists
 - `verification_evidence.reviewability_gate.path` is exactly `zigux/tests/phase12_libbpf_reviewability.zig`
 - the recorded reviewability-gate blob is a lowercase 40-character SHA and matches the current Git blob of the reviewability gate
