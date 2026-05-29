@@ -16,6 +16,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
 MANIFEST_PATH = "zigux/tests/phase10_virtio_core_manifest.json"
+SURVEY_NOTE_PATH = "Documentation/zigux/phase10-virtio-core-survey.md"
 
 EXPECTED_MANIFEST_FIELDS = {
     "lane_key": "P10-L01",
@@ -57,6 +58,11 @@ EXPECTED_SUMMARY_VALUES = {
 }
 
 EXPECTED_GAP_FIELDS = {
+    "phase10-build-gate": {
+        "kind": "validation",
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase10_build.zig",
+    },
     "phase10-virtio-core-lab-starter": {
         "kind": "lab_driver_starter",
         "status": "starter_landed",
@@ -72,15 +78,45 @@ EXPECTED_GAP_FIELDS = {
         "status": "starter_landed",
         "zigux_destination": "zigux/tests/phase10_virtio_core_reset_queue.zig",
     },
+    "phase10-virtio-core-slice-note": {
+        "kind": "documentation",
+        "status": "starter_landed",
+        "zigux_destination": "Documentation/zigux/phase10-virtio-core-slice.md",
+    },
     "phase10-virtio-core-survey-gate": {
         "kind": "validation",
         "status": "starter_landed",
         "zigux_destination": "zigux/tests/phase10_virtio_core_survey.zig",
     },
+    "phase10-virtio-core-survey-note": {
+        "kind": "documentation",
+        "status": "starter_landed",
+        "zigux_destination": SURVEY_NOTE_PATH,
+    },
     "phase10-virtio-core-verify-replay": {
         "kind": "validation",
         "status": "starter_landed",
         "zigux_destination": "drivers/virtio/virtio_verify.zig",
+    },
+    "phase10-queue-shape-bookkeeping-helper": {
+        "kind": "lab_driver_starter",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio.zig",
+    },
+    "phase10-config-generation-bookkeeping-helper": {
+        "kind": "lab_driver_starter",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio.zig",
+    },
+    "phase10-interrupt-ack-bookkeeping-helper": {
+        "kind": "lab_driver_starter",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio.zig",
+    },
+    "phase10-lifecycle-guard-bookkeeping-helper": {
+        "kind": "lab_driver_starter",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio.zig",
     },
     "phase10-driver-validation-narrowing-helper": {
         "kind": "lab_driver_starter",
@@ -92,10 +128,30 @@ EXPECTED_GAP_FIELDS = {
         "status": "starter_landed",
         "zigux_destination": "drivers/virtio/virtio.zig",
     },
+    "phase10-reset-replay-bookkeeping-helper": {
+        "kind": "lab_driver_starter",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio.zig",
+    },
     "phase10-core-lab-validation-evidence": {
         "kind": "validation",
         "status": "starter_landed",
-        "zigux_destination": "Documentation/zigux/phase10-virtio-core-survey.md",
+        "zigux_destination": SURVEY_NOTE_PATH,
+    },
+    "phase10-driver-id-helper": {
+        "kind": "lab_driver_starter",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_driver_id.zig",
+    },
+    "phase10-driver-id-coverage-disposition-helper": {
+        "kind": "lab_driver_starter",
+        "status": "starter_landed",
+        "zigux_destination": "drivers/virtio/virtio_driver_id.zig",
+    },
+    "phase10-driver-id-review-gate": {
+        "kind": "validation",
+        "status": "starter_landed",
+        "zigux_destination": "zigux/tests/phase10_virtio_driver_id.zig",
     },
     "phase10-interrupt-compound-ack-gate": {
         "kind": "validation",
@@ -115,9 +171,11 @@ EXPECTED_GAP_FIELDS = {
 }
 
 REQUIRED_PATHS = {
-    "Documentation/zigux/phase10-virtio-core-survey.md": [
+    SURVEY_NOTE_PATH: [
         "lane: `P10-L01`",
         "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
+        "## Roadmap helper parity scoreboard",
+        "That scoreboard now mirrors the live manifest IDs directly",
         "`drivers/virtio/virtio.zig`",
         "`drivers/virtio/virtio_driver_id.zig`",
         "`drivers/virtio/virtio_verify.zig`",
@@ -178,7 +236,7 @@ REQUIRED_PATHS = {
 }
 
 FORBIDDEN_MARKERS = {
-    "Documentation/zigux/phase10-virtio-core-survey.md": [
+    SURVEY_NOTE_PATH: [
         "stale guardrail reference drift",
         "can still return `404`",
         "mixed-source verification path",
@@ -233,12 +291,18 @@ def validate_manifest(root: Path) -> list[str]:
                     f"{MANIFEST_PATH}:gap:{gap_id}:{field_name}:{actual!r}"
                 )
 
-    survey_text = read_text(root, "Documentation/zigux/phase10-virtio-core-survey.md")
+    unexpected_gap_ids = sorted(set(gap_index) - set(EXPECTED_GAP_FIELDS))
+    for gap_id in unexpected_gap_ids:
+        problems.append(f"{MANIFEST_PATH}:gap_unexpected:{gap_id}")
+
+    survey_text = read_text(root, SURVEY_NOTE_PATH)
     if isinstance(surveyed_commit, str) and COMMIT_RE.fullmatch(surveyed_commit) is not None:
         if surveyed_commit not in survey_text:
-            problems.append(
-                "Documentation/zigux/phase10-virtio-core-survey.md:surveyed_commit_alignment"
-            )
+            problems.append(f"{SURVEY_NOTE_PATH}:surveyed_commit_alignment")
+
+    for gap_id in EXPECTED_GAP_FIELDS:
+        if gap_id not in survey_text:
+            problems.append(f"{SURVEY_NOTE_PATH}:scoreboard_missing:{gap_id}")
 
     return problems
 
@@ -247,7 +311,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     tracked_paths = set(REQUIRED_PATHS.keys()) | set(FORBIDDEN_MARKERS.keys()) | {MANIFEST_PATH}
     missing_files = [
         rel_path
-        for rel_path in tracked_paths
+        for rel_path in sorted(tracked_paths)
         if not (root / rel_path).exists()
     ]
     if missing_files:
@@ -289,6 +353,13 @@ def write_fixture(root: Path) -> None:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text("\n".join(markers) + "\n", encoding="utf-8")
 
+    survey_target = root / SURVEY_NOTE_PATH
+    survey_text = survey_target.read_text(encoding="utf-8")
+    survey_target.write_text(
+        survey_text + "\n".join(EXPECTED_GAP_FIELDS.keys()) + "\n",
+        encoding="utf-8",
+    )
+
     manifest_target = root / MANIFEST_PATH
     manifest_target.parent.mkdir(parents=True, exist_ok=True)
     manifest_target.write_text(
@@ -322,7 +393,7 @@ def run_self_test() -> int:
             )
 
         def remove_driver_id_marker(tmp_root: Path) -> None:
-            target = tmp_root / "Documentation/zigux/phase10-virtio-core-survey.md"
+            target = tmp_root / SURVEY_NOTE_PATH
             text = target.read_text(encoding="utf-8")
             target.write_text(
                 text.replace("`drivers/virtio/virtio_driver_id.zig`", "`removed`", 1),
@@ -332,7 +403,7 @@ def run_self_test() -> int:
         expect_problem(
             root,
             remove_driver_id_marker,
-            "Documentation/zigux/phase10-virtio-core-survey.md:`drivers/virtio/virtio_driver_id.zig`",
+            f"{SURVEY_NOTE_PATH}:`drivers/virtio/virtio_driver_id.zig`",
         )
         write_fixture(root)
 
@@ -372,26 +443,41 @@ def run_self_test() -> int:
             target = tmp_root / MANIFEST_PATH
             data = json.loads(target.read_text(encoding="utf-8"))
             data["gaps"] = [
-                gap for gap in data["gaps"] if gap["id"] != "phase10-core-lab-validation-evidence"
+                gap for gap in data["gaps"] if gap["id"] != "phase10-build-gate"
             ]
             target.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
         expect_problem(
             root,
             remove_gap,
-            f"{MANIFEST_PATH}:gap_missing:phase10-core-lab-validation-evidence",
+            f"{MANIFEST_PATH}:gap_missing:phase10-build-gate",
+        )
+        write_fixture(root)
+
+        def remove_survey_scoreboard_id(tmp_root: Path) -> None:
+            target = tmp_root / SURVEY_NOTE_PATH
+            text = target.read_text(encoding="utf-8")
+            target.write_text(
+                text.replace("phase10-queue-shape-bookkeeping-helper", "phase10-queue-shape-missing", 1),
+                encoding="utf-8",
+            )
+
+        expect_problem(
+            root,
+            remove_survey_scoreboard_id,
+            f"{SURVEY_NOTE_PATH}:scoreboard_missing:phase10-queue-shape-bookkeeping-helper",
         )
         write_fixture(root)
 
         def add_forbidden_marker(tmp_root: Path) -> None:
-            target = tmp_root / "Documentation/zigux/phase10-virtio-core-survey.md"
+            target = tmp_root / SURVEY_NOTE_PATH
             text = target.read_text(encoding="utf-8")
             target.write_text(text + "stale guardrail reference drift\n", encoding="utf-8")
 
         expect_problem(
             root,
             add_forbidden_marker,
-            "Documentation/zigux/phase10-virtio-core-survey.md:forbidden:stale guardrail reference drift",
+            f"{SURVEY_NOTE_PATH}:forbidden:stale guardrail reference drift",
         )
         write_fixture(root)
 
@@ -408,7 +494,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
