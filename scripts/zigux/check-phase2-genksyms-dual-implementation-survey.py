@@ -20,9 +20,10 @@ SURVEY_MARKERS = (
     "scripts/zigux/check-genksyms-bridge.py",
     "wrapper bridge landed, deeper same-family dual-implementation evidence missing.",
     "restore the missing CRC-side tool-plus-checker evidence",
+    "wire the dedicated survey checker into the shared `phase2-genksyms` replay surfaces",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 4
+EXPECTED_SELF_TEST_CASE_COUNT = 5
 
 
 def read_text(path: Path) -> str:
@@ -84,6 +85,13 @@ def expect_issue(root: Path, expected: tuple[str, str]) -> None:
     assert expected in issues, (expected, issues)
 
 
+def remove_marker_once(path: Path, marker: str) -> None:
+    path.write_text(
+        path.read_text(encoding="utf-8").replace(f"{marker}\n", "", 1),
+        encoding="utf-8",
+    )
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_p2_genksyms_survey_") as tmp_dir:
@@ -95,28 +103,20 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         survey_path = root / SURVEY.relative_to(ROOT)
-        survey_path.write_text(
-            survey_path.read_text(encoding="utf-8").replace(
-                "wrapper bridge landed, deeper same-family dual-implementation evidence missing.\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_once(survey_path, "wrapper bridge landed, deeper same-family dual-implementation evidence missing.")
         expect_issue(root, ("MISSING_SURVEY_MARKER", "wrapper bridge landed, deeper same-family dual-implementation evidence missing."))
         checks_run += 1
 
         build_self_test_root(root)
         survey_path = root / SURVEY.relative_to(ROOT)
-        survey_path.write_text(
-            survey_path.read_text(encoding="utf-8").replace(
-                "scripts/zigux/genksyms_crc.zig\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        remove_marker_once(survey_path, "scripts/zigux/genksyms_crc.zig")
         expect_issue(root, ("MISSING_SURVEY_MARKER", "scripts/zigux/genksyms_crc.zig"))
+        checks_run += 1
+
+        build_self_test_root(root)
+        survey_path = root / SURVEY.relative_to(ROOT)
+        remove_marker_once(survey_path, "wire the dedicated survey checker into the shared `phase2-genksyms` replay surfaces")
+        expect_issue(root, ("MISSING_SURVEY_MARKER", "wire the dedicated survey checker into the shared `phase2-genksyms` replay surfaces"))
         checks_run += 1
 
         build_self_test_root(root)
