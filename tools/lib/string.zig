@@ -594,6 +594,26 @@ pub fn strcspn(buf: []const u8, reject: []const u8) usize {
     return limit;
 }
 
+pub fn strsep(cursor: *?[]u8, delimiters: []const u8) ?[]u8 {
+    const current = cursor.* orelse return null;
+    const limit = cStringLen(current);
+    const delimiter_len = cStringLen(delimiters);
+
+    var split_idx: usize = 0;
+    while (split_idx < limit) : (split_idx += 1) {
+        for (delimiters[0..delimiter_len]) |delimiter| {
+            if (current[split_idx] == delimiter) {
+                current[split_idx] = 0;
+                cursor.* = current[split_idx + 1 ..];
+                return current[0..split_idx];
+            }
+        }
+    }
+
+    cursor.* = null;
+    return current[0..limit];
+}
+
 pub fn strstr(buf: []const u8, needle: []const u8) ?usize {
     return strnstr(buf, needle, cStringLen(buf));
 }
@@ -1183,6 +1203,37 @@ test "strcspn counts until the first rejected byte with C-string semantics" {
 
     const reject_cstr = [_]u8{ 'x', 0, 'y' };
     try std.testing.expectEqual(@as(usize, 2), strcspn("abxc", &reject_cstr));
+}
+
+test "strsep splits mutable C strings and preserves empty tokens" {
+    var buf = [_]u8{ 'a', ',', ',', 'b', 0, 'x' };
+    var cursor: ?[]u8 = buf[0..];
+
+    try std.testing.expectEqualStrings("a", strsep(&cursor, ",").?);
+    try std.testing.expectEqualStrings("", strsep(&cursor, ",").?);
+    try std.testing.expectEqualStrings("b", strsep(&cursor, ",").?);
+    try std.testing.expectEqual(@as(?[]u8, null), cursor);
+    try std.testing.expectEqual(@as(?[]u8, null), strsep(&cursor, ","));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 0, 0, 'b', 0, 'x' }, buf[0..]);
+}
+
+test "strsep respects C-string delimiter and source boundaries" {
+    var source = [_]u8{ 'k', ':', 'v', 0, ':', 'x' };
+    var cursor: ?[]u8 = source[0..];
+    const delimiters = [_]u8{ ':', 0, 'v' };
+
+    try std.testing.expectEqualStrings("k", strsep(&cursor, &delimiters).?);
+    try std.testing.expectEqualStrings("v", strsep(&cursor, &delimiters).?);
+    try std.testing.expectEqual(@as(?[]u8, null), cursor);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'k', 0, 'v', 0, ':', 'x' }, source[0..]);
+}
+
+test "strsep with an empty delimiter set returns the remaining C string once" {
+    var source = [_]u8{ 'a', 'b', 0, 'c' };
+    var cursor: ?[]u8 = source[0..];
+
+    try std.testing.expectEqualStrings("ab", strsep(&cursor, "").?);
+    try std.testing.expectEqual(@as(?[]u8, null), cursor);
 }
 
 test "strnchr honors count and C-string boundaries" {
