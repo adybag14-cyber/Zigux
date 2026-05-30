@@ -4,6 +4,16 @@ const notifier_abi = @import("notifier_abi.zig");
 pub const ListHead = notifier_abi.ListHead;
 pub const ListBackLinkBreak = notifier_abi.ListBackLinkBreak;
 
+pub const list_head_size = notifier_abi.list_head_size;
+pub const list_head_align = notifier_abi.list_head_align;
+pub const list_head_next_offset = notifier_abi.list_head_next_offset;
+pub const list_head_prev_offset = notifier_abi.list_head_prev_offset;
+pub const list_back_link_break_size = notifier_abi.list_back_link_break_size;
+pub const list_back_link_break_align = notifier_abi.list_back_link_break_align;
+pub const list_back_link_break_current_index_offset = notifier_abi.list_back_link_break_current_index_offset;
+pub const list_back_link_break_expected_prev_offset = notifier_abi.list_back_link_break_expected_prev_offset;
+pub const list_back_link_break_actual_prev_offset = notifier_abi.list_back_link_break_actual_prev_offset;
+
 pub fn listIsEmpty(head: ?*const ListHead) bool {
     return notifier_abi.listIsEmpty(head);
 }
@@ -18,6 +28,18 @@ pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {
 
 pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {
     return notifier_abi.listHasConsistentBacklinks(head);
+}
+
+test "list binding exposes notifier ABI layout constants" {
+    try std.testing.expectEqual(@sizeOf(ListHead), list_head_size);
+    try std.testing.expectEqual(@alignOf(ListHead), list_head_align);
+    try std.testing.expectEqual(@offsetOf(ListHead, "next"), list_head_next_offset);
+    try std.testing.expectEqual(@offsetOf(ListHead, "prev"), list_head_prev_offset);
+    try std.testing.expectEqual(@sizeOf(ListBackLinkBreak), list_back_link_break_size);
+    try std.testing.expectEqual(@alignOf(ListBackLinkBreak), list_back_link_break_align);
+    try std.testing.expectEqual(@offsetOf(ListBackLinkBreak, "current_index"), list_back_link_break_current_index_offset);
+    try std.testing.expectEqual(@offsetOf(ListBackLinkBreak, "expected_prev"), list_back_link_break_expected_prev_offset);
+    try std.testing.expectEqual(@offsetOf(ListBackLinkBreak, "actual_prev"), list_back_link_break_actual_prev_offset);
 }
 
 test "list binding relays sentinel-only emptiness through notifier ABI" {
