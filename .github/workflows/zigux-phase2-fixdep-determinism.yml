@@ -1,0 +1,44 @@
+name: zigux-phase2-fixdep-determinism
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'scripts/zigux/check-fixdep-diff.py'
+      - 'scripts/zigux/check-phase2-fixdep-determinism-contract.py'
+      - '.github/workflows/zigux-phase2-fixdep-determinism.yml'
+  pull_request:
+    paths:
+      - 'scripts/zigux/check-fixdep-diff.py'
+      - 'scripts/zigux/check-phase2-fixdep-determinism-contract.py'
+      - '.github/workflows/zigux-phase2-fixdep-determinism.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}', github.workflow, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+jobs:
+  fixdep-determinism-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout workspace snapshot
+        run: |
+          set -euxo pipefail
+          tmpdir="$(mktemp -d)"
+          archive="$tmpdir/source.tar.gz"
+          curl -L --fail "https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${GITHUB_SHA}" -o "$archive"
+          tar -xzf "$archive" -C "$tmpdir"
+          src_dir="$(find "$tmpdir" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          find "$GITHUB_WORKSPACE" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+          shopt -s dotglob
+          mv "$src_dir"/* "$GITHUB_WORKSPACE"/
+
+      - name: Self-test Phase 2 fixdep determinism contract
+        run: python3 scripts/zigux/check-phase2-fixdep-determinism-contract.py --self-test
+
+      - name: Check Phase 2 fixdep determinism contract
+        run: python3 scripts/zigux/check-phase2-fixdep-determinism-contract.py
