@@ -34,6 +34,9 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
 - `scripts/zigux/check-phase2-tool-manifest.py`, `scripts/zigux/check-phase2-bootstrap-workflow-routes.py`, and `scripts/zigux/check-phase2-artifact-tools-manifest.py` keep the shared manifest, workflow-route, and artifact-support packet explicit from current `master`.
 - `scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`, `scripts/zigux/check-phase2-cross.py`, `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md`, `zigux/tests/fixtures/phase2_cross_targets.json`, `scripts/zigux/check-phase2-fixdep-gate.py`, and `scripts/zigux/check-fixdep-diff.py` keep the helper-local kconfig, direct cross-route, and fixdep governance/parity packet directly replayable beside the closure note.
 - `PHASE2_KCONFIG_BRIDGE_CONF_HELPER_ANCHOR_COUNT=4`
+- `scripts/zigux/kconfig/confdata_bridge.zig`, `scripts/zigux/check-kconfig-bridge.py`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` keep the bounded `confdata.c` bridge replay packet directly readable at 16 committed fixture cases and 36 helper-local anchors.
+- `PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT=16`
+- `PHASE2_KCONFIG_BRIDGE_CONFDATA_HELPER_ANCHOR_COUNT=36`
 - `scripts/zigux/artifact_diff.py` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair instead of falling back into repo-reality-gap wording.
 - `python3 scripts/zigux/check-phase2-tool-manifest.py`
 - `python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py`
