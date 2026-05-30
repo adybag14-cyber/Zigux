@@ -1,0 +1,55 @@
+name: zigux-phase2-confdata-output-modes
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'scripts/zigux/kconfig/confdata_bridge.zig'
+      - 'scripts/zigux/check-phase2-confdata-output-modes.py'
+      - '.github/workflows/zigux-phase2-confdata-output-modes.yml'
+      - 'scripts/zigux/zig-toolchain-policy.json'
+      - 'third_party/**'
+  pull_request:
+    paths:
+      - 'scripts/zigux/kconfig/confdata_bridge.zig'
+      - 'scripts/zigux/check-phase2-confdata-output-modes.py'
+      - '.github/workflows/zigux-phase2-confdata-output-modes.yml'
+      - 'scripts/zigux/zig-toolchain-policy.json'
+      - 'third_party/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  confdata-output-modes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout workspace snapshot
+        run: |
+          set -euxo pipefail
+          tmpdir="$(mktemp -d)"
+          archive="$tmpdir/source.tar.gz"
+          curl -L --fail "https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${GITHUB_SHA}" -o "$archive"
+          tar -xzf "$archive" -C "$tmpdir"
+          src_dir="$(find "$tmpdir" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          find "$GITHUB_WORKSPACE" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+          shopt -s dotglob
+          mv "$src_dir"/* "$GITHUB_WORKSPACE"/
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: '3.x'
+
+      - name: Setup pinned Zig toolchain
+        run: python3 scripts/zigux/install-zig.py
+
+      - name: Compile confdata output-mode gate
+        run: python3 -m py_compile scripts/zigux/check-phase2-confdata-output-modes.py
+
+      - name: Self-test confdata output-mode gate
+        run: python3 scripts/zigux/check-phase2-confdata-output-modes.py --self-test
+
+      - name: Check deterministic confdata output modes
+        run: python3 scripts/zigux/check-phase2-confdata-output-modes.py
