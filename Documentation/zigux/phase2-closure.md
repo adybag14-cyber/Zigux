@@ -14,6 +14,7 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
 
 - `Documentation/zigux/phase2-genksyms-dual-implementation-survey.md` remains the same-family roadmap and ledger truthfulness anchor for the wrapper-first `genksyms` lane.
 - `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/check-phase2-genksyms-selftest-alignment.py`, and `scripts/zigux/genksyms.zig` remain the live checker, closure-alignment guard, and Zig bridge helper on current `master`.
+- `scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py` remains the dedicated survey guard that keeps the wrapper-first bridge evidence and the missing CRC-side dual-implementation gap statement explicit.
 - `scripts/zigux/genksyms_version_before_invalid_long_option_test.zig` and `scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig` remain the standalone version-side-effect proofs carried by the shipped bridge packet.
 - `zigux/tests/fixtures/genksyms_bridge/manifest.json` remains the live packet manifest, and `zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json` is now part of the directly named process-output fixture set instead of sitting only in the helper-local manifest.
 - The bridge expected-output packet now explicitly records the eleven committed replay cases, including the dash-prefixed long and short option argument-as-data cases, so the closure note does not fall back to the older minimal/debug/long-options-only fixture shape.
@@ -21,6 +22,8 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
 - `python3 scripts/zigux/check-genksyms-bridge.py`
 - `python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py --self-test`
 - `python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py`
+- `python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py --self-test`
+- `python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py`
 - `zig test scripts/zigux/genksyms.zig`
 - `make -C zigux phase2-genksyms`
 - `PHASE2_CURRENT_GENKSYMS_BRIDGE_PACKET=zigux/tests/fixtures/genksyms_bridge/minimal_expected.json,zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json,zigux/tests/fixtures/genksyms_bridge/inline_short_option_arguments_expected.json,zigux/tests/fixtures/genksyms_bridge/long_options_expected.json,zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json,zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json,zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json,zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json,zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json,zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json,zigux/tests/fixtures/genksyms_bridge/dash_prefixed_short_option_arguments_as_data_expected.json`
