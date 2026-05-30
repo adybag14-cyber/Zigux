@@ -104,10 +104,7 @@ REQUIRED_SOURCE_EXACT_MARKERS = {
 }
 
 
-def collect_marker_count_failures(
-    text: str,
-    markers: dict[str, str],
-) -> list[str]:
+def collect_marker_count_failures(text: str, markers: dict[str, str]) -> list[str]:
     failures: list[str] = []
     for label, marker in markers.items():
         count = text.count(marker)
@@ -116,10 +113,7 @@ def collect_marker_count_failures(
     return failures
 
 
-def collect_expected_count_failures(
-    text: str,
-    markers: dict[str, tuple[str, int]],
-) -> list[str]:
+def collect_expected_count_failures(text: str, markers: dict[str, tuple[str, int]]) -> list[str]:
     failures: list[str] = []
     for label, (marker, expected_count) in markers.items():
         count = text.count(marker)
@@ -166,136 +160,19 @@ def build_sample_source(
     omit_label: str | None = None,
     duplicate_label: str | None = None,
 ) -> str:
-    lines = [
-        'test "find first and next set bits across words, with andnot gaps explicit" {',
-        "    _ = findFirstAndNotBit(&andnot_lhs, &andnot_rhs, bits_per_long * 3);",
-        "}",
-        'test "single-word next scans honor start masks" {',
-        "    try std.testing.expectEqual(@as(usize, 7), findNextBit(&set_bits, nbits, 3));",
-        "    try std.testing.expectEqual(@as(usize, 11), findNextBit(&set_bits, nbits, 8));",
-        "    try std.testing.expectEqual(@as(usize, 4), findNextZeroBit(&zero_bits, nbits, 1));",
-        "    try std.testing.expectEqual(@as(usize, 9), findNextZeroBit(&zero_bits, nbits, 5));",
-        "    try std.testing.expectEqual(@as(usize, 9), findNextAndBit(&and_lhs, &and_rhs, nbits, 2));",
-        "    try std.testing.expectEqual(@as(usize, 12), findNextAndBit(&and_lhs, &and_rhs, nbits, 10));",
-        "}",
-        'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start" {',
-        "    _ = findNextBit(&set_map, nbits, boundary);",
-        "    _ = findNextAndBit(&and_lhs, &and_rhs, nbits, boundary);",
-        "    _ = findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary);",
-        "    _ = findNextOrBit(&or_lhs, &or_rhs, nbits, boundary);",
-        "    _ = findNextZeroBit(&zero_map, nbits, boundary);",
-        "}",
-        'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start" {',
-        "    _ = findNextBit(&set_map, nbits, boundary);",
-        "    _ = findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary);",
-        "}",
-        'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start" {',
-        "    _ = findNextBit(&set_map, nbits, boundary);",
-        "    try std.testing.expectEqual(@as(usize, nbits), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary + 1));",
-        "}",
-        'test "single-word next scans clamp partial windows before returning nbits" {',
-        "    _ = findNextOrBit(&or_lhs, &or_rhs, nbits, 13);",
-        "    try std.testing.expectEqual(@as(usize, 8), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, 3));",
-        "    try std.testing.expectEqual(@as(usize, nbits), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, 9));",
-        "}",
-        'test "word-boundary next scans start fresh on the next word" {',
-        "    _ = findNextOrBit(&or_lhs, &or_rhs, nbits, boundary);",
-        "    try std.testing.expectEqual(boundary + 5, findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary + 1));",
-        "}",
-        'test "zero-sized scans ignore populated backing words" {',
-        "    _ = findLastBit(&populated, 0);",
-        "}",
-        'test "next scans past nbits return without reading bitmap words" {',
-        "    _ = findNextBit(&empty, 7, 11);",
-        "    _ = findNextZeroBit(&empty, 7, 11);",
-        "    _ = findNextAndBit(&empty, &empty, 7, 11);",
-        "    _ = findNextOrBit(&empty, &empty, 7, 11);",
-        "    _ = findNextAndNotBit(&empty, &empty, 7, 11);",
-        "}",
-        'test "tail mask ignores shared bits beyond nbits" {',
-        "    _ = findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 4);",
-        "}",
-        'test "tail-word next zero and shared scans skip earlier in-range matches before clamping" {',
-        "    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextZeroBit(&tail_zero_map, nbits, bits_per_long + 2));",
-        "    try std.testing.expectEqual(@as(usize, nbits), findNextZeroBit(&tail_zero_map, nbits, bits_per_long + 5));",
-        "    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextAndBit(&tail_and_lhs, &tail_and_rhs, nbits, bits_per_long + 2));",
-        "    try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&tail_and_lhs, &tail_and_rhs, nbits, bits_per_long + 5));",
-        "    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextOrBit(&tail_or_lhs, &tail_or_rhs, nbits, bits_per_long + 2));",
-        "    try std.testing.expectEqual(@as(usize, nbits), findNextOrBit(&tail_or_lhs, &tail_or_rhs, nbits, bits_per_long + 5));",
-        "}",
-        'test "tail-word next set scans skip earlier in-range matches before clamping" {',
-        "    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextBit(&tail_map, nbits, bits_per_long + 2));",
-        "    try std.testing.expectEqual(@as(usize, nbits), findNextBit(&tail_map, nbits, bits_per_long + 5));",
-        "    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextAndNotBit(&tail_andnot_lhs, &tail_andnot_rhs, nbits, bits_per_long + 2));",
-        "    try std.testing.expectEqual(@as(usize, nbits), findNextAndNotBit(&tail_andnot_lhs, &tail_andnot_rhs, nbits, bits_per_long + 5));",
-        "}",
-        'test "clump8 scans keep tail bytes reachable from partial final words" {',
-        "    try std.testing.expectEqual(@as(usize, bits_per_long), findFirstClump8(&clump, &bitmap, nbits));",
-        "    try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);",
-        "}",
-        'test "clump8 scans mask tail bits beyond nbits" {',
-        "    try std.testing.expectEqual(@as(usize, bits_per_long), findFirstClump8(&clump, &bitmap, nbits));",
-        "    try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);",
-        "}",
-        'test "clump8 zero-bit and past-end windows leave the caller byte untouched" {',
-        "    _ = findFirstClump8(&clump, &populated, 0);",
-        "    _ = findNextClump8(&clump, &populated, 8, 12);",
-        "}",
-        'test "clump8 past-end scans return without reading bitmap words" {',
-        "    _ = findNextClump8(&clump, &empty, 8, 8);",
-        "    _ = find_next_clump8(&clump, &empty, 8, 12);",
-        "    _ = _find_next_clump8(&clump, &empty, 8, 20);",
-        "}",
-        'test "clump8 scans skip earlier aligned bytes once the offset moves forward" {',
-        "    try std.testing.expectEqual(@as(usize, 8), findNextClump8(&clump, &bitmap, nbits, 0));",
-        "    try std.testing.expectEqual(@as(usize, 24), findNextClump8(&clump, &bitmap, nbits, 16));",
-        "    try std.testing.expectEqual(@as(usize, 24), findNextClump8(&clump, &bitmap, nbits, 25));",
-        "    try std.testing.expectEqual(@as(usize, nbits), findNextClump8(&clump, &bitmap, nbits, 30));",
-        "}",
-        'test "clump8 keeps the last aligned byte of a word isolated from the next word" {',
-        "    try std.testing.expectEqual(@as(usize, last_aligned_byte), findFirstClump8(&clump, &bitmap, nbits));",
-        "    try std.testing.expectEqual(@as(u8, 0xa5), clump);",
-        "    try std.testing.expectEqual(@as(usize, bits_per_long), findNextClump8(&clump, &bitmap, nbits, bits_per_long));",
-        "    try std.testing.expectEqual(@as(u8, 0x11), clump);",
-        "}",
-        'test "getValue8 reads the last aligned byte of a word without folding in the next word" {',
-        "    try std.testing.expectEqual(@as(u8, 0xa5), getValue8(&bitmap, last_aligned_byte));",
-        "    try std.testing.expectEqual(@as(u8, 0x11), getValue8(&bitmap, bits_per_long));",
-        "}",
-        'test "low-level underscore aliases mirror the primary find helpers, including andnot" {',
-        "    try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), _find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));",
-        "    try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), _find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));",
-        "}",
-        'test "Linux-style aliases mirror the primary find helpers, including andnot" {',
-        "    try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));",
-        "    try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));",
-        "}",
-        'test "find last bit ignores storage beyond an exact word boundary" {',
-        "    try std.testing.expectEqual(@as(usize, boundary), findLastBit(&bitmap, nbits));",
-        "    bitmap[0] = 0;",
-        "    try std.testing.expectEqual(@as(usize, nbits), findLastBit(&bitmap, nbits));",
-        "}",
-        'test "find last bit clamps tail words to nbits" {',
-        "    try std.testing.expectEqual(@as(usize, 4), findLastBit(&single_word, single_word_nbits));",
-        "}",
-        'test "find last bit returns nbits when no set bits remain" {',
-        "    try std.testing.expectEqual(@as(usize, nbits), findLastBit(&bitmap, nbits));",
-        "    _ = findLastBit(&empty, 0);",
-        "}",
-    ]
+    lines: list[str] = []
+    lines.extend(REQUIRED_TEST_MARKERS.values())
+    for marker, expected_count in REQUIRED_SOURCE_COUNT_MARKERS.values():
+        lines.extend([marker] * expected_count)
+    lines.extend(REQUIRED_SOURCE_EXACT_MARKERS.values())
 
     if omit_label is not None:
         marker = marker_for_label(omit_label)
-        assert marker is not None
-        lines = [line for line in lines if marker not in line]
+        lines = [line for line in lines if line != marker]
 
     if duplicate_label is not None:
         marker = marker_for_label(duplicate_label)
-        assert marker is not None
-        for idx, line in enumerate(lines):
-            if marker in line:
-                lines.insert(idx + 1, line)
-                break
+        lines.append(marker)
 
     return "\n".join(lines) + "\n"
 
@@ -363,7 +240,7 @@ def run_self_test() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate that the live find_bit helper still carries the current bench-adjacent same-word start-mask, inclusive-boundary, tail-clamp, and byte-clump anchors directly in tools/lib/find_bit.zig."
+        description="Validate that the live find_bit helper still carries the current bench-adjacent edge anchors, including the landed andnot, clump-forward-skip, and tail-word next-skip paths."
     )
     parser.add_argument("--self-test", action="store_true", help="Run self-test cases only.")
     args = parser.parse_args()
