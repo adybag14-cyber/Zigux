@@ -256,7 +256,9 @@ def run_self_test() -> int:
             (lambda m: m.update(next_safe_step="stale"), "phase3_abi_manifest.json wrong next_safe_step: 'stale' != " + repr(CURRENT_NEXT_SAFE_STEP)),
             (lambda m: m.update(repo_reality_gaps=["stale"]), "phase3_abi_manifest.json repo_reality_gaps drifted from the current shared packet expectation"),
             (lambda m: m["generated_packet"].update(current_dump=RETIRED_DUMP), f"phase3_abi_manifest.json generated_packet wrong current_dump: {RETIRED_DUMP!r} != {CURRENT_DUMP!r}"),
+            (lambda m: m["generated_packet"].update(note="stale"), f"phase3_abi_manifest.json generated_packet wrong note: 'stale' != {GENERATED_PACKET_NOTE!r}"),
             (lambda m: m["generated_packet"]["retired_generated_guard"].update(must_stay_out_of_packet_files=[]), f"phase3_abi_manifest.json retired_generated_guard wrong must_stay_out_of_packet_files: [] != {RETIRED_PATHS!r}"),
+            (lambda m: m["generated_packet"]["retired_generated_guard"].update(note="stale"), f"phase3_abi_manifest.json retired_generated_guard wrong note: 'stale' != {RETIRED_GUARD_NOTE!r}"),
             (lambda m: m["packet_files"].append(RETIRED_DUMP), f"phase3_abi_manifest.json packet_files includes retired generated entry: {RETIRED_DUMP}"),
             (lambda m: m["replay_routes"].append(RETIRED_EXPECTED), f"phase3_abi_manifest.json replay_routes includes retired generated entry: {RETIRED_EXPECTED}"),
         ]
