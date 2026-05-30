@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const roadmap_path = "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md";
+const tests_dir_roadmap_path = "../../zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md";
 
 const phase8_heading = "## Phase 8: Userspace-Adjacent Tooling Expansion";
 const phase7_heading = "## Phase 7: In-Kernel Leaf Libraries";
@@ -26,7 +27,10 @@ const required_phase8_lines = [_][]const u8{
 };
 
 fn readRoadmap(allocator: std.mem.Allocator) ![]u8 {
-    return std.Io.Dir.cwd().readFileAlloc(std.testing.io, roadmap_path, allocator, .limited(1024 * 1024));
+    return std.Io.Dir.cwd().readFileAlloc(std.testing.io, roadmap_path, allocator, .limited(1024 * 1024)) catch |err| switch (err) {
+        error.FileNotFound => std.Io.Dir.cwd().readFileAlloc(std.testing.io, tests_dir_roadmap_path, allocator, .limited(1024 * 1024)),
+        else => err,
+    };
 }
 
 fn requireContains(haystack: []const u8, needle: []const u8) !void {
