@@ -96,7 +96,7 @@ CONFDATA_HELPER_ANCHOR_CONST = "REQUIRED_CONFDATA_HELPER_ANCHORS"
 CONF_HELPER_IMPLICIT_OMISSION_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES"
 CONF_HELPER_EXPLICIT_OVERRIDE_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES"
 CONFDATA_CASE_PACKET_CONST = "SAMPLE_CONFDATA_CASES"
-EXPECTED_SELF_TEST_CASE_COUNT = 8
+EXPECTED_SELF_TEST_CASE_COUNT = 10
 
 
 def read_text(path: Path) -> str:
@@ -185,6 +185,24 @@ def collect_marker_issues(text: str, markers: tuple[str, ...], missing_code: str
     return issues
 
 
+def collect_order_issues(text: str, markers: tuple[str, ...], drift_code: str) -> list[tuple[str, str]]:
+    stripped_lines = [line.strip() for line in text.splitlines()]
+    positions: list[tuple[str, int]] = []
+    for marker in markers:
+        matches = [line_number for line_number, line in enumerate(stripped_lines, start=1) if line == marker]
+        if len(matches) != 1:
+            return []
+        positions.append((marker, matches[0]))
+
+    previous_marker, previous_line = positions[0]
+    for marker, line_number in positions[1:]:
+        if line_number <= previous_line:
+            return [(drift_code, f"{marker}:before={previous_marker}")]
+        previous_marker = marker
+        previous_line = line_number
+    return []
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(root / WORKFLOW.relative_to(ROOT))
@@ -202,6 +220,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues.extend(collect_marker_issues(workflow_text, WORKFLOW_PATH_LINES, "MISSING_WORKFLOW_PATH_FILTERS", "DUPLICATE_WORKFLOW_PATH_FILTERS"))
     issues.extend(collect_marker_issues(makefile_text, MAKEFILE_LINES, "MISSING_MAKEFILE_HOOKS", "DUPLICATE_MAKEFILE_HOOKS"))
     issues.extend(collect_marker_issues(checker_text, BRIDGE_CHECKER_LINE_MARKERS, "MISSING_BRIDGE_CHECKER_MARKERS", "DUPLICATE_BRIDGE_CHECKER_MARKERS"))
+    issues.extend(collect_order_issues(workflow_text, WORKFLOW_LINES, "WORKFLOW_HOOK_ORDER_DRIFT"))
+    issues.extend(collect_order_issues(makefile_text, MAKEFILE_LINES, "MAKEFILE_HOOK_ORDER_DRIFT"))
 
     for marker in SCRIPTS_README_MARKERS:
         if marker not in scripts_readme_text:
@@ -308,8 +328,18 @@ def run_self_test() -> int:
         assert any(code == "MISSING_WORKFLOW_HOOKS" for code, _ in collect_issues(root))
         checks_run += 1
         build_self_test_root(root)
+        workflow_lines = ["name: zigux-bootstrap", *WORKFLOW_PATH_LINES, WORKFLOW_LINES[1], WORKFLOW_LINES[0], *WORKFLOW_LINES[2:]]
+        (root / WORKFLOW.relative_to(ROOT)).write_text("\n".join(workflow_lines) + "\n", encoding="utf-8")
+        assert any(code == "WORKFLOW_HOOK_ORDER_DRIFT" for code, _ in collect_issues(root))
+        checks_run += 1
+        build_self_test_root(root)
         (root / MAKEFILE.relative_to(ROOT)).write_text("PYTHON ?= python3\n", encoding="utf-8")
         assert any(code == "MISSING_MAKEFILE_HOOKS" for code, _ in collect_issues(root))
+        checks_run += 1
+        build_self_test_root(root)
+        makefile_lines = ["PYTHON ?= python3", "ZIG ?= zig", "PHASE2_SCRIPT_ROOT := ../scripts/zigux", "ZIGUX_ROOT := ..", MAKEFILE_LINES[1], MAKEFILE_LINES[0], *MAKEFILE_LINES[2:]]
+        (root / MAKEFILE.relative_to(ROOT)).write_text("\n".join(makefile_lines) + "\n", encoding="utf-8")
+        assert any(code == "MAKEFILE_HOOK_ORDER_DRIFT" for code, _ in collect_issues(root))
         checks_run += 1
         build_self_test_root(root)
         (root / SCRIPTS_README.relative_to(ROOT)).write_text("\n", encoding="utf-8")
