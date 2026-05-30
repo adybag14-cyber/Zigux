@@ -138,7 +138,7 @@ SAMPLE_CONFDATA_CASES = [
 ]
 
 ALLCONFIG_SENTINEL_MODES = {"allnoconfig", "allyesconfig", "alldefconfig"}
-EXPECTED_SELF_TEST_CASE_COUNT = 6
+EXPECTED_SELF_TEST_CASE_COUNT = 7
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -325,6 +325,13 @@ def run_self_test() -> int:
         build_self_test_root(root)
         (root / FIXTURE_DIR.relative_to(ROOT) / str(SAMPLE_CONFDATA_CASES[0]["input"])).unlink()
         assert any(code == "MISSING_CONFDATA_FIXTURE" for code, _ in collect_manifest_issues(root))
+        checks_run += 1
+        build_self_test_root(root)
+        (root / FIXTURE_DIR.relative_to(ROOT) / str(SAMPLE_CONFDATA_CASES[-1]["expected"])).unlink()
+        assert any(
+            code == "MISSING_CONFDATA_FIXTURE" and value == str(SAMPLE_CONFDATA_CASES[-1]["expected"])
+            for code, value in collect_manifest_issues(root)
+        )
         checks_run += 1
         build_self_test_root(root)
         (root / FIXTURE_DIR.relative_to(ROOT) / str(SAMPLE_CONF_CASES[0]["expected"])).unlink()
