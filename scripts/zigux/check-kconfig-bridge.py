@@ -291,6 +291,12 @@ def check_repeatable_json_output(expected: Path, actual: Path, repeat: Path) -> 
     run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(actual), str(repeat)], cwd=str(ROOT))
 
 
+def run_repeatable_json_output(cmd: list[str], expected: Path, actual: Path, repeat: Path) -> None:
+    actual.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\n")
+    repeat.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\n")
+    check_repeatable_json_output(expected, actual, repeat)
+
+
 def build_self_test_root(root: Path) -> None:
     fixture_root = root / FIXTURE_DIR.relative_to(ROOT)
     (root / CONF_BRIDGE.relative_to(ROOT)).parent.mkdir(parents=True, exist_ok=True)
@@ -376,16 +382,12 @@ def main() -> int:
             actual = tmp_dir / f"{case['name']}.actual.json"
             repeat = tmp_dir / f"{case['name']}.repeat.json"
             cmd = [str(conf_exe), *build_conf_command(case)]
-            actual.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\n")
-            repeat.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\n")
-            check_repeatable_json_output(FIXTURE_DIR / str(case["expected"]), actual, repeat)
+            run_repeatable_json_output(cmd, FIXTURE_DIR / str(case["expected"]), actual, repeat)
         for case in confdata_cases:
             actual = tmp_dir / f"{case['name']}.actual.json"
             repeat = tmp_dir / f"{case['name']}.repeat.json"
             cmd = [str(confdata_exe), str(FIXTURE_DIR / str(case["input"]))]
-            actual.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\n")
-            repeat.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\n")
-            check_repeatable_json_output(FIXTURE_DIR / str(case["expected"]), actual, repeat)
+            run_repeatable_json_output(cmd, FIXTURE_DIR / str(case["expected"]), actual, repeat)
     print("KCONFIG_BRIDGE_DETERMINISM=pass")
     print("KCONFIG_BRIDGE_DIFF=pass")
     print(f"FIXTURE_DIR={FIXTURE_DIR}")

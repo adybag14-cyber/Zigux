@@ -125,7 +125,8 @@ VALIDATE_PHASE2_REQUIRED_LINES = (
     '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",',
     '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --zig \\"$(ZIG_REPO_ROOT)\\"",',
     '"cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/fixdep.zig",',
-    'f"phase2-validate: {\' \'.join(required_make_routes)}",',
+    'validate_prereqs = tuple(route for route in required_make_routes if route != "phase2-validate")',
+    'f"phase2-validate: {\' \'.join(validate_prereqs)}",',
 )
 
 REQUIRED_FIXDEP_CASE_NAMES = (

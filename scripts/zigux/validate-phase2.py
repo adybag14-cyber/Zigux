@@ -33,7 +33,7 @@ KCONFIG_CONFDATA_REPLAY_MARKERS = (
     'cmd = [str(confdata_exe), str(FIXTURE_DIR / str(case["input"]))]',
     'actual.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\\n")',
     'repeat.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\\n")',
-    'check_repeatable_json_output(FIXTURE_DIR / str(case["expected"]), actual, repeat)',
+    "check_repeatable_json_output(expected, actual, repeat)",
 )
 KCONFIG_BRIDGE_VALIDATOR_PATH = "scripts/zigux/check-kconfig-bridge.py"
 KCONFIG_CONF_EXPECTED_FIXTURES = (
@@ -151,6 +151,11 @@ ARCHIVE_PARTS_MANIFEST_PATH = "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7
 ARCHIVE_SUPPORT_ALTERNATIVES = (
     ARCHIVE_PAYLOAD_PATH,
     ARCHIVE_PARTS_MANIFEST_PATH,
+)
+ARCHIVE_README_PATH = "third_party/README.md"
+ARCHIVE_SUPPORT_DESCRIPTION = (
+    " or ".join(ARCHIVE_SUPPORT_ALTERNATIVES)
+    + " or documented canonical adybag14-cyber/zig fallback"
 )
 
 DEFAULT_REQUIRED_MAKE_ROUTES = (
@@ -313,7 +318,7 @@ STATIC_REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-artifact-tools-manifest.py",
     "phase2-kconfig: phase2-toolchain",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --zig \"$(ZIG_REPO_ROOT)\"",
     "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/kconfig/conf_bridge.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/kconfig/confdata_bridge.zig",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py --self-test",
@@ -396,8 +401,9 @@ def expected_workflow_route_lines(required_make_routes: tuple[str, ...]) -> tupl
 
 
 def expected_makefile_dynamic_lines(required_make_routes: tuple[str, ...]) -> tuple[str, ...]:
+    validate_prereqs = tuple(route for route in required_make_routes if route != "phase2-validate")
     return (
-        f"phase2-validate: {' '.join(required_make_routes)}",
+        f"phase2-validate: {' '.join(validate_prereqs)}",
         f"{PHASE2_AGGREGATE_ROUTE}: phase2-validate",
     )
 
@@ -445,9 +451,38 @@ def phony_targets_present(text: str) -> set[str]:
 def collect_archive_support_issues(root: Path) -> list[tuple[str, str]]:
     if any((root / rel).exists() for rel in ARCHIVE_SUPPORT_ALTERNATIVES):
         return []
+    policy = read_json_dict(root / TOOLCHAIN_POLICY)
+    channel = policy.get("channel")
+    archives = policy.get("archive_sha256")
+    upgrade_policy = policy.get("upgrade_policy")
+    targets = upgrade_policy.get("archive_target_scope") if isinstance(upgrade_policy, dict) else None
+    if (
+        isinstance(channel, str)
+        and isinstance(archives, dict)
+        and isinstance(targets, list)
+        and len(targets) == 1
+        and isinstance(targets[0], str)
+        and isinstance(archives.get(targets[0]), str)
+    ):
+        expected_path = f"third_party/zig-{targets[0]}-{channel}.tar.xz"
+        expected_parts_path = f"{expected_path}.parts"
+        try:
+            readme_text = (root / ARCHIVE_README_PATH).read_text(encoding="utf-8")
+        except FileNotFoundError:
+            readme_text = ""
+        required_markers = (
+            f"`{expected_path}`",
+            f"`{expected_parts_path}`",
+            f"`{archives[targets[0]]}`",
+            "canonical `adybag14-cyber/zig` release",
+            "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
+            "`scripts/zigux/check-lane05-local-archive-readme.py`",
+        )
+        if all(marker in readme_text for marker in required_markers):
+            return []
     return [(
         "MISSING_REQUIRED_ARCHIVE_SUPPORT",
-        " or ".join(ARCHIVE_SUPPORT_ALTERNATIVES),
+        ARCHIVE_SUPPORT_DESCRIPTION,
     )]
 
 
@@ -595,7 +630,7 @@ def run_self_test() -> int:
         + len(KCONFIG_CONFDATA_REPLAY_MARKERS)
         + len(KCONFIG_CONFDATA_REPLAY_MARKERS)
         + 4
-        + 2
+        + 3
         + 5
     )
     checks = 0
@@ -707,9 +742,28 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         (root / ARCHIVE_PAYLOAD_PATH).unlink()
+        write_text(
+            root,
+            ARCHIVE_README_PATH,
+            "\n".join(
+                (
+                    "`third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz`",
+                    "`third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts`",
+                    "`3333333333333333333333333333333333333333333333333333333333333333`",
+                    "canonical `adybag14-cyber/zig` release",
+                    "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
+                    "`scripts/zigux/check-lane05-local-archive-readme.py`",
+                )
+            ) + "\n",
+        )
+        assert collect_issues(root) == []
+        checks += 1
+
+        build_self_test_root(root)
+        (root / ARCHIVE_PAYLOAD_PATH).unlink()
         expect_issue(
             root,
-            ("MISSING_REQUIRED_ARCHIVE_SUPPORT", " or ".join(ARCHIVE_SUPPORT_ALTERNATIVES)),
+            ("MISSING_REQUIRED_ARCHIVE_SUPPORT", ARCHIVE_SUPPORT_DESCRIPTION),
         )
         checks += 1
 
