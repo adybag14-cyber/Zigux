@@ -126,3 +126,20 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
   * the dedicated local perf-baseline survey may keep the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates machine-checked while the shared promotion decision stays parked in `zigux/tests/phase4_perf_baseline_manifest.json`
   * `python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py` keeps this owner, wrapper, and threshold packet fail-closed against the matrix, the review checklist, the reversible-delivery note, and the scripts-root reminder surface
   * shared CI perf promotion pending remains the correct roadmap-facing posture until a later bounded lane widens this local-only survey packet into broader shared-lab evidence
+
+## Exact-Readback Parked Starter Surveys
+
+  * explicit local lab replay marker: `make -C zigux phase4-kprobe-example-survey`
+  * dedicated local survey wrapper: `make -C zigux phase4-kprobe-example-survey`
+  * validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`
+  * survey owner: `Validation and Perf Team`
+  * rollback owner: `Validation and Perf Team`
+  * current measurable status: absent on current `master`
+  * reviewability-only no-perf-threshold posture
+  * validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
+  * dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`
+  * survey owner: `Validation and Perf Team`
+  * rollback owner: `Validation and Perf Team`
+  * Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners
+  * any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners
+  * next bounded evidence step: keep the dedicated parked survey packet

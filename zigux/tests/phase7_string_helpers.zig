@@ -67,7 +67,7 @@ test "phase 7 string helpers starter covers whitespace trimming and prefix skipp
 }
 
 test "phase 7 string helpers starter formats bounded sizes with three significant figures" {
-    var buf = [_]u8{0} ** 16;
+    var buf: [16]u8 = @splat(0);
     const written = string_helpers.stringGetSize(1536, 1, string_helpers.STRING_UNITS_2, &buf, 0);
     try std.testing.expectEqual(@as(usize, 8), written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '.', '5', '0', ' ', 'K', 'i', 'B', 0 }, buf[0 .. written + 1]);
@@ -77,7 +77,7 @@ test "phase 7 string helpers starter formats bounded sizes with three significan
     try std.testing.expectEqual(@as(usize, 3), zero_written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ '0', ' ', 'B', 0 }, zero_buf[0 .. zero_written + 1]);
 
-    var flag_buf = [_]u8{0} ** 16;
+    var flag_buf: [16]u8 = @splat(0);
     const flag_written = string_helpers.stringGetSize(
         1536,
         1,
@@ -88,12 +88,12 @@ test "phase 7 string helpers starter formats bounded sizes with three significan
     try std.testing.expectEqual(@as(usize, 6), flag_written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '.', '5', '0', 'K', 'i', 0 }, flag_buf[0 .. flag_written + 1]);
 
-    var rounded_decimal = [_]u8{0} ** 16;
+    var rounded_decimal: [16]u8 = @splat(0);
     const rounded_decimal_written = string_helpers.stringGetSize(999950, 1, string_helpers.STRING_UNITS_10, &rounded_decimal, 0);
     try std.testing.expectEqual(@as(usize, 7), rounded_decimal_written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '0', '0', '0', ' ', 'k', 'B', 0 }, rounded_decimal[0 .. rounded_decimal_written + 1]);
 
-    var rounded_binary = [_]u8{0} ** 16;
+    var rounded_binary: [16]u8 = @splat(0);
     const rounded_binary_written = string_helpers.string_get_size(1048064, 1, string_helpers.STRING_UNITS_2, &rounded_binary, 0);
     try std.testing.expectEqual(@as(usize, 8), rounded_binary_written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '0', '2', '4', ' ', 'K', 'i', 'B', 0 }, rounded_binary[0 .. rounded_binary_written + 1]);
@@ -161,12 +161,12 @@ test "phase 7 string helpers starter matches tables through the first null entry
 
 test "phase 7 string helpers starter unescapes supported escape families and preserves unsupported escapes" {
     var escaped = [_]u8{ '\\', 'n', '\\', 'x', '4', '1', '\\', '1', '0', '1', '\\', 'e', '\\', 'q', 0 };
-    var decoded = [_]u8{0} ** 16;
+    var decoded: [16]u8 = @splat(0);
     const written = string_helpers.stringUnescapeAny(&escaped, &decoded, 0);
     try std.testing.expectEqual(@as(usize, 6), written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ '\n', 'A', 'A', '\x1b', '\\', 'q', 0 }, decoded[0 .. written + 1]);
 
-    var alias_decoded = [_]u8{0} ** 16;
+    var alias_decoded: [16]u8 = @splat(0);
     const alias_written = string_helpers.string_unescape_any(&escaped, &alias_decoded, 0);
     try std.testing.expectEqual(@as(usize, 6), alias_written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ '\n', 'A', 'A', '\x1b', '\\', 'q', 0 }, alias_decoded[0 .. alias_written + 1]);
@@ -214,7 +214,7 @@ test "phase 7 string helpers starter keeps exact-fit, terminator-only, and zero-
 
 test "phase 7 string helpers starter escapes bounded memory across flag families and dictionary modes" {
     var escaped = [_]u8{ 0, '\n', '\\', '"', 0x7f };
-    var dst = [_]u8{0} ** 24;
+    var dst: [24]u8 = @splat(0);
     const written = string_helpers.stringEscapeMem(
         &escaped,
         &dst,
@@ -225,17 +225,17 @@ test "phase 7 string helpers starter escapes bounded memory across flag families
     try std.testing.expectEqual(@as(usize, 12), written);
     try std.testing.expectEqualSlices(u8, "\\0\\n\\\\\\\"\\x7F", dst[0..written]);
 
-    var alias_dst = [_]u8{0} ** 16;
+    var alias_dst: [16]u8 = @splat(0);
     const alias_written = string_helpers.string_escape_mem_any_np(&[_]u8{ '\n', 0x7f }, &alias_dst, 0, null);
     try std.testing.expectEqual(@as(usize, 6), alias_written);
     try std.testing.expectEqualSlices(u8, "\\n\\177", alias_dst[0..alias_written]);
 
-    var limited_dst = [_]u8{0} ** 8;
+    var limited_dst: [8]u8 = @splat(0);
     const limited_written = string_helpers.stringEscapeMem("AZ", &limited_dst, 0, string_helpers.ESCAPE_HEX, "Z");
     try std.testing.expectEqual(@as(usize, 5), limited_written);
     try std.testing.expectEqualSlices(u8, "A\\x5A", limited_dst[0..limited_written]);
 
-    var appended_dst = [_]u8{0} ** 8;
+    var appended_dst: [8]u8 = @splat(0);
     const appended_written = string_helpers.stringEscapeMem(
         "AZ",
         &appended_dst,
@@ -247,7 +247,7 @@ test "phase 7 string helpers starter escapes bounded memory across flag families
     try std.testing.expectEqualSlices(u8, "A\\x5A", appended_dst[0..appended_written]);
 
     const terminated = [_]u8{ 'A', 0, '\n' };
-    var string_dst = [_]u8{0} ** 8;
+    var string_dst: [8]u8 = @splat(0);
     const string_written = string_helpers.stringEscapeStr(
         &terminated,
         &string_dst,
@@ -258,7 +258,7 @@ test "phase 7 string helpers starter escapes bounded memory across flag families
     try std.testing.expectEqual(@as(usize, 1), string_written);
     try std.testing.expectEqualSlices(u8, "A", string_dst[0..string_written]);
 
-    var any_np_dst = [_]u8{0} ** 8;
+    var any_np_dst: [8]u8 = @splat(0);
     const any_np_written = string_helpers.string_escape_str_any_np(&[_]u8{ '\n', 0 }, &any_np_dst, 0, null);
     try std.testing.expectEqual(@as(usize, 2), any_np_written);
     try std.testing.expectEqualSlices(u8, "\\n", any_np_dst[0..any_np_written]);
@@ -304,7 +304,7 @@ test "phase 7 string helpers starter keeps zero-capacity and exact-fit escape ac
 }
 
 test "phase 7 string helpers starter keeps append-limited octal dictionary escapes reviewable" {
-    var octal_dst = [_]u8{0} ** 16;
+    var octal_dst: [16]u8 = @splat(0);
     const octal_written = string_helpers.stringEscapeMem(
         "AZ",
         &octal_dst,
@@ -315,7 +315,7 @@ test "phase 7 string helpers starter keeps append-limited octal dictionary escap
     try std.testing.expectEqual(@as(usize, 5), octal_written);
     try std.testing.expectEqualSlices(u8, "A\\132", octal_dst[0..octal_written]);
 
-    var alias_dst = [_]u8{0} ** 16;
+    var alias_dst: [16]u8 = @splat(0);
     const alias_written = string_helpers.string_escape_mem(
         "AZ",
         &alias_dst,

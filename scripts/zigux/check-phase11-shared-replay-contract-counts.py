@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 
 DEFAULT_ROOT = (
-    Path(__file__).resolve().parents[3]
+    Path(__file__).resolve().parents[2]
     if len(Path(__file__).resolve().parents) > 3
     else Path.cwd()
 )
@@ -264,7 +264,7 @@ def build_fixture(root: Path) -> None:
                 "phase11-validate:",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
                 *(
-                    f"\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file {marker}"
+                    f"\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file {marker}"
                     for marker in EXPECTED_PROOF_FANOUT_MARKERS
                 ),
             ]

@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 SELF_PATH = Path(__file__).resolve()
-DEFAULT_ROOT = SELF_PATH.parents[3] if len(SELF_PATH.parents) > 3 else Path.cwd()
+DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 3 else Path.cwd()
 
 COMPANION_PATH = Path(
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"

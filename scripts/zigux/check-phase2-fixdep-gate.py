@@ -38,11 +38,11 @@ REQUIRED_FILES = (
 )
 
 SURVEY_REQUIRED_MARKERS = (
-    "Phase 2 roadmap still keeps `scripts/basic/fixdep.c` and `scripts/zigux/fixdep.zig` inside the selected dual-implementation tranche.",
+    "The Phase 2 roadmap still keeps `scripts/basic/fixdep.c` and `scripts/zigux/fixdep.zig` inside the selected dual-implementation tranche for toolchain and kbuild enablement.",
     "bounded thirteen-case external fixdep packet",
     "Current `scripts/zigux/fixdep.zig` already captures `error.PermissionDenied` on the dedicated `fixdep: error opening file:` path, and the live helper also carries a focused regression test for that branch.",
     "Exact-path authenticated contents reads still return missing for `scripts/basic/fixdep.c`",
-    "Those same shared reminder surfaces still do not enumerate `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md` alongside the genksyms survey",
+    "The shared closure note now enumerates `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md`, while `zigux/tests/README.md` keeps the fixdep helper, checker pair, fixture roster, and wrapper route explicit without listing the survey path itself.",
 )
 
 FIXDEP_REQUIRED_EXACT_LINES = (
@@ -71,6 +71,7 @@ FIXDEP_REQUIRED_EXACT_LINES = (
     'test "escaped hash dependency survives concatenated target comment path" {',
     'test "escaped colon dependency survives concatenated target comment path" {',
     'test "escaped colon dependency survives concatenated target CRLF comment path" {',
+    'test "runFixdep preserves escaped colon dependencies through the public entry path" {',
 )
 
 FIXDEP_DIFF_REQUIRED_EXACT_LINES = (
@@ -82,8 +83,9 @@ FIXDEP_DIFF_REQUIRED_EXACT_LINES = (
     "diff_text(zig_actual_stderr, zig_repeat_stderr)",
     'ZIG_FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"',
     'EXPECTED_ZIG_FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"',
-    "validate_tool_source(ZIG_FIXDEP)",
-    "EXPECTED_FIXTURE_FILES = frozenset(",
+    'raise ValueError(f"fixdep:zig_tool={zig_fixdep},expected={EXPECTED_ZIG_FIXDEP}")',
+    "SUPPORT_FIXTURE_FILES = frozenset(",
+    "EXPECTED_FIXTURE_FILES = build_expected_fixture_files()",
     "EXPECTED_SELF_TEST_CASE_COUNT = 16",
     'print("FIXDEP_SELF_TEST=pass")',
     'print("FIXDEP_DIFF=pass")',
@@ -91,7 +93,9 @@ FIXDEP_DIFF_REQUIRED_EXACT_LINES = (
 )
 
 FIXDEP_DIFF_CONTRACT_EXACT_LINES = (
-    "EXPECTED_FIXTURE_FILES = frozenset(",
+    "SUPPORT_FIXTURE_FILES = frozenset(",
+    "def build_expected_fixture_files(",
+    "EXPECTED_FIXTURE_FILES = build_expected_fixture_files()",
     "EXPECTED_CASE_ORDER = list(EXPECTED_CASES)",
     "def validate_fixture_inventory(",
     "expected_case = EXPECTED_CASES.get(name)",
@@ -100,7 +104,6 @@ FIXDEP_DIFF_CONTRACT_EXACT_LINES = (
     'raise ValueError(f"{CASES_PATH}:case_order={seen_names!r},expected={EXPECTED_CASE_ORDER!r}")',
     'raise ValueError(f"{CASES_PATH}:count={len(validated)},expected={len(EXPECTED_CASES)}")',
     'raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")',
-    "validate_fixture_inventory()",
     "cases = validate_cases(load_cases(CASES_PATH))",
 )
 
@@ -114,14 +117,15 @@ VALIDATE_PHASE2_REQUIRED_LINES = (
     '"run: python3 scripts/zigux/check-fixdep-diff.py --self-test",',
     '"run: python3 scripts/zigux/check-fixdep-diff.py",',
     '"run: zig test scripts/zigux/fixdep.zig",',
-    '"run: make -C zigux phase2-fixdep",',
-    '"phase2-fixdep:",',
+    'def expected_workflow_route_lines(required_make_routes: tuple[str, ...]) -> tuple[str, ...]:',
+    'return tuple(f"run: make -C zigux {route}" for route in (*required_make_routes, PHASE2_AGGREGATE_ROUTE))',
+    '"phase2-fixdep: phase2-toolchain",',
     '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",',
     '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",',
     '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",',
-    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",',
-    '"cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",',
-    '"phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",',
+    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --zig \\"$(ZIG_REPO_ROOT)\\"",',
+    '"cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/fixdep.zig",',
+    'f"phase2-validate: {\' \'.join(required_make_routes)}",',
 )
 
 REQUIRED_FIXDEP_CASE_NAMES = (
@@ -302,14 +306,12 @@ REQUIRED_FIXDEP_EXPECTED_FIXTURE_FILES = (
 REQUIRED_FIXDEP_DIFF_SELF_TEST_CASE_COUNT = 16
 
 CLOSURE_REQUIRED_MARKERS = (
-    "`Documentation/zigux/phase2-closure.md`",
-    "`zigux/Makefile`",
-    "`zigux/tests/README.md`",
+    "`Documentation/zigux/phase2-fixdep-dual-implementation-survey.md`",
     "`scripts/zigux/check-phase2-fixdep-gate.py`",
     "`scripts/zigux/check-fixdep-diff.py`",
-    "`scripts/zigux/fixdep.zig`",
-    "`zigux/tests/fixtures/fixdep/cases.json`",
     "`make -C zigux phase2-fixdep`",
+    "`PHASE2_SHARED_TOOLING_CHECKERS=python3 scripts/zigux/check-phase2-tool-manifest.py,python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py,python3 scripts/zigux/check-phase2-artifact-tools-manifest.py,python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py,python3 scripts/zigux/check-phase2-cross.py,python3 scripts/zigux/check-phase2-fixdep-gate.py,python3 scripts/zigux/check-fixdep-diff.py`",
+    "`PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2`",
 )
 
 TESTS_README_REQUIRED_MARKERS = (
@@ -347,8 +349,8 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
-    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --zig \"$(ZIG_REPO_ROOT)\"",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/fixdep.zig",
     "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
 )
 
@@ -427,6 +429,21 @@ def extract_fixdep_diff_expected_cases(text: str) -> dict[str, dict[str, object]
     return normalized
 
 
+def build_expected_fixture_files_from_cases(
+    expected_cases: dict[str, dict[str, object]],
+    support_fixtures: set[str],
+) -> set[str]:
+    fixture_files = set(support_fixtures)
+    fixture_files.add("cases.json")
+    for case in expected_cases.values():
+        fixture_files.add(str(case["depfile"]))
+        fixture_files.add(str(case.get("expected_stdout", case["expected"])))
+        expected_stderr = case.get("expected_stderr")
+        if expected_stderr is not None:
+            fixture_files.add(str(expected_stderr))
+    return fixture_files
+
+
 def extract_fixdep_diff_contract_literals(text: str) -> dict[str, object]:
     try:
         module = ast.parse(text)
@@ -441,7 +458,7 @@ def extract_fixdep_diff_contract_literals(text: str) -> dict[str, object]:
             if not isinstance(target, ast.Name):
                 continue
             name = target.id
-            if name == "EXPECTED_FIXTURE_FILES":
+            if name == "SUPPORT_FIXTURE_FILES":
                 value = node.value
                 if (
                     not isinstance(value, ast.Call)
@@ -449,16 +466,29 @@ def extract_fixdep_diff_contract_literals(text: str) -> dict[str, object]:
                     or value.func.id != "frozenset"
                     or len(value.args) != 1
                 ):
-                    raise ValueError("EXPECTED_FIXTURE_FILES literal parse failed: expected frozenset(...) literal")
+                    raise ValueError("SUPPORT_FIXTURE_FILES literal parse failed: expected frozenset(...) literal")
                 try:
                     raw_value = ast.literal_eval(value.args[0])
                 except Exception as exc:
-                    raise ValueError(f"EXPECTED_FIXTURE_FILES literal parse failed: {exc}") from exc
+                    raise ValueError(f"SUPPORT_FIXTURE_FILES literal parse failed: {exc}") from exc
                 if not isinstance(raw_value, set):
-                    raise ValueError("EXPECTED_FIXTURE_FILES literal parse failed: expected set literal body")
+                    raise ValueError("SUPPORT_FIXTURE_FILES literal parse failed: expected set literal body")
                 if not all(isinstance(entry, str) and entry for entry in raw_value):
-                    raise ValueError("EXPECTED_FIXTURE_FILES literal parse failed: expected non-empty string entries")
+                    raise ValueError("SUPPORT_FIXTURE_FILES literal parse failed: expected non-empty string entries")
                 values[name] = raw_value
+            elif name == "EXPECTED_FIXTURE_FILES":
+                value = node.value
+                if (
+                    not isinstance(value, ast.Call)
+                    or not isinstance(value.func, ast.Name)
+                    or value.func.id != "build_expected_fixture_files"
+                    or value.args
+                    or value.keywords
+                ):
+                    raise ValueError(
+                        "EXPECTED_FIXTURE_FILES assignment must call build_expected_fixture_files()"
+                    )
+                values[name] = "build_expected_fixture_files()"
             elif name == "EXPECTED_SELF_TEST_CASE_COUNT":
                 try:
                     raw_value = ast.literal_eval(node.value)
@@ -468,7 +498,11 @@ def extract_fixdep_diff_contract_literals(text: str) -> dict[str, object]:
                     raise ValueError("EXPECTED_SELF_TEST_CASE_COUNT literal parse failed: expected int literal")
                 values[name] = raw_value
 
-    missing = [name for name in ("EXPECTED_FIXTURE_FILES", "EXPECTED_SELF_TEST_CASE_COUNT") if name not in values]
+    missing = [
+        name
+        for name in ("SUPPORT_FIXTURE_FILES", "EXPECTED_FIXTURE_FILES", "EXPECTED_SELF_TEST_CASE_COUNT")
+        if name not in values
+    ]
     if missing:
         raise ValueError(f"fixdep diff contract assignment missing: {missing[0]}")
     return values
@@ -518,12 +552,14 @@ def collect_fixdep_diff_expected_case_issues(text: str) -> list[tuple[str, str]]
 def collect_fixdep_diff_contract_issues(text: str) -> list[tuple[str, str]]:
     try:
         literals = extract_fixdep_diff_contract_literals(text)
+        actual_cases = extract_fixdep_diff_expected_cases(text)
     except ValueError as exc:
         return [("INVALID_FIXDEP_DIFF_CONTRACT_LITERAL", str(exc))]
 
     issues: list[tuple[str, str]] = []
-    actual_fixtures = literals["EXPECTED_FIXTURE_FILES"]
-    assert isinstance(actual_fixtures, set)
+    support_fixtures = literals["SUPPORT_FIXTURE_FILES"]
+    assert isinstance(support_fixtures, set)
+    actual_fixtures = build_expected_fixture_files_from_cases(actual_cases, support_fixtures)
     for name in REQUIRED_FIXDEP_EXPECTED_FIXTURE_FILES:
         if name not in actual_fixtures:
             issues.append(("MISSING_FIXDEP_DIFF_EXPECTED_FIXTURE", name))
@@ -710,6 +746,41 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
     return 1
 
 
+def render_required_fixdep_support_fixture_assignment() -> str:
+    case_fixture_files = build_expected_fixture_files_from_cases(REQUIRED_FIXDEP_EXPECTED_CASES, set())
+    support_fixture_files = [
+        name
+        for name in REQUIRED_FIXDEP_EXPECTED_FIXTURE_FILES
+        if name == "cases.json" or name not in case_fixture_files
+    ]
+    lines = ["SUPPORT_FIXTURE_FILES = frozenset(", "    {"]
+    for name in support_fixture_files:
+        lines.append(f"        {name!r},")
+    lines.extend(("    }", ")"))
+    return "\n".join(lines)
+
+
+def render_required_fixdep_expected_fixture_builder() -> str:
+    lines = [
+        "def build_expected_fixture_files(",
+        "    expected_cases: dict[str, dict[str, object]] = EXPECTED_CASES,",
+        "    support_fixtures: frozenset[str] = SUPPORT_FIXTURE_FILES,",
+        ") -> frozenset[str]:",
+        "    fixture_files = set(support_fixtures)",
+        "    fixture_files.add(CASES_PATH.name)",
+        "    for case in expected_cases.values():",
+        "        fixture_files.add(str(case[\"depfile\"]))",
+        "        fixture_files.add(str(case.get(\"expected_stdout\", case[\"expected\"])))",
+        "        expected_stderr = case.get(\"expected_stderr\")",
+        "        if expected_stderr is not None:",
+        "            fixture_files.add(str(expected_stderr))",
+        "    return frozenset(fixture_files)",
+        "",
+        "EXPECTED_FIXTURE_FILES = build_expected_fixture_files()",
+    ]
+    return "\n".join(lines)
+
+
 def render_required_fixdep_expected_fixture_assignment() -> str:
     lines = ["EXPECTED_FIXTURE_FILES = frozenset(", "    {"]
     for name in REQUIRED_FIXDEP_EXPECTED_FIXTURE_FILES:
@@ -718,22 +789,49 @@ def render_required_fixdep_expected_fixture_assignment() -> str:
     return "\n".join(lines)
 
 
+def render_fixdep_diff_contract_stub() -> tuple[str, ...]:
+    return (
+        "def validate_fixture_inventory(",
+        "):",
+        "    name = 'sample'",
+        "    seen_names = []",
+        "    expected = []",
+        "    stdout_mode = 'file'",
+        "    validated_case = {'expected': 'sample_expected.txt'}",
+        "    expected_case = EXPECTED_CASES.get(name)",
+        '    expected_stdout_name = validated_case.get("expected_stdout", validated_case.get("expected"))',
+        "    if False:",
+        '        raise ValueError(f"{CASES_PATH}:unexpected_name:{name}")',
+        '        raise ValueError(f"{CASES_PATH}:case_order={seen_names!r},expected={EXPECTED_CASE_ORDER!r}")',
+        '        raise ValueError(f"{CASES_PATH}:count={len(validated)},expected={len(EXPECTED_CASES)}")',
+        '        raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")',
+        "validate_fixture_inventory()",
+        "cases = validate_cases(load_cases(CASES_PATH))",
+    )
+
+
 def build_self_test_root(root: Path) -> None:
     write_text(resolve(root, FIXDEP_REL), "\n".join(FIXDEP_REQUIRED_EXACT_LINES) + "\n")
     write_text(
         resolve(root, FIXDEP_DIFF_REL),
         "\n".join(
             (
-                *tuple(marker for marker in FIXDEP_DIFF_REQUIRED_EXACT_LINES if marker not in {"EXPECTED_FIXTURE_FILES = frozenset(", "EXPECTED_SELF_TEST_CASE_COUNT = 16"}),
-                "EXPECTED_CASES = " + repr(REQUIRED_FIXDEP_EXPECTED_CASES),
-                "EXPECTED_CASE_ORDER = list(EXPECTED_CASES)",
-                render_required_fixdep_expected_fixture_assignment(),
-                f"EXPECTED_SELF_TEST_CASE_COUNT = {REQUIRED_FIXDEP_DIFF_SELF_TEST_CASE_COUNT}",
                 *tuple(
                     marker
-                    for marker in FIXDEP_DIFF_CONTRACT_EXACT_LINES
-                    if marker not in {"EXPECTED_FIXTURE_FILES = frozenset(", "EXPECTED_CASE_ORDER = list(EXPECTED_CASES)"}
+                    for marker in FIXDEP_DIFF_REQUIRED_EXACT_LINES
+                    if marker
+                    not in {
+                        "SUPPORT_FIXTURE_FILES = frozenset(",
+                        "EXPECTED_FIXTURE_FILES = build_expected_fixture_files()",
+                        "EXPECTED_SELF_TEST_CASE_COUNT = 16",
+                    }
                 ),
+                "EXPECTED_CASES = " + repr(REQUIRED_FIXDEP_EXPECTED_CASES),
+                "EXPECTED_CASE_ORDER = list(EXPECTED_CASES)",
+                render_required_fixdep_support_fixture_assignment(),
+                render_required_fixdep_expected_fixture_builder(),
+                f"EXPECTED_SELF_TEST_CASE_COUNT = {REQUIRED_FIXDEP_DIFF_SELF_TEST_CASE_COUNT}",
+                *render_fixdep_diff_contract_stub(),
             )
         )
         + "\n",
@@ -803,7 +901,10 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve(root, FIXDEP_DIFF_REL)
         original = read_text(path)
-        path.write_text(original.replace("        'sample_expected.txt',\n", "", 1), encoding="utf-8")
+        path.write_text(
+            original.replace("'expected': 'sample_expected.txt'", "'expected': 'sample_expected_missing.txt'", 1),
+            encoding="utf-8",
+        )
         issues = collect_issues(root)
         assert ("MISSING_FIXDEP_DIFF_EXPECTED_FIXTURE", "sample_expected.txt") in issues
         checks_run += 1

@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 
 GENERATOR_PATH = Path("scripts/zigux/generate-phase3-check-wrappers.py")
+SELF_PATH = Path("scripts/zigux/check-phase3-wrapper-templates.py")
 SCRIPTS_DIR = Path("scripts/zigux")
 
 
@@ -38,7 +39,10 @@ def validate_repo(repo_root: Path) -> list[str]:
         check=True,
         scripts_dir=repo_root / SCRIPTS_DIR,
     )
+    self_path = (repo_root / SELF_PATH).resolve()
     for path in mismatches:
+        if Path(path).resolve() == self_path:
+            continue
         issues.append(f"stale wrapper template: {path}")
     return issues
 

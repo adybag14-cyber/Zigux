@@ -66,9 +66,9 @@ REQUIRED_MARKERS = {
     ),
     MAKEFILE_PATH: (
         "phase3-idr-slot-starter-packet-test:",
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig",
         "phase3-idr-slot-dump:",
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig",
     ),
     C_HARNESS_PATH: (
         "#define MAX_ERRNO ((uintptr_t)4095)",

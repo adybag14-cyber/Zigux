@@ -8,7 +8,8 @@ from pathlib import Path
 import sys
 
 
-WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
+WORKFLOW_PATH = ROOT / ".github/workflows/zigux-bootstrap.yml"
 
 CHECKOUT_STEP = "- name: Checkout"
 SETUP_STEP = "- name: Setup pinned Zig toolchain"
@@ -50,11 +51,15 @@ POLICY_MARKERS = (
     'targets = policy["upgrade_policy"]["archive_target_scope"]',
     'channel = policy["channel"]',
     'filename = f"zig-{target}-{channel}.tar.xz"',
+    'canonical_repo = "adybag14-cyber/zig"',
+    'canonical_tag = "upstream-748e7c5e39fc"',
     'url = f"https://ziglang.org/builds/{filename}"',
+    'canonical_url = f"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}"',
     'print(f"ZIGUX_ZIG_TARGET=\'{target}\'")',
     'print(f"ZIGUX_ZIG_CHANNEL=\'{channel}\'")',
     'print(f"ZIGUX_ZIG_FILENAME=\'{filename}\'")',
     'print(f"ZIGUX_ZIG_URL=\'{url}\'")',
+    'print(f"ZIGUX_ZIG_CANONICAL_URL=\'{canonical_url}\'")',
 )
 
 LOCAL_ARCHIVE_MARKERS = (
@@ -71,9 +76,10 @@ LOCAL_ARCHIVE_MARKERS = (
     'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
     'tar -xJf "$repo_archive_path" -C .zig-toolchain',
     "if try_local_archive; then",
+    'elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then',
     'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
     'if try_download "$ZIGUX_ZIG_URL"; then',
-    "failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org",
+    "failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org",
 )
 
 README_SELF_TEST_STEP = "- name: Self-test current Lane 05 local archive README checker"
@@ -226,13 +232,37 @@ def check_workflow(text: str) -> None:
     require_order(
         text,
         'filename = f"zig-{target}-{channel}.tar.xz"',
+        'canonical_repo = "adybag14-cyber/zig"',
+        "workflow inline policy order",
+    )
+    require_order(
+        text,
+        'canonical_repo = "adybag14-cyber/zig"',
+        'canonical_tag = "upstream-748e7c5e39fc"',
+        "workflow inline policy order",
+    )
+    require_order(
+        text,
+        'canonical_tag = "upstream-748e7c5e39fc"',
         'url = f"https://ziglang.org/builds/{filename}"',
         "workflow inline policy order",
     )
     require_order(
         text,
         'url = f"https://ziglang.org/builds/{filename}"',
+        'canonical_url = f"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}"',
+        "workflow inline policy order",
+    )
+    require_order(
+        text,
+        'canonical_url = f"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}"',
         'print(f"ZIGUX_ZIG_URL=\'{url}\'")',
+        "workflow inline policy order",
+    )
+    require_order(
+        text,
+        'print(f"ZIGUX_ZIG_URL=\'{url}\'")',
+        'print(f"ZIGUX_ZIG_CANONICAL_URL=\'{canonical_url}\'")',
         "workflow inline policy order",
     )
 
@@ -305,8 +335,14 @@ def check_workflow(text: str) -> None:
     require_order(
         text,
         "if try_local_archive; then",
+        'elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then',
+        "workflow local-first before canonical release order",
+    )
+    require_order(
+        text,
+        'elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then',
         'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
-        "workflow local-first before mirrors order",
+        "workflow canonical release before mirrors order",
     )
     require_order(
         text,
@@ -333,11 +369,15 @@ jobs:
           targets = policy["upgrade_policy"]["archive_target_scope"]
           channel = policy["channel"]
           filename = f"zig-{target}-{channel}.tar.xz"
+          canonical_repo = "adybag14-cyber/zig"
+          canonical_tag = "upstream-748e7c5e39fc"
           url = f"https://ziglang.org/builds/{filename}"
+          canonical_url = f"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}"
           print(f"ZIGUX_ZIG_TARGET='{target}'")
           print(f"ZIGUX_ZIG_CHANNEL='{channel}'")
           print(f"ZIGUX_ZIG_FILENAME='{filename}'")
           print(f"ZIGUX_ZIG_URL='{url}'")
+          print(f"ZIGUX_ZIG_CANONICAL_URL='{canonical_url}'")
           archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"
           extract_root="$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL"
           repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"
@@ -359,13 +399,15 @@ jobs:
           download_success=0
           if try_local_archive; then
             download_success=1
+          elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then
+            download_success=1
           elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then
             download_success=0
           fi
           if try_download "$ZIGUX_ZIG_URL"; then
             download_success=1
           fi
-          echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2
+          echo 'failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org' >&2
       - name: Self-test current Zig toolchain checker
         run: python3 scripts/zigux/check-zig-toolchain.py --self-test
       - name: Check current Zig toolchain policy packet
@@ -488,7 +530,12 @@ jobs:
     try:
         check_workflow(missing_stage_helper_call)
     except SystemExit as exc:
-        assert "stage helper" in str(exc) or STAGE_HELPER_CMD in str(exc)
+        assert (
+            "stage helper" in str(exc)
+            or STAGE_HELPER_CMD in str(exc)
+            or STAGE_HELPER_ROOT_ARG in str(exc)
+            or STAGE_HELPER_PARTS_ARG in str(exc)
+        )
         case_count += 1
     else:
         raise AssertionError("expected missing stage helper call failure")
@@ -648,6 +695,8 @@ jobs:
     reordered_fallback = good_workflow.replace(
         "          if try_local_archive; then\n"
         "            download_success=1\n"
+        '          elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then\n'
+        "            download_success=1\n"
         '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
         "            download_success=0\n"
         "          fi\n",
@@ -655,6 +704,8 @@ jobs:
         "            download_success=0\n"
         "          fi\n"
         "          if try_local_archive; then\n"
+        "            download_success=1\n"
+        '          elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then\n'
         "            download_success=1\n"
         '          if try_download "$ZIGUX_ZIG_URL"; then\n'
         "            download_success=1\n"
@@ -664,7 +715,10 @@ jobs:
     try:
         check_workflow(reordered_fallback)
     except SystemExit as exc:
-        assert "workflow local-first before mirrors order" in str(exc)
+        assert (
+            "workflow local-first before canonical release order" in str(exc)
+            or "workflow canonical release before mirrors order" in str(exc)
+        )
         case_count += 1
     else:
         raise AssertionError("expected reordered fallback failure")

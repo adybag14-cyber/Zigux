@@ -8,9 +8,11 @@ This plan records the validation boundary for the current `bcm2835_wdt` packet a
 - Linux anchor: `drivers/watchdog/bcm2835_wdt.c`
 - scope: future slice-note, platform-registration, PM-base, watchdog-core, and shared poweroff-handler behavior for the bcm2835 watchdog packet only
 - current directly readable packet remains `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `Documentation/zigux/phase11-bcm2835-wdt-platform-validation-plan.md`, `Documentation/zigux/phase11-bcm2835-wdt-teardown-note.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey.zig`, `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt.zig`, `zigux/tests/phase11_bcm2835_wdt_build.zig`, `drivers/watchdog/bcm2835_wdt.zig`, and `drivers/watchdog/bcm2835_wdt_verify.zig`
+- core proof trio: `drivers/watchdog/bcm2835_wdt.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, and `zigux/tests/phase11_bcm2835_wdt.zig`
 
 ## Purpose
 The current bcm2835 packet now includes a bounded driver-return proof plus a coupled verify helper for timeout limits, restart constants, PM-base handoff gating, poweroff ownership outcomes, and teardown outcomes together with one returned manifest-backed closure, one teardown note, one dedicated direct replay route, and one validation matrix that keep the returned compile and reminder packet truthful. This plan exists so later work can widen the lane in one controlled direction instead of informally drifting into slice-note sprawl, PM-base plumbing, callback ownership claims, or stale reminder-surface restatements.
+The bounded current packet still keeps manifest-backed closure, one teardown note, and one validation matrix as the minimum blocker-plan anchor.
 
 ## Validation Stages
 1. Reminder-packet integrity stays mandatory.
@@ -38,6 +40,7 @@ The current bcm2835 packet now includes a bounded driver-return proof plus a cou
 - Do not use it to reopen `gpio_wdt`, `dw_wdt`, HVC, or shared Phase 11 wording.
 - Treat this as a validation-governance document, not proof that wider platform behavior is already implemented.
 - If a later lane cannot produce the required proof for one stage, keep that stage blocked and leave the current reminder-plus-driver-plus-verify-plus-direct-replay-plus-manifest-plus-teardown-plus-matrix packet as the published boundary.
+- If a later lane cannot produce the required proof for one stage, keep that stage blocked and leave the current reminder-plus-driver-plus-verify-plus-manifest-plus-teardown-plus-matrix packet as the published boundary.
 
 ## Next Bounded Step
 The next honest bcm2835-only follow-through is one platform-registration or shared-callback ownership step that matches the returned driver packet, verify helper, direct replay route, teardown note, manifest, and validation matrix first and only then widens into broader platform behavior.

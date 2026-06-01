@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 SELF_PATH = Path(__file__).resolve()
-DEFAULT_ROOT = SELF_PATH.parents[3] if len(SELF_PATH.parents) > 3 else SELF_PATH.parent
+DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 3 else SELF_PATH.parent
 
 NOTE_PATH = Path("Documentation/zigux/phase11-hvc-hv-ops-signature-gap.md")
 ZIG_PATH = Path("drivers/tty/hvc/hvc_console.zig")

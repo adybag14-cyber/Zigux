@@ -19,6 +19,8 @@ verify-helper boundary note, validation matrix, build-inventory checker,
 focused-direct-build replay checker, cleanup-current-head checker,
 targetless-unregister witness checker, shared build inventory, and the current
 proof-backed adjunct stack.
+The verify boundary path is `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`.
+The cleanup and targetless witness checkers are `scripts/zigux/check-phase11-hvc-cleanup-current-head.py` and `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`.
 
 Current authenticated contents readback still does not rematerialize
 `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`,
@@ -29,9 +31,12 @@ Current authenticated contents readback still does not rematerialize
 `scripts/zigux/check-phase11-hvc-survey-packet.py`; keep those older helper,
 replay, manifest, note, and checker anchors framed as repo-reality gaps or
 archival vocabulary instead of returned fallback evidence.
+Those anchors remain repo-reality gaps or archival vocabulary for current-head
+review, not returned fallback evidence.
 
 The returned HVC validation matrix and build-inventory checker stay explicit
-inside that smaller current-head packet. `drivers/tty/hvc/hvc_console_verify.zig`
+inside that smaller current-head packet. `drivers/tty/hvc/hvc_console.zig` and
+`drivers/tty/hvc/hvc_console_verify.zig`
 and the verify boundary note stay explicit as the helper-local failure-mode
 surface for remove, notifier, sysrq fallback, and cleanup-trigger reminders
 without widening into live execution. The standalone targetless-unregister
@@ -78,3 +83,6 @@ the dedicated modem-control proof pair, the machine-readable current-head
 manifest packet, and the smaller proof-backed continuity packet reviewable
 while the sysrq helper, survey-replay, manifest, teardown-note, and
 survey-checker anchors remain absent on current head.
+The shared inventory-backed proof routes stay explicit beside the focused
+failure-mode witness routes.
+The standalone targetless-unregister witness remains a separate failure-mode replay.

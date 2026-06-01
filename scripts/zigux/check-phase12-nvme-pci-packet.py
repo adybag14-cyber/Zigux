@@ -10,6 +10,19 @@ import tempfile
 from pathlib import Path
 
 CHECK_NAME = "PHASE12_NVME_PCI_PACKET"
+SELF_PATH = Path(__file__).resolve()
+
+
+def infer_repo_root() -> Path:
+    for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
+        if (candidate / "Documentation/zigux").is_dir() and (
+            candidate / "zigux/Makefile"
+        ).is_file():
+            return candidate
+    return Path(".")
+
+
+ROOT = infer_repo_root()
 MANIFEST_PATH = Path("zigux/tests/phase12_nvme_pci_manifest.json")
 BUILD_PATH = Path("zigux/tests/phase12_build.zig")
 SURVEY_PATH = Path("zigux/tests/phase12_nvme_pci_survey.zig")
@@ -18,11 +31,11 @@ REOPEN_PATH = Path("Documentation/zigux/phase12-nvme-pci-reopen-governance.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
 EXPECTED_GAP_STATUSES = {
-    "queueing": "starter_verifier_direct_test_manifest_and_survey_gate_present_shared_direct_replay_present",
-    "throughput": "recovery_budget_summary_shared_direct_replay_present_throughput_gate_missing",
-    "segmented": "driver_local_slice_note_manifest_survey_note_and_survey_gate_present_shared_direct_replay_present",
-    "shared_route": "shared_build_present_direct_replay_only_survey_gate_standalone",
-    "survey_note": "survey_present_shared_direct_replay_dedicated_verify_and_survey_retained",
+    "queueing": "starter_verifier_direct_test_manifest_and_survey_gate_present_shared_build_absent",
+    "throughput": "recovery_budget_summary_dedicated_direct_replay_present_throughput_gate_missing",
+    "segmented": "driver_local_slice_note_manifest_survey_note_and_survey_gate_present_shared_build_absent",
+    "shared_route": "shared_build_absent_direct_replay_and_survey_standalone",
+    "survey_note": "survey_present_dedicated_verify_and_survey_retained_shared_build_absent",
     "survey_gate": "survey_present_packet_local_route_retained",
 }
 
@@ -54,22 +67,22 @@ def check(root: Path) -> int:
         require(status in statuses_blob, f"manifest missing status: {status}")
 
     survey_note = read_text(root, SURVEY_NOTE_PATH)
-    require("PHASE12_STATUS=starter_verifier_direct_replay_manifest_and_survey_gate_present_shared_direct_replay_present" in survey_note, "survey note status drifted")
-    require("the shared `zigux/tests/phase12_build.zig` route now wires the bounded NVMe direct replay into `phase12-smoke`, `phase12-test`, and `phase12`" in survey_note, "survey note lost shared direct replay wording")
+    require("PHASE12_STATUS=starter_verifier_direct_replay_manifest_and_survey_gate_present_shared_build_absent" in survey_note, "survey note status drifted")
+    require("the shared `zigux/tests/phase12_build.zig` route still stays scoped to the shared `virtio_net` packet and does not yet wire the bounded NVMe direct replay into `phase12-smoke`, `phase12-test`, or `phase12`" in survey_note, "survey note lost shared-build-absent wording")
     require("route still stays virtio-net-only" not in survey_note, "survey note kept stale virtio-net-only wording")
 
     reopen = read_text(root, REOPEN_PATH)
-    require("shares one bounded direct replay through the shared `phase12-smoke`, `phase12-test`, and `phase12` routes" in reopen, "reopen note lost shared direct replay wording")
+    require("stays outside the shared `phase12-smoke`, `phase12-test`, and aggregate `phase12` route while keeping its direct replay and survey gate on dedicated reruns" in reopen, "reopen note lost dedicated-route boundary wording")
     require("still stays virtio_net-only" not in reopen, "reopen note kept stale exclusivity wording")
 
     shared_build = read_text(root, BUILD_PATH)
-    require("phase12_nvme_pci.zig" in shared_build, "shared build lost nvme direct replay root")
-    require("phase12-nvme-pci-direct-tests" in shared_build, "shared build lost nvme direct test name")
+    require("phase12_nvme_pci.zig" not in shared_build, "shared build unexpectedly absorbed nvme direct replay root")
+    require("phase12-nvme-pci-direct-tests" not in shared_build, "shared build unexpectedly absorbed nvme direct test name")
     require("phase12_nvme_pci_survey.zig" not in shared_build, "shared build wrongly absorbed packet-local survey gate")
-    require(shared_build.count("b.createModule(.{") == 13, "shared build module count drifted")
-    require(shared_build.count(".addImport(") == 6, "shared build import count drifted")
-    require(shared_build.count("b.addTest(.{") == 7, "shared build test count drifted")
-    require(shared_build.count("b.addRunArtifact(") == 7, "shared build run-artifact count drifted")
+    require(shared_build.count("b.createModule(.{") == 11, "shared build module count drifted")
+    require(shared_build.count(".addImport(") == 5, "shared build import count drifted")
+    require(shared_build.count("b.addTest(.{") == 6, "shared build test count drifted")
+    require(shared_build.count("b.addRunArtifact(") == 6, "shared build run-artifact count drifted")
 
     survey_gate = read_text(root, SURVEY_PATH)
     require("phase12 nvme pci survey manifest keeps the bounded starter packet truthful" in survey_gate, "survey gate lost manifest test")
@@ -85,7 +98,7 @@ def check(root: Path) -> int:
 def write_fixture(root: Path) -> None:
     from shutil import copyfile
 
-    src_root = Path("/workspace/zigux_phase12_patch")
+    src_root = ROOT
     needed = [MANIFEST_PATH, BUILD_PATH, SURVEY_PATH, SURVEY_NOTE_PATH, REOPEN_PATH, MAKEFILE_PATH]
     for rel in needed:
         dst = root / rel
@@ -130,13 +143,13 @@ def run_self_test() -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", default=".")
+    parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args(argv)
     if args.self_test:
         return run_self_test()
     try:
-        gap_count = check(Path(args.root))
+        gap_count = check(args.root)
     except CheckFailure as exc:
         print(f"{CHECK_NAME}=fail")
         print(f"{CHECK_NAME}_ERROR={exc}")

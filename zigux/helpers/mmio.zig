@@ -514,7 +514,7 @@ test "phase3 mmio helper keeps typed scope require gate explicit" {
 }
 
 test "phase3 mmio helper keeps helper-local ranges and width aliases explicit" {
-    var bytes = [_]u8{0} ** 16;
+    var bytes: [16]u8 = @splat(0);
     const base_addr = @intFromPtr(&bytes[0]);
     const mmio_policy = abi.InteropPolicy{
         .panic_mode = 0,
@@ -591,7 +591,7 @@ test "phase3 mmio helper keeps MmioRange typed-access windows explicit before fu
 }
 
 test "phase3 mmio helper keeps range-bound accessors inside the blessed MMIO window" {
-    var bytes = [_]u8{0} ** 16;
+    var bytes: [16]u8 = @splat(0);
     const base_addr = @intFromPtr(&bytes[0]);
     const range = try rangeScoped(base_addr, 16, 4, .volatile_mmio);
 

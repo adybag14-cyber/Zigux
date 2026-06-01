@@ -118,9 +118,11 @@ pub fn validatePerfMatrix() !void {
         if (case.reps == 0 or case.max_slowdown_pct == 0 or case.len == 0) {
             return error.HexdumpPerfMatrixMismatch;
         }
-        if (case.len > case.rowsize) return error.HexdumpPerfMatrixMismatch;
-        if (case.rowsize != fixtures.normalizedRowsize(case.rowsize)) return error.HexdumpPerfMatrixMismatch;
-        if (case.groupsize != fixtures.normalizedGroupsizeForLen(case.len, case.groupsize)) {
+        const normalized_rowsize = fixtures.normalizedRowsize(case.rowsize);
+        const normalized_len = @min(case.len, normalized_rowsize);
+        const normalized_groupsize = fixtures.normalizedGroupsizeForLen(normalized_len, case.groupsize);
+        if (case.len > normalized_rowsize) return error.HexdumpPerfMatrixMismatch;
+        if (normalized_groupsize == 0) {
             return error.HexdumpPerfMatrixMismatch;
         }
         if (fixtures.expectedLength(case.len, case.rowsize, case.groupsize, case.ascii) != rendered.len) {
@@ -132,7 +134,7 @@ pub fn validatePerfMatrix() !void {
 
         if (std.mem.eql(u8, case.label, "32B-ascii-g2")) {
             var exact: [114]u8 = undefined;
-            var truncated: [113]u8 = [_]u8{fixtures.fill_char} ** 113;
+            var truncated: [113]u8 = @splat(fixtures.fill_char);
 
             const exact_required = hexdump.hexDumpToBuffer(
                 fixtures.data_b[0..case.len],

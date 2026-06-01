@@ -167,6 +167,7 @@ fn addPhase3DevTStarterPacket(
         .target = target,
         .optimize = optimize,
     });
+    uapi_version.addImport("abi_bindings", abi_bindings);
     const export_shim = b.createModule(.{
         .root_source_file = b.path("../kernel/export_shim.zig"),
         .target = target,
@@ -549,6 +550,7 @@ fn addPhase3AbiCorePacket(
         .target = target,
         .optimize = optimize,
     });
+    uapi_version.addImport("abi_bindings", abi_bindings);
     const header_family_binding = b.createModule(.{
         .root_source_file = b.path("../bindings/header_family.zig"),
         .target = target,

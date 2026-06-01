@@ -68,7 +68,7 @@ REQUIRED_MARKERS = {
         "python3 scripts/zigux/check-phase3-bitmap-cpumask.py --self-test",
         "python3 scripts/zigux/check-phase3-bitmap-cpumask.py --repo-root . --cc gcc",
         "zig build phase3-bitmap-cpumask-starter-packet --build-file zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig",
-        "It does not yet claim exported ABI structs, scheduler-affinity semantics, or wider kernel cpumask traversal behavior.",
+        "It does not yet claim exported ABI structs, scheduler-affinity policy, or full kernel cpumask traversal parity beyond bounded next-cpu helper walking.",
     ),
     BITMAP_VIEW_PATH: (
         "pub const BitmapView = struct {",
@@ -463,6 +463,7 @@ def main() -> int:
         return 1
 
     print("PHASE3_BITMAP_CPUMASK_PACKET=pass")
+    print(f"validated {args.repo_root / TEST_PATH}")
     print(f"validated {args.repo_root / MANIFEST_PATH}")
     print(f"validated {args.repo_root / EXPECTED_PATH}")
     return 0

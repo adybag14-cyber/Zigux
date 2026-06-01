@@ -140,9 +140,9 @@ FILE_EXPECTATIONS = {
         WITNESS_BUILD_PATH,
         "phase11-hvc-cleanup-current-head",
         '"phase11-hvc-targetless-unregister-witness-self-test",',
-        '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test"),',
+        'CheckSpec("phase11-hvc-targetless-unregister-witness-self-test", ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test")),',
         '"phase11-hvc-targetless-unregister-witness",',
-        '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),',
+        'CheckSpec("phase11-hvc-targetless-unregister-witness", ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py")),',
         "phase11-hvc-targetless-unregister-gap-build",
     ),
     MAKEFILE_PATH: (
@@ -151,11 +151,11 @@ FILE_EXPECTATIONS = {
     ),
     WITNESS_PATH: (
         'test "phase11 hvc notifier witness records current-head targetless unregister sanitizer" {',
-        f'const driver = try readRepoFile("{DRIVER_PATH}");',
-        f'const boundary = try readRepoFile("{VERIFY_BOUNDARY_PATH}");',
-        f'const companion = try readRepoFile("{CLEANUP_COMPANION_PATH}");',
-        f'const survey = try readRepoFile("{SURVEY_PATH}");',
-        f'const matrix = try readRepoFile("{VALIDATION_MATRIX_PATH}");',
+        'const driver = try readRepoFile("drivers/tty/hvc/hvc_console.zig");',
+        'const boundary = try readRepoFile("Documentation/zigux/phase11-hvc-verify-helper-boundary.md");',
+        'const companion = try readRepoFile("Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md");',
+        'const survey = try readRepoFile("Documentation/zigux/phase11-hvc-console-survey.md");',
+        'const matrix = try readRepoFile("Documentation/zigux/phase11-hvc-console-validation-matrix.md");',
         'try expectContains(driver, "targetless_no_unregister_edge: bool,");',
         'try expectContains(driver, ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,");',
         'try expectContains(driver, "try std.testing.expect(!targetless_sanitized.unregister_requested);");',
@@ -209,7 +209,7 @@ FIXTURE_TEXT = {
     MAKEFILE_PATH: "\n".join(
         (
             "phase11-validate:",
-            "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+            "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
         )
     )
     + "\n",
@@ -574,11 +574,11 @@ def run_self_test() -> int:
             ),
             (
                 VALIDATE_PHASE11_PATH,
-                '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test"),',
+                'CheckSpec("phase11-hvc-targetless-unregister-witness-self-test", ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test")),',
             ),
             (
                 VALIDATE_PHASE11_PATH,
-                '("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),',
+                'CheckSpec("phase11-hvc-targetless-unregister-witness", ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py")),',
             ),
             (
                 VALIDATE_PHASE11_PATH,

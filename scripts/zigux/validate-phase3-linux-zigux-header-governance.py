@@ -14,7 +14,8 @@ NOTE_PATH = Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")
 
 ROLE_MARKER = (
     "PHASE3_ZIGUX_H_ROLE=linux-facing relay and aggregation header for "
-    "already-landed ABI, boundary-header compatibility, and starter dev_t review surfaces only"
+    "already-landed ABI, boundary-header compatibility, starter dev_t review surfaces, "
+    "and starter interop-policy and rbtree predicate relays only"
 )
 HEADER_FAMILY_MACRO_MARKER = (
     "PHASE3_ZIGUX_H_HEADER_FAMILY_MACROS=ZIGUX_UAPI_ABI_MAJOR, ZIGUX_UAPI_ABI_MINOR, "
@@ -32,7 +33,7 @@ REQUIRED_SCOPE_MARKERS = {
     HEADER_FAMILY_MACRO_MARKER: 1,
 }
 REQUIRED_NOTE_MARKERS = {
-    "`include/linux/zigux.h` remains the Linux-facing relay and aggregation header for already-landed ABI, boundary-header, and starter `dev_t` review surfaces only": 1,
+    "`include/linux/zigux.h` remains the Linux-facing relay and aggregation header for already-landed ABI, boundary-header, starter `dev_t`, and starter interop-policy and rbtree review surfaces only": 1,
     "new top-level helper families should not land in `include/linux/zigux.h` by themselves": 1,
     "growth in this header is only reviewable when the same bounded change keeps the canonical owner headers, the shared Phase 3 packet notes, and the manifest-backed inventory aligned": 1,
     "helper naming churn, alias-only growth, or relay-only expansion without packet-local proof should be treated as reviewability risk rather than Phase 3 closure": 1,
@@ -240,7 +241,7 @@ static inline int zigux_uapi_validate_dev_t_range(void) { return 0; }
 - {ROLE_MARKER}
 - {HEADER_FAMILY_MACRO_MARKER}
 
-`include/linux/zigux.h` remains the Linux-facing relay and aggregation header for already-landed ABI, boundary-header, and starter `dev_t` review surfaces only
+`include/linux/zigux.h` remains the Linux-facing relay and aggregation header for already-landed ABI, boundary-header, starter `dev_t`, and starter interop-policy and rbtree review surfaces only
 new top-level helper families should not land in `include/linux/zigux.h` by themselves
 growth in this header is only reviewable when the same bounded change keeps the canonical owner headers, the shared Phase 3 packet notes, and the manifest-backed inventory aligned
 helper naming churn, alias-only growth, or relay-only expansion without packet-local proof should be treated as reviewability risk rather than Phase 3 closure

@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")
 THIRD_PARTY_DIR = Path("third_party")
-EXPECTED_ARCHIVE_SIZES = {"x86_64-linux": 58_159_088}
+EXPECTED_ARCHIVE_SIZES = {"x86_64-linux": 59_410_844}
 
 
 def read_text(path: Path) -> str:
@@ -194,8 +194,8 @@ def write_policy(root: Path, *, filename_sha256: str, size: int) -> None:
         json.dumps(
             {
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.87+9b177a7d2",
-                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "channel": "0.17.0-dev.758+748e7c5e3",
+                "minimum_version": "0.17.0-dev.758+748e7c5e3",
                 "archive_size_bytes": size,
                 "archive_sha256": {"x86_64-linux": filename_sha256},
                 "upgrade_policy": {
@@ -243,7 +243,7 @@ def run_self_test() -> int:
     payload = (b"zigux-lane05-packet-" * 200) + b"tail"
     sha256 = hashlib.sha256(payload).hexdigest()
     chunk_bytes = 1024
-    filename = "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
+    filename = "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz"
 
     with tempfile.TemporaryDirectory(prefix="lane05_parts_packet_pass_") as tmp_dir:
         root = Path(tmp_dir)

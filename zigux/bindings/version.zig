@@ -53,4 +53,5 @@ test "version binding relays boundary header layout constants" {
     try testing.expectEqual(@offsetOf(Header, "size"), header_size_offset);
     try testing.expectEqual(@offsetOf(Header, "abi_version"), header_abi_version_offset);
     try testing.expectEqual(@offsetOf(Header, "flags"), header_flags_offset);
+    std.debug.assert(header_family_revision_offset == 8);
 }

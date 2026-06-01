@@ -149,7 +149,7 @@ def build_self_test_root(root: Path) -> None:
         "\n".join(
             (
                 "# Zigux third-party archives",
-                "If the exact archive file is absent but `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz.parts` is present, `.github/workflows/zigux-bootstrap.yml` stages the same pinned payload locally with `scripts/zigux/stage-pinned-zig-archive.py` before mirror or direct-download fallback.",
+                "If the exact archive file is absent but `third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts` is present, `.github/workflows/zigux-bootstrap.yml` stages the same pinned payload locally with `scripts/zigux/stage-pinned-zig-archive.py` before mirror or direct-download fallback.",
             )
         )
         + "\n",

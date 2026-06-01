@@ -16,9 +16,9 @@ The Phase 14 roadmap keeps the shared smoke packet in a study-only, reviewabilit
 
 Fresh builder-environment validation on `2026-05-29` confirms that the attached Zig bundle used by this lane still behaves like a usable bounded-check fallback rather than a stale archival assumption:
 
-- unpacking `agent_files/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz` into `/workspace/.toolchains/p14-l10/` succeeded without extra environment overrides
-- `/workspace/.toolchains/p14-l10/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig version` returned `0.17.0-dev.87+9b177a7d2`
-- `/workspace/.toolchains/p14-l10/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig env` reported `.lib_dir = ".toolchains/p14-l10/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/lib"`, `.global_cache_dir = "/root/.cache/zig"`, `.version = "0.17.0-dev.87+9b177a7d2"`, and `.target = "x86_64-linux.6.12.47...6.12.47-gnu.2.39"`
+- unpacking `agent_files/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3 (1).tar.xz` into `/workspace/.toolchains/p14-l10/` succeeded without extra environment overrides
+- `/workspace/.toolchains/p14-l10/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3/zig version` returned `0.17.0-dev.758+748e7c5e3`
+- `/workspace/.toolchains/p14-l10/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3/zig env` reported `.lib_dir = ".toolchains/p14-l10/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3/lib"`, `.global_cache_dir = "/root/.cache/zig"`, `.version = "0.17.0-dev.758+748e7c5e3"`, and `.target = "x86_64-linux.6.12.47...6.12.47-gnu.2.39"`
 - no `ZIG_GLOBAL_CACHE_DIR`, `ZIG_LOCAL_CACHE_DIR`, `ZIG_LIB_DIR`, `ZIG_LIBC`, `CC`, or related Zig environment override was set during that readback
 
 This local replay does not change repo status. It only proves that the attached bundle remains a valid bounded fallback for this scheduled-builder environment when a focused Zig syntax or build check is otherwise justified.
@@ -28,8 +28,8 @@ This local replay does not change repo status. It only proves that the attached 
 The P14-L12 scheduled run repeated the attached-toolchain replay on `2026-05-29` before changing this note. That replay adds operational evidence without widening Phase 14 delivery scope:
 
 - unpacking the same attached archive into `/workspace/.toolchains/p14-l12/` succeeded in the current scheduled-builder environment
-- `/workspace/.toolchains/p14-l12/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig version` returned `0.17.0-dev.87+9b177a7d2`
-- `/workspace/.toolchains/p14-l12/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig env` reported `.zig_exe = "/workspace/.toolchains/p14-l12/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig"`, `.lib_dir = ".toolchains/p14-l12/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/lib"`, `.std_dir = ".toolchains/p14-l12/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/lib/std"`, `.global_cache_dir = "/root/.cache/zig"`, and `.version = "0.17.0-dev.87+9b177a7d2"`
+- `/workspace/.toolchains/p14-l12/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3/zig version` returned `0.17.0-dev.758+748e7c5e3`
+- `/workspace/.toolchains/p14-l12/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3/zig env` reported `.zig_exe = "/workspace/.toolchains/p14-l12/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3/zig"`, `.lib_dir = ".toolchains/p14-l12/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3/lib"`, `.std_dir = ".toolchains/p14-l12/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3/lib/std"`, `.global_cache_dir = "/root/.cache/zig"`, and `.version = "0.17.0-dev.758+748e7c5e3"`
 - the replay still showed no `ZIG_GLOBAL_CACHE_DIR`, `ZIG_LOCAL_CACHE_DIR`, `ZIG_LIB_DIR`, `ZIG_LIBC`, `CC`, `C_INCLUDE_PATH`, `CPLUS_INCLUDE_PATH`, or `LIBRARY_PATH` override in the toolchain environment
 
 The only conclusion from this addendum is operational: future Phase 14 runs may keep using the attached bundle for narrow Zig syntax or focused build checks when a checkout is available, but this evidence does not create a new Phase 14 Make route or change any study-only or freeze-in-C posture.

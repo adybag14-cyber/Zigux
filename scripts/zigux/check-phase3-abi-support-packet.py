@@ -76,9 +76,10 @@ REQUIRED_MANIFEST_FIELDS = {
         "header-compatibility replay"
     ),
     "next_safe_step": (
-        "keep the shared Phase 3 policy, export/UAPI, and low-level wrapper packet "
-        "aligned with the dedicated replay routes and only reopen this manifest if the "
-        "checker, focused builds, or reminder surfaces drift again"
+        "keep the shared Phase 3 policy, export/UAPI, low-level wrapper packet, and "
+        "retired generated-packet guard aligned with the dedicated replay routes and "
+        "only reopen this manifest if the checker, focused builds, or reminder surfaces "
+        "drift again"
     ),
 }
 

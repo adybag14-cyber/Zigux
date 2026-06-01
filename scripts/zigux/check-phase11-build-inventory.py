@@ -11,8 +11,8 @@ from pathlib import Path
 
 
 DEFAULT_ROOT = (
-    Path(__file__).resolve().parents[3]
-    if len(Path(__file__).resolve().parents) > 3
+    Path(__file__).resolve().parents[2]
+    if len(Path(__file__).resolve().parents) > 2
     else Path.cwd()
 )
 
@@ -122,21 +122,23 @@ REQUIRED_HVC_VALIDATION_MATRIX_MARKERS = (
     "`zigux/tests/phase11_hvc_modem_control_proof_build.zig`",
     "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
     "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`",
-    "keep the modem-control proof pair directly readable through its focused build route",
-    "current-head HVC continuity packet rather than a whole-Phase-11 replay roster",
+    "Keep the modem-control proof pair directly readable through its focused build route",
+    "without promoting either pair into the shared three-entry build inventory",
 )
 
 REQUIRED_SHARED_REPLAY_CONTRACT_MARKERS = (
-    "Keep the scripts-root reminder honest too: broader contributor-facing summaries",
-    "`scripts/zigux/check-phase11-build-inventory.py`,",
-    "`scripts/zigux/check-phase11-matrix-gap-survey.py`,",
-    "`scripts/zigux/check-phase11-validation-matrix-gap-survey.py`,",
-    "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,",
-    "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,",
-    "`scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,",
-    "`scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,",
-    "`scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`,",
-    "`make -C zigux phase11-validate` explicit together instead of reviving",
+    "Keep the broader reminder follow-through honest too:",
+    "`scripts/zigux/check-phase11-build-inventory.py`",
+    "`scripts/zigux/check-phase11-matrix-gap-survey.py`",
+    "`scripts/zigux/check-phase11-validation-matrix-gap-survey.py`",
+    "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
+    "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
+    "`scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`",
+    "`scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`",
+    "`scripts/zigux/validate-phase11.py`",
+    "`zigux/tests/fixtures/phase11_build_inventory.json`",
+    "`make -C zigux phase11-validate`",
+    "instead of reducing the current shared gate to the narrower HVC inventory alone",
 )
 
 REQUIRED_SCRIPTS_ROOT_MARKERS = (
@@ -183,7 +185,7 @@ REQUIRED_HEADER_MATRIX_MARKERS = (
     "`zigux/helpers/layout_assert.zig`",
     "`zigux/tests/phase11_hvc_export_surface_layout_proof.zig`",
     "`zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`",
-    "`zigux/tests/fixtures/phase11_build_inventory.json` is directly readable again",
+    "`zigux/tests/fixtures/phase11_build_inventory.json` and the returned `scripts/zigux/check-phase11-build-inventory.py` route are directly readable again",
     "add header-boundary inventory wording only when a directly readable shared replay file returns",
 )
 
@@ -217,11 +219,11 @@ REQUIRED_WORKFLOW_PHASE11_STEPS = (
 REQUIRED_MAKEFILE_ROUTE_MARKERS = (
     "phase11-validate:",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
-    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
-    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
-    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
-    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
-    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
 )
 
 
@@ -309,14 +311,22 @@ def validate_check_commands_from_entries(entries: object, label: str) -> list[st
     return commands
 
 
+def normalize_validate_command(command: str) -> str:
+    for python_launcher in ("python ", "python3 "):
+        if command.startswith(python_launcher):
+            return "python " + command[len(python_launcher) :]
+    return command
+
+
 def require_validate_check_commands(
     validate_commands: list[str],
     required_commands: tuple[str, ...],
     *,
     label: str,
 ) -> None:
+    normalized_commands = [normalize_validate_command(command) for command in validate_commands]
     for command in required_commands:
-        count = validate_commands.count(command)
+        count = normalized_commands.count(normalize_validate_command(command))
         if count != 1:
             raise CheckError(
                 f"{label} command mismatch in {VALIDATE_CHECKS_FIXTURE_PATH}: {command} (expected once, found {count})"
@@ -686,13 +696,13 @@ FIXTURE_HVC_VALIDATION_MATRIX_TEXT = """# Phase 11 HVC Console Validation Matrix
 - `zigux/tests/phase11_hvc_modem_control_proof_build.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
-- keep the modem-control proof pair directly readable through its focused build route
-- current-head HVC continuity packet rather than a whole-Phase-11 replay roster
+- Keep the modem-control proof pair directly readable through its focused build route
+- without promoting either pair into the shared three-entry build inventory
 """
 
 FIXTURE_SHARED_REPLAY_CONTRACT_TEXT = """# Phase 11 Shared Replay Contract
 
-Keep the scripts-root reminder honest too: broader contributor-facing summaries should keep `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-matrix-gap-survey.py`, `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`, `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`, `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`, `scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, and `make -C zigux phase11-validate` explicit together instead of reviving removed `phase11-contract`, `phase11`, or `phase11-hvc-survey` routes.
+Keep the broader reminder follow-through honest too: shared summaries should keep `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-matrix-gap-survey.py`, `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`, `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`, `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`, `scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, and `make -C zigux phase11-validate` explicit together instead of reducing the current shared gate to the narrower HVC inventory alone.
 """
 
 FIXTURE_SCRIPTS_README_TEXT = """# scripts/zigux
@@ -747,7 +757,7 @@ FIXTURE_HEADER_MATRIX_TEXT = """# Phase 11 UAPI Header Parity Validation Matrix
 - `zigux/helpers/layout_assert.zig`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
 - `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
-- `zigux/tests/fixtures/phase11_build_inventory.json` is directly readable again
+- `zigux/tests/fixtures/phase11_build_inventory.json` and the returned `scripts/zigux/check-phase11-build-inventory.py` route are directly readable again
 - add header-boundary inventory wording only when a directly readable shared replay file returns
 """
 
@@ -763,11 +773,11 @@ jobs:
 
 FIXTURE_MAKEFILE_TEXT = """phase11-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig
 """
 
 
@@ -949,14 +959,14 @@ def run_self_test() -> int:
         write(
             missing_makefile_marker / MAKEFILE_PATH,
             read_text(missing_makefile_marker / MAKEFILE_PATH).replace(
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig\n",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig\n",
                 "",
                 1,
             ),
         )
         expect_failure(
             missing_makefile_marker,
-            "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+            "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
         )
         case_count += 1
 
@@ -988,7 +998,7 @@ def run_self_test() -> int:
         )
         expect_failure(
             missing_shared_replay_contract_marker,
-            "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,",
+            "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
         )
         case_count += 1
 
@@ -1121,14 +1131,14 @@ def run_self_test() -> int:
         write(
             missing_modem_control_route_marker / HVC_VALIDATION_MATRIX_PATH,
             read_text(missing_modem_control_route_marker / HVC_VALIDATION_MATRIX_PATH).replace(
-                "- keep the modem-control proof pair directly readable through its focused build route\n",
+                "- Keep the modem-control proof pair directly readable through its focused build route\n",
                 "",
                 1,
             ),
         )
         expect_failure(
             missing_modem_control_route_marker,
-            "keep the modem-control proof pair directly readable through its focused build route",
+            "Keep the modem-control proof pair directly readable through its focused build route",
         )
         case_count += 1
 
@@ -1153,14 +1163,14 @@ def run_self_test() -> int:
         write(
             missing_header_matrix_marker / HEADER_MATRIX_PATH,
             read_text(missing_header_matrix_marker / HEADER_MATRIX_PATH).replace(
-                "- `zigux/tests/fixtures/phase11_build_inventory.json` is directly readable again\n",
+                "- `zigux/tests/fixtures/phase11_build_inventory.json` and the returned `scripts/zigux/check-phase11-build-inventory.py` route are directly readable again\n",
                 "",
                 1,
             ),
         )
         expect_failure(
             missing_header_matrix_marker,
-            "`zigux/tests/fixtures/phase11_build_inventory.json` is directly readable again",
+            "`zigux/tests/fixtures/phase11_build_inventory.json` and the returned `scripts/zigux/check-phase11-build-inventory.py` route are directly readable again",
         )
         case_count += 1
 

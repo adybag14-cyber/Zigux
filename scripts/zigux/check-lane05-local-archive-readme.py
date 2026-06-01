@@ -13,7 +13,7 @@ README_PATH = Path("third_party/README.md")
 POLICY_PATH = Path("scripts/zigux/zig-toolchain-policy.json")
 ARCHIVE_DUPLICATE_SUFFIX_RE = re.compile(r"^(?P<stem>.+) \((?P<copy>\d+)\)(?P<suffix>\.tar\.xz)$")
 EXPECTED_ARCHIVE_SIZES = {
-    "x86_64-linux": 58_159_088,
+    "x86_64-linux": 59_410_844,
 }
 
 
@@ -188,13 +188,13 @@ def write_fixture(
     (third_party_dir / "README.md").write_text(readme_text, encoding="utf-8")
 
     if include_archive:
-        payload_name = "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
+        payload_name = "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz"
         archive_path = third_party_dir / payload_name
         size = archive_size if archive_size is not None else EXPECTED_ARCHIVE_SIZES["x86_64-linux"]
         repeat_count = (size + len(archive_bytes) - 1) // len(archive_bytes)
         archive_path.write_bytes((archive_bytes * repeat_count)[:size])
         if duplicate_copy:
-            (third_party_dir / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz").write_bytes(b"x")
+            (third_party_dir / "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3 (1).tar.xz").write_bytes(b"x")
 
 
 def run_self_test() -> int:
@@ -229,7 +229,7 @@ def run_self_test() -> int:
     )
     expect_failure(
         lambda root: write_fixture(root, include_archive=True, archive_size=1),
-        "to be 58159088 bytes, got 1",
+        "to be 59410844 bytes, got 1",
     )
     expect_failure(
         lambda root: write_fixture(root, include_archive=True, duplicate_copy=True),
@@ -241,7 +241,7 @@ def run_self_test() -> int:
             include_archive=True,
             archive_bytes=b"wrong-bytes",
         ),
-        "to have sha256 313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
+        "to have sha256 0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6",
     )
 
     print("LANE05_LOCAL_ARCHIVE_README_SELF_TEST=pass")

@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 
 
-DEFAULT_ROOT = Path(__file__).resolve().parents[3] if len(Path(__file__).resolve().parents) > 3 else Path.cwd()
+DEFAULT_ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 3 else Path.cwd()
 
 NOTE_PATH = Path("Documentation/zigux/phase11-fixture-refresh-golden-output-tooling-survey.md")
 CONTRACT_PATH = Path("Documentation/zigux/phase11-shared-replay-contract.md")

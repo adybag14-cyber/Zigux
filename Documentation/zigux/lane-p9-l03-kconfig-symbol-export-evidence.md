@@ -31,7 +31,7 @@ CONFIG_=y
 CONFIG_VALID=m
 ```
 
-Observed runtime output from a local compile of the fetched `confdata_bridge.zig` slice with Zig `0.17.0-dev.87+9b177a7d2`:
+Observed runtime output from a local compile of the fetched `confdata_bridge.zig` slice with Zig `0.17.0-dev.758+748e7c5e3`:
 
 ```json
 {"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_VALID","kind":"tristate","value":"m"}]}
@@ -69,7 +69,7 @@ This matches `zigux/tests/fixtures/kconfig_bridge/duplicate_malformed_quoted_ass
 
 ## Validation Performed
 
-- compiled the fetched `scripts/zigux/kconfig/confdata_bridge.zig` source with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2`
+- compiled the fetched `scripts/zigux/kconfig/confdata_bridge.zig` source with the attached Zig toolchain `0.17.0-dev.758+748e7c5e3`
 - ran the compiled binary against the two fixture inputs above
 - checked that the emitted JSON matched the repo's current expected JSON byte-for-byte
 - confirmed the parser slice is at least compile-valid in isolation

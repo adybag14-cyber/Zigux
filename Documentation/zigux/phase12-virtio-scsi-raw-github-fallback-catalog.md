@@ -36,6 +36,7 @@
 - survey note: `Documentation/zigux/phase12-virtio-scsi-survey.md`
 - survey replay: `zigux/tests/phase12_virtio_scsi_survey.zig`
 - survey gate: `scripts/zigux/check-phase12-virtio-scsi-packet.py`
+- `make -C zigux phase12-validate` is current repo evidence again and now reruns the shared build-only, complex-driver, cross-compile smoke, release-readiness, libbpf snapshot, libbpf heavy-consumer, and `virtio_net` packet checkers plus `scripts/zigux/validate-phase12.py`
 - `make -C zigux phase12-validate` is current repo evidence again and now reruns the shared build-only, build-inventory, complex-driver, cross-compile smoke, release-readiness, libbpf snapshot, libbpf lane-marker, and libbpf heavy-consumer checkers plus `scripts/zigux/validate-phase12.py`
 - keep this note archival only while the current-master survey note, fixture manifest, survey manifest, survey replay, survey-build replay, survey gate, validator, shared build route, and `zigux/Makefile` are rollback evidence only
 - matching current-master archival evidence for this path still does not imply a returned `virtio_scsi` driver-local replay on `master`

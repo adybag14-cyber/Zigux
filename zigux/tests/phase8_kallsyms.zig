@@ -21,7 +21,7 @@ test "phase 8 kallsyms direct parser truncates oversized names" {
     try std.testing.expectEqual(@as(u64, 0xffffffff81000100), parsed.start);
     try std.testing.expectEqualStrings("secondary_startup_64", parsed.name);
 
-    const too_long_name = "a" ** (kallsyms.KSYM_NAME_LEN + 1);
+    const too_long_name: [kallsyms.KSYM_NAME_LEN + 1]u8 = @splat('a');
     const oversized_line = try std.fmt.allocPrint(std.testing.allocator, "1 T {s}", .{too_long_name});
     defer std.testing.allocator.free(oversized_line);
 
@@ -96,7 +96,7 @@ test "phase 8 kallsyms chunked parser also truncates oversized names" {
     for (symbols.items) |*symbol| symbol.deinit(std.testing.allocator);
     symbols.clearRetainingCapacity();
 
-    const too_long_name = "a" ** (kallsyms.KSYM_NAME_LEN + 21);
+    const too_long_name: [kallsyms.KSYM_NAME_LEN + 21]u8 = @splat('a');
     const first_chunk = try std.fmt.allocPrint(std.testing.allocator, "1 T {s}", .{too_long_name[0..40]});
     defer std.testing.allocator.free(first_chunk);
     const second_chunk = try std.fmt.allocPrint(std.testing.allocator, "{s}\n", .{too_long_name[40..]});

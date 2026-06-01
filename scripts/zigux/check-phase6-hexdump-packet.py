@@ -147,11 +147,11 @@ REQUIRED_SNIPPETS = {
         "phase6-hexdump-review:",
         "$(PYTHON) scripts/zigux/check-phase6-hexdump-route.py",
         "phase6-hexdump-perf-matrix-test:",
-        "$(ZIG) build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all",
+        "$(ZIG_REPO_ROOT) build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all",
         "phase6-hexdump-test:",
-        "$(ZIG) build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig --summary all",
+        "$(ZIG_REPO_ROOT) build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig --summary all",
         "phase6-hexdump-perf:",
-        "$(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
+        "$(ZIG_REPO_ROOT) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
     ],
     ROUTE_PATH: [
         '"""Guard the current Phase 6 hexdump review route."""',
@@ -267,7 +267,7 @@ SELF_TEST_CASES = [
     ),
     (
         MAKEFILE_PATH,
-        "$(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
+        "$(ZIG_REPO_ROOT) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
         "$(ZIG) build phase6-hexdump-profile --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
     ),
     (

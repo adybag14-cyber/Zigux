@@ -33,7 +33,7 @@ Each entry point requires:
 
 Focused local Zig validation passed for an exact mirror of the landed helper with:
 
-- `zig test` using the attached `zig-x86_64-linux-0.17.0-dev.87+9b177a7d2` toolchain
+- `zig test` using the attached `zig-x86_64-linux-0.17.0-dev.758+748e7c5e3` toolchain
 
 The self-tests cover:
 

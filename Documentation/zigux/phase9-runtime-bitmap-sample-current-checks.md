@@ -17,8 +17,8 @@ Repo-first reread on 2026-05-27 shows that `samples/zigux/runtime_bitmap.zig` is
 ## Exact commands
 
 - `zig fmt --check /workspace/.scratch/p5-l09/samples/zigux/runtime_bitmap.zig /workspace/.scratch/p5-l09/samples/zigux/runtime_bitmap_direct_init_contract.zig /workspace/.scratch/p5-l09/zigux/helpers/bitmap_view.zig`
-- `cd /workspace/.scratch/p5-l09 && /workspace/.toolchains/p5-l09/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig test --dep bitmap_view -Mroot=samples/zigux/runtime_bitmap.zig -Mbitmap_view=zigux/helpers/bitmap_view.zig`
-- `cd /workspace/.scratch/p5-l09 && /workspace/.toolchains/p5-l09/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig test --dep runtime_bitmap_sample -Mroot=samples/zigux/runtime_bitmap_direct_init_contract.zig --dep bitmap_view -Mruntime_bitmap_sample=samples/zigux/runtime_bitmap.zig -Mbitmap_view=zigux/helpers/bitmap_view.zig`
+- `cd /workspace/.scratch/p5-l09 && /workspace/.toolchains/p5-l09/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3/zig test --dep bitmap_view -Mroot=samples/zigux/runtime_bitmap.zig -Mbitmap_view=zigux/helpers/bitmap_view.zig`
+- `cd /workspace/.scratch/p5-l09 && /workspace/.toolchains/p5-l09/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3/zig test --dep runtime_bitmap_sample -Mroot=samples/zigux/runtime_bitmap_direct_init_contract.zig --dep bitmap_view -Mruntime_bitmap_sample=samples/zigux/runtime_bitmap.zig -Mbitmap_view=zigux/helpers/bitmap_view.zig`
 
 ## Checked behavior on current master
 

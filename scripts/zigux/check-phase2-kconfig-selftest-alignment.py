@@ -31,9 +31,9 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-kconfig-bridge.py",
     "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
     "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
-    "run: make -C zigux phase2-kconfig",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "run: make -C zigux phase2-kconfig",
 )
 
 WORKFLOW_PATH_LINES = (
@@ -43,9 +43,9 @@ WORKFLOW_PATH_LINES = (
 
 MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
-    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
-    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --zig \"$(ZIG_REPO_ROOT)\"",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/kconfig/conf_bridge.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/kconfig/confdata_bridge.zig",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",
 )
@@ -150,7 +150,11 @@ def build_conf_manifest_payload(conf_cases: list[dict[str, object]], conf_anchor
         "mode_arg_cases": [case["name"] for case in conf_cases if "mode_arg" in case],
         "silent_request_packet": [case["expected"] for case in conf_cases if case.get("silent") is True],
         "syncconfig_env_packet": [case["expected"] for case in conf_cases if "nosilentupdate" in case],
-        "allconfig_sentinel_packet": [case["expected"] for case in conf_cases if case["mode"] in ("allnoconfig", "allyesconfig", "alldefconfig")],
+        "allconfig_sentinel_packet": [
+            case["expected"]
+            for case in conf_cases
+            if case["mode"] in ("allnoconfig", "allyesconfig", "alldefconfig") and "allconfig" not in case
+        ],
         "allconfig_override_packet": [case["expected"] for case in conf_cases if "allconfig" in case],
         "helper_local_allconfig_implicit_omission_modes": implicit_modes,
         "helper_local_allconfig_explicit_override_modes": explicit_modes,

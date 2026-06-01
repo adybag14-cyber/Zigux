@@ -42,7 +42,7 @@ test "ida bitmap starter packet keeps sparse words explicit across chunk boundar
 }
 
 test "ida bitmap starter packet keeps full chunks and first-zero exhaustion distinct" {
-    const words = [_]usize{~@as(usize, 0)} ** ida_bitmap_view.bitmap_longs;
+    const words: [ida_bitmap_view.bitmap_longs]usize = @splat(~@as(usize, 0));
     const view = ida_bitmap_view.fromWords(&words);
 
     try testing.expect(!view.isEmpty());
@@ -53,7 +53,7 @@ test "ida bitmap starter packet keeps full chunks and first-zero exhaustion dist
 }
 
 test "ida bitmap starter packet keeps the first clear position visible inside a partially used word" {
-    var words = [_]usize{0} ** ida_bitmap_view.bitmap_longs;
+    var words: [ida_bitmap_view.bitmap_longs]usize = @splat(0);
     words[0] = (@as(usize, 1) << 0) | (@as(usize, 1) << 1) | (@as(usize, 1) << 3);
     words[1] = ~@as(usize, 0);
     const view = ida_bitmap_view.fromWords(&words);

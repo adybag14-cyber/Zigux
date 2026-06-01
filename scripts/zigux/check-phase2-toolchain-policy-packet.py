@@ -192,8 +192,8 @@ def build_self_test_root(root: Path) -> None:
         json.dumps(
             {
                 "phase": EXPECTED_PHASE,
-                "channel": "0.17.0-dev.87+9b177a7d2",
-                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "channel": "0.17.0-dev.758+748e7c5e3",
+                "minimum_version": "0.17.0-dev.758+748e7c5e3",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {
                     "channel_minimum_lockstep": True,
@@ -257,7 +257,7 @@ def run_self_test() -> int:
         payload = json.loads(policy_path.read_text(encoding="utf-8"))
         payload["minimum_version"] = "0.16.0"
         policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("POLICY_LOCKSTEP_MISMATCH", "'0.17.0-dev.87+9b177a7d2' != '0.16.0'") in collect_issues(root)
+        assert ("POLICY_LOCKSTEP_MISMATCH", "'0.17.0-dev.758+748e7c5e3' != '0.16.0'") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)

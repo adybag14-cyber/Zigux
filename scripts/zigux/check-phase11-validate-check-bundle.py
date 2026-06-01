@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 
 
-DEFAULT_ROOT = Path(__file__).resolve().parents[3] if len(Path(__file__).resolve().parents) > 3 else Path.cwd()
+DEFAULT_ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 3 else Path.cwd()
 VALIDATE_PHASE11_PATH = Path("scripts/zigux/validate-phase11.py")
 BUILD_INVENTORY_CHECKER_PATH = Path("scripts/zigux/check-phase11-build-inventory.py")
 

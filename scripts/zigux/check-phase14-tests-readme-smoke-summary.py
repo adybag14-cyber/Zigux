@@ -58,9 +58,10 @@ REQUIRED_SURVEY_MARKERS = (
 )
 
 REQUIRED_ATTACHED_TOOLCHAIN_MARKERS = (
-    "`zigux/tests/README.md` is aligned on the returned route split and now keeps `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`, and `zigux/tests/phase14_ring_buffer_survey.zig` explicit in the shared Phase 14 tests-root reminder packet",
-    "`scripts/zigux/check-phase14-shared-smoke-route.py` is directly readable again through the current contents path",
-    "`zigux/Makefile` is readable again, and its live body currently exposes the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes together with the returned `phase14-validate` gate, but no `phase14-smoke`, `phase14-test`, or `phase14` targets",
+    "`Documentation/zigux/phase14-release-boundary-survey.md` should keep the same single-gate posture and avoid restating the attached-toolchain triplet as current fallback guidance",
+    "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` should keep the readable `phase14-validate` route, the returned checker-backed shared-smoke packet, and the study-only or freeze-in-C posture explicit without promoting missing executable-layer paths",
+    "the readable Phase 14 Make route remains `phase14-validate`",
+    "the broader `phase14-smoke`, `phase14-test`, and `phase14` Make targets are still absent and must stay historical packet-local or repo-reality-gap vocabulary",
 )
 
 REQUIRED_TESTS_ROOT_MARKERS = (
@@ -222,6 +223,10 @@ def write_fixture_tree(root: Path) -> None:
         + "\n",
     )
     write_text(
+        root / RELEASE_BOUNDARY_SURVEY_PATH,
+        "# Phase 14 Release Boundary Survey\n",
+    )
+    write_text(
         root / TESTS_ROOT_README_PATH,
         "\n".join(
             (
@@ -336,7 +341,7 @@ def run_self_test() -> int:
         tests_path.write_text(
             tests_path.read_text(encoding="utf-8").replace(
                 REQUIRED_TESTS_ROOT_MARKERS[3],
-                "`Documentation/zigux/phase14-release-boundary-survey.md`.missing",
+                "`Documentation/zigux/phase14-release-boundary-placeholder.md`",
                 1,
             ),
             encoding="utf-8",

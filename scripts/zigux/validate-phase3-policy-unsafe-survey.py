@@ -125,11 +125,11 @@ REQUIRED_FILE_MARKERS = {
     ),
     MAKEFILE_PATH: (
         "phase3-policy-starter-packet-test:",
-        "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
+        "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
         "phase3-policy-dump:",
-        "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
+        "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
         "phase3-policy-unsafe-test:",
-        "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
+        "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
     ),
     WORKFLOW_PATH: (
         "name: Run current Phase 3 policy unsafe replay",
@@ -168,7 +168,7 @@ REQUIRED_FILE_MARKERS = {
         "const const_slice = unsafe_policy.constSliceAtInteropPolicy(u32, first_addr, bridge_words.len, policy) catch {",
         "unsafe_policy.writeValueAtInteropPolicy(u32, second_addr, 73, policy) catch {",
         "const bridge_replay = rawBridgeReplay(policy);",
-        '"bridge_read_ok={any}|bridge_write_ok={any}|narrow={s}|narrow_boundary={s}|narrow_surface={s}\\n",',
+        "bridge_read_ok={any}|bridge_write_ok={any}|narrow={s}|narrow_boundary={s}|narrow_surface={s}\\n",
     ),
     POLICY_DUMP_BUILD_PATH: (
         '.root_source_file = b.path("../unsafe/narrow.zig"),',

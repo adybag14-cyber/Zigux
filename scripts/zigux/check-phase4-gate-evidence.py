@@ -164,7 +164,7 @@ DOCS_README_MARKERS = (
     "Phase 4 notes - `Documentation/zigux/phase4-reversible-delivery-evidence.md`",
     "the current docs-root Phase 4 reminder packet should stay parked on the directly readable helper, the returned contract checker, the determinism and validator-replay checkers, the shared repo-reality and pin guards, the dedicated local-only perf packet, the recovered broader note-and-checker companions, and the roadmap-backed atomic64 differential pair",
     "keep the current governance split explicit here too: the direct-readback shared handoff stays narrower than the broader recovered note companions, the Validation and Perf Team remains the decision owner for any broader shared-CI perf promotion, the ABI and Runtime Team plus Shared Subsystems Pod remain the coordination owners for that policy call, and the dedicated perf-baseline survey must stay local-only until a later bounded lane intentionally widens that posture",
-    "current `master` keeps the broader Phase 4 packet in a split-readback state rather than the missing bucket:",
+    "current `master` keeps the broader Phase 4 validator, build, and bitmap replay companions in a split-readback state rather than the missing bucket:",
 )
 
 WORKFLOW_MARKERS = (

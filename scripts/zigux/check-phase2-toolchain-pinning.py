@@ -19,9 +19,9 @@ SCRIPTS_README = "scripts/zigux/README.md"
 TESTS_README = "zigux/tests/README.md"
 TOOL_MANIFEST = "zigux/tests/fixtures/phase2_tool_manifest.json"
 ARCHIVE_TARGET = "x86_64-linux"
-ARCHIVE_CHANNEL = "0.17.0-dev.87+9b177a7d2"
-ARCHIVE_SIZE = 58_159_088
-EXPECTED_SELF_TEST_CASE_COUNT = 51
+ARCHIVE_CHANNEL = "0.17.0-dev.758+748e7c5e3"
+ARCHIVE_SIZE = 59_410_844
+EXPECTED_SELF_TEST_CASE_COUNT = 52
 
 GENKSYMS_EXPECTED = (
     "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
@@ -109,8 +109,9 @@ WORKFLOW_SETUP = (
     'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"',
     'mirror_file=".zig-toolchain/community-mirrors.txt"',
     "if try_local_archive; then",
+    'elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then',
     'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
-    "echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2",
+    "echo 'failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org' >&2",
 )
 
 WORKFLOW_LINES = (
@@ -572,7 +573,7 @@ def run_self_test() -> int:
         assert any(code == "MISSING_SCRIPTS_MARKERS" for code, _ in collect_issues(root))
         checks += 1
 
-    assert checks == EXPECTED_SELF_TEST_CASE_COUNT
+    assert checks == EXPECTED_SELF_TEST_CASE_COUNT, checks
     print("PHASE2_TOOLCHAIN_PINNING_SELF_TEST=pass")
     print(f"PHASE2_TOOLCHAIN_PINNING_SELF_TEST_CASE_COUNT={checks}")
     print("PHASE2_TOOLCHAIN_PINNING_MANIFEST_SYNC=pass")

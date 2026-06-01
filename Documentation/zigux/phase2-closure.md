@@ -45,6 +45,7 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
 - `python3 scripts/zigux/check-phase2-cross.py`
 - `python3 scripts/zigux/check-phase2-fixdep-gate.py`
 - `python3 scripts/zigux/check-fixdep-diff.py`
+- `make -C zigux phase2-fixdep`
 - `PHASE2_SHARED_TOOLING_CHECKERS=python3 scripts/zigux/check-phase2-tool-manifest.py,python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py,python3 scripts/zigux/check-phase2-artifact-tools-manifest.py,python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py,python3 scripts/zigux/check-phase2-cross.py,python3 scripts/zigux/check-phase2-fixdep-gate.py,python3 scripts/zigux/check-fixdep-diff.py`
 
 ## Shared Replay Routes

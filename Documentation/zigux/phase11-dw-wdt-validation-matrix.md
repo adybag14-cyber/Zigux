@@ -15,6 +15,7 @@ This matrix keeps the current bounded validation packet for the Zigux `dw_wdt` l
 - `zigux/tests/phase11_dw_wdt_manifest.json` and `zigux/tests/phase11_dw_wdt_survey.zig` keep the lane-local packet fail closed on current-head truth.
 - `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` keeps timer-clock choice, optional APB clock presence, reset-release posture, imported-running handoff, optional pretimeout IRQ acquisition, and the missing-timer-clock block reviewable before live platform execution lands.
 - `drivers/watchdog/dw_wdt.zig` and `zigux/tests/phase11_dw_wdt.zig` now rematerialize on current `master` and keep timer-clock choice, registration-order intent, imported-running handoff, timeout-programming readiness, restart intent, and replay alignment reviewable alongside the smaller owner packet without claiming live platform execution.
+- `drivers/watchdog/dw_wdt.zig` now rematerializes on current `master` beside the focused DesignWare test replay.
 - `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `drivers/watchdog/dw_wdt_pm.zig`, and `drivers/watchdog/dw_wdt_pm_scaffold.zig` keep restart, teardown-parity, and bounded PM-helper handoff coverage reviewable inside the same smaller packet.
 - `Documentation/zigux/phase11-dw-wdt-survey.md` keeps the same packet summary readable for reviewers.
 

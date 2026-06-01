@@ -215,7 +215,7 @@ VALIDATOR_REQUIRED_SNIPPETS = [
     'RBTREE_PARITY_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-rbtree-parity.py")',
     'run_checker(root, CMDLINE_PACKET_CHECKER_PATH)',
     'run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)',
-    'run_checker(root, STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH)',
+    'run_checker(root, STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH, "--root")',
     'run_checker(root, RBTREE_PARITY_PACKET_CHECKER_PATH)',
 ]
 
@@ -427,7 +427,7 @@ def run_self_test() -> None:
             (BUILD_PATH, "test_step.dependOn(&run_rbtree_survey_tests.step)", "test_step.dependOn(&run_rbtree_tests.step)"),
             (MANIFEST_PATH, '"lib/rbtree.c"', '"tools/lib/rbtree.c"'),
             (MANIFEST_PATH, '"scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py"', '"scripts/zigux/check-phase7-string-helpers-sample-boundary-packet.py"'),
-            (VALIDATOR_PATH, 'run_checker(root, STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH)', 'run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)'),
+            (VALIDATOR_PATH, 'run_checker(root, STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH, "--root")', 'run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)'),
         ]
         for rel, old, new in mutations:
             build_fixture_root(root)

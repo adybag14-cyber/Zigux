@@ -436,7 +436,7 @@ test "phase 1 helper ports match committed parity fixture" {
     const rendered_len = bitmap.scnprintf(&bitmap_words, 130, &rendered);
     try std.testing.expectEqualStrings(fixture.bitmap.scnprintf, rendered[0..rendered_len]);
 
-    var truncated_rendered = [_]u8{0xaa} ** 8;
+    var truncated_rendered: [8]u8 = @splat(0xaa);
     const truncated_len = bitmap.scnprintf(&bitmap_words, 130, &truncated_rendered);
     try std.testing.expectEqual(fixture.bitmap.truncated_scnprintf_len, truncated_len);
     try std.testing.expectEqualStrings(fixture.bitmap.truncated_scnprintf, truncated_rendered[0..truncated_len]);

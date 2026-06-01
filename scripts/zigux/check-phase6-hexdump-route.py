@@ -20,11 +20,11 @@ MAKEFILE_MARKERS = (
     "phase6-hexdump-review:",
     "$(PYTHON) scripts/zigux/check-phase6-hexdump-packet.py",
     "$(PYTHON) scripts/zigux/check-phase6-hexdump-route.py",
-    "$(ZIG) build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig --summary all",
+    "$(ZIG_REPO_ROOT) build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig --summary all",
     "phase6-hexdump-perf-matrix-test:",
-    "$(ZIG) build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all",
+    "$(ZIG_REPO_ROOT) build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all",
     "phase6-hexdump-test:",
-    "$(ZIG) build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig --summary all",
+    "$(ZIG_REPO_ROOT) build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig --summary all",
 )
 
 BUILD_MARKERS = (

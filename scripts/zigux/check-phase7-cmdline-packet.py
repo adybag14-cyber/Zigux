@@ -69,8 +69,8 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-helper-lane-sequencing.md": [
         "Documentation/zigux/phase7-cmdline-slice.md",
         "samples/zigux/README.md",
-        "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, checker, and no-sample-boundary now directly materialize on current `master`",
-        "Current lane evidence also keeps `P7-L10` inside that same helper-local cleanup family, so cmdline-local review-noise, survey-checker-manifest drift, and no-sample-boundary upkeep should stay inside the returned cmdline packet instead of being rerouted as a second helper owner or shared-control drift.",
+        "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, checker, and no-sample boundary now directly materialize on current `master`",
+        "Current lane evidence also keeps `P7-L10` inside that same helper-local cleanup family, so cmdline-local review-noise, survey-build-checker-manifest drift, and no-sample-boundary upkeep should stay inside the returned cmdline packet instead of being rerouted as a second helper owner or shared-control drift.",
     ],
     "Documentation/zigux/phase7-cmdline-slice.md": [
         "`PHASE7_STATUS=helper_local_test_survey_manifest_checker_anchor`",
@@ -81,7 +81,7 @@ REQUIRED_MARKERS = {
         "Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned survey-backed packet.",
         "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof.",
         "including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs",
-        "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track",
+        "`nextArg()` also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track",
         "dedicated `getOption()` and `get_option` cursor replay across leading-plus and range-style inputs so alias-only call sites stay reviewable beside the primary helper entry point",
         "zig build phase7-cmdline-survey --build-file zigux/tests/phase7_cmdline_survey_build.zig",
     ],
@@ -128,8 +128,8 @@ REQUIRED_MARKERS = {
         "try std.testing.expectEqualStrings(\"helper_slice_test_survey_manifest_checker_anchor\", manifest.current_master_state);",
         "try expectContains(checker, \"PHASE7_CMDLINE_PACKET=pass\");",
         "try expectContains(slice_note, \"including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs\");",
-        "try expectContains(sequencing_note, \"Current lane evidence also keeps `P7-L10` inside that same helper-local cleanup family, so cmdline-local review-noise, survey-checker-manifest drift, and no-sample-boundary upkeep should stay inside the returned cmdline packet instead of being rerouted as a second helper owner or shared-control drift.\");",
-        "try expectContains(helper, \"test \\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\" {\");",
+        "try expectContains(sequencing_note, \"Current lane evidence also keeps `P7-L10` inside that same helper-local cleanup family, so cmdline-local review-noise, survey-build-checker-manifest drift, and no-sample-boundary upkeep should stay inside the returned cmdline packet instead of being rerouted as a second helper owner or shared-control drift.\");",
+        r'try expectContains(helper, "test \\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\" {");',
         "try expectContains(helper_companion, \"phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries\");",
     ],
     "zigux/tests/phase7_cmdline_manifest.json": [
@@ -157,9 +157,9 @@ REQUIRED_MARKERS = {
         "MISSING_PHASE7_CMDLINE_MARKERS_END",
         "MISMATCHED_PHASE7_CMDLINE_COUNTS_START",
         "MISMATCHED_PHASE7_CMDLINE_COUNTS_END",
-        "\\\"Documentation/zigux/phase7-cmdline-slice.md\\\",",
-        "\\\"lib/cmdline.zig\\\",",
-        "\\\"zigux/tests/phase7_cmdline_survey_build.zig\\\",",
+        "\"Documentation/zigux/phase7-cmdline-slice.md\",",
+        "\"lib/cmdline.zig\",",
+        "\"zigux/tests/phase7_cmdline_survey_build.zig\",",
         "EXPECTED_MANIFEST_LANE_KEY = \"P7-L08\"",
         "EXPECTED_MANIFEST_PHASE = \"Phase 7\"",
         "EXPECTED_MANIFEST_ANCHOR = \"lib/cmdline.c\"",
@@ -182,7 +182,7 @@ COUNTED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 69
+SELF_TEST_CASE_COUNT = 70
 
 
 def read_text(path: Path) -> str:
@@ -345,7 +345,7 @@ def run_self_test() -> None:
             ("Documentation/zigux/phase7-cmdline-slice.md", "`zigux/tests/phase7_cmdline_survey_build.zig`", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "`scripts/zigux/check-phase7-cmdline-packet.py`", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs", ""),
-            ("Documentation/zigux/phase7-cmdline-slice.md", "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track", ""),
+            ("Documentation/zigux/phase7-cmdline-slice.md", "`nextArg()` also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof.", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "dedicated `getOption()` and `get_option` cursor replay across leading-plus and range-style inputs so alias-only call sites stay reviewable beside the primary helper entry point", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "zig build phase7-cmdline-survey --build-file zigux/tests/phase7_cmdline_survey_build.zig", ""),
@@ -360,12 +360,12 @@ def run_self_test() -> None:
             ("zigux/tests/phase7_cmdline_survey.zig", "try std.testing.expectEqualStrings(\"helper_slice_test_survey_manifest_checker_anchor\", manifest.current_master_state);", ""),
             ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(checker, \"PHASE7_CMDLINE_PACKET=pass\");", ""),
             ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(slice_note, \"including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs\");", ""),
-            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(sequencing_note, \"Current lane evidence also keeps `P7-L10` inside that same helper-local cleanup family, so cmdline-local review-noise, survey-checker-manifest drift, and no-sample-boundary upkeep should stay inside the returned cmdline packet instead of being rerouted as a second helper owner or shared-control drift.\");", ""),
+            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(sequencing_note, \"Current lane evidence also keeps `P7-L10` inside that same helper-local cleanup family, so cmdline-local review-noise, survey-build-checker-manifest drift, and no-sample-boundary upkeep should stay inside the returned cmdline packet instead of being rerouted as a second helper owner or shared-control drift.\");", ""),
             ("samples/zigux/README.md", "Current `master` still ships no standalone Phase 5 sample-root files here for:", ""),
             ("Documentation/zigux/phase7-helper-lane-sequencing.md", "Documentation/zigux/phase7-cmdline-slice.md", ""),
             ("Documentation/zigux/phase7-helper-lane-sequencing.md", "samples/zigux/README.md", ""),
-            ("Documentation/zigux/phase7-helper-lane-sequencing.md", "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, checker, and no-sample-boundary now directly materialize on current `master`", ""),
-            ("Documentation/zigux/phase7-helper-lane-sequencing.md", "Current lane evidence also keeps `P7-L10` inside that same helper-local cleanup family, so cmdline-local review-noise, survey-checker-manifest drift, and no-sample-boundary upkeep should stay inside the returned cmdline packet instead of being rerouted as a second helper owner or shared-control drift.", ""),
+            ("Documentation/zigux/phase7-helper-lane-sequencing.md", "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, checker, and no-sample boundary now directly materialize on current `master`", ""),
+            ("Documentation/zigux/phase7-helper-lane-sequencing.md", "Current lane evidence also keeps `P7-L10` inside that same helper-local cleanup family, so cmdline-local review-noise, survey-build-checker-manifest drift, and no-sample-boundary upkeep should stay inside the returned cmdline packet instead of being rerouted as a second helper owner or shared-control drift.", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "--self-test", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "PHASE7_CMDLINE_PACKET_SELF_TEST=pass", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "PHASE7_CMDLINE_PACKET=pass", ""),
@@ -376,16 +376,16 @@ def run_self_test() -> None:
             ("scripts/zigux/check-phase7-cmdline-packet.py", "MISSING_PHASE7_CMDLINE_MARKERS_END", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "MISMATCHED_PHASE7_CMDLINE_COUNTS_START", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "MISMATCHED_PHASE7_CMDLINE_COUNTS_END", ""),
-            ("scripts/zigux/check-phase7-cmdline-packet.py", "\\\"Documentation/zigux/phase7-cmdline-slice.md\\\",", ""),
-            ("scripts/zigux/check-phase7-cmdline-packet.py", "\\\"lib/cmdline.zig\\\",", ""),
-            ("scripts/zigux/check-phase7-cmdline-packet.py", "\\\"zigux/tests/phase7_cmdline_survey_build.zig\\\",", ""),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", "\"Documentation/zigux/phase7-cmdline-slice.md\",", ""),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", "\"lib/cmdline.zig\",", ""),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", "\"zigux/tests/phase7_cmdline_survey_build.zig\",", ""),
             ("zigux/tests/phase7_cmdline.zig", "test \"phase 7 cmdline companion replays leading-plus fallback boundaries\" {", ""),
             ("lib/cmdline.zig", "test \"memparse saturates signed overflow instead of trapping\" {", ""),
             ("zigux/tests/phase7_cmdline_survey_build.zig", "phase7-cmdline-survey", ""),
-            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_LANE_KEY = \\\"P7-L08\\\"', 'EXPECTED_MANIFEST_LANE_KEY = \\\"P7-L07\\\"'),
-            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_PHASE = \\\"Phase 7\\\"', 'EXPECTED_MANIFEST_PHASE = \\\"Phase 8\\\"'),
-            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_ANCHOR = \\\"lib/cmdline.c\\\"', 'EXPECTED_MANIFEST_ANCHOR = \\\"lib/string_helpers.c\\\"'),
-            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_STATE = \\\"helper_slice_test_survey_manifest_checker_anchor\\\"', 'EXPECTED_MANIFEST_STATE = \\\"helper_slice_test_survey_manifest_anchor\\\"'),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_LANE_KEY = "P7-L08"', 'EXPECTED_MANIFEST_LANE_KEY = "P7-L07"'),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_PHASE = "Phase 7"', 'EXPECTED_MANIFEST_PHASE = "Phase 8"'),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_ANCHOR = "lib/cmdline.c"', 'EXPECTED_MANIFEST_ANCHOR = "lib/string_helpers.c"'),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_STATE = "helper_slice_test_survey_manifest_checker_anchor"', 'EXPECTED_MANIFEST_STATE = "helper_slice_test_survey_manifest_anchor"'),
         ]
 
         for rel, old, new in mutations:

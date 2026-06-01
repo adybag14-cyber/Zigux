@@ -635,14 +635,38 @@ pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSu
     };
 }
 
-pub fn hvc_kick() void {}
+pub fn hvc_instantiate(vtermno: u32, index: c_int, ops: *const HvOps) callconv(.c) c_int {
+    _ = vtermno;
+    _ = index;
+    _ = ops;
+    return 0;
+}
 
-pub fn __hvc_resize(hp: *HvcStruct, ws: Winsize) void {
+pub fn hvc_alloc(vtermno: u32, data: c_int, ops: *const HvOps, outbuf_size: c_int) callconv(.c) ?*HvcStruct {
+    _ = vtermno;
+    _ = data;
+    _ = ops;
+    _ = outbuf_size;
+    return null;
+}
+
+pub fn hvc_remove(hp: *HvcStruct) callconv(.c) void {
+    _ = hp;
+}
+
+pub fn hvc_poll(hp: *HvcStruct) callconv(.c) c_int {
+    _ = hp;
+    return 0;
+}
+
+pub fn hvc_kick() callconv(.c) void {}
+
+pub fn __hvc_resize(hp: *HvcStruct, ws: Winsize) callconv(.c) void {
     _ = hp;
     _ = ws;
 }
 
-pub fn notifier_add_irq(hp: *HvcStruct, irq: c_int) c_int {
+pub fn notifier_add_irq(hp: *HvcStruct, irq: c_int) callconv(.c) c_int {
     _ = hp;
     return summarizeNotifierIrqHelper(.{
         .irq = irq,
@@ -652,12 +676,12 @@ pub fn notifier_add_irq(hp: *HvcStruct, irq: c_int) c_int {
     }).add_result;
 }
 
-pub fn notifier_del_irq(hp: *HvcStruct, irq: c_int) void {
+pub fn notifier_del_irq(hp: *HvcStruct, irq: c_int) callconv(.c) void {
     _ = hp;
     _ = irq;
 }
 
-pub fn notifier_hangup_irq(hp: *HvcStruct, irq: c_int) void {
+pub fn notifier_hangup_irq(hp: *HvcStruct, irq: c_int) callconv(.c) void {
     _ = hp;
     _ = irq;
 }

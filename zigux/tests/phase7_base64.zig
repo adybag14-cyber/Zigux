@@ -54,7 +54,7 @@ test "phase 7 base64 companion replays IMAP short-tail wrappers without slash-ba
 
 test "phase 7 base64 companion replays exact-span slice and allocator companions" {
     const sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
-    var encoded: [8]u8 = [_]u8{0xaa} ** 8;
+    var encoded: [8]u8 = @splat(0xaa);
     const encoded_slice = try base64.encodeStdSlice(encoded[0..], &sample, true);
     defer {
         for (encoded_slice) |_| {}
@@ -66,7 +66,7 @@ test "phase 7 base64 companion replays exact-span slice and allocator companions
     defer std.testing.allocator.free(encoded_alloc);
     try std.testing.expectEqualStrings("APv/f4A=", encoded_alloc);
 
-    var decoded: [5]u8 = [_]u8{0xbb} ** 5;
+    var decoded: [5]u8 = @splat(0xbb);
     const decoded_slice = try base64.decodeStdSlice(decoded[0..], encoded_slice, true);
     try std.testing.expectEqualSlices(u8, &sample, decoded_slice);
 

@@ -20,9 +20,9 @@ pub const Mode = enum {
     mod2noconfig,
 
     pub fn parse(input_text: []const u8) ?Mode {
-        inline for (std.meta.fields(Mode)) |field| {
-            if (std.mem.eql(u8, input_text, field.name)) {
-                return @field(Mode, field.name);
+        inline for (comptime std.meta.fieldNames(Mode)) |field_name| {
+            if (std.mem.eql(u8, input_text, field_name)) {
+                return @field(Mode, field_name);
             }
         }
         return null;
@@ -463,11 +463,11 @@ test "conf bridge mode surface stays aligned with conf.c long options" {
         .{ .mode = .mod2noconfig, .text = "mod2noconfig", .flag = "--mod2noconfig" },
     };
 
-    const fields = std.meta.fields(Mode);
-    try std.testing.expectEqual(expected.len, fields.len);
+    const field_names = comptime std.meta.fieldNames(Mode);
+    try std.testing.expectEqual(expected.len, field_names.len);
 
     inline for (expected, 0..) |entry, index| {
-        try std.testing.expectEqualStrings(entry.text, fields[index].name);
+        try std.testing.expectEqualStrings(entry.text, field_names[index]);
         try std.testing.expectEqual(entry.mode, Mode.parse(entry.text).?);
         try std.testing.expectEqualStrings(entry.text, entry.mode.text());
         try std.testing.expectEqualStrings(entry.flag, entry.mode.flag());

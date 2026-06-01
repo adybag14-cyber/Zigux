@@ -24,8 +24,14 @@ pub fn build(b: *std.Build) void {
     const run_unit_tests = b.addRunArtifact(unit_tests);
 
     const test_step = b.step(
-        "phase11-gpio-wdt-nowayout-policy-review-test",
+        "test",
         "Run the bounded gpio_wdt nowayout policy review packet",
     );
     test_step.dependOn(&run_unit_tests.step);
+
+    const named_step = b.step(
+        "phase11-gpio-wdt-nowayout-policy-review-test",
+        "Run the bounded gpio_wdt nowayout policy review packet",
+    );
+    named_step.dependOn(&run_unit_tests.step);
 }

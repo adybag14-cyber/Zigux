@@ -283,7 +283,7 @@ fn reverseMap(variant: Variant) *const [256]i8 {
 }
 
 fn initReverseMap(comptime ch_62: u8, comptime ch_63: u8) [256]i8 {
-    var map = [_]i8{invalid_reverse_value} ** 256;
+    var map: [256]i8 = @splat(invalid_reverse_value);
 
     for ('A'..'Z' + 1) |value| {
         map[value] = @intCast(value - 'A');
@@ -418,7 +418,7 @@ fn expectedDecodeValueForTest(ch: u8, variant: Variant) ?u8 {
 }
 
 fn expectShortTailRoundTripCase(payload: []const u8, padding: bool, variant: Variant) !void {
-    var encoded_buf: [5]u8 = [_]u8{0xaa} ** 5;
+    var encoded_buf: [5]u8 = @splat(0xaa);
     const encoded_len = try encode(encoded_buf[0..], payload, padding, variant);
     try std.testing.expectEqual(chars(payload.len, padding), encoded_len);
 
@@ -439,7 +439,7 @@ fn expectShortTailRoundTripCase(payload: []const u8, padding: bool, variant: Var
     const encoded = encoded_buf[0..encoded_len];
     try std.testing.expectEqual(payload.len, try bytes(encoded, padding, variant));
 
-    var decoded_buf: [3]u8 = [_]u8{0xbb} ** 3;
+    var decoded_buf: [3]u8 = @splat(0xbb);
     const decoded_len = try decode(decoded_buf[0..], encoded, padding, variant);
     try std.testing.expectEqual(payload.len, decoded_len);
     try std.testing.expectEqualSlices(u8, payload, decoded_buf[0..decoded_len]);
@@ -533,8 +533,8 @@ fn expectVariantPinnedConvenienceParity(input: []const u8, expected: []const u8,
     try std.testing.expectEqualSlices(u8, input, generic_decoded[0..generic_decoded_len]);
     try std.testing.expectEqualSlices(u8, input, pinned_decoded[0..pinned_decoded_len]);
 
-    var generic_slice_buf: [16]u8 = [_]u8{0xaa} ** 16;
-    var pinned_slice_buf: [16]u8 = [_]u8{0xbb} ** 16;
+    var generic_slice_buf: [16]u8 = @splat(0xaa);
+    var pinned_slice_buf: [16]u8 = @splat(0xbb);
     const generic_slice = try encodeSlice(generic_slice_buf[0..generic_written], input, padding, variant);
     const pinned_slice = switch (variant) {
         .std => try encodeStdSlice(pinned_slice_buf[0..pinned_written], input, padding),
@@ -556,8 +556,8 @@ fn expectVariantPinnedConvenienceParity(input: []const u8, expected: []const u8,
     defer std.testing.allocator.free(pinned_alloc);
     try std.testing.expectEqualStrings(generic_alloc, pinned_alloc);
 
-    var generic_decode_slice_buf: [8]u8 = [_]u8{0xcc} ** 8;
-    var pinned_decode_slice_buf: [8]u8 = [_]u8{0xdd} ** 8;
+    var generic_decode_slice_buf: [8]u8 = @splat(0xcc);
+    var pinned_decode_slice_buf: [8]u8 = @splat(0xdd);
     const generic_decode_slice = try decodeSlice(generic_decode_slice_buf[0..generic_len], expected, padding, variant);
     const pinned_decode_slice = switch (variant) {
         .std => try decodeStdSlice(pinned_decode_slice_buf[0..pinned_len], expected, padding),
@@ -714,8 +714,8 @@ test "generic bytes and decode reject foreign variant short tails" {
 
 test "standard slice and allocator helpers pin the common variant across exact-span ownership paths" {
     const sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
-    var generic_encoded_buf: [9]u8 = [_]u8{0xaa} ** 9;
-    var std_encoded_buf: [9]u8 = [_]u8{0xbb} ** 9;
+    var generic_encoded_buf: [9]u8 = @splat(0xaa);
+    var std_encoded_buf: [9]u8 = @splat(0xbb);
 
     const generic_encoded = try encodeSlice(generic_encoded_buf[0..8], &sample, true, .std);
     const std_encoded = try encodeStdSlice(std_encoded_buf[0..8], &sample, true);
@@ -730,8 +730,8 @@ test "standard slice and allocator helpers pin the common variant across exact-s
     defer std.testing.allocator.free(std_alloc);
     try std.testing.expectEqualStrings(generic_alloc, std_alloc);
 
-    var generic_decoded_buf: [6]u8 = [_]u8{0xcc} ** 6;
-    var std_decoded_buf: [6]u8 = [_]u8{0xdd} ** 6;
+    var generic_decoded_buf: [6]u8 = @splat(0xcc);
+    var std_decoded_buf: [6]u8 = @splat(0xdd);
     const generic_decoded = try decodeSlice(generic_decoded_buf[0..5], "APv/f4A=", true, .std);
     const std_decoded = try decodeStdSlice(std_decoded_buf[0..5], "APv/f4A=", true);
     try std.testing.expectEqualSlices(u8, &sample, generic_decoded);

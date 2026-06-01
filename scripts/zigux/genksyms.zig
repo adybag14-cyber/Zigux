@@ -52,7 +52,7 @@ const usage_text =
     " -V, --version Print the release version\n";
 
 const version_text = "genksyms version 2.5.60\n";
-const help_expected_json = @embedFile("../../zigux/tests/fixtures/genksyms_bridge/help_expected.json");
+const help_expected_path = "zigux/tests/fixtures/genksyms_bridge/help_expected.json";
 const max_reference_files: usize = 16;
 
 const HelpFixture = struct {
@@ -948,6 +948,9 @@ test "genksyms bridge help output only advertises implemented flags" {
 }
 
 test "genksyms bridge help fixture stays aligned with live help output" {
+    const help_expected_json = try Io.Dir.cwd().readFileAlloc(testing.io, help_expected_path, testing.allocator, .limited(4096));
+    defer testing.allocator.free(help_expected_json);
+
     const parsed = try std.json.parseFromSlice(HelpFixture, testing.allocator, help_expected_json, .{});
     defer parsed.deinit();
 

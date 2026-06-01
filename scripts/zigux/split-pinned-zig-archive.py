@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")
 DEFAULT_CHUNK_BYTES = 786_432
 EXPECTED_ARCHIVE_SIZES = {
-    "x86_64-linux": 58_159_088,
+    "x86_64-linux": 59_410_844,
 }
 
 
@@ -276,8 +276,8 @@ def run_self_test() -> int:
             json.dumps(
                 {
                     "phase": "Phase 2",
-                    "channel": "0.17.0-dev.87+9b177a7d2",
-                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "channel": "0.17.0-dev.758+748e7c5e3",
+                    "minimum_version": "0.17.0-dev.758+748e7c5e3",
                     "archive_sha256": {"x86_64-linux": sha256},
                     "upgrade_policy": {
                         "channel_minimum_lockstep": True,

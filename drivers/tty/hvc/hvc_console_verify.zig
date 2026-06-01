@@ -100,6 +100,12 @@ pub fn summarizeNotifierDispatch(
     };
 }
 
+pub fn summarizeCleanupTrigger(
+    request: hvc_console.CleanupPrerequisiteRequest,
+) error{CleanupRequiresFinalCloseOrHangup}!hvc_console.CleanupPrerequisiteSummary {
+    return hvc_console.summarizeCleanupPrerequisite(request);
+}
+
 test "phase11 hvc verify helper keeps tty-already-absent remove handoff explicit" {
     const summary = summarizeRemoveHandoffWithoutBinding(.{
         .tty_already_absent = true,

@@ -31,9 +31,10 @@ CURRENT_MANIFEST_SCOPE = (
     "header-compatibility replay"
 )
 CURRENT_NEXT_SAFE_STEP = (
-    "keep the shared Phase 3 policy, export/UAPI, and low-level wrapper packet "
-    "aligned with the dedicated replay routes and only reopen this manifest if the "
-    "checker, focused builds, or reminder surfaces drift again"
+    "keep the shared Phase 3 policy, export/UAPI, low-level wrapper packet, "
+    "and retired generated-packet guard aligned with the dedicated replay routes "
+    "and only reopen this manifest if the checker, focused builds, or reminder "
+    "surfaces drift again"
 )
 
 REQUIRED_MARKERS = {
@@ -152,11 +153,11 @@ REQUIRED_MARKERS = {
     UNSAFE_POLICY_PATH: (
         "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {",
         "pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {",
-        "pub fn permitsVolatileMmio(mode: abi.UnsafeScope) bool {",
+        "pub fn permitsVolatileMmio(scope: abi.UnsafeScope) bool {",
         "pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {",
         "pub fn allowsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {",
         "pub fn requireVolatileMmioInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {",
-        "pub fn permitsRawPointerBridge(mode: abi.UnsafeScope) bool {",
+        "pub fn permitsRawPointerBridge(scope: abi.UnsafeScope) bool {",
         "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
         "pub fn allowsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
         "pub fn requireRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {",
@@ -276,9 +277,9 @@ REQUIRED_MARKERS = {
     MAKEFILE_PATH: (
         "phase3-low-level-wrappers:",
         "phase3-low-level-wrappers-test:",
-        "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
-        "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
-        "phase3: phase3-validate phase3-export-uapi-layout phase3-low-level-wrappers phase3-test phase3-policy-dump phase3-dump",
+        "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
+        "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+        "phase3: phase3-validate phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase3-policy-unsafe-test phase3-test phase3-policy-dump phase3-dump",
     ),
     SELFTEST_SURFACE_PATH: (
         'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',

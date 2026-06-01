@@ -17,7 +17,7 @@ POLICY = Path("scripts/zigux/zig-toolchain-policy.json")
 TOOLCHAIN_CHECK = Path("scripts/zigux/check-zig-toolchain.py")
 BOOTSTRAP_NOTES = Path("Documentation/zigux/phase2-toolchain-bootstrap-notes.md")
 
-EXPECTED_CHANNEL = "0.17.0-dev.87+9b177a7d2"
+EXPECTED_CHANNEL = "0.17.0-dev.758+748e7c5e3"
 EXPECTED_TARGET = "x86_64-linux"
 EXPECTED_ROUTES = (
     "phase2-toolchain",
@@ -53,7 +53,7 @@ TOOLCHAIN_MARKERS = (
 
 NOTE_MARKERS = (
     "`scripts/zigux/check-zig-toolchain.py` is directly readable on current `master` and keeps the pinned-channel probe, repo-local `.zig-toolchain` fallback, and archive-integrity validation surface explicit beside the reminder guards.",
-    "`scripts/zigux/zig-toolchain-policy.json` currently pins Phase 2 to channel `0.17.0-dev.87+9b177a7d2`",
+    "`scripts/zigux/zig-toolchain-policy.json` currently pins Phase 2 to channel `0.17.0-dev.758+748e7c5e3`",
     "`make -C zigux phase2-toolchain`",
 )
 
@@ -158,7 +158,7 @@ def build_sample_root(root: Path) -> None:
                 "channel": EXPECTED_CHANNEL,
                 "minimum_version": EXPECTED_CHANNEL,
                 "archive_sha256": {
-                    EXPECTED_TARGET: "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77"
+                    EXPECTED_TARGET: "0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6"
                 },
                 "upgrade_policy": {
                     "channel_minimum_lockstep": True,

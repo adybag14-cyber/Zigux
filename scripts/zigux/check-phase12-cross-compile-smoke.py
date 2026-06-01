@@ -9,6 +9,19 @@ from pathlib import Path
 
 
 CHECK_NAME = "PHASE12_CROSS_COMPILE_SMOKE"
+SELF_PATH = Path(__file__).resolve()
+
+
+def infer_repo_root() -> Path:
+    for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
+        if (candidate / "Documentation/zigux").is_dir() and (
+            candidate / "zigux/Makefile"
+        ).is_file():
+            return candidate
+    return Path(".")
+
+
+ROOT = infer_repo_root()
 
 NOTE_PATH = Path("Documentation/zigux/phase12-cross-compile-smoke.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -35,9 +48,9 @@ NOTE_MARKERS = (
 
 MAKEFILE_MARKERS = (
     "phase12-virtio-net-syntax-lab-test:",
-    "$(ZIG) build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all",
+    "$(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all",
     "phase12-virtio-net-throughput-parity-test:",
-    "$(ZIG) build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all",
+    "$(ZIG_REPO_ROOT) build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all",
     "phase12: phase12-validate phase12-smoke phase12-test",
 )
 
@@ -205,7 +218,7 @@ def run_self_test() -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", default=".")
+    parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args(argv)
 
@@ -213,7 +226,7 @@ def main(argv: list[str] | None = None) -> int:
         return run_self_test()
 
     try:
-        check(Path(args.root))
+        check(args.root)
     except CheckFailure as exc:
         print(f"{CHECK_NAME}=fail")
         print(f"{CHECK_NAME}_ERROR={exc}")

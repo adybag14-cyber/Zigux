@@ -24,8 +24,14 @@ pub fn build(b: *std.Build) void {
     const run_unit_tests = b.addRunArtifact(unit_tests);
 
     const test_step = b.step(
-        "phase11-gpio-wdt-register-device-glue-review-test",
+        "test",
         "Run the bounded gpio_wdt register-device glue review packet",
     );
     test_step.dependOn(&run_unit_tests.step);
+
+    const named_step = b.step(
+        "phase11-gpio-wdt-register-device-glue-review-test",
+        "Run the bounded gpio_wdt register-device glue review packet",
+    );
+    named_step.dependOn(&run_unit_tests.step);
 }

@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 INSTALL_ZIG = Path("scripts/zigux/install-zig.py")
 TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -182,8 +182,8 @@ def build_self_test_root(root: Path) -> None:
         json.dumps(
             {
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.87+9b177a7d2",
-                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "channel": "0.17.0-dev.758+748e7c5e3",
+                "minimum_version": "0.17.0-dev.758+748e7c5e3",
                 "archive_sha256": {
                     "x86_64-linux": "3" * 64,
                 },

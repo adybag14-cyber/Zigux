@@ -87,14 +87,15 @@ UPDATED_SHARED_REMINDER_MARKER = (
     "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, "
     "the dedicated ABI header-family survey follow-through, the focused abi.h next-step note, the shared ABI catalog helper "
     "plus manifest-backed inventory companion, the bounded bitmap/cpumask and list/hlist helper slices, the shared tests-root "
-    "export/UAPI layout route, and the direct C smoke proof; the remaining same-lane gap is no longer missing landed helper-local "
-    "code or replay surfaces, but shared-summary truthfulness across the docs-root, tests-root, and scripts-root reminder family"
+    "export/UAPI layout route, the named Linux-side boundary-header helper family plus validation relay, and the direct C smoke proof; "
+    "the docs-root reminder, shared review checklist, tests-root reminder, and scripts-root reminder are now aligned on those "
+    "already-returned helper-local slices, and no same-lane shared-summary drift remains on current master"
 )
 
 UPDATED_SHARED_REMINDER_NEXT_STEP_MARKER = (
-    "PHASE3_SHARED_REMINDER_NEXT_STEP=keep this note parked unless a fresh current-master reread shows a smaller one-file reminder drift; "
-    "the highest-value same-lane follow-through is now shared-summary sync for the returned bitmap/cpumask and list/hlist slices, "
-    "with the scripts-root direct-C-smoke pair still separate and inventory-local"
+    "PHASE3_SHARED_REMINDER_NEXT_STEP=keep this note parked unless a fresh current-master reread shows a smaller one-file shared-summary "
+    "drift around the returned export/UAPI, bitmap/cpumask, list/hlist, shared tests-root layout, named boundary-header helper, "
+    "or direct C smoke packet"
 )
 
 REQUIRED_MARKERS = {
@@ -139,6 +140,7 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase3-policy-slice.md",
         "Documentation/zigux/phase3-validator-support-surface.md",
         "Documentation/zigux/README.md",
+        "Documentation/zigux/review-checklist.md",
         "zigux/tests/README.md",
         "scripts/zigux/README.md",
         "scripts/zigux/phase3_catalog.py",
@@ -447,6 +449,7 @@ def main() -> int:
     print(f"validated {args.repo_root / DUMP_CHECKER_PATH}")
     print(f"validated {args.repo_root / POLICY_UNSAFE_SURVEY_CHECKER_PATH}")
     print(f"validated {args.repo_root / TEST_PATH}")
+    print("PHASE3_POLICY_STARTER_PACKET=pass")
     return 0
 
 

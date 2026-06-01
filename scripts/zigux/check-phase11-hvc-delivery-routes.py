@@ -10,7 +10,7 @@ import sys
 import tempfile
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
@@ -26,7 +26,7 @@ REQUIRED_MAKEFILE_MARKERS = (
     "phase11-hvc-survey:",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-survey-packet.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-survey-packet.py",
-    "cd $(ZIGUX_ROOT) && $(ZIG) build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all",
     "phase11: phase11-contract phase11-test phase11-hvc-survey",
 )
 
@@ -124,7 +124,7 @@ def write(path: Path, content: str) -> None:
 def run_self_test() -> None:
     passing_workflow = """jobs:\n  bootstrap:\n    steps:\n      - name: Validate Phase 11 shared routes\n        run: make -C zigux phase11-contract\n      - name: Run Phase 11 shared tests\n        run: make -C zigux phase11-test\n      - name: Run Phase 11 dedicated hvc survey\n        run: make -C zigux phase11-hvc-survey\n"""
     missing_dedicated_workflow = """jobs:\n  bootstrap:\n    steps:\n      - name: Validate Phase 11 shared routes\n        run: make -C zigux phase11-contract\n      - name: Run Phase 11 shared tests\n        run: make -C zigux phase11-test\n"""
-    passing_makefile = """phase11-contract:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-survey-packet.py --self-test\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-survey-packet.py\nphase11-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_build.zig --summary all\nphase11-hvc-survey:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all\nphase11: phase11-contract phase11-test phase11-hvc-survey\n"""
+    passing_makefile = """phase11-contract:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-survey-packet.py --self-test\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-survey-packet.py\nphase11-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_build.zig --summary all\nphase11-hvc-survey:\n\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all\nphase11: phase11-contract phase11-test phase11-hvc-survey\n"""
     passing_build = """const test_step = b.step(\"test\", \"Run the shared Phase 11 starter packet\");\ntest_step.dependOn(&run_phase11_uapi_header_parity_survey_tests.step);\ntest_step.dependOn(&run_phase11_hvc_console_tests.step);\ntest_step.dependOn(&run_hvc_console_verify_tests.step);\ntest_step.dependOn(&run_phase11_hvc_cleanup_tests.step);\nconst hvc_console_survey_step = b.step(\"hvc-console-survey\", \"Run the dedicated Phase 11 hvc_console archival survey\");\nhvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);\n"""
     passing_shared_doc = """make -C zigux phase11\nmake -C zigux phase11-hvc-survey\nzig build test --build-file zigux/tests/phase11_build.zig --summary all\nscripts/zigux/check-phase11-hvc-survey-packet.py\n.github/workflows/zigux-bootstrap.yml\n"""
     missing_matrix_marker = """make -C zigux phase11-hvc-survey\nscripts/zigux/check-phase11-hvc-survey-packet.py\n"""

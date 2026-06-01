@@ -49,8 +49,8 @@ FORBIDDEN_WORKFLOW_LINES = (
 
 REQUIRED_MAKEFILE_LINES = (
     "phase7-validate:",
-    "$(PYTHON) scripts/zigux/validate-phase7.py --self-test",
-    "$(PYTHON) scripts/zigux/validate-phase7.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
 )
 
 REQUIRED_VALIDATOR_MARKERS = (
@@ -96,7 +96,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     else:
         validator_text = read_text(validator_path)
         for marker in REQUIRED_VALIDATOR_MARKERS:
-            count = validator_text.count(marker)
+            count = count_exact_lines(validator_text, marker)
             if count == 0:
                 issues.append(("MISSING_VALIDATOR_MARKERS", marker))
             elif count != 1:
@@ -192,8 +192,8 @@ def build_self_test_root(root: Path) -> None:
         "\n".join(
             [
                 "phase7-validate:",
-                "\t$(PYTHON) scripts/zigux/validate-phase7.py --self-test",
-                "\t$(PYTHON) scripts/zigux/validate-phase7.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
             ]
         )
         + "\n",
@@ -272,9 +272,9 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / MAKEFILE
-        path.write_text(path.read_text(encoding="utf-8") + "\t$(PYTHON) scripts/zigux/validate-phase7.py\n", encoding="utf-8")
+        path.write_text(path.read_text(encoding="utf-8") + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("DUPLICATE_MAKEFILE_LINES", "$(PYTHON) scripts/zigux/validate-phase7.py:count=2") in issues
+        assert ("DUPLICATE_MAKEFILE_LINES", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py:count=2") in issues
         cases += 1
 
         build_self_test_root(root)

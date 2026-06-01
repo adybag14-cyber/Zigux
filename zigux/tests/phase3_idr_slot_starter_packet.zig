@@ -16,7 +16,7 @@ test "idr slot view keeps empty slots explicit" {
     try testing.expectEqual(@as(?usize, null), slot.pointerValue());
 }
 
-test "idr slot view keeps mapped pointers distinct from xarray-tagged internals" {
+test "idr slot view keeps pointer lanes publishable without tagging drift" {
     const raw: usize = 0x1000;
     const slot = idr_slot_view.fromPointer(raw);
 
@@ -48,6 +48,16 @@ test "idr slot view preserves err_ptr encodings as tagged error entries" {
     try testing.expect(slot.isErr());
     try testing.expect(!slot.isPointer());
     try testing.expectEqual(@as(?isize, -22), slot.errorCode());
+    try testing.expect(idr_slot_view.isTaggedInternalEntry(raw));
+}
+
+test "top err_ptr encoding never falls back into the pointer lane" {
+    const raw = err_ptr.fromErrorCode(-1);
+    const slot = idr_slot_view.fromRaw(raw);
+
+    try testing.expect(slot.isErr());
+    try testing.expect(!slot.isPointer());
+    try testing.expectEqual(@as(?isize, -1), slot.errorCode());
     try testing.expect(idr_slot_view.isTaggedInternalEntry(raw));
 }
 

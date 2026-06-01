@@ -10,6 +10,19 @@ import tempfile
 from pathlib import Path
 
 CHECK_NAME = "PHASE12_COMPLEX_DRIVER_LANE_PACKET"
+SELF_PATH = Path(__file__).resolve()
+
+
+def infer_repo_root() -> Path:
+    for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
+        if (candidate / "Documentation/zigux").is_dir() and (
+            candidate / "zigux/Makefile"
+        ).is_file():
+            return candidate
+    return Path(".")
+
+
+ROOT = infer_repo_root()
 
 NOTE_PATH = Path("Documentation/zigux/phase12-complex-driver-lane-sequencing.md")
 SUPPORT_BUNDLE_MAP_PATH = Path(
@@ -455,7 +468,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", type=Path, default=Path("."), help="Repository root to validate.")
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate.")
     parser.add_argument("--self-test", action="store_true", help="Run fixture-backed self-tests.")
     args = parser.parse_args()
 

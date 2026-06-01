@@ -398,7 +398,7 @@ test "hex2bin and bin2hex round-trip payloads" {
     try std.testing.expectEqualSlices(u8, source, text);
 }
 
-test "kernel-style hex aliases stay aligned" {
+test "hex2bin and bin2hex snake-case aliases stay aligned" {
     var decoded_direct: [3]u8 = undefined;
     var decoded_alias: [3]u8 = undefined;
     var encoded_direct: [8]u8 = undefined;
@@ -436,7 +436,7 @@ test "kernel-style hex aliases stay aligned" {
 
 test "bin2hex emits lowercase bulk output and preserves destination on bounds errors" {
     const sample = [_]u8{ 0x0a, 0xf1, 0x5c };
-    var encoded: [8]u8 = [_]u8{0xaa} ** 8;
+    var encoded: [8]u8 = @splat(0xaa);
 
     const written = try bin2hex(encoded[0..], &sample);
     try std.testing.expectEqual(@as(usize, 6), written.len);
@@ -454,8 +454,8 @@ test "bin2hex emits lowercase bulk output and preserves destination on bounds er
 
 test "bin2hexUpper emits uppercase bulk output and alias stays aligned" {
     const sample = [_]u8{ 0x0a, 0xf1, 0x5c };
-    var direct_buf: [8]u8 = [_]u8{0xaa} ** 8;
-    var alias_buf: [8]u8 = [_]u8{0xbb} ** 8;
+    var direct_buf: [8]u8 = @splat(0xaa);
+    var alias_buf: [8]u8 = @splat(0xbb);
 
     const direct_written = try bin2hexUpper(direct_buf[0..], &sample);
     const alias_written = try bin2HexUpper(alias_buf[0..], &sample);
@@ -608,7 +608,7 @@ test "hexDumpToBuffer uses native-endian grouping for 2, 4, and 8 byte groups" {
 
 test "hexDumpToBuffer reports full length when the caller buffer truncates" {
     const data = [_]u8{ 0xbe, 0x32, 0xdb, 0x7b };
-    var line: [8]u8 = [_]u8{0xaa} ** 8;
+    var line: [8]u8 = @splat(0xaa);
 
     const written = hexDumpToBuffer(data[0..], 16, 1, line[0..], true);
     try std.testing.expectEqual(@as(usize, 53), written);

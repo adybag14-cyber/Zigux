@@ -182,7 +182,7 @@ pub fn writeMasked64InteropPolicyByte(
 }
 
 test "mmio width helper keeps exchange aliases explicit across register widths" {
-    var words = [_]u64{0} ** 3;
+    var words: [3]u64 = @splat(0);
     const bytes: [*]u8 = @ptrCast(&words[0]);
     const base_addr = @intFromPtr(&bytes[0]);
 
@@ -210,7 +210,7 @@ test "mmio width helper keeps exchange aliases explicit across register widths" 
 }
 
 test "mmio width helper keeps masked aliases explicit across register widths" {
-    var words = [_]u64{0} ** 3;
+    var words: [3]u64 = @splat(0);
     const bytes: [*]u8 = @ptrCast(&words[0]);
     const base_addr = @intFromPtr(&bytes[0]);
 
@@ -247,7 +247,7 @@ test "mmio width helper keeps masked aliases explicit across register widths" {
 }
 
 test "mmio width helper preserves policy denials and reserved-byte failures" {
-    var words = [_]u64{0} ** 2;
+    var words: [2]u64 = @splat(0);
     const bytes: [*]u8 = @ptrCast(&words[0]);
     const base_addr = @intFromPtr(&bytes[0]);
 

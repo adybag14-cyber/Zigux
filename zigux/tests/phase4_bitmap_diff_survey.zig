@@ -32,9 +32,9 @@ const manifest_source = @embedFile("phase4_bitmap_diff_manifest.json");
 const bitmap_diff_source = @embedFile("bitmap_diff.zig");
 const bitmap_live_helper_replay_source = @embedFile("phase4_bitmap_live_helper_replay.zig");
 const phase4_build_source = @embedFile("phase4_build.zig");
-const validator_source = @embedFile("../../scripts/zigux/validate-phase4.py");
-const validation_matrix_source = @embedFile("../../Documentation/zigux/phase4-validation-matrix.md");
-const gate_evidence_source = @embedFile("../../Documentation/zigux/phase4-gate-evidence.md");
+const validator_path = "scripts/zigux/validate-phase4.py";
+const validation_matrix_path = "Documentation/zigux/phase4-validation-matrix.md";
+const gate_evidence_path = "Documentation/zigux/phase4-gate-evidence.md";
 
 fn gitBlobShaHex(source: []const u8) [40]u8 {
     var hasher = std.crypto.hash.Sha1.init(.{});
@@ -55,7 +55,23 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn readRepoFile(repo_root_relative_path: []const u8) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        repo_root_relative_path,
+        std.testing.allocator,
+        .limited(1024 * 1024),
+    );
+}
+
 test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay measurable" {
+    const validator_source = try readRepoFile(validator_path);
+    defer std.testing.allocator.free(validator_source);
+    const validation_matrix_source = try readRepoFile(validation_matrix_path);
+    defer std.testing.allocator.free(validation_matrix_source);
+    const gate_evidence_source = try readRepoFile(gate_evidence_path);
+    defer std.testing.allocator.free(gate_evidence_source);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_source, .{});
     defer parsed.deinit();
     const manifest = parsed.value;
@@ -65,18 +81,18 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", manifest.roadmap_target_path);
     try std.testing.expect(manifest.roadmap_bitmap_diff_present);
     try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", manifest.live_gate_path);
-    try std.testing.expectEqualStrings("d70dfb78d481e902d61c9cbb07a763f831424024", manifest.live_gate_blob_sha);
+    try std.testing.expectEqualStrings("505e09332079365f5e76dca904cdaa90f2e850fe", manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings("zigux/tests/phase4_bitmap_live_helper_replay.zig", manifest.helper_replay_path);
     try std.testing.expectEqualStrings("375f7f5ac9dfecee48500cf52a4edbcd7cd02e2f", manifest.helper_replay_blob_sha);
     try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.owner);
     try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.rollback_owner);
     try std.testing.expectEqualStrings("scripts/zigux/validate-phase4.py", manifest.shared_validator_path);
-    try std.testing.expectEqualStrings("3c9adfacb72764275cf8135cbce97332c3ee45ed", manifest.shared_validator_blob_sha);
+    try std.testing.expectEqualStrings("6840d9c60266850b9e270c527c9ce6596aee01e0", manifest.shared_validator_blob_sha);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-validation-matrix.md", manifest.shared_matrix_path);
-    try std.testing.expectEqualStrings("6f0881d99dca7f21ea5dd05560567f7d66bbad2f", manifest.shared_matrix_blob_sha);
+    try std.testing.expectEqualStrings("43789166370910686ce37e2f7a81e09b671e0750", manifest.shared_matrix_blob_sha);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.shared_gate_evidence_path);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.gate_evidence_path);
-    try std.testing.expectEqualStrings("eb955b107d5116cfd8fb03aef5fca2b17121c23c", manifest.gate_evidence_blob_sha);
+    try std.testing.expectEqualStrings("e2941a1f366b1fdc72e4a2dee5d5a4a8ea771149", manifest.gate_evidence_blob_sha);
     try std.testing.expect(manifest.phase4_build_present);
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff);
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff_survey);
@@ -144,6 +160,9 @@ test "phase 4 bitmap survey keeps the helper-backed rollback replay explicit" {
 }
 
 test "phase 4 bitmap survey keeps the shared gate evidence packet fail-closed" {
+    const gate_evidence_source = try readRepoFile(gate_evidence_path);
+    defer std.testing.allocator.free(gate_evidence_source);
+
     try expectContains(gate_evidence_source, "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true");
     try expectContains(gate_evidence_source, "scripts/zigux/check-phase4-perf-baseline-packet.py");
     try expectContains(gate_evidence_source, "zigux/tests/phase4_perf_baseline_survey.zig");

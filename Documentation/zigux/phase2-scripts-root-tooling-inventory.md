@@ -59,7 +59,7 @@ This note keeps the current Phase 2 repo-tooling packet explicit from the script
 - `zigux/tests/fixtures/genksyms_bridge/manifest.json`
 - `zigux/tests/fixtures/fixdep/cases.json`
 - `third_party/README.md`
-- `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`
+- `third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz`
 - `zigux/Makefile`
 
 ## Replay Commands

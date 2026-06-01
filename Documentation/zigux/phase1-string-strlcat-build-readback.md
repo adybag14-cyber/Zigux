@@ -25,7 +25,7 @@ Because this runtime could not clone or raw-fetch the full repository over the n
 Command:
 
 ```sh
-/workspace/.toolchains/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig test /workspace/tmp_p1_l15_string/string_strlcat_current_replay.zig
+/workspace/.toolchains/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3/zig test /workspace/tmp_p1_l15_string/string_strlcat_current_replay.zig
 ```
 
 Observed result:

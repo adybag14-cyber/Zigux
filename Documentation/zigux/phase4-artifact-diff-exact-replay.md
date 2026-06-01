@@ -37,7 +37,7 @@ These are the exact top-level pass markers required by the current directly read
   * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=pass`
   * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MODE=validator_present`
   * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7`
-  * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14`
+  * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=16`
   * `PHASE4_ARTIFACT_DIFF_EXACT_REPLAY_SELF_TEST=pass`
   * `PHASE4_ARTIFACT_DIFF_EXACT_REPLAY_SELF_TEST_CASE_COUNT=8`
   * `PHASE4_ARTIFACT_DIFF_EXACT_REPLAY_SELF_TEST_CASES=catalog_shape,note_command_round_trip,note_command_drift,note_helper_catalog_drift,note_contract_catalog_drift,note_determinism_catalog_drift,note_validator_catalog_drift,note_exact_replay_catalog_drift`

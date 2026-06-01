@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 DEFAULT_ROOT = (
-    Path(__file__).resolve().parents[3]
+    Path(__file__).resolve().parents[2]
     if len(Path(__file__).resolve().parents) > 3
     else Path.cwd()
 )

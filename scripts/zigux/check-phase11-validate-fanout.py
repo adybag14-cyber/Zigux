@@ -187,7 +187,7 @@ def build_fixture(root: Path, *, include_validator_drift: bool = False) -> None:
         root / MAKEFILE_PATH,
         "phase11-validate:\n"
         + "".join(
-            f"\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file {path}\n"
+            f"\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file {path}\n"
             for path in REQUIRED_SHARED_BUILD_FILES
         ),
     )
@@ -259,7 +259,7 @@ def run_self_test() -> int:
         write(
             widened_makefile / MAKEFILE_PATH,
             read_text(widened_makefile, MAKEFILE_PATH)
-            + "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig\n",
+            + "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig\n",
         )
         expect_failure(widened_makefile, "phase11-validate Makefile fan-out does not match the current shared contract")
         case_count += 1

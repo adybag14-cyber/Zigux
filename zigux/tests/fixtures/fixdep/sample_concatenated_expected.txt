@@ -6,6 +6,17 @@ deps_sample_concatenated.o := \
     $(wildcard include/config/ZIGUX_DT_SOURCE) \
   zigux/tests/fixtures/fixdep/sample_concatenated_dep.h \
     $(wildcard include/config/ZIGUX_DT_HEADER) \
+  zigux/tests/fixtures/fixdep/escaped\ space-config.h \
+    $(wildcard include/config/ZIGUX_ESCAPED_SPACE) \
+  zigux/tests/fixtures/fixdep/sample2.so \
+  zigux/tests/fixtures/fixdep/shared#config.h \
+    $(wildcard include/config/ZIGUX_HASH) \
+    $(wildcard include/config/ZIGUX_SHARED) \
+  zigux/tests/fixtures/fixdep/sample.rmeta \
+  zigux/tests/fixtures/fixdep/sample.rlib \
+  zigux/tests/fixtures/fixdep/shared:config.h \
+    $(wildcard include/config/ZIGUX_COLON) \
+    $(wildcard include/config/ZIGUX_SHARED_COLON) \
   zigux/tests/fixtures/fixdep/sample_concatenated_temp_dep.h \
     $(wildcard include/config/ZIGUX_DT_SECONDARY) \
 

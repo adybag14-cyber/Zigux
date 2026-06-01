@@ -3,7 +3,7 @@ const mmio = @import("mmio");
 const narrow = @import("narrow");
 
 test "phase3 low-level wrappers keep MMIO range overflow boundaries explicit" {
-    const InteropPolicy = @typeInfo(@TypeOf(mmio.readInteropPolicy)).@"fn".params[1].type.?;
+    const InteropPolicy = @typeInfo(@TypeOf(mmio.readInteropPolicy)).@"fn".param_types[1].?;
     const mmio_policy = InteropPolicy{
         .panic_mode = 0,
         .allocator_mode = 0,

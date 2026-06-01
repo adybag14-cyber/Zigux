@@ -30,6 +30,7 @@ EXPECTED_MANIFEST_NEXT_BOUNDED_STEP = (
     "cases, while keeping the returned `phase7-rbtree-test:` and `phase7-rbtree-survey:` wrappers "
     "aligned with `zigux/tests/phase7_build.zig` so helper path, shared `phase7-validate` route, "
     "still-absent `phase7-test:` and `phase7:` markers, and legacy companion framing stay aligned "
+    "while keeping the cached-churn invariants witness aligned with the dedicated replay and "
     "without widening beyond the rbtree packet."
 )
 

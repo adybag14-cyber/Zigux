@@ -109,9 +109,9 @@ REQUIRED_MARKERS = {
     ),
     MAKEFILE_PATH: (
         "phase3-list-hlist-starter-packet:",
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
         "phase3-list-hlist-dump:",
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
     ),
     MANIFEST_PATH: (
         '"slug": "phase3-list-hlist"',
@@ -373,6 +373,9 @@ def main() -> int:
         return 1
 
     print("PHASE3_LIST_HLIST_PACKET=pass")
+    print(f"validated {args.repo_root / LIST_VIEW_PATH}")
+    print(f"validated {args.repo_root / HLIST_VIEW_PATH}")
+    print(f"validated {args.repo_root / TEST_PATH}")
     print(f"validated {args.repo_root / MANIFEST_PATH}")
     print(f"validated {args.repo_root / BUILD_PATH}")
     print(f"validated {args.repo_root / MAKEFILE_PATH}")

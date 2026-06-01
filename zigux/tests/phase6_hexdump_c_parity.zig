@@ -43,7 +43,7 @@ fn writeTruncatedDumpCase(
     ascii: bool,
     buflen: usize,
 ) !void {
-    var line: [131]u8 = [_]u8{0xaa} ** 131;
+    var line: [131]u8 = @splat(0xaa);
     const required = hexdump.hexDumpToBuffer(data[0..len], rowsize, groupsize, line[0..buflen], ascii);
     const visible = if (buflen == 0) "" else std.mem.sliceTo(line[0..buflen], 0);
     try writer.print("dump-trunc\t{s}\t{d}\t{s}\n", .{ label, required, visible });

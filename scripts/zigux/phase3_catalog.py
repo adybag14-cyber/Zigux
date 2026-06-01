@@ -18,9 +18,10 @@ PHASE3_CATALOG_MANIFEST_SCOPE = (
     "header-compatibility replay"
 )
 PHASE3_CATALOG_NEXT_SAFE_STEP = (
-    "keep the shared Phase 3 policy, export/UAPI, and low-level wrapper packet "
-    "aligned with the dedicated replay routes and only reopen this manifest if the "
-    "checker, focused builds, or reminder surfaces drift again"
+    "keep the shared Phase 3 policy, export/UAPI, low-level wrapper packet, and "
+    "retired generated-packet guard aligned with the dedicated replay routes and "
+    "only reopen this manifest if the checker, focused builds, or reminder surfaces "
+    "drift again"
 )
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 
@@ -78,6 +79,7 @@ EXPECTED_PACKET_FILES = (
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "scripts/zigux/check-phase3-low-level-wrappers.py",
     "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
     "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/validate_phase3_selftest.py",
@@ -186,6 +188,8 @@ EXPECTED_REPLAY_ROUTES = (
     "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "python3 scripts/zigux/check-phase3-low-level-wrappers.py --self-test",
+    "python3 scripts/zigux/check-phase3-low-level-wrappers.py",
     "python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test",
     "python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
     "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
@@ -210,6 +214,10 @@ EXPECTED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py",
     "python3 scripts/zigux/check-phase3-list-hlist.py --self-test",
     "python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc",
+    "python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --repo-root .",
+    "python3 scripts/zigux/check-phase3-idr-slot.py --self-test",
+    "python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc",
     "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all",
     "zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig",
     "zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
@@ -226,6 +234,8 @@ EXPECTED_REPLAY_ROUTES = (
     "make -C zigux phase3-export-shim-test",
     "make -C zigux phase3-export-uapi-layout",
     "make -C zigux phase3-export-uapi-layout-test",
+    "zig build phase3-abi-export --build-file zigux/tests/build.zig",
+    "make -C zigux phase3-abi-export",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
     "make -C zigux phase3-dump",
@@ -239,15 +249,16 @@ EXPECTED_REPLAY_ROUTES = (
     "zig build phase3-bitmap-cpumask-starter-packet --build-file zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig",
     "zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
     "zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
+    "zig build phase3-idr-slot --build-file zigux/tests/build.zig",
 )
 
 FORBIDDEN_PACKET_FILES = (
-    "zigux/tests/phase3_abi_dump.zig",
+    "zigux/tests/" "phase3_abi_dump.zig",
 )
 
 FORBIDDEN_REPLAY_ROUTE_MARKERS = (
-    "phase3_abi_dump.zig",
-    "phase3_abi_dump_build.zig",
+    "phase3_" "abi_dump.zig",
+    "phase3_" "abi_dump_build.zig",
 )
 
 

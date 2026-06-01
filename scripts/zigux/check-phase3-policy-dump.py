@@ -66,9 +66,9 @@ REQUIRED_BUILD_MARKERS = (
 )
 
 REQUIRED_MAKEFILE_MARKERS = (
-    "phase3: phase3-validate phase3-export-uapi-layout phase3-low-level-wrappers phase3-test phase3-policy-dump phase3-dump",
+    "phase3: phase3-validate phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase3-policy-unsafe-test phase3-test phase3-policy-dump phase3-dump",
     "phase3-policy-dump:",
-    "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
 )
 
 REQUIRED_WORKFLOW_MARKERS = (
@@ -247,6 +247,7 @@ def run_self_test() -> int:
 
     print("PHASE3_POLICY_DUMP_SELF_TEST=pass")
     print(f"PHASE3_POLICY_DUMP_SELF_TEST_CASE_COUNT={len(cases) + 2}")
+    print(f"PHASE3_POLICY_DUMP_EXPECTED_LINE_COUNT={len(EXPECTED_LINES)}")
     return 0
 
 

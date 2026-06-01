@@ -25,11 +25,11 @@ const expected_modes = [_]struct {
 };
 
 test "conf bridge standalone mode surface keeps canonical text and flags" {
-    const fields = std.meta.fields(conf_bridge.Mode);
-    try std.testing.expectEqual(expected_modes.len, fields.len);
+    const field_names = comptime std.meta.fieldNames(conf_bridge.Mode);
+    try std.testing.expectEqual(expected_modes.len, field_names.len);
 
     inline for (expected_modes, 0..) |entry, index| {
-        try std.testing.expectEqualStrings(entry.text, fields[index].name);
+        try std.testing.expectEqualStrings(entry.text, field_names[index]);
         try std.testing.expectEqual(entry.mode, conf_bridge.Mode.parse(entry.text).?);
         try std.testing.expectEqualStrings(entry.text, entry.mode.text());
         try std.testing.expectEqualStrings(entry.flag, entry.mode.flag());

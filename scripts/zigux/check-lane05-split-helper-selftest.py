@@ -11,13 +11,13 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 SPLIT_HELPER_PATH = Path("scripts/zigux/split-pinned-zig-archive.py")
 TOOLCHAIN_POLICY_PATH = Path("scripts/zigux/zig-toolchain-policy.json")
 EXPECTED_ARCHIVE_SIZES = {
-    "x86_64-linux": 58_159_088,
+    "x86_64-linux": 59_410_844,
 }
 
 HELPER_MARKERS = (
     'TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")',
     "DEFAULT_CHUNK_BYTES = 786_432",
-    '    "x86_64-linux": 58_159_088,',
+    '    "x86_64-linux": 59_410_844,',
     'with tempfile.TemporaryDirectory(prefix="split_archive_pass_") as tmp_dir:',
     'assert part_count == math.ceil(len(payload) / 1024)',
     'assert (root / "rebuilt.tar.xz").read_bytes() == payload',
@@ -173,10 +173,10 @@ def write_sample_root(root: Path) -> None:
         json.dumps(
             {
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.87+9b177a7d2",
-                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "channel": "0.17.0-dev.758+748e7c5e3",
+                "minimum_version": "0.17.0-dev.758+748e7c5e3",
                 "archive_sha256": {
-                    "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
+                    "x86_64-linux": "0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6",
                 },
                 "upgrade_policy": {
                     "channel_minimum_lockstep": True,
@@ -195,7 +195,7 @@ def write_sample_root(root: Path) -> None:
                 'TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")',
                 "DEFAULT_CHUNK_BYTES = 786_432",
                 "EXPECTED_ARCHIVE_SIZES = {",
-                '    "x86_64-linux": 58_159_088,',
+                '    "x86_64-linux": 59_410_844,',
                 "}",
                 "",
                 "def run_self_test() -> int:",

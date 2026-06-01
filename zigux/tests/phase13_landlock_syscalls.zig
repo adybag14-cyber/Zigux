@@ -84,7 +84,7 @@ test "phase13 landlock syscalls add-rule planner reuses fd lookup and delegated 
         .num_layers = 1,
         .layers = [_]ruleset.Layer{
             .{ .level = 1, .access = 0x2 },
-        } ++ ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 1)),
+        } ++ @as([ruleset.max_num_layers - 1]ruleset.Layer, @splat(.{ .level = 0, .access = 0 })),
     };
 
     const plan = try syscalls.SyscallsHelperLab.planLandlockAddRule(.{

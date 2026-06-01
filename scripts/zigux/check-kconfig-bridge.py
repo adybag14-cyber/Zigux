@@ -103,7 +103,7 @@ SAMPLE_CONF_CASES = [
     {"name": "oldaskconfig", "mode": "oldaskconfig", "kconfig": "Kconfig", "config": "ask/.config", "arch": "x86_64", "expected": "oldaskconfig_expected.json"},
     {"name": "syncconfig", "mode": "syncconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "riscv64", "nosilentupdate": "1", "expected": "syncconfig_expected.json"},
     {"name": "oldconfig", "mode": "oldconfig", "kconfig": "Kconfig", "config": "refresh/.config", "arch": "x86", "expected": "oldconfig_expected.json"},
-    {"name": "allnoconfig", "mode": "allnoconfig", "kconfig": "Kconfig", "config": "none/.config", "arch": "arm64", "allconfig": "mini-all.config", "expected": "allnoconfig_expected.json"},
+    {"name": "allnoconfig", "mode": "allnoconfig", "kconfig": "Kconfig", "config": "none/.config", "arch": "arm64", "expected": "allnoconfig_expected.json"},
     {"name": "allyesconfig", "mode": "allyesconfig", "kconfig": "Kconfig", "config": "yes/.config", "arch": "arm64", "expected": "allyesconfig_expected.json"},
     {"name": "allmodconfig", "mode": "allmodconfig", "kconfig": "Kconfig", "config": "mod/.config", "arch": "arm", "allconfig": "", "expected": "allmodconfig_expected.json"},
     {"name": "alldefconfig", "mode": "alldefconfig", "kconfig": "Kconfig", "config": "build/.config", "arch": "arm64", "allconfig": "mini-all.config", "expected": "alldefconfig_expected.json"},
@@ -205,7 +205,11 @@ def build_conf_manifest(conf_cases: list[dict[str, object]]) -> dict[str, object
         "mode_arg_cases": [str(case["name"]) for case in conf_cases if "mode_arg" in case],
         "silent_request_packet": [str(case["expected"]) for case in conf_cases if case.get("silent") is True],
         "syncconfig_env_packet": [str(case["expected"]) for case in conf_cases if "nosilentupdate" in case],
-        "allconfig_sentinel_packet": [str(case["expected"]) for case in conf_cases if str(case["mode"]) in ALLCONFIG_SENTINEL_MODES],
+        "allconfig_sentinel_packet": [
+            str(case["expected"])
+            for case in conf_cases
+            if str(case["mode"]) in ALLCONFIG_SENTINEL_MODES and "allconfig" not in case
+        ],
         "allconfig_override_packet": [str(case["expected"]) for case in conf_cases if "allconfig" in case],
         "helper_local_allconfig_implicit_omission_modes": REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES,
         "helper_local_allconfig_explicit_override_modes": REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES,
@@ -241,7 +245,10 @@ def load_case_groups(fixture_dir: Path) -> tuple[list[dict[str, object]], list[d
 def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     fixture_dir = root / FIXTURE_DIR.relative_to(ROOT)
-    conf_cases, confdata_cases = load_case_groups(fixture_dir)
+    try:
+        conf_cases, confdata_cases = load_case_groups(fixture_dir)
+    except SystemExit as exc:
+        return [(str(exc), "cases.json")]
     if conf_cases != SAMPLE_CONF_CASES:
         issues.append(("CONF_CASE_PACKET_MISMATCH", "conf_cases"))
     if confdata_cases != SAMPLE_CONFDATA_CASES:
@@ -291,8 +298,8 @@ def build_self_test_root(root: Path) -> None:
     (root / FIXTURE_DIR.relative_to(ROOT)).mkdir(parents=True, exist_ok=True)
     (root / ARTIFACT_DIFF.relative_to(ROOT)).parent.mkdir(parents=True, exist_ok=True)
     (root / ARTIFACT_DIFF.relative_to(ROOT)).write_text("import sys\n", encoding="utf-8")
-    (root / CONF_BRIDGE.relative_to(ROOT)).write_text("\n".join(f'test \"{anchor}\" {{}}' for anchor in REQUIRED_CONF_HELPER_ANCHORS) + "\n", encoding="utf-8")
-    (root / CONFDATA_BRIDGE.relative_to(ROOT)).write_text("\n".join(f'test \"{anchor}\" {{}}' for anchor in REQUIRED_CONFDATA_HELPER_ANCHORS) + "\n", encoding="utf-8")
+    (root / CONF_BRIDGE.relative_to(ROOT)).write_text("\n".join(f'test \"{anchor}\" {{\n}}' for anchor in REQUIRED_CONF_HELPER_ANCHORS) + "\n", encoding="utf-8")
+    (root / CONFDATA_BRIDGE.relative_to(ROOT)).write_text("\n".join(f'test \"{anchor}\" {{\n}}' for anchor in REQUIRED_CONFDATA_HELPER_ANCHORS) + "\n", encoding="utf-8")
     (fixture_root / "cases.json").write_text(json.dumps({"conf_cases": SAMPLE_CONF_CASES, "confdata_cases": SAMPLE_CONFDATA_CASES}, indent=2) + "\n", encoding="utf-8")
     (fixture_root / "conf_manifest.json").write_text(json.dumps(build_conf_manifest(SAMPLE_CONF_CASES), indent=2) + "\n", encoding="utf-8")
     (fixture_root / "confdata_manifest.json").write_text(json.dumps(build_confdata_manifest(SAMPLE_CONFDATA_CASES), indent=2) + "\n", encoding="utf-8")

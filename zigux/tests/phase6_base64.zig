@@ -403,8 +403,8 @@ fn decodeVariantPinnedAlloc(allocator: std.mem.Allocator, input: []const u8, pad
 }
 
 fn expectConvenienceParityCase(input: []const u8, expected: []const u8, padding: bool, variant: base64.Variant) !void {
-    var generic_encode_buf: [128]u8 = [_]u8{0xaa} ** 128;
-    var pinned_encode_buf: [128]u8 = [_]u8{0xbb} ** 128;
+    var generic_encode_buf: [128]u8 = @splat(0xaa);
+    var pinned_encode_buf: [128]u8 = @splat(0xbb);
     const generic_slice = try base64.encodeSlice(generic_encode_buf[0..expected.len], input, padding, variant);
     const pinned_slice = try encodeVariantPinnedSlice(pinned_encode_buf[0..expected.len], input, padding, variant);
     try std.testing.expectEqualStrings(expected, generic_slice);
@@ -424,8 +424,8 @@ fn expectConvenienceParityCase(input: []const u8, expected: []const u8, padding:
     try std.testing.expectEqual(generic_len, pinned_len);
     try std.testing.expectEqual(input.len, generic_len);
 
-    var generic_decode_buf: [128]u8 = [_]u8{0xcc} ** 128;
-    var pinned_decode_buf: [128]u8 = [_]u8{0xdd} ** 128;
+    var generic_decode_buf: [128]u8 = @splat(0xcc);
+    var pinned_decode_buf: [128]u8 = @splat(0xdd);
     const generic_decode = try base64.decodeSlice(generic_decode_buf[0..generic_len], expected, padding, variant);
     const pinned_decode = try decodeVariantPinnedSlice(pinned_decode_buf[0..pinned_len], expected, padding, variant);
     try std.testing.expectEqualSlices(u8, input, generic_decode);

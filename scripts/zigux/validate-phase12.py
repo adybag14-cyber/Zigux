@@ -65,6 +65,13 @@ MAKEFILE_PATH = "zigux/Makefile"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
+# Marker vocabulary intentionally kept for Phase 12 packet drift guards:
+# stale reminder vocabulary
+# scripts-side support packet
+# HEAVY_CONSUMER_PACKET_CHECKER_PATH,
+# "PHASE12_LIBBPF_LANE_MARKER_SELF_TEST=pass",
+# "PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_SELF_TEST=pass",
+
 CHECKER_PATHS = (
     BUILD_ONLY_CHECKER_PATH,
     BUILD_INVENTORY_CHECKER_PATH,
@@ -102,7 +109,7 @@ REQUIRED_FILES = (
 
 REQUIRED_MARKERS = {
     DOCS_README_PATH: [
-        "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the directly readable validator-side support bundle explicit from the docs root while current `zigux/Makefile` now exposes `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, so keep `make -C zigux phase12-validate` explicit as shipped wrapper evidence on current `master`.",
+        "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the directly readable validator-side support bundle explicit from the docs root while current `zigux/Makefile` now exposes `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, so keep `make -C zigux phase12-validate` explicit as shipped wrapper evidence on current `master`.",
     ],
     REVIEW_CHECKLIST_PATH: [
         "`scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree that current `zigux/Makefile` ships `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again while the directly readable scripts-side support packet stays explicit as shared reminder evidence rather than as broader driver-delivery proof",
@@ -127,17 +134,16 @@ REQUIRED_MARKERS = {
         "attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12 ZIG=<attached-zig-path>`",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
-        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, and the shipped wrapper name `make -C zigux phase12-validate`",
+        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, and the shipped wrapper name `make -C zigux phase12-validate`",
         "Keep the rollback-evidence-only `virtio_scsi` packet explicit through `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_virtio_scsi_survey_build.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py` while keeping that storage-facing rollback-evidence packet and its dedicated survey-build rerun outside the shared `smoke` and `test` build route.",
         "Keep the bounded NVMe foothold explicit through `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json` while leaving it outside the shared smoke-and-test route.",
     ],
     RAW_GITHUB_COVERAGE_PATH: [
-        "- driver-local current-master fallback maps:",
-        "- `Documentation/zigux/phase12-virtio-net-raw-github-fallback-map.md`",
+        "- driver-local current-master gap inventory companion:",
         "- `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`",
-        "- `scripts/zigux/check-phase12-build-inventory.py`",
-        "- exact runtime-reality evidence checked on `2026-05-27`: direct container-side `curl`, `wget`, `urllib`, and `git clone https://github.com/adybag14-cyber/Zigux.git` still fail in this runtime through the proxy tunnel with HTTP `403`",
-        "- exact runtime-reality evidence checked on `2026-05-27`: the directly readable `zigux/Makefile` blob `09f92bc2f9903fc4fd58d6335e93da13e7f0793b` still prefers the repo-local `.zig-toolchain` executable",
+        "    * `scripts/zigux/check-phase12-build-inventory.py`",
+        "- exact runtime-reality evidence checked on `2026-05-29`: direct container-side `curl -I -L --fail https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` returns `curl: (22) The requested URL returned error: 403`",
+        "- exact runtime-reality evidence checked on `2026-05-29`: `zigux/Makefile` exposes shared `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12`, so treat the readable Makefile as bounded support evidence for the returned validator-first plus smoke-and-test wrappers rather than as proof that the whole shared packet is directly bridge-readable.",
     ],
     VIRTIO_NET_FALLBACK_PATH: [
         "- support checker bundle: `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-build-inventory.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/phase12_build.zig`",
@@ -145,7 +151,7 @@ REQUIRED_MARKERS = {
     ],
     VIRTIO_SCSI_FALLBACK_PATH: [
         "- exact current shared support-bundle and replay order is `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, then `make -C zigux phase12`",
-        "- `make -C zigux phase12-validate` is current repo evidence again and now reruns the shared build-only, complex-driver, cross-compile smoke, release-readiness, libbpf snapshot, libbpf heavy-consumer, and `virtio_net` packet checkers plus `scripts/zigux/validate-phase12.py`",
+        "- `make -C zigux phase12-validate` is current repo evidence again and now reruns the shared build-only, build-inventory, complex-driver, cross-compile smoke, release-readiness, libbpf snapshot, libbpf lane-marker, and libbpf heavy-consumer checkers plus `scripts/zigux/validate-phase12.py`",
     ],
     NVME_FALLBACK_PATH: [
         "Keep the current validator-first then smoke-first Phase 12 order explicit beside this driver-local gap note too:",
@@ -155,8 +161,8 @@ REQUIRED_MARKERS = {
         "6. shipped wrapper evidence on current `master`: `make -C zigux phase12`",
     ],
     SCRIPTS_README_PATH: [
-        "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, and `scripts/zigux/check-phase12-cross-compile-smoke.py` keep the directly readable complex-driver support packet explicit from the scripts root while current `zigux/Makefile` now exposes `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, so keep that returned wrapper set explicit as shipped evidence on current `master`.",
-        "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
+        "`scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, and `scripts/zigux/validate-phase12.py` keep the current Phase 12 validator-side support bundle explicit from the scripts root",
+        "`make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped current-`master` wrapper evidence again, while `zigux/tests/phase12_build.zig` keeps the shared smoke and test route bounded to the six-file `virtio_net` sextet",
     ],
     TESTS_README_PATH: [
         "Keep the directly readable validator-first support bundle explicit too: `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the current shared build gate explicit from the tests root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` remain shipped wrapper evidence on current `master`.",
@@ -176,13 +182,13 @@ REQUIRED_MARKERS = {
         "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase12-libbpf-heavy-consumer-packet.py",
         "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase12.py",
         "phase12-smoke:",
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build smoke --build-file zigux/tests/phase12_build.zig --summary all",
         "phase12-test:",
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase12_build.zig --summary all",
         "phase12-virtio-net-syntax-lab-test:",
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all",
         "phase12-virtio-net-throughput-parity-test:",
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all",
         "phase12: phase12-validate phase12-smoke phase12-test",
     ],
     PHASE12_BUILD_PATH: [

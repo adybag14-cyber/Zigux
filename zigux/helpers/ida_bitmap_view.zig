@@ -111,7 +111,7 @@ test "ida bitmap chunk tracks sparse bits across word boundaries" {
 }
 
 test "full ida bitmap chunk reports no zero bits left" {
-    const words = [_]usize{~@as(usize, 0)} ** bitmap_longs;
+    const words: [bitmap_longs]usize = @splat(~@as(usize, 0));
     const view = fromWords(&words);
 
     try std.testing.expect(!view.isEmpty());
@@ -122,7 +122,7 @@ test "full ida bitmap chunk reports no zero bits left" {
 }
 
 test "first zero bit advances to the first clear position inside a used word" {
-    var words = [_]usize{0} ** bitmap_longs;
+    var words: [bitmap_longs]usize = @splat(0);
     words[0] = (@as(usize, 1) << 0) | (@as(usize, 1) << 1) | (@as(usize, 1) << 3);
     words[1] = ~@as(usize, 0);
 

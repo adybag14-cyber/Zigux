@@ -409,6 +409,7 @@ def main() -> int:
 
     print(f"validated {args.repo_root / TEST_PATH}")
     print(f"validated {args.repo_root / MANIFEST_PATH}")
+    print("PHASE3_DEV_T_STARTER_PACKET=pass")
     return 0
 
 

@@ -54,11 +54,11 @@ EXPECTED_SYNTAX_LAB_INVENTORY = {
 
 REQUIRED_MAKEFILE_MARKERS = [
     "phase12-smoke:",
-    "$(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all",
+    "$(ZIG_REPO_ROOT) build smoke --build-file zigux/tests/phase12_build.zig --summary all",
     "phase12-test:",
-    "$(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all",
+    "$(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase12_build.zig --summary all",
     "phase12-virtio-net-syntax-lab-test:",
-    "$(ZIG) build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all",
+    "$(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all",
     "phase12: phase12-validate phase12-smoke phase12-test",
 ]
 
@@ -201,7 +201,7 @@ def run_self_test() -> int:
         write_fixture_root(base)
         (base / BUILD_PATH).write_text(
             (base / BUILD_PATH).read_text(encoding="utf-8").replace(
-                "throughput_parity_step.dependOn(&throughput_parity_tests.step);",
+                "throughput_parity_step.dependOn(&run_virtio_net_throughput_parity_tests.step);",
                 "throughput_parity_step.dependOn(&run_virtio_net_survey_tests.step);",
                 1,
             ),

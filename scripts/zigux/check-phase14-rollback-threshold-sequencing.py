@@ -47,7 +47,7 @@ ROLLBACK_THRESHOLD_MARKER = (
     "the directly readable workqueue boundary shard, the directly readable "
     "ring-buffer survey companion, the directly readable dedicated RCU survey "
     "companion, the directly readable shared smoke manifest, and the "
-    "still-missing broader wrapper-backed rerun routes`"
+    "still-missing broader wrapper-backed rerun routes"
 )
 ROLLBACK_FALLBACK_MARKER = (
     "  * fallback path: keep this shared smoke lane aligned with the current "
@@ -102,8 +102,8 @@ PRODUCTIZATION_GAP_MARKERS = [
 ]
 CHECKLIST_MARKERS = [
     "if the change touches the shared Phase 14 smoke packet",
-    "keep `zigux/Makefile` framed as readable current evidence",
-    "`phase14-validate`, `phase14-smoke`, `phase14-test`, and `phase14` stay packet-local or repo-reality-gap vocabulary",
+    "`zigux/Makefile` framed as readable current evidence",
+    "the returned `make -C zigux phase14-validate` gate while `phase14-smoke`, `phase14-test`, and `phase14` stay packet-local or repo-reality-gap vocabulary",
 ]
 MAKEFILE_PRESENT_ROUTE_MARKERS = [
     "phase3-validate:",
@@ -112,7 +112,6 @@ MAKEFILE_PRESENT_ROUTE_MARKERS = [
     "phase4: phase4-validate phase4-test",
     "phase6-base64-test:",
     "phase8-validate:",
-    "phase10-validate:",
     "phase12-smoke:",
     "phase14-validate:",
 ]
@@ -401,7 +400,7 @@ def fixture_checklist() -> str:
         [
             "# Zigux Review Checklist",
             "if the change touches the shared Phase 14 smoke packet",
-            "keep `zigux/Makefile` framed as readable current evidence for the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes while `phase14-validate`, `phase14-smoke`, `phase14-test`, and `phase14` stay packet-local or repo-reality-gap vocabulary",
+            "`zigux/Makefile` framed as readable current evidence for the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes together with the returned `make -C zigux phase14-validate` gate while `phase14-smoke`, `phase14-test`, and `phase14` stay packet-local or repo-reality-gap vocabulary",
             "",
         ]
     )
@@ -416,7 +415,6 @@ def fixture_makefile() -> str:
             "phase4: phase4-validate phase4-test",
             "phase6-base64-test:",
             "phase8-validate:",
-            "phase10-validate:",
             "phase12-smoke:",
             "phase14-validate:",
             "",
@@ -524,7 +522,7 @@ def run_self_test() -> int:
             root,
             CHECKLIST_PATH,
             fixture_checklist().replace(
-                "`phase14-validate`, `phase14-smoke`, `phase14-test`, and `phase14` stay packet-local or repo-reality-gap vocabulary",
+                "the returned `make -C zigux phase14-validate` gate while `phase14-smoke`, `phase14-test`, and `phase14` stay packet-local or repo-reality-gap vocabulary",
                 "",
                 1,
             ),
@@ -653,11 +651,12 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--root", type=Path, default=Path.cwd())
     args = parser.parse_args()
     if args.self_test:
         return run_self_test()
 
-    errors = check(Path.cwd())
+    errors = check(args.root)
     if errors:
         for error in errors:
             print(error, file=sys.stderr)

@@ -23,7 +23,7 @@ fn assertParityCase(case: fixtures.ParityCase) !void {
 }
 
 fn assertOverflowCase(case: fixtures.OverflowCase) !void {
-    var actual: [test_hexdump_buf_size]u8 = [_]u8{fixtures.fill_char} ** test_hexdump_buf_size;
+    var actual: [test_hexdump_buf_size]u8 = @splat(fixtures.fill_char);
     const required = hexdump.hexDumpToBuffer(
         fixtures.data_b[0..case.len],
         case.rowsize,
@@ -135,8 +135,8 @@ test "phase 6 hexdump direct pack helpers keep uppercase and lowercase nibble pa
 }
 
 test "phase 6 hexdump uppercase bulk parity and grouped-ascii exact-capacity buffers stay aligned" {
-    var upper: [8]u8 = [_]u8{0xaa} ** 8;
-    var alias_upper: [8]u8 = [_]u8{0xbb} ** 8;
+    var upper: [8]u8 = @splat(0xaa);
+    var alias_upper: [8]u8 = @splat(0xbb);
 
     const direct_upper = try hexdump.bin2hexUpper(upper[0..], fixtures.data_b[0..4]);
     const alias_upper_text = try hexdump.bin2HexUpper(alias_upper[0..], fixtures.data_b[0..4]);
@@ -149,7 +149,7 @@ test "phase 6 hexdump uppercase bulk parity and grouped-ascii exact-capacity buf
     try std.testing.expectEqualStrings("ascii rowsize-32 group-2", grouped_ascii_case.name);
 
     var exact: [114]u8 = undefined;
-    var truncated: [113]u8 = [_]u8{fixtures.fill_char} ** 113;
+    var truncated: [113]u8 = @splat(fixtures.fill_char);
 
     const exact_required = hexdump.hexDumpToBuffer(
         fixtures.data_b[0..grouped_ascii_case.len],
@@ -185,7 +185,7 @@ test "phase 6 hexdump uppercase bulk parity and grouped-ascii exact-capacity buf
 test "phase 6 hexdump zero-length caller buffers stay NUL terminated without touching trailing bytes" {
     const fill = fixtures.fill_char;
 
-    var ascii_buf = [_]u8{fill} ** 4;
+    var ascii_buf: [4]u8 = @splat(fill);
     const ascii_required = hexdump.hexDumpToBuffer(fixtures.data_b[0..0], 32, 8, ascii_buf[0..], true);
     try std.testing.expectEqual(@as(usize, 0), ascii_required);
     try std.testing.expectEqual(@as(u8, 0), ascii_buf[0]);
@@ -193,7 +193,7 @@ test "phase 6 hexdump zero-length caller buffers stay NUL terminated without tou
         try std.testing.expectEqual(fill, byte);
     }
 
-    var plain_buf = [_]u8{fill} ** 2;
+    var plain_buf: [2]u8 = @splat(fill);
     const plain_required = hexdump.hexDumpToBuffer(fixtures.data_b[0..0], 16, 1, plain_buf[0..], false);
     try std.testing.expectEqual(@as(usize, 0), plain_required);
     try std.testing.expectEqual(@as(u8, 0), plain_buf[0]);

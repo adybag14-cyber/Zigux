@@ -46,7 +46,7 @@ def validate_gap(makefile_text: str, note_text: str) -> list[str]:
 def run_self_test() -> int:
     gap_makefile = "\n".join(
         (
-            "ZIG_PINNED_CHANNEL := 0.17.0-dev.87+9b177a7d2",
+            "ZIG_PINNED_CHANNEL := 0.17.0-dev.758+748e7c5e3",
             ACTUAL_GAP_LINE,
             'ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)',
         )

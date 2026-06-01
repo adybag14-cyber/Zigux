@@ -116,7 +116,7 @@ These are the exact top-level pass markers implied by the current directly reada
     * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=pass`
     * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MODE=validator_present`
     * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7`
-    * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14`
+    * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=16`
 
 ## Boundary
   * this survey now closes only the lane-local truthfulness gap between the directly readable helper, contract checker, determinism checker, validator-replay checker, shared validator packet, and the broader owner-and-rollback note

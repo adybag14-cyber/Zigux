@@ -41,7 +41,7 @@ REPO_WARNING_MARKERS = (
 )
 
 PERF_PACKET_MARKERS = (
-    'EXPECTED_SELF_TEST_CASES = 38',
+    'EXPECTED_SELF_TEST_CASES = 39',
     'MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")',
     'REVIEW_CHECKLIST_MARKERS = (',
     'NOTE_MARKERS = (',

@@ -86,7 +86,7 @@ REQUIRED_MARKERS = {
     ),
     BINDING_VERSION_PATH: (
         "pub fn current() Version {",
-        "pub fn validate(version: Version) abi.ExportStatus {",
+        "pub fn validate(version: Version) ExportStatus {",
     ),
     BINDING_DEV_T_PATH: (
         "pub fn makeDeviceNumber(major: u32, minor: u32) u32 {",
@@ -138,7 +138,7 @@ REQUIRED_MARKERS = {
     ),
     MAKEFILE_PATH: (
         "phase3-abi-export:",
-        "$(ZIG) build phase3-abi-export --build-file zigux/tests/build.zig",
+        "$(ZIG_REPO_ROOT) build phase3-abi-export --build-file zigux/tests/build.zig",
         "phase3-export-uapi-layout:",
         "phase3-export-uapi-layout-test:",
         "phase3-export-shim-test:",
@@ -190,10 +190,10 @@ REQUIRED_MARKERS = {
         'print("PHASE3_VALIDATE_SELFTEST=pass")',
     ),
     SHARED_CHECK_RUNNER_PATH: (
-        '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
+        'Path("scripts/zigux/validate-phase3-export-uapi-survey.py")',
         '"validated Documentation/zigux/phase3-export-uapi-boundary-survey.md"',
         '"PHASE3_EXPORT_UAPI_SURVEY=pass"',
-        '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
+        'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
         '"validated zigux/tests/phase3_export_uapi_c_header_smoke.c"',
         '"PHASE3_EXPORT_UAPI_C_HEADER_SMOKE=pass"',
     ),
@@ -496,12 +496,12 @@ def _expect_missing_pub_fn(
 ) -> int:
     path = root / relative_path
     text = _read(path)
-    stub = f"pub fn {function_name}() void {{}}\n"
-    if stub not in text:
+    pattern = re.compile(rf"^pub fn {re.escape(function_name)}\(.*\n", re.MULTILINE)
+    if pattern.search(text) is None:
         print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=fail")
         print(f"self-test stub missing for {relative_path.as_posix()}::{function_name}")
         return 1
-    _write(path, text.replace(stub, "", 1))
+    _write(path, pattern.sub("", text, count=1))
     issues = validate_repo(root)
     expected = f"missing {relative_path.as_posix()} exported pub fn: {function_name}"
     if expected not in issues:
@@ -646,7 +646,7 @@ def run_self_test() -> int:
             ),
             (
                 SHARED_CHECK_RUNNER_PATH,
-                '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
+                'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
                 "expected shared check runner export/UAPI c-header smoke route removal to fail validation",
             ),
         )

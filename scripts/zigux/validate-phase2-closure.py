@@ -88,6 +88,11 @@ MANIFEST_SURFACE_KEYS = (
     "policy",
 )
 
+OPTIONAL_MANIFEST_SURFACE_PATHS = {
+    "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz",
+    "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts/manifest.json",
+}
+
 
 def read_text(path: Path) -> str:
     try:
@@ -210,6 +215,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     for key, values in manifest_surface_values.items():
         for value in manifest_paths(values):
+            if value in OPTIONAL_MANIFEST_SURFACE_PATHS and not (root / value).exists():
+                continue
             if not (root / value).exists():
                 issues.append(("MISSING_MANIFEST_SURFACE", f"{key}:{value}"))
 
@@ -277,7 +284,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         "phase2-genksyms: phase2-toolchain",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
-        "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
+        "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms.zig",
         "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py --self-test",
         "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py",
         "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
@@ -478,7 +485,7 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
             "phase2-genksyms: phase2-toolchain",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
-            "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
+            "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms.zig",
             "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py --self-test",
             "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py",
             "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",

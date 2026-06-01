@@ -25,10 +25,11 @@ test "phase1 helper ports C keeps offset views and reset guards contained" {
     slab.kfree(zeroed);
     try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
 
-    var message_backing = [_]u8{'#'} ** 12;
+    var message_backing: [12]u8 = @splat('#');
     const empty = str_error_r.strErrorR(13, message_backing[4..4]);
     try std.testing.expectEqualStrings("", empty);
-    try std.testing.expectEqualSlices(u8, &([_]u8{'#'} ** 12), &message_backing);
+    const expected_message_backing: [12]u8 = @splat('#');
+    try std.testing.expectEqualSlices(u8, &expected_message_backing, &message_backing);
 
     const offset_message = str_error_r.strErrorR(13, message_backing[2..9]);
     try std.testing.expectEqualStrings("Permis", offset_message);
@@ -36,7 +37,7 @@ test "phase1 helper ports C keeps offset views and reset guards contained" {
     try std.testing.expectEqual(@as(u8, 0), message_backing[8]);
     try std.testing.expectEqualSlices(u8, "###", message_backing[9..12]);
 
-    var padded_backing = [_]u8{'!'} ** 12;
+    var padded_backing: [12]u8 = @splat('!');
     const padded_len = vsprintf.scnprintfPad(padded_backing[2..9], 6, "{s}", .{"id"});
     try std.testing.expectEqual(@as(usize, 5), padded_len);
     try std.testing.expectEqualSlices(u8, "!!", padded_backing[0..2]);
@@ -44,7 +45,7 @@ test "phase1 helper ports C keeps offset views and reset guards contained" {
     try std.testing.expectEqual(@as(u8, 0), padded_backing[8]);
     try std.testing.expectEqualSlices(u8, "!!!", padded_backing[9..12]);
 
-    var reset_backing = [_]u8{'?'} ** 6;
+    var reset_backing: [6]u8 = @splat('?');
     const reset_len = vsprintf.scnprintfPad(reset_backing[1..5], 0, "{d}", .{42});
     try std.testing.expectEqual(@as(usize, 0), reset_len);
     try std.testing.expectEqual(@as(u8, '?'), reset_backing[0]);

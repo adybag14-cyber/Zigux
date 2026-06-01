@@ -8,7 +8,7 @@ const version = @import("version_binding");
 const invalid_argument: i32 = -22;
 
 pub const Header = version.Header;
-pub const BoundaryHeader = Header;
+pub const BoundaryHeader = abi.BoundaryHeader;
 pub const ExportStatus = abi.ExportStatus;
 pub const Facility = abi.Facility;
 pub const Version = version.Version;

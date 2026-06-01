@@ -97,7 +97,17 @@ def workflow_lines(routes: tuple[str, ...]) -> tuple[str, ...]:
 
 
 def makefile_rule_lines(routes: tuple[str, ...]) -> tuple[str, ...]:
-    return (*(f"{route}:" for route in routes), f"{AGGREGATE_ROUTE}: {routes[-1]}")
+    dependencies = {
+        "phase2-kconfig": "phase2-toolchain",
+        "phase2-genksyms": "phase2-toolchain",
+        "phase2-fixdep": "phase2-toolchain",
+        "phase2-validate": " ".join(routes[:-1]),
+    }
+    route_lines = tuple(
+        f"{route}: {dependencies[route]}" if route in dependencies else f"{route}:"
+        for route in routes
+    )
+    return (*route_lines, f"{AGGREGATE_ROUTE}: {routes[-1]}")
 
 
 def phony_tokens(routes: tuple[str, ...]) -> tuple[str, ...]:
@@ -133,8 +143,8 @@ def build_policy(routes: tuple[str, ...]) -> str:
         json.dumps(
             {
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.87+9b177a7d2",
-                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "channel": "0.17.0-dev.758+748e7c5e3",
+                "minimum_version": "0.17.0-dev.758+748e7c5e3",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {
                     "channel_minimum_lockstep": True,
@@ -178,7 +188,7 @@ def build_sample_root(root: Path, routes: tuple[str, ...]) -> None:
     makefile_lines_text = [
         ".PHONY: " + " ".join(phony[1:]),
         "",
-        *(f"{route}:\n\t@echo {route}" for route in routes),
+        *(f"{rule}\n\t@echo {route}" for route, rule in zip(routes, make_rules[:-1])),
         "",
         make_rules[-1],
         f"\t@echo {AGGREGATE_ROUTE}",

@@ -274,7 +274,7 @@ test "starter export shim forwards dev_t fields without changing starter layout 
     try testing.expect(!dev_t.eql(fields, different));
 }
 
-test "starter export shim relays dev_t bridges and validation status" {
+test "starter export shim relays dev_t validation status" {
     const fields = export_shim.makeDevTFields(11, 29);
     const encoded = export_shim.encodeDeviceNumber(fields) orelse return error.TestUnexpectedResult;
     const decoded = export_shim.decodeDeviceNumber(encoded);

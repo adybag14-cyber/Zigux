@@ -309,7 +309,7 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     const expected_text = try std.fmt.bufPrint(&expected, "{d}-{d}", .{ word_bits - 1, word_bits + 1 });
     try std.testing.expectEqualStrings(expected_text, rendered[0..bitmap_rendered_len]);
 
-    var padded = [_]u8{0xaa} ** 6;
+    var padded: [6]u8 = @splat(0xaa);
     try std.testing.expectEqual(@as(isize, 2), string.strscpyPad(&padded, "hi"));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'i', 0, 0, 0, 0 }, &padded);
 

@@ -55,12 +55,12 @@ REQUIRED_PHASE2_VALIDATE_MARKERS = [
 ]
 
 REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS = [
-    '"`scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",',
-    'KCONFIG_ALLCONFIG_HELPER_PACKET_REL = Path("scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py")',
-    "EXPECTED_CONF_CASE_DETAILS = [",
-    "EXPECTED_CONF_MANIFEST = {",
-    "EXPECTED_CONFDATA_CASE_DETAILS = [",
-    "EXPECTED_CONFDATA_MANIFEST = {",
+    '"python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",',
+    "- `python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",
+    '"make -C zigux phase2-kconfig",',
+    "SHARED_TOOLING_COMMANDS = (",
+    "SHARED_TOOLING_REQUIRED_NOTE_MARKERS = (",
+    "MANIFEST_SURFACE_KEYS = (",
 ]
 
 REQUIRED_TOOL_MANIFEST_CHECKERS = [

@@ -31,6 +31,9 @@ MAX_RETRY_DELAY = 30.0
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 TOOLCHAIN_POLICY = ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json'
 FALLBACK_CHANNEL = 'master'
+CANONICAL_RELEASE_CHANNEL = '0.17.0-dev.758+748e7c5e3'
+CANONICAL_RELEASE_REPO = os.environ.get('ZIGUX_ZIG_RELEASE_REPO', 'adybag14-cyber/zig')
+CANONICAL_RELEASE_TAG = os.environ.get('ZIGUX_ZIG_RELEASE_TAG', 'upstream-748e7c5e39fc')
 
 
 class DuplicateTrackingDict(dict[str, object]):
@@ -310,6 +313,11 @@ def read_index() -> dict:
 
 def infer_tarball_url(channel: str, target_key: str, system_key: str) -> str:
     suffix = '.zip' if system_key == 'windows' else '.tar.xz'
+    if channel == CANONICAL_RELEASE_CHANNEL:
+        return (
+            f'https://github.com/{CANONICAL_RELEASE_REPO}/releases/download/'
+            f'{CANONICAL_RELEASE_TAG}/zig-{target_key}-{channel}{suffix}'
+        )
     if '-dev.' in channel:
         return f'https://ziglang.org/builds/zig-{target_key}-{channel}{suffix}'
     return f'https://ziglang.org/download/{channel}/zig-{target_key}-{channel}{suffix}'
@@ -317,6 +325,8 @@ def infer_tarball_url(channel: str, target_key: str, system_key: str) -> str:
 
 def resolve_target(index: dict, channel: str, arch_key: str, system_key: str) -> tuple[str, str, str]:
     target_key = f'{arch_key}-{system_key}'
+    if channel == CANONICAL_RELEASE_CHANNEL:
+        return target_key, channel, infer_tarball_url(channel, target_key, system_key)
     entry = index.get(channel)
     if entry is None and VERSION_KEY_RE.fullmatch(channel):
         for candidate in index.values():
@@ -398,7 +408,7 @@ def run_self_test() -> int:
     assert normalize_arch('i686') == 'x86'
     sample_index = {
         'master': {
-            'version': '0.17.0-dev.87+9b177a7d2',
+            'version': '0.17.0-dev.758+748e7c5e3',
             'x86_64-linux': {
                 'tarball': 'https://example.invalid/zig-linux.tar.xz',
             },
@@ -416,34 +426,34 @@ def run_self_test() -> int:
 
     assert resolve_target(sample_index, 'master', 'x86_64', 'linux') == (
         'x86_64-linux',
-        '0.17.0-dev.87+9b177a7d2',
+        '0.17.0-dev.758+748e7c5e3',
         'https://example.invalid/zig-linux.tar.xz',
     )
     assert resolve_target(sample_index, 'master', 'aarch64', 'macos') == (
         'aarch64-macos',
-        '0.17.0-dev.87+9b177a7d2',
+        '0.17.0-dev.758+748e7c5e3',
         'https://example.invalid/zig-macos.tar.xz',
     )
-    assert resolve_target(sample_index, '0.17.0-dev.87+9b177a7d2', 'x86_64', 'linux') == (
+    assert resolve_target(sample_index, '0.17.0-dev.758+748e7c5e3', 'x86_64', 'linux') == (
         'x86_64-linux',
-        '0.17.0-dev.87+9b177a7d2',
-        'https://example.invalid/zig-linux.tar.xz',
+        '0.17.0-dev.758+748e7c5e3',
+        'https://github.com/adybag14-cyber/zig/releases/download/upstream-748e7c5e39fc/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz',
     )
     assert resolve_target(
         {'0.16.0': sample_index['0.16.0']},
-        '0.17.0-dev.87+9b177a7d2',
+        '0.17.0-dev.758+748e7c5e3',
         'x86_64',
         'linux',
     ) == (
         'x86_64-linux',
-        '0.17.0-dev.87+9b177a7d2',
-        'https://ziglang.org/builds/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz',
+        '0.17.0-dev.758+748e7c5e3',
+        'https://github.com/adybag14-cyber/zig/releases/download/upstream-748e7c5e39fc/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz',
     )
 
     original_read_index = globals()['read_index']
     try:
         globals()['read_index'] = lambda: (_ for _ in ()).throw(TimeoutError('timed out'))
-        assert load_index('0.17.0-dev.87+9b177a7d2') == {}
+        assert load_index('0.17.0-dev.758+748e7c5e3') == {}
         try:
             load_index('master')
         except TimeoutError:
@@ -458,11 +468,11 @@ def run_self_test() -> int:
         assert load_policy_channel(policy_path, '0.15.0') == '0.15.0'
         assert load_policy_archive_sha256(policy_path, 'x86_64-linux') is None
         policy_path.write_text(
-            '{"channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77"}}\n',
+            '{"channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6"}}\n',
             encoding='utf-8',
         )
-        assert load_policy_channel(policy_path, '0.15.0') == '0.17.0-dev.87+9b177a7d2'
-        assert load_policy_archive_sha256(policy_path, 'x86_64-linux') == '313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77'
+        assert load_policy_channel(policy_path, '0.15.0') == '0.17.0-dev.758+748e7c5e3'
+        assert load_policy_archive_sha256(policy_path, 'x86_64-linux') == '0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6'
         assert load_policy_archive_sha256(policy_path, 'aarch64-linux') is None
         policy_path.write_text('{"channel":7}\n', encoding='utf-8')
         try:
@@ -471,14 +481,14 @@ def run_self_test() -> int:
             assert 'invalid channel' in str(exc)
         else:
             raise AssertionError('expected invalid channel to fail')
-        policy_path.write_text('{"channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":7}\n', encoding='utf-8')
+        policy_path.write_text('{"channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":7}\n', encoding='utf-8')
         try:
             load_policy_archive_sha256(policy_path, 'x86_64-linux')
         except SystemExit as exc:
             assert 'invalid archive_sha256' in str(exc)
         else:
             raise AssertionError('expected invalid archive_sha256 to fail')
-        policy_path.write_text('{"channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"short"}}\n', encoding='utf-8')
+        policy_path.write_text('{"channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"short"}}\n', encoding='utf-8')
         try:
             load_policy_archive_sha256(policy_path, 'x86_64-linux')
         except SystemExit as exc:
@@ -493,7 +503,7 @@ def run_self_test() -> int:
         else:
             raise AssertionError('expected invalid JSON policy to fail')
         policy_path.write_text(
-            '{"channel":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.90+abcdef"}\n',
+            '{"channel":"0.17.0-dev.758+748e7c5e3","channel":"0.17.0-dev.90+abcdef"}\n',
             encoding='utf-8',
         )
         try:
@@ -503,7 +513,7 @@ def run_self_test() -> int:
         else:
             raise AssertionError('expected duplicate policy keys to fail')
         policy_path.write_text(
-            '{"channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77","x86_64-linux":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}\n',
+            '{"channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6","x86_64-linux":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}\n',
             encoding='utf-8',
         )
         try:

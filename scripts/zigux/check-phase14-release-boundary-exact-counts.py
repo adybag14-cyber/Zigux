@@ -132,8 +132,9 @@ def require_markers(errors: list[str], rel: Path, text: str, markers: list[str])
 
 
 def require_exact_once(errors: list[str], rel: Path, text: str, markers: list[str]) -> None:
+    lines = text.splitlines()
     for marker in markers:
-        count = text.count(marker)
+        count = sum(1 for line in lines if line == marker)
         if count == 0:
             errors.append(f"missing_marker:{rel.as_posix()}:{marker}")
         elif count != 1:

@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 DEFAULT_ROOT = (
-    Path(__file__).resolve().parents[3]
+    Path(__file__).resolve().parents[2]
     if len(Path(__file__).resolve().parents) > 3
     else Path.cwd()
 )
@@ -40,8 +40,8 @@ REQUIRED_VALIDATE_PHASE11_MARKERS = (
 )
 
 REQUIRED_MAKEFILE_MARKERS = (
-    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
-    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
 )
 
 REQUIRED_MODEM_BUILD_MARKERS = (
@@ -188,8 +188,8 @@ FIXTURE_VALIDATE_PHASE11_TEXT = """CHECKS = (
 """
 
 FIXTURE_MAKEFILE_TEXT = """phase11-validate:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig
 """
 
 

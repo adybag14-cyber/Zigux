@@ -42,9 +42,9 @@ SURVEY_ROUTE_MARKERS = (
 
 MAKEFILE_MARKERS = (
     "phase12-nvme-pci-direct-test:",
-    "$(ZIG) build phase12-nvme-pci-direct-test --build-file zigux/tests/phase12_nvme_pci_build.zig --summary all",
+    "$(ZIG_REPO_ROOT) build phase12-nvme-pci-direct-test --build-file zigux/tests/phase12_nvme_pci_build.zig --summary all",
     "phase12-nvme-pci-survey-test:",
-    "$(ZIG) build phase12-nvme-pci-survey-test --build-file zigux/tests/phase12_nvme_pci_survey_build.zig --summary all",
+    "$(ZIG_REPO_ROOT) build phase12-nvme-pci-survey-test --build-file zigux/tests/phase12_nvme_pci_survey_build.zig --summary all",
 )
 
 GOVERNANCE_MARKERS = (

@@ -28,9 +28,10 @@ UAPI_VERSION_PATH = Path("zigux/uapi/version.zig")
 ABI_MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 
 CURRENT_NEXT_SAFE_STEP = (
-    "keep the shared Phase 3 policy, export/UAPI, and low-level wrapper packet "
-    "aligned with the dedicated replay routes and only reopen this manifest if the "
-    "checker, focused builds, or reminder surfaces drift again"
+    "keep the shared Phase 3 policy, export/UAPI, low-level wrapper packet, and "
+    "retired generated-packet guard aligned with the dedicated replay routes and "
+    "only reopen this manifest if the checker, focused builds, or reminder surfaces "
+    "drift again"
 )
 
 REQUIRED_SOURCE_MARKERS = {
@@ -195,8 +196,8 @@ REQUIRED_SOURCE_MARKERS = {
         "const default_header = abi.defaultHeader(0);",
         "const policy = abi.defaultInteropPolicy();",
         "abi.STATUS_FLAG_ERROR,",
-        "abi.NOTIFIER_DONE,",
-        '@offsetOf(abi.NotifierBlock, "priority"),',
+        "abi.NOTIFIER_DONE",
+        '@offsetOf(abi.NotifierBlock, "priority")',
         '"  \\\"notifier\\\": {\\n"',
     ),
     EXPORT_UAPI_LAYOUT_PATH: (
@@ -222,7 +223,7 @@ REQUIRED_SOURCE_MARKERS = {
         'export_shim_module.addImport("dev_t_binding", dev_t_binding_module);',
         'export_shim_module.addImport("version_binding", version_binding_module);',
         '.name = "phase3-export-shim-test",',
-        '"Run the focused Phase 3 export shim replay",',
+        '"Run the focused Phase 3 export shim and UAPI replay",',
     ),
     EXPORT_SHIM_PATH: (
         "pub const Header = version.Header;",
@@ -448,6 +449,7 @@ REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --repo-root .",
     "python3 scripts/zigux/check-phase3-idr-slot.py --self-test",
     "python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc",
+    "zig build phase3-idr-slot --build-file zigux/tests/build.zig",
     "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all",
     "zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig",
     "zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
@@ -462,6 +464,8 @@ REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "make -C zigux phase3-export-shim-test",
     "make -C zigux phase3-export-uapi-layout",
     "make -C zigux phase3-export-uapi-layout-test",
+    "zig build phase3-abi-export --build-file zigux/tests/build.zig",
+    "make -C zigux phase3-abi-export",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
     "make -C zigux phase3-dump",

@@ -23,10 +23,10 @@ RAW_GITHUB_COVERAGE_MARKERS = (
     "current contents-bridge shared support bundle during degraded contents reads:",
     "scripts/zigux/check-phase12-cross-compile-smoke.py",
     "scripts/zigux/check-phase12-libbpf-lane-marker.py",
-    "direct container-side `curl`, `wget`, `urllib`, and `git clone https://github.com/adybag14-cyber/Zigux.git` still fail in this runtime through the proxy tunnel with HTTP `403`",
-    "same-runtime fallback verification remains contents-bridge-driven here.",
-    "the directly readable workflow blob",
-    "still rebuilds that repo-local fallback by trying the pinned `third_party` archive first, then the Zig community-mirror list, and finally `ziglang.org` before rerunning `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12`",
+    "direct container-side `curl -I -L --fail https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` returns `curl: (22) The requested URL returned error: 403`",
+    "same-runtime current-head verification still depends on authenticated GitHub contents readback rather than direct raw URL or clone access.",
+    "the contents-bridge support bundle records the workflow-side recovery guard",
+    "rebuilds the repo-local `.zig-toolchain` fallback by trying the pinned `third_party` archive first, then the canonical `adybag14-cyber/zig` release, then the Zig community-mirror list, and finally `ziglang.org`",
     "first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`",
     "make -C zigux phase12-smoke ZIG=<attached-zig-path>",
     "make -C zigux phase12-test ZIG=<attached-zig-path>",
@@ -39,9 +39,10 @@ WORKFLOW_MARKERS = (
     "repo_archive_parts_dir=\"${repo_archive_path}.parts\"",
     "python3 scripts/zigux/stage-pinned-zig-archive.py",
     "if try_local_archive; then",
+    "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then",
     "https://ziglang.org/download/community-mirrors.txt",
     "if try_download \"$ZIGUX_ZIG_URL\"; then",
-    "failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org",
+    "failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org",
     "run: make -C zigux phase12-smoke",
     "run: make -C zigux phase12-test",
     "run: make -C zigux phase12",
@@ -130,7 +131,10 @@ def run_self_test() -> None:
 
         write_fixture(root)
         broken = root / RAW_GITHUB_COVERAGE_PATH
-        broken.write_text(broken.read_text(encoding="utf-8").replace("contents-bridge-driven here.", "broken"), encoding="utf-8")
+        broken.write_text(
+            broken.read_text(encoding="utf-8").replace("authenticated GitHub contents readback", "broken"),
+            encoding="utf-8",
+        )
         try:
             run_check(root)
         except CheckError:

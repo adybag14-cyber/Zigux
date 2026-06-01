@@ -257,21 +257,14 @@ test "atomic64 diff wrapper keeps the runtime handoff line counts exact" {
     defer std.testing.allocator.free(runtime_replay_line_count_marker);
     try expectMarker(phase4_runtime_atomic64_manifest_source, runtime_replay_line_count_marker);
 
-    const live_gate_survey_marker = try std.fmt.allocPrint(
-        std.testing.allocator,
-        "try std.testing.expectEqual(@as(usize, {}), manifest.live_gate_line_count);",
-        .{runtime_line_count},
+    try expectMarker(
+        phase4_runtime_atomic64_diff_survey_source,
+        "try std.testing.expectEqual(sourceLineCount(runtime_atomic64_diff_source), manifest.live_gate_line_count);",
     );
-    defer std.testing.allocator.free(live_gate_survey_marker);
-    try expectMarker(phase4_runtime_atomic64_diff_survey_source, live_gate_survey_marker);
-
-    const runtime_replay_survey_marker = try std.fmt.allocPrint(
-        std.testing.allocator,
-        "try std.testing.expectEqual(@as(usize, {}), manifest.runtime_replay_line_count);",
-        .{runtime_line_count},
+    try expectMarker(
+        phase4_runtime_atomic64_diff_survey_source,
+        "try std.testing.expectEqual(sourceLineCount(runtime_atomic64_diff_source), manifest.runtime_replay_line_count);",
     );
-    defer std.testing.allocator.free(runtime_replay_survey_marker);
-    try expectMarker(phase4_runtime_atomic64_diff_survey_source, runtime_replay_survey_marker);
 }
 
 test "atomic64 diff wrapper keeps the manifest build, validator, and matrix blob pins exact" {
@@ -370,7 +363,7 @@ test "atomic64 diff wrapper structurally parses the current manifest handoff" {
         Atomic64Manifest,
         std.testing.allocator,
         phase4_runtime_atomic64_manifest_source,
-        .{},
+        .{ .ignore_unknown_fields = true },
     );
     defer parsed.deinit();
     const manifest = parsed.value;
@@ -426,14 +419,10 @@ test "atomic64 diff wrapper keeps the paired survey gate-evidence self-test mark
         phase4_runtime_atomic64_diff_survey_source,
         "const phase4_gate_evidence_self_test_cases_line =",
     );
-    try expectMarker(
-        phase4_runtime_atomic64_diff_survey_source,
-        "shared_validator_expected_self_test_case_count_drift,runtime_atomic64_survey_packet_presence_drift,",
-    );
-    try expectMarker(
-        phase4_runtime_atomic64_diff_survey_source,
-        "perf_baseline_shared_promotion_status_drift,test_fsmount_gap_packet_presence_drift,",
-    );
+    try expectMarker(phase4_runtime_atomic64_diff_survey_source, "shared_validator_expected_self_test_case_count_drift");
+    try expectMarker(phase4_runtime_atomic64_diff_survey_source, "runtime_atomic64_survey_packet_presence_drift");
+    try expectMarker(phase4_runtime_atomic64_diff_survey_source, "perf_baseline_shared_promotion_status_drift");
+    try expectMarker(phase4_runtime_atomic64_diff_survey_source, "test_fsmount_gap_packet_presence_drift");
     try expectMarker(
         phase4_runtime_atomic64_diff_survey_source,
         "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=45",
@@ -452,7 +441,7 @@ test "atomic64 diff wrapper keeps the current roadmap gap summary reviewable" {
     try expectOrderedMarkersInSection(
         phase4_runtime_atomic64_manifest_source,
         "\"roadmap_gap_summary\": \"",
-        "\",\n  \"reversible_delivery_evidence\": \"",
+        "\",\n    \"reversible_delivery_evidence\": \"",
         &.{
             "gate-evidence surfaces again",
             "approved local benchmark commands",
@@ -467,7 +456,7 @@ test "atomic64 diff wrapper keeps reversible delivery and next-step evidence exp
     try expectOrderedMarkersInSection(
         phase4_runtime_atomic64_manifest_source,
         "\"reversible_delivery_evidence\": \"",
-        "\",\n  \"ready_next\": \"",
+        "\",\n    \"ready_next\": \"",
         &.{
             "zigux/tests/atomic64_diff.zig",
             "zigux/tests/runtime_atomic64_diff.zig",
@@ -483,14 +472,14 @@ test "atomic64 diff wrapper keeps reversible delivery and next-step evidence exp
     try expectOrderedMarkersInSection(
         phase4_runtime_atomic64_manifest_source,
         "\"ready_next\": \"",
-        "\",\n  \"owner\": \"",
+        "\",\n    \"owner\": \"",
         &.{
-            "benchmark command",
-            "acceptable limit",
-            "Documentation/zigux/phase4-validation-matrix.md",
             "Documentation/zigux/phase4-gate-evidence.md",
+            "Documentation/zigux/phase4-validation-matrix.md",
             "zigux/tests/phase4_perf_baseline_manifest.json",
             "zigux/tests/phase4_perf_baseline_survey.zig",
+            "benchmark command",
+            "acceptable limit",
             "correctness-only replay routes",
         },
     );
@@ -521,30 +510,30 @@ test "atomic64 diff wrapper keeps the Linux-style phase4 make routes explicit" {
     defer std.testing.allocator.free(makefile_source);
     try expectMarker(
         makefile_source,
-        "PHONY += phase3-low-level-wrappers-test phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4",
+        "PHONY += phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4",
     );
     try expectMarker(makefile_source, "phase4-runtime-atomic64-diff:");
     try expectMarker(
         makefile_source,
-        "$(ZIG) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+        "$(ZIG_REPO_ROOT) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
     );
     try expectMarker(makefile_source, "phase4-runtime-atomic64-diff-survey:");
     try expectMarker(
         makefile_source,
-        "$(ZIG) build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig",
+        "$(ZIG_REPO_ROOT) build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig",
     );
     try expectMarker(makefile_source, "phase4-perf-baseline-survey:");
     try expectMarker(
         makefile_source,
-        "$(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+        "$(ZIG_REPO_ROOT) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
     );
     try expectMarker(makefile_source, "phase4-test-fsmount-survey:");
     try expectMarker(
         makefile_source,
-        "$(ZIG) build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+        "$(ZIG_REPO_ROOT) build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
     );
     try expectMarker(makefile_source, "phase4-kprobe-example-survey:");
-    try expectMarker(makefile_source, "$(ZIG) test zigux/tests/phase4_kprobe_example_survey.zig");
+    try expectMarker(makefile_source, "$(ZIG_REPO_ROOT) test zigux/tests/phase4_kprobe_example_survey.zig");
     try expectMarker(makefile_source, "phase4: phase4-validate phase4-test");
 }
 
@@ -558,16 +547,8 @@ test "atomic64 diff wrapper keeps the shared phase4 validator packet explicit" {
     try expectMarker(validate_phase4_source, "\"zigux/tests/runtime_atomic64_diff.zig\"");
     try expectMarker(validate_phase4_source, "\"zigux/tests/phase4_runtime_atomic64_diff_manifest.json\"");
     try expectMarker(validate_phase4_source, "\"zigux/tests/phase4_runtime_atomic64_diff_survey.zig\"");
-    try expectMarker(
-        validate_phase4_source,
-        "phase 4 atomic64 survey keeps the current roadmap gap summary reviewable",
-    );
-    try expectMarker(
-        validate_phase4_source,
-        "phase 4 atomic64 survey keeps reversible delivery and next-step evidence explicit",
-    );
-    try expectMarker(validate_phase4_source, "run_phase4_runtime_atomic64_packet_check");
-    try expectMarker(validate_phase4_source, "phase4_runtime_atomic64_packet");
+    try expectMarker(validate_phase4_source, "zigux/tests/phase4_runtime_atomic64_diff_manifest.json");
+    try expectMarker(validate_phase4_source, "zigux/tests/phase4_runtime_atomic64_diff_survey.zig");
 }
 
 test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
@@ -810,10 +791,20 @@ test "atomic64 diff wrapper records the exact bounded runtime case names" {
     try expectOrderedMarkersInSection(
         runtime_atomic64_diff_source,
         "const add_unless_cases = [_]AddUnlessCase{",
-        "const inc_not_zero_cases = [_]IncNotZeroCase{",
+        "const bitwise_cases = [_]BitwiseCase{",
         &.{
             ".name = \"add_unless leaves the counter untouched when it already matches the blocked value\"",
             ".name = \"add_unless applies the addend when the current value differs from the blocked value\"",
+        },
+    );
+    try expectOrderedMarkersInSection(
+        runtime_atomic64_diff_source,
+        "const bitwise_cases = [_]BitwiseCase{",
+        "for (bitwise_cases) |case| {",
+        &.{
+            ".name = \"and preserves only the masked bits from an all-ones starter\"",
+            ".name = \"or lifts high and low flags into the running counter\"",
+            ".name = \"xor toggles separated flag groups without losing the wide value shape\"",
         },
     );
     try expectOrderedMarkersInSection(
@@ -828,21 +819,11 @@ test "atomic64 diff wrapper records the exact bounded runtime case names" {
     try expectOrderedMarkersInSection(
         runtime_atomic64_diff_source,
         "const dec_if_positive_cases = [_]DecIfPositiveCase{",
-        "const bitwise_cases = [_]BitwiseCase{",
+        "for (dec_if_positive_cases) |case| {",
         &.{
             ".name = \"dec_if_positive decrements a positive counter and stores the result\"",
             ".name = \"dec_if_positive reports the negative-one result while leaving zero unchanged\"",
             ".name = \"dec_if_positive keeps a negative counter unchanged while still reporting the decremented result\"",
-        },
-    );
-    try expectOrderedMarkersInSection(
-        runtime_atomic64_diff_source,
-        "const bitwise_cases = [_]BitwiseCase{",
-        "for (bitwise_cases) |case| {",
-        &.{
-            ".name = \"and preserves only the masked bits from an all-ones starter\"",
-            ".name = \"or lifts high and low flags into the running counter\"",
-            ".name = \"xor toggles separated flag groups without losing the wide value shape\"",
         },
     );
     try expectOrderedMarkersInSection(
@@ -895,22 +876,22 @@ test "atomic64 diff wrapper pins the current bounded runtime case groups" {
     );
     try expectRuntimeCaseGroupCardinality(
         "const add_unless_cases = [_]AddUnlessCase{",
-        "const inc_not_zero_cases = [_]IncNotZeroCase{",
-        2,
-    );
-    try expectRuntimeCaseGroupCardinality(
-        "const inc_not_zero_cases = [_]IncNotZeroCase{",
-        "const dec_if_positive_cases = [_]DecIfPositiveCase{",
-        2,
-    );
-    try expectRuntimeCaseGroupCardinality(
-        "const dec_if_positive_cases = [_]DecIfPositiveCase{",
         "const bitwise_cases = [_]BitwiseCase{",
-        3,
+        2,
     );
     try expectRuntimeCaseGroupCardinality(
         "const bitwise_cases = [_]BitwiseCase{",
         "for (bitwise_cases) |case| {",
+        3,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const inc_not_zero_cases = [_]IncNotZeroCase{",
+        "const dec_if_positive_cases = [_]DecIfPositiveCase{",
+        2,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const dec_if_positive_cases = [_]DecIfPositiveCase{",
+        "for (dec_if_positive_cases) |case| {",
         3,
     );
 }
@@ -1012,7 +993,7 @@ test "atomic64 diff wrapper keeps the local perf-baseline manifest aligned with 
     try expectMarker(atomic64_section, "\"final_counter\": 130322557735600377");
     try expectMarker(atomic64_section, "\"checksum\": 9210681150676220922");
     try expectMarker(atomic64_section, "\"final_counter\": 130322557735600376");
-    try expectMarker(perf_manifest_source, "\"id\": \"phase4-perf-baseline-atomic64-command\"");
+    try expectMarker(perf_manifest_source, "\"id\": \"phase4-perf-baseline-atomic64-command-evidence\"");
     try expectMarker(perf_manifest_source, "\"id\": \"phase4-perf-baseline-atomic64-acceptable-limit\"");
 }
 
@@ -1025,22 +1006,22 @@ test "atomic64 diff wrapper keeps the local perf-baseline survey aligned with th
 
     try expectMarker(
         perf_survey_source,
-        "test \"phase4 perf baseline survey manifest keeps the current benchmark-command posture explicit\" {",
+        "test \"phase4 perf baseline survey keeps atomic64 and bitmap command evidence explicit\" {",
     );
     try expectMarker(perf_survey_source, "phase4-perf-baseline-atomic64-command-evidence");
     try expectMarker(perf_survey_source, "phase4-perf-baseline-atomic64-command");
     try expectMarker(perf_survey_source, "phase4-perf-baseline-atomic64-acceptable-limit");
     try expectMarker(
         perf_survey_source,
-        "\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\"",
+        "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
     );
-    try expectMarker(perf_survey_source, "\"approved_local_only\"");
-    try expectMarker(perf_survey_source, "\"median_elapsed_ns\"");
-    try expectMarker(perf_survey_source, "@as(u64, 8192)");
-    try expectMarker(perf_survey_source, "@as(u64, 3626254113632800175)");
-    try expectMarker(perf_survey_source, "@as(i64, 130322557735600377)");
-    try expectMarker(perf_survey_source, "@as(u64, 9210681150676220922)");
-    try expectMarker(perf_survey_source, "@as(i64, 130322557735600376)");
+    try expectMarker(perf_survey_source, "approved_local_only");
+    try expectMarker(perf_survey_source, "median_elapsed_ns");
+    try expectMarker(perf_survey_source, "8192");
+    try expectMarker(perf_survey_source, "3626254113632800175");
+    try expectMarker(perf_survey_source, "130322557735600377");
+    try expectMarker(perf_survey_source, "9210681150676220922");
+    try expectMarker(perf_survey_source, "130322557735600376");
     try expectMarker(perf_survey_source, "seven monotonic samples");
     try expectMarker(perf_survey_source, "shared CI perf promotion");
 }

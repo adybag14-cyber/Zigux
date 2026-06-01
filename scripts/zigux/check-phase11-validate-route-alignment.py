@@ -178,8 +178,8 @@ def build_fixture(root: Path, *, recipe_lines: list[str] | None = None, checks_t
                 "phase11-validate:",
                 *(recipe_lines or [
                     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
-                    "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_a_build.zig",
-                    "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_b_build.zig",
+                    "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_a_build.zig",
+                    "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_b_build.zig",
                 ]),
                 "",
             ]
@@ -215,8 +215,8 @@ def run_self_test() -> int:
         build_fixture(
             missing_validator,
             recipe_lines=[
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_a_build.zig",
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_b_build.zig",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_a_build.zig",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_b_build.zig",
             ],
         )
         expect_failure(missing_validator, "missing the scripts/zigux/validate-phase11.py route")
@@ -228,8 +228,8 @@ def run_self_test() -> int:
             recipe_lines=[
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_a_build.zig",
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_b_build.zig",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_a_build.zig",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_b_build.zig",
             ],
         )
         expect_failure(duplicate_validator, "must call scripts/zigux/validate-phase11.py exactly once")
@@ -239,9 +239,9 @@ def run_self_test() -> int:
         build_fixture(
             wrong_order,
             recipe_lines=[
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_a_build.zig",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_a_build.zig",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_b_build.zig",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_b_build.zig",
             ],
         )
         expect_failure(wrong_order, "must run scripts/zigux/validate-phase11.py before the Zig build fan-out")
@@ -252,7 +252,7 @@ def run_self_test() -> int:
             missing_build,
             recipe_lines=[
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_a_build.zig",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_a_build.zig",
             ],
         )
         expect_failure(missing_build, "build fan-out mismatch")
@@ -263,9 +263,9 @@ def run_self_test() -> int:
             extra_build,
             recipe_lines=[
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_a_build.zig",
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_b_build.zig",
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_c_build.zig",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_a_build.zig",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_b_build.zig",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_c_build.zig",
             ],
         )
         expect_failure(extra_build, "build fan-out mismatch")

@@ -96,20 +96,20 @@ MAKEFILE_MARKERS = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-bootstrap-workflow-routes.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-bootstrap-workflow-routes.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-artifact-tools-manifest.py",
-    "phase2-kconfig:",
+    "phase2-kconfig: phase2-toolchain",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",
     "phase2-cross:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py",
-    "phase2-genksyms:",
+    "phase2-genksyms: phase2-toolchain",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
-    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
-    "phase2-fixdep:",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms.zig",
+    "phase2-fixdep: phase2-toolchain",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
-    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --zig \"$(ZIG_REPO_ROOT)\"",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/fixdep.zig",
     "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
     "phase2: phase2-validate",
@@ -313,7 +313,7 @@ def collect_required_route_makefile_issues(
         if count == 0:
             issues.append(("MISSING_REQUIRED_ROUTE_TARGET", target_line))
         elif count != 1:
-            issues.append(("DUPLICATE_REQUIRED_ROUTE_TARGET", f"{target_line}:count={count}"))
+            issues.append(("DUPLICATE_REQUIRED_ROUTE_TARGET", f"{route}:count={count}"))
     return issues
 
 
@@ -383,14 +383,33 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     return issues
 
 
+def makefile_fixture_text() -> str:
+    lines = [REQUIRED_PHASE2_PHONY_LINE]
+    seen = set(lines)
+    lines.append("phase2-toolchain:")
+    seen.add("phase2-toolchain:")
+    for marker in TOOLCHAIN_ALLOWED_RECIPE_LINES:
+        lines.append(f"\t{marker}")
+        seen.add(marker)
+    for marker in MAKEFILE_MARKERS:
+        if marker in seen:
+            continue
+        if marker.startswith("phase2-"):
+            lines.append(marker)
+        else:
+            lines.append(f"\t{marker}")
+        seen.add(marker)
+    return "\n".join(lines) + "\n"
+
+
 def build_self_test_root(root: Path) -> None:
     write_text(
         resolve_path(root, TOOLCHAIN_POLICY),
         json.dumps(
             {
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.87+9b177a7d2",
-                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "channel": "0.17.0-dev.758+748e7c5e3",
+                "minimum_version": "0.17.0-dev.758+748e7c5e3",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {
                     "channel_minimum_lockstep": True,
@@ -403,7 +422,7 @@ def build_self_test_root(root: Path) -> None:
         + "\n",
     )
     write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES + CURRENT_WORKFLOW_ROUTE_LINES) + "\n")
-    write_text(resolve_path(root, MAKEFILE), "\n".join((REQUIRED_PHASE2_PHONY_LINE,) + MAKEFILE_MARKERS) + "\n")
+    write_text(resolve_path(root, MAKEFILE), makefile_fixture_text())
 
     full_marker_text = "\n".join(MINIMAL_SURFACE_MARKERS + CURRENT_PACKET_ROUTE_MARKERS)
     for path, _, _ in FULL_ROUTE_SURFACE_CODES:

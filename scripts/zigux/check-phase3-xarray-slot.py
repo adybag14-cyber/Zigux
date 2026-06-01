@@ -53,9 +53,9 @@ REQUIRED_MARKERS = {
         "phase3-xarray-slot-starter-packet:",
         "phase3-xarray-slot-starter-packet-test:",
         "phase3-xarray-slot-dump:",
-        "$(ZIG) build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig",
-        "$(ZIG) build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
-        "$(ZIG) build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig",
+        "$(ZIG_REPO_ROOT) build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig",
+        "$(ZIG_REPO_ROOT) build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
+        "$(ZIG_REPO_ROOT) build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig",
     ),
     C_HARNESS_PATH: (
         "#define MAX_ERRNO ((uintptr_t)4095)",

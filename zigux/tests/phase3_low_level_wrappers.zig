@@ -142,7 +142,7 @@ test "phase3 low-level wrappers keep MMIO single-byte interop-policy shorthands 
 }
 
 test "phase3 low-level wrappers keep whole-record MMIO interop-policy helpers explicit" {
-    const InteropPolicy = @typeInfo(@TypeOf(mmio.readInteropPolicy)).@"fn".params[1].type.?;
+    const InteropPolicy = @typeInfo(@TypeOf(mmio.readInteropPolicy)).@"fn".param_types[1].?;
     const mmio_policy = InteropPolicy{
         .panic_mode = 0,
         .allocator_mode = 0,
@@ -339,7 +339,7 @@ test "phase3 low-level wrappers keep raw-pointer bridge byte coverage explicit" 
 }
 
 test "phase3 low-level wrappers keep raw-pointer bridge interop-policy helpers explicit" {
-    const InteropPolicy = @typeInfo(@TypeOf(mmio.readInteropPolicy)).@"fn".params[1].type.?;
+    const InteropPolicy = @typeInfo(@TypeOf(mmio.readInteropPolicy)).@"fn".param_types[1].?;
     const raw_policy = InteropPolicy{
         .panic_mode = 0,
         .allocator_mode = 0,
@@ -475,7 +475,7 @@ test "phase3 low-level wrappers keep atomic order-gate failures explicit before 
 }
 
 test "phase3 low-level wrappers keep MMIO range helpers and width aliases explicit beside raw bridge gates" {
-    const InteropPolicy = @typeInfo(@TypeOf(mmio.readInteropPolicy)).@"fn".params[1].type.?;
+    const InteropPolicy = @typeInfo(@TypeOf(mmio.readInteropPolicy)).@"fn".param_types[1].?;
     const mmio_policy = InteropPolicy{
         .panic_mode = 0,
         .allocator_mode = 0,
@@ -491,7 +491,7 @@ test "phase3 low-level wrappers keep MMIO range helpers and width aliases explic
     const mmio_scope = @intFromEnum(narrow.UnsafeScopeTag.volatile_mmio);
     const raw_scope = @intFromEnum(narrow.UnsafeScopeTag.raw_pointer_bridge);
 
-    var bytes = [_]u8{0} ** 16;
+    var bytes: [16]u8 align(@alignOf(u32)) = @splat(0);
     const base_addr = @intFromPtr(&bytes[0]);
 
     const scoped_range = try mmio.rangeScoped(base_addr, 16, 4, .volatile_mmio);

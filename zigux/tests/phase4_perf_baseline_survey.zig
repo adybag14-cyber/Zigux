@@ -51,6 +51,15 @@ fn requireOrderedMarkersAfter(
     }
 }
 
+test "phase4 perf baseline survey keeps manifest-level route posture explicit" {
+    try requireMarker("\"shared_ci_perf_promotion_status\": \"pending\"");
+    try requireMarker("\"dedicated_local_survey_wrapper\": \"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\"");
+    try requireMarker("\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-perf-baseline-survey\"");
+    try requireMarker("\"validation_entrypoint\": \"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\"");
+    try requireMarker("\"bootstrap_ci_posture\": \"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\"");
+    try requireMarker("\"shared_lab_and_ci_matrix_anchor\": \"Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix\"");
+}
+
 test "phase4 perf baseline survey keeps exact local-only iteration, sample, and replay counts explicit" {
     try requireMarkerCount("\"acceptable_limit_iterations\": 4", 2);
     try requireMarkerCount("\"acceptable_limit_sample_count\": 7", 2);

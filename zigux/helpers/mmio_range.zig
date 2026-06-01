@@ -83,7 +83,7 @@ pub fn writeMaskedAt(
 }
 
 test "phase3 mmio-range helper reuses scoped MMIO windows for typed access" {
-    var bytes = [_]u8{0} ** 16;
+    var bytes: [16]u8 = @splat(0);
     const base_addr = @intFromPtr(&bytes[0]);
     const range = try mmio.rangeScoped(base_addr, 16, 4, .volatile_mmio);
 
@@ -111,7 +111,7 @@ test "phase3 mmio-range helper keeps policy-created windows and typed-access pre
         .reserved = 0,
     };
 
-    var bytes = [_]u8{0} ** 16;
+    var bytes: [16]u8 = @splat(0);
     const base_addr = @intFromPtr(&bytes[0]);
     const range = try mmio.rangeInteropPolicy(base_addr, 16, 4, mmio_policy);
 
@@ -125,7 +125,7 @@ test "phase3 mmio-range helper keeps policy-created windows and typed-access pre
 }
 
 test "phase3 mmio-range helper rejects misaligned strided and out-of-range offsets" {
-    var bytes = [_]u8{0} ** 16;
+    var bytes: [16]u8 = @splat(0);
     const base_addr = @intFromPtr(&bytes[0]);
     const range = try mmio.rangeScoped(base_addr, 16, 4, .volatile_mmio);
 

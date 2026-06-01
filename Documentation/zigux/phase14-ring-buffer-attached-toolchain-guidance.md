@@ -14,16 +14,16 @@ This companion keeps that operational boundary explicit in one small place.
 It narrows the guidance to the ring-buffer packet and avoids reopening the broader shared Phase 14 reminder surfaces.
 
 ## Attached bundle
-- attached archive name: `agent_files/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz`
-- lane-local extraction command example: `mkdir -p /workspace/.toolchains/p14-l08 && tar -xf "/workspace/agent_files/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz" -C /workspace/.toolchains/p14-l08`
-- run-local extraction example: `/workspace/.toolchains/p14-l08/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2`
-- compiler version expected after extraction: `0.17.0-dev.87+9b177a7d2`
+- attached archive name: `agent_files/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3 (1).tar.xz`
+- lane-local extraction command example: `mkdir -p /workspace/.toolchains/p14-l08 && tar -xf "/workspace/agent_files/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3 (1).tar.xz" -C /workspace/.toolchains/p14-l08`
+- run-local extraction example: `/workspace/.toolchains/p14-l08/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3`
+- compiler version expected after extraction: `0.17.0-dev.758+748e7c5e3`
 
 ## Environment-only sanity checks
 If the run has the attached archive but no checkout-capable Zigux tree, stop at environment-only sanity checks:
-- `/workspace/.toolchains/p14-l08/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig version`
-- `/workspace/.toolchains/p14-l08/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig env`
-- `/workspace/.toolchains/p14-l08/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig env | rg -n "zig_exe|lib_dir|std_dir|global_cache_dir|version|target"`
+- `/workspace/.toolchains/p14-l08/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3/zig version`
+- `/workspace/.toolchains/p14-l08/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3/zig env`
+- `/workspace/.toolchains/p14-l08/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3/zig env | rg -n "zig_exe|lib_dir|std_dir|global_cache_dir|version|target"`
 
 Passing those checks confirms that the attached compiler bundle is usable in the scheduled builder runtime.
 Do not treat them as ring-buffer replay evidence without a checkout-capable Zigux tree in the same run.

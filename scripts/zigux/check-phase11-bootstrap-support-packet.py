@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 SELF_PATH = Path(__file__).resolve()
-DEFAULT_ROOT = SELF_PATH.parents[3] if len(SELF_PATH.parents) > 3 else SELF_PATH.parent
+DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 3 else SELF_PATH.parent
 
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -26,8 +26,8 @@ WORKFLOW_MARKERS = (
 MAKEFILE_MARKERS = (
     "phase11-validate:",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
-    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_build.zig",
-    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_dw_wdt_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
 )
 
 SHARED_CONTRACT_MARKERS = (
@@ -105,8 +105,8 @@ def build_fixture(root: Path) -> None:
             (
                 "phase11-validate:",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_build.zig",
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_dw_wdt_build.zig",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
                 "",
             )
         ),

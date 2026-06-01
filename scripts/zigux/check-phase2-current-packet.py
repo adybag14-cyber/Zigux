@@ -113,7 +113,7 @@ REVIEW_CHECKLIST_MARKERS = (
     "`scripts/zigux/check-phase2-fixdep-gate.py`",
     "`scripts/zigux/check-fixdep-diff.py`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz --archive-target x86_64-linux`",
     "`scripts/zigux/install-zig.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
     "`scripts/zigux/check-phase2-cross.py`",
@@ -180,7 +180,7 @@ EXPECTED_MANIFEST_SURFACES = {
     ),
     "archive_support": (
         "third_party/README.md",
-        "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
+        "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz",
     ),
     "make_wrappers": (
         "make -C zigux phase2-toolchain",

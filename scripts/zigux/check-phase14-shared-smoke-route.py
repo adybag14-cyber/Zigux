@@ -66,9 +66,8 @@ VALIDATOR_MARKERS = [
     'SKBUFF_COMPILE_ROUTE_CHECKER_PATH = "scripts/zigux/check-phase14-skbuff-compile-route.py"',
     'RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH = (\n    "scripts/zigux/check-phase14-ring-buffer-compile-route.py"\n)',
     'RCU_COMPILE_ROUTE_CHECKER_PATH = "scripts/zigux/check-phase14-rcu-compile-route.py"',
-    "run_guardrail_checker(\n                args.root,\n                SKBUFF_COMPILE_ROUTE_CHECKER_PATH,\n                self_test=False,",
-    "run_guardrail_checker(\n                args.root,\n                RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,\n                self_test=False,",
-    "run_guardrail_checker(\n                args.root,\n                RCU_COMPILE_ROUTE_CHECKER_PATH,\n                self_test=False,",
+    "SUBCHECKER_PATHS = [",
+    "run_guardrail_checker(\n                    args.root,\n                    rel_path,\n                    self_test=False,",
 ]
 REQUIRED_MANIFEST_VALUES = {
     ("productization", "validation_gate"): "make -C zigux phase14-validate",
@@ -169,7 +168,7 @@ def fixture_makefile() -> str:
     return """PYTHON ?= python3
 PHASE2_SCRIPT_ROOT := ../scripts/zigux
 ZIGUX_ROOT := ..
-ZIG_PINNED_CHANNEL := 0.17.0-dev.87+9b177a7d2
+ZIG_PINNED_CHANNEL := 0.17.0-dev.758+748e7c5e3
 ZIG_PINNED_TARGET := x86_64-linux
 ZIG_PINNED_EXTRACT_ROOT := $(ZIGUX_ROOT)/.zig-toolchain/zig-$(ZIG_PINNED_TARGET)-$(ZIG_PINNED_CHANNEL)
 ZIG_PINNED_EXECUTABLE := $(firstword $(wildcard $(ZIG_PINNED_EXTRACT_ROOT)/zig $(ZIG_PINNED_EXTRACT_ROOT)/bin/zig))
@@ -218,22 +217,18 @@ RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH = (
     "scripts/zigux/check-phase14-ring-buffer-compile-route.py"
 )
 RCU_COMPILE_ROUTE_CHECKER_PATH = "scripts/zigux/check-phase14-rcu-compile-route.py"
+SUBCHECKER_PATHS = [
+    SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
+    RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
+    RCU_COMPILE_ROUTE_CHECKER_PATH,
+]
 def main(args):
-    run_guardrail_checker(
-                args.root,
-                SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
-                self_test=False,
-            )
-    run_guardrail_checker(
-                args.root,
-                RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
-                self_test=False,
-            )
-    run_guardrail_checker(
-                args.root,
-                RCU_COMPILE_ROUTE_CHECKER_PATH,
-                self_test=False,
-            )
+    for rel_path in SUBCHECKER_PATHS:
+        run_guardrail_checker(
+                    args.root,
+                    rel_path,
+                    self_test=False,
+                )
 '''
 
 
@@ -264,10 +259,14 @@ def run_self_test() -> int:
                 print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
                 print(f"expected {key} manifest drift failure")
                 return 1
-        validator_keys = ["SKBUFF_COMPILE_ROUTE_CHECKER_PATH", "RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH", "RCU_COMPILE_ROUTE_CHECKER_PATH"]
-        for key in validator_keys:
+        validator_paths = {
+            "SKBUFF_COMPILE_ROUTE_CHECKER_PATH": "scripts/zigux/check-phase14-skbuff-compile-route.py",
+            "RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH": "scripts/zigux/check-phase14-ring-buffer-compile-route.py",
+            "RCU_COMPILE_ROUTE_CHECKER_PATH": "scripts/zigux/check-phase14-rcu-compile-route.py",
+        }
+        for key, path in validator_paths.items():
             write_fixture_tree(base)
-            write_text(base, VALIDATOR_PATH, read_text(base, VALIDATOR_PATH).replace(key, f"MISSING_{key}", 1))
+            write_text(base, VALIDATOR_PATH, read_text(base, VALIDATOR_PATH).replace(path, f"missing/{path}", 1))
             if not any(key in error for error in check(base)):
                 print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
                 print(f"expected {key} validator drift failure")

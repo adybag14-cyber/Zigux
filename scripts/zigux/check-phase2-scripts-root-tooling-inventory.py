@@ -100,7 +100,7 @@ def run_self_test() -> None:
                 "zigux/tests/fixtures/phase2_tool_manifest.json",
                 "zigux/Makefile",
                 "third_party/README.md",
-                "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
+                "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz"
             ],
             "commands": [
                 "python3 scripts/zigux/check-phase2-scripts-root-tooling-inventory.py --self-test",
@@ -144,7 +144,7 @@ This note keeps the current Phase 2 repo-tooling packet explicit from the script
 
 - `zigux/tests/fixtures/phase2_tool_manifest.json`
 - `third_party/README.md`
-- `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`
+- `third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz`
 - `zigux/Makefile`
 
 ## Replay Commands

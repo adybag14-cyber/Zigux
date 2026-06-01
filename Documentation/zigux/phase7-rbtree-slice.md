@@ -1,9 +1,17 @@
 # Phase 7 Rbtree Slice
 
+## Status
+
+- `PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_fixture_harness_anchor`
+- `PHASE7_LANE_KEY=P7-L13`
+- `lib/rbtree.zig`
+- helper-local implementation now remains rooted at `lib/rbtree.zig`
+
 The current helper-local packet on `master` covers cached-leftmost insertion, cached replacement, cached non-leftmost erase, singleton cached erase, and plain erase-init reset and reseed boundaries after root removal.
 
 The current helper-local replay keeps these proofs explicit:
 - cached-leftmost promotion, non-leftmost cached erase, singleton cached erase, plain erase-init reseed, and cached-churn invariants boundaries stay reviewable through the dedicated replay, the parity checker, the returned JSON fixture, and the returned C harness
+- including the non-leftmost cached erase, singleton cached erase, and plain erase-init reseed cases
 - the readable legacy companion at `tools/lib/rbtree.zig` now stays reviewable only while its reverse-traversal alias, postorder alias, and plain erase-init markers remain readable beside the direct helper packet
 - public-fallback provenance stays explicit through the now-empty `public_fallback_non_owner_paths` field in `zigux/tests/phase7_rbtree_manifest.json`, because `zigux/tests/phase7_build.zig` and the other listed legacy or shared non-owner surfaces all rematerialized through authenticated rereads in this slot
 

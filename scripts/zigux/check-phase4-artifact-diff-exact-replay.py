@@ -361,6 +361,8 @@ def validator_replays_fixture_text() -> str:
             '    "repo warning",',
             '    "pins",',
             '    "perf baseline",',
+            '    "gate evidence",',
+            '    "remaining gap",',
             "]",
             "EXPECTED_SELF_TEST_CASES = [",
             '    "catalog_shape",',
@@ -476,7 +478,7 @@ def self_test() -> None:
         write(
             root / NOTE,
             read(root, NOTE).replace(
-                "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14",
+                "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=16",
                 "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=13",
                 1,
             ),

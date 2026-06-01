@@ -141,6 +141,7 @@ def main() -> int:
 
     print(f"validated {args.repo_root / TEST_PATH}")
     print(f"validated {args.repo_root / BUILD_PATH}")
+    print("PHASE3_XARRAY_SLOT_STARTER_PACKET=pass")
     return 0
 
 

@@ -12,7 +12,7 @@ STAGE_HELPER_PATH = Path("scripts/zigux/stage-pinned-zig-archive.py")
 TOOLCHAIN_POLICY_PATH = Path("scripts/zigux/zig-toolchain-policy.json")
 README_PATH = Path("third_party/README.md")
 EXPECTED_ARCHIVE_SIZES = {
-    "x86_64-linux": 58_159_088,
+    "x86_64-linux": 59_410_844,
 }
 
 
@@ -123,7 +123,7 @@ def check_stage_helper(root: Path, contract: dict[str, object]) -> int:
         'ARCHIVE_DUPLICATE_SUFFIX_RE = re.compile(',
         'duplicate_archive_name(',
         'archive_name_has_duplicate_suffix(',
-        f'"{target}": {size},',
+        f'"{target}": {size:_},',
         'f"zig-{target}-{channel}.tar.xz"',
         'duplicate-suffix archive copies',
         'STAGE_PINNED_ZIG_ARCHIVE=pass',
@@ -204,10 +204,10 @@ def write_fixture(root: Path) -> None:
         json.dumps(
             {
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.87+9b177a7d2",
-                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "channel": "0.17.0-dev.758+748e7c5e3",
+                "minimum_version": "0.17.0-dev.758+748e7c5e3",
                 "archive_sha256": {
-                    "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
+                    "x86_64-linux": "0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6",
                 },
                 "upgrade_policy": {
                     "channel_minimum_lockstep": True,
@@ -228,7 +228,7 @@ def write_fixture(root: Path) -> None:
                 'TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")',
                 'THIRD_PARTY_DIR = Path("third_party")',
                 'EXPECTED_ARCHIVE_SIZES = {',
-                '    "x86_64-linux": 58159088,',
+                '    "x86_64-linux": 59_410_844,',
                 '}',
                 'ARCHIVE_DUPLICATE_SUFFIX_RE = re.compile(r"^(?P<stem>.+) \\\\((?P<copy>\\\\d+)\\\\)(?P<suffix>\\\\.tar\\\\.xz)$")',
                 'def duplicate_archive_name(expected_filename: str) -> str:',
@@ -259,11 +259,11 @@ def write_fixture(root: Path) -> None:
             [
                 "# Zigux third-party archives",
                 "- target: `x86_64-linux`",
-                "- channel: `0.17.0-dev.87+9b177a7d2`",
-                "- file: `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`",
-                "- sha256: `313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77`",
-                "- size: `58159088` bytes",
-                "- duplicate: `zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz`",
+                "- channel: `0.17.0-dev.758+748e7c5e3`",
+                "- file: `third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz`",
+                "- sha256: `0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6`",
+                "- size: `59410844` bytes",
+                "- duplicate: `zig-x86_64-linux-0.17.0-dev.758+748e7c5e3 (1).tar.xz`",
             ]
         )
         + "\n",
@@ -329,7 +329,7 @@ def run_self_test() -> int:
     expect_failure(
         lambda root: (root / README_PATH).write_text(
             (root / README_PATH).read_text(encoding="utf-8").replace(
-                '`58159088` bytes',
+                '`59410844` bytes',
                 '`1` bytes',
             ),
             encoding="utf-8",

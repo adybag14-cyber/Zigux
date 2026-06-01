@@ -13,7 +13,7 @@ WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 SETUP_STEP = "- name: Setup pinned Zig toolchain"
 FAILURE_GATE = 'if [ "$download_success" -ne 1 ]; then'
-FAILURE_MESSAGE = "failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org"
+FAILURE_MESSAGE = "failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org"
 FINAL_ZIG_PATH = 'zig_path="$extract_root/zig"'
 PATH_EXPORT = 'echo "$extract_root" >> "$GITHUB_PATH"'
 FINAL_VERSION = '"$zig_path" version'
@@ -104,7 +104,7 @@ jobs:
         run: |
           download_success=0
           if [ "$download_success" -ne 1 ]; then
-            echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2
+            echo 'failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org' >&2
             exit 1
           fi
           zig_path="$extract_root/zig"
@@ -126,7 +126,7 @@ jobs:
         run: |
           download_success=0
           if [ "$download_success" -ne 1 ]; then
-            echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2
+            echo 'failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org' >&2
             exit 1
           fi
           zig_path="$extract_root/zig"

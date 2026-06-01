@@ -14,13 +14,13 @@ ARTIFACT_DIFF_NOTE_REL = Path("Documentation/zigux/artifact-diff.md")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 
 EXPECTED_VALIDATOR_REPLAY_MARKERS = [
-    'CheckSpec(\n        "phase4-artifact-diff-helper-self-test",\n        ("python", "scripts/zigux/artifact_diff.py", "--self-test"),\n    ),',
-    'CheckSpec(\n        "phase4-artifact-diff-contract-self-test",\n        ("python", "scripts/zigux/check-artifact-diff-contract.py", "--self-test"),\n    ),',
-    'CheckSpec(\n        "phase4-artifact-diff-contract",\n        ("python", "scripts/zigux/check-artifact-diff-contract.py"),\n    ),',
-    'CheckSpec(\n        "phase4-artifact-diff-determinism-self-test",\n        ("python", "scripts/zigux/check-phase4-artifact-diff-determinism.py", "--self-test"),\n    ),',
-    'CheckSpec(\n        "phase4-artifact-diff-determinism",\n        ("python", "scripts/zigux/check-phase4-artifact-diff-determinism.py"),\n    ),',
-    'CheckSpec(\n        "phase4-artifact-diff-validator-replays-self-test",\n        ("python", "scripts/zigux/check-phase4-artifact-diff-validator-replays.py", "--self-test"),\n    ),',
-    'CheckSpec(\n        "phase4-artifact-diff-validator-replays",\n        ("python", "scripts/zigux/check-phase4-artifact-diff-validator-replays.py"),\n    ),',
+    'CheckSpec("phase4-artifact-diff-helper-self-test", ("python", "scripts/zigux/artifact_diff.py", "--self-test")),',
+    'CheckSpec("phase4-artifact-diff-contract-self-test", ("python", "scripts/zigux/check-artifact-diff-contract.py", "--self-test")),',
+    'CheckSpec("phase4-artifact-diff-contract", ("python", "scripts/zigux/check-artifact-diff-contract.py")),',
+    'CheckSpec("phase4-artifact-diff-determinism-self-test", ("python", "scripts/zigux/check-phase4-artifact-diff-determinism.py", "--self-test")),',
+    'CheckSpec("phase4-artifact-diff-determinism", ("python", "scripts/zigux/check-phase4-artifact-diff-determinism.py")),',
+    'CheckSpec("phase4-artifact-diff-validator-replays-self-test", ("python", "scripts/zigux/check-phase4-artifact-diff-validator-replays.py", "--self-test")),',
+    'CheckSpec("phase4-artifact-diff-validator-replays", ("python", "scripts/zigux/check-phase4-artifact-diff-validator-replays.py")),',
 ]
 
 EXPECTED_VALIDATOR_OUTPUT_MARKERS = [
@@ -50,7 +50,7 @@ EXPECTED_VALIDATOR_OUTPUT_MARKERS = [
     '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MODE=validator_present",',
     '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7",',
     '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKERS="',
-    '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14",',
+    '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=16",',
 ]
 
 EXPECTED_REPO_REALITY_HANDOFF_MARKERS = [
@@ -68,7 +68,7 @@ EXPECTED_ARTIFACT_DIFF_NOTE_MARKERS = [
     "`PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT=14`",
     "`PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASES=catalog_shape,validator_marker_round_trip,validator_helper_marker_drift,validator_marker_drift,validator_replay_marker_drift,repo_reality_handoff_round_trip,repo_reality_handoff_drift,repo_reality_handoff_note_missing,workflow_marker_round_trip,workflow_make_route_marker_drift,workflow_marker_drift,workflow_missing,artifact_diff_note_round_trip,artifact_diff_note_marker_drift`",
     "`PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7`",
-    "`PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14`",
+    "`PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=16`",
 ]
 
 EXPECTED_WORKFLOW_REPLAY_MARKERS = [

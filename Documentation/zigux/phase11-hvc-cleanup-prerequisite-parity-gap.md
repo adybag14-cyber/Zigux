@@ -3,7 +3,8 @@
 This note keeps one narrow HVC teardown-parity edge explicit on current
 `master`: the helper-local cleanup-prerequisite trigger split that gates
 `hvc_cleanup()` reviewability without claiming live host-backed teardown
-execution.
+execution. This note does not claim that live `hvc_cleanup()` execution is
+replayed on current `master`.
 
 ## Status
 
@@ -41,8 +42,7 @@ execution.
 
 ## Non-Goals
 
-- this note does not claim that live `hvc_cleanup()` execution is replayed on
-  current `master`
+- this note does not claim that live `hvc_cleanup()` execution is replayed on current `master`
 - this note does not promote the helper-local trigger split into a dedicated
   `make -C zigux phase11-hvc-survey` route
 - this note does not claim host-backed teardown parity, live tty registration

@@ -145,7 +145,7 @@ def build_fixture(root: Path, *, workflow_text: str | None = None, makefile_text
             [
                 "phase11-validate:",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
                 "",
             ]
         ),
@@ -276,7 +276,7 @@ def run_self_test() -> int:
             makefile_text="\n".join(
                 [
                     "phase11-validate:",
-                    "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+                    "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
                     "",
                 ]
             ),

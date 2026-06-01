@@ -6,7 +6,7 @@ It is the current-master gap-note companion for the shipped NVMe foothold, not a
 
 ## Status
 
-- `PHASE12_DIRECT_PACKET_ON_MASTER=starter_verifier_slice_note_direct_replay_survey_note_survey_gate_manifest_support_bundle_and_shared_direct_replay_present`
+- `PHASE12_DIRECT_PACKET_ON_MASTER=starter_verifier_slice_note_direct_replay_survey_note_survey_gate_manifest_support_bundle_and_dedicated_routes_present`
 - lane owner: `P12-L08`
 - roadmap anchor: `drivers/nvme/host/pci.c`
 - packet scope: keep the current NVMe PCI starter reviewable without claiming live DMA mapping, PRP or SGL submission, blk-mq wiring, or transport-backed queue execution
@@ -27,7 +27,7 @@ It is the current-master gap-note companion for the shipped NVMe foothold, not a
 - survey gate: `zigux/tests/phase12_nvme_pci_survey.zig`
 - survey-build route: `zigux/tests/phase12_nvme_pci_survey_build.zig`
 - manifest anchor: `zigux/tests/phase12_nvme_pci_manifest.json`
-- current `zigux/tests/phase12_build.zig` wires the bounded NVMe direct replay into the shared `phase12-smoke`, `phase12-test`, and `phase12` routes, while the verifier shard and survey gate stay packet-local
+- current `zigux/tests/phase12_build.zig` stays scoped to the shared `virtio_net` packet and does not wire the bounded NVMe direct replay into `phase12-smoke`, `phase12-test`, or `phase12`, while the direct replay, verifier shard, and survey gate stay on dedicated NVMe routes
 
 ## Current-Master Raw Path Map
 

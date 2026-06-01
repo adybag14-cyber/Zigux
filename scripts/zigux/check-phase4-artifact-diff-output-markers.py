@@ -76,7 +76,7 @@ CHECKS = (
         exact_markers=(
             "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=pass",
             "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7",
-            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=16",
         ),
         prefix_markers=("PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MODE=",),
     ),
@@ -271,7 +271,7 @@ def run_self_test() -> int:
             live_stdout_lines=(
                 "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=pass",
                 "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7",
-                "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14",
+                "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=16",
             ),
         )
         covered.append(expect_failure(root, "validator_replays_mode_prefix_drift"))

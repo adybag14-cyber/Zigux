@@ -104,7 +104,7 @@ test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to ma
     const driver = try readRepoFileAlloc(
         std.testing.allocator,
         "drivers/tty/hvc/hvc_console.zig",
-        24 * 1024,
+        128 * 1024,
     );
     defer std.testing.allocator.free(driver);
 
@@ -126,7 +126,7 @@ test "phase11 hvc cleanup packet proof keeps close teardown carryover details ti
     const driver = try readRepoFileAlloc(
         std.testing.allocator,
         "drivers/tty/hvc/hvc_console.zig",
-        24 * 1024,
+        128 * 1024,
     );
     defer std.testing.allocator.free(driver);
 
@@ -235,7 +235,7 @@ test "phase11 hvc cleanup packet proof keeps newer failure-mode helpers tied to 
     const driver = try readRepoFileAlloc(
         std.testing.allocator,
         "drivers/tty/hvc/hvc_console.zig",
-        24 * 1024,
+        128 * 1024,
     );
     defer std.testing.allocator.free(driver);
 
@@ -252,4 +252,59 @@ test "phase11 hvc cleanup packet proof keeps newer failure-mode helpers tied to 
     try expectContains(driver, "try std.testing.expect(!active.targetless_hangup_short_circuit);");
     try expectContains(driver, "try std.testing.expect(targetless.targetless_hangup_short_circuit);");
     try expectContains(driver, "try std.testing.expect(!invalid.targetless_hangup_short_circuit);");
+}
+
+test "phase11 hvc cleanup prerequisite final-close-only trigger reviewable" {
+    const summary = try hvc_console.summarizeCleanupPrerequisite(.{
+        .final_close_completed = true,
+        .hangup_completed = false,
+        .tty_port_release_handoff = true,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    });
+
+    try std.testing.expectEqual(hvc_console.CleanupTrigger.final_close_only, summary.trigger);
+    try std.testing.expect(summary.tty_port_release_handoff);
+    try std.testing.expect(summary.cleanup_time_tty_port_ownership);
+    try std.testing.expect(summary.port_reference_drop_timing);
+}
+
+test "phase11 hvc cleanup prerequisite hangup-only trigger reviewable" {
+    const summary = try hvc_console.summarizeCleanupPrerequisite(.{
+        .final_close_completed = false,
+        .hangup_completed = true,
+        .tty_port_release_handoff = true,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    });
+
+    try std.testing.expectEqual(hvc_console.CleanupTrigger.hangup_only, summary.trigger);
+    try std.testing.expect(summary.tty_port_release_handoff);
+    try std.testing.expect(summary.cleanup_time_tty_port_ownership);
+    try std.testing.expect(summary.port_reference_drop_timing);
+}
+
+test "phase11 hvc cleanup prerequisite combined trigger reviewable" {
+    const summary = try hvc_console.summarizeCleanupPrerequisite(.{
+        .final_close_completed = true,
+        .hangup_completed = true,
+        .tty_port_release_handoff = true,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    });
+
+    try std.testing.expectEqual(hvc_console.CleanupTrigger.final_close_and_hangup, summary.trigger);
+    try std.testing.expect(summary.tty_port_release_handoff);
+    try std.testing.expect(summary.cleanup_time_tty_port_ownership);
+    try std.testing.expect(summary.port_reference_drop_timing);
+}
+
+test "phase11 hvc cleanup packet proof rejects cleanup without final-close or hangup evidence" {
+    try std.testing.expectError(error.CleanupRequiresFinalCloseOrHangup, hvc_console.summarizeCleanupPrerequisite(.{
+        .final_close_completed = false,
+        .hangup_completed = false,
+        .tty_port_release_handoff = true,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    }));
 }

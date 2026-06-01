@@ -7,7 +7,7 @@ const word_count: usize = bitmap_nbits / word_bits;
 
 const manifest_source = @embedFile("phase4_bitmap_diff_manifest.json");
 const bitmap_diff_source = @embedFile("bitmap_diff.zig");
-const gate_evidence_source = @embedFile("../../Documentation/zigux/phase4-gate-evidence.md");
+const gate_evidence_path = "Documentation/zigux/phase4-gate-evidence.md";
 
 const ThresholdReplay = struct {
     iterations: usize,
@@ -18,7 +18,7 @@ const ThresholdReplay = struct {
 };
 
 const Bitmap = struct {
-    words: [word_count]Word = [_]Word{0} ** word_count,
+    words: [word_count]Word = @splat(0),
 
     fn clearAll(self: *Bitmap) void {
         @memset(self.words[0..], 0);
@@ -127,6 +127,15 @@ fn gitBlobShaHex(source: []const u8) [40]u8 {
 
 fn expectMarker(haystack: []const u8, marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, marker) != null);
+}
+
+fn readRepoFile(repo_root_relative_path: []const u8) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        repo_root_relative_path,
+        std.testing.allocator,
+        .limited(1024 * 1024),
+    );
 }
 
 fn expectManifestContainsGitBlobSha(
@@ -268,6 +277,9 @@ test "phase4 bitmap diff gate keeps exact 81-bit find_nth_bit window boundary ex
 }
 
 test "phase4 bitmap diff gate keeps manifest-backed source inventory explicit" {
+    const gate_evidence_source = try readRepoFile(gate_evidence_path);
+    defer std.testing.allocator.free(gate_evidence_source);
+
     try expectMarker(manifest_source, "\"lane_key\": \"P4-L10\"");
     try expectMarker(manifest_source, "\"roadmap_target_path\": \"zigux/tests/bitmap_diff.zig\"");
     try expectMarker(manifest_source, "\"owner\": \"Shared Subsystems Pod\"");

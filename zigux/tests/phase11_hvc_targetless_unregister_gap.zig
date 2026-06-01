@@ -34,6 +34,8 @@ test "phase11 hvc notifier witness records current-head targetless unregister sa
     try expectContains(driver, ".targetless_no_unregister_edge = request.notifier_registered and !request.target_present and !request.unregister_requested,");
     try expectContains(driver, ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,");
     try expectContains(driver, ".unregister_requested = request.unregister_requested and request.target_present and request.notifier_registered,");
+    try expectContains(driver, "try std.testing.expect(!targetless_sanitized.unregister_requested);");
+    try expectContains(driver, "try std.testing.expect(targetless_sanitized.keeps_live_notifier_execution_out_of_scope);");
 
     const verify_helper = try readRepoFile("drivers/tty/hvc/hvc_console_verify.zig");
     defer std.testing.allocator.free(verify_helper);

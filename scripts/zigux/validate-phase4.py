@@ -80,8 +80,8 @@ WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES = (
     "missing_workflow_artifact_diff_contract_check,",
     "missing_workflow_artifact_diff_determinism_selftest,",
     "missing_workflow_artifact_diff_determinism_check,",
-    "missing_workflow_artifact_diff-validator-replays_selftest,",
-    "missing_workflow_artifact_diff-validator-replays_check,",
+    "missing_workflow_artifact_diff_validator_replays_selftest,",
+    "missing_workflow_artifact_diff_validator_replays_check,",
     "missing_matrix_remaining_gap_marker,",
     "missing_gate_evidence_bitmap_build_route,",
     "missing_gate_evidence_bitmap_wrapper,",
@@ -254,7 +254,7 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
         ),
         (
             "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT",
-            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=16",
         ),
     ),
     "phase4-gate-evidence-self-test": (("phase4 gate evidence self-test", "phase4 gate evidence self-test: PASS (45 cases)"),),
@@ -271,7 +271,7 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     "phase4-perf-threshold-matrix": (("PHASE4_PERF_THRESHOLD_MATRIX", "PHASE4_PERF_THRESHOLD_MATRIX=pass"),),
     "phase4-remaining-gap-matrix-self-test": (
         ("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST", "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass"),
-        ("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT", "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=38"),
+        ("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT", "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=43"),
     ),
     "phase4-remaining-gap-matrix": (
         ("PHASE4_REMAINING_GAP_MATRIX", "PHASE4_REMAINING_GAP_MATRIX=pass"),
@@ -599,7 +599,7 @@ def configure_phase4_output_stubs(root: Path) -> None:
             "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MODE=validator_present",
             "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7",
             "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKERS=",
-            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=16",
         ),
     )
     build_stub_script(
@@ -630,7 +630,7 @@ def configure_phase4_output_stubs(root: Path) -> None:
     )
     build_stub_script(
         root / "scripts/zigux/check-phase4-remaining-gap-matrix.py",
-        self_test_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass", "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=38"),
+        self_test_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass", "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=43"),
         live_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX=pass", "PHASE4_REMAINING_GAP_MATRIX_PACKET_COUNT=6"),
     )
     build_stub_script(

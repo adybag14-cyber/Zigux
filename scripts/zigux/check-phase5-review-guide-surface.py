@@ -97,7 +97,7 @@ MARKERS = {
         "The same authenticated sample-root reread now directly exposes this bounded callback-focus companion too:",
         "The same authenticated sample-root reread now directly exposes this bounded payload-preview companion too:",
         "## Exact checks run on 2026-05-20",
-        "This run verified the current formatting companion with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2` using a focused `zig test` against the current `master` file body.",
+        "This run verified the current formatting companion with the attached Zig toolchain `0.17.0-dev.758+748e7c5e3` using a focused `zig test` against the current `master` file body.",
         "The exact checks that passed were:",
         "- `phase 5 trace-events formatting companion keeps the selected-string cue reviewable`",
         "- `phase 5 trace-events formatting companion keeps the modulo-selected string cycle reviewable`",

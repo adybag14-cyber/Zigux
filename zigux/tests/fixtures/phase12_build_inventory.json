@@ -24,7 +24,7 @@
     "run_virtio_net_survey_tests"
   ],
   "throughput_anchor_depend_steps": [
-    "throughput_parity_tests"
+    "run_virtio_net_throughput_parity_tests"
   ],
   "module_root_source_files": [
     {
@@ -129,12 +129,12 @@
     {
       "variable": "smoke_step",
       "step": "smoke",
-      "description": "Run the Phase 12 virtio_net replay packet smoke tests"
+      "description": "Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate smoke tests"
     },
     {
       "variable": "test_step",
       "step": "test",
-      "description": "Run the Phase 12 virtio_net replay packet tests"
+      "description": "Run the Phase 12 virtio_net queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate tests"
     },
     {
       "variable": "throughput_parity_step",

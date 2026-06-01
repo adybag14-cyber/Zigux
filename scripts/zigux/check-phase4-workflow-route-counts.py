@@ -59,23 +59,23 @@ REQUIRED_MAKE_MARKERS = [
     "scripts/zigux/artifact_diff.py --self-test",
     "scripts/zigux/check-artifact-diff-contract.py --self-test",
     "phase4-test:",
-    "$(ZIG) build test --build-file zigux/tests/phase4_build.zig",
+    "$(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase4_build.zig",
     "phase4-runtime-atomic64-diff:",
-    "$(ZIG) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+    "$(ZIG_REPO_ROOT) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
     "phase4-runtime-atomic64-diff-survey:",
-    "$(ZIG) build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig",
+    "$(ZIG_REPO_ROOT) build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig",
     "phase4-perf-baseline-survey:",
-    "$(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+    "$(ZIG_REPO_ROOT) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
     "phase4-bitmap-diff:",
-    "$(ZIG) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
+    "$(ZIG_REPO_ROOT) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
     "phase4-bitmap-diff-survey:",
-    "$(ZIG) build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig",
+    "$(ZIG_REPO_ROOT) build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig",
     "phase4-bitmap-live-helper-replay:",
-    "$(ZIG) build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig",
+    "$(ZIG_REPO_ROOT) build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig",
     "phase4-test-fsmount-survey:",
-    "$(ZIG) build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+    "$(ZIG_REPO_ROOT) build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
     "phase4-kprobe-example-survey:",
-    "$(ZIG) test zigux/tests/phase4_kprobe_example_survey.zig",
+    "$(ZIG_REPO_ROOT) test zigux/tests/phase4_kprobe_example_survey.zig",
     "phase4: phase4-validate phase4-test",
 ]
 
@@ -272,31 +272,31 @@ phase4-artifact-diff-contract:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py
 
 phase4-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase4_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase4_build.zig
 
 phase4-runtime-atomic64-diff:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig
 
 phase4-runtime-atomic64-diff-survey:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig
 
 phase4-perf-baseline-survey:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig
 
 phase4-bitmap-diff:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig
 
 phase4-bitmap-diff-survey:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase4-bitmap-diff-survey --build-file zigux/tests/phase4_build.zig
 
 phase4-bitmap-live-helper-replay:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig
 
 phase4-test-fsmount-survey:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig
 
 phase4-kprobe-example-survey:
-	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/phase4_kprobe_example_survey.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test zigux/tests/phase4_kprobe_example_survey.zig
 
 phase4: phase4-validate phase4-test
 """

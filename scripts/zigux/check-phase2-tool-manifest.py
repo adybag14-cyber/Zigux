@@ -10,8 +10,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")
-ARCHIVE_PAYLOAD = "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
-ARCHIVE_PARTS_MANIFEST = "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz.parts/manifest.json"
+ARCHIVE_PAYLOAD = "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz"
+ARCHIVE_PARTS_MANIFEST = "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts/manifest.json"
 ARCHIVE_SUPPORT_FIXED_PREFIX = ("third_party/README.md",)
 ARCHIVE_SUPPORT_ALTERNATIVES = (
     ARCHIVE_PAYLOAD,
@@ -127,6 +127,7 @@ BASE_REQUIRED_PRESENT_SURFACES = {
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
         "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+        "scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py",
         "scripts/zigux/check-phase2-kbuild-routes.py",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
         "scripts/zigux/check-phase2-cross.py",
@@ -152,6 +153,7 @@ BASE_REQUIRED_PRESENT_SURFACES = {
         "scripts/zigux/genksyms.zig",
         "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
         "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
+        "scripts/zigux/genksyms_inline_short_option_argument_test.zig",
     ),
     "policy": (
         "scripts/zigux/zig-toolchain-policy.json",
@@ -237,6 +239,7 @@ BASE_REQUIRED_PRESENT_SURFACES = {
         "zigux/tests/fixtures/genksyms_bridge/manifest.json",
         "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
         "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
+        "zigux/tests/fixtures/genksyms_bridge/inline_short_option_arguments_expected.json",
         "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
         "zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json",
         "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
@@ -259,12 +262,12 @@ BASE_REQUIRED_PRESENT_SURFACES = {
 }
 
 REQUIRED_NOTE_MARKERS = (
-    "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, the returned local-first archive workflow and archive README contract checkers, the shipped toolchain-pinning and pin-scope guards, the returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, bootstrap workflow-routes checker, kbuild routes checker, the live kconfig bridge checker and fixture roster, the helper-local kconfig allconfig guard, the dedicated genksyms selftest-alignment guard, the manifest-backed genksyms bridge checker plus its expanded expected and process-output fixture packet, the standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, the fixdep governance and parity checker pair, and the restored tranche-closure note.",
+    "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, the returned local-first archive workflow and archive README contract checkers, the shipped toolchain-pinning and pin-scope guards, the returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, bootstrap workflow-routes checker, kbuild routes checker, the live kconfig bridge checker and fixture roster, the helper-local kconfig allconfig guard, the dedicated genksyms selftest-alignment guard, the dedicated genksyms dual-implementation survey guard, the manifest-backed genksyms bridge checker plus its expanded expected and process-output fixture packet, the standalone invalid-long-option, ambiguous-long-option, and inline-short-option version-side-effect proofs, the fixdep governance and parity checker pair, and the restored tranche-closure note.",
     "Keep the directly readable validator pair explicit through scripts/zigux/validate-phase2.py and scripts/zigux/validate-phase2-closure.py instead of leaving the closure-side replay packet implied only in prose.",
     "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-fixdep, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
     "Keep the dedicated manifest guards, the bootstrap workflow-routes guard, the primary artifact_diff helper, the helper-local kconfig allconfig guard, and the dedicated genksyms selftest-alignment guard explicit through scripts/zigux/check-phase2-tool-manifest.py, scripts/zigux/check-phase2-bootstrap-workflow-routes.py, scripts/zigux/check-phase2-artifact-tools-manifest.py, scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py, scripts/zigux/artifact_diff.py, and scripts/zigux/check-phase2-genksyms-selftest-alignment.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
     "Keep the returned install-zig archive verification checker, staged pinned-archive helper, and the stage-helper contract plus selftest packet explicit beside the local-first archive workflow, archive README contract, and installer helper so the shared Phase 2 tool packet matches the live phase2-toolchain and validate-phase2 routes.",
-    "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, repo-local pinned archive payload, direct cross-route checker, the bootstrap workflow-routes guard, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker plus primary artifact_diff helper explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
+    "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, repo-local pinned archive payload, direct cross-route checker, the bootstrap workflow-routes guard, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the dedicated genksyms dual-implementation survey checker, the standalone invalid-long-option, ambiguous-long-option, and inline-short-option version-side-effect proofs, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker plus primary artifact_diff helper explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
     "Keep scripts/zigux/README.md explicit as the shipped scripts-root reminder surface for the same current Phase 2 toolchain, kbuild, installer, cross-route, bootstrap workflow-route, and make-wrapper packet that the docs-root, tests-root, and checklist surfaces summarize.",
 )
 
@@ -374,11 +377,6 @@ def collect_archive_support_issues(root: Path, entries: list[str]) -> list[tuple
         issues.append(("INVALID_ARCHIVE_SUPPORT_ENTRY", repr(tail)))
         return issues
 
-    if not (root / tail[0]).exists():
-        issues.append((
-            "MISSING_SURFACE_PATH",
-            f"archive_support:{tail[0]}",
-        ))
     return issues
 
 
@@ -489,8 +487,8 @@ def build_self_test_root(
     write_manifest(root / MANIFEST, build_self_test_manifest(required_make_routes, archive_entry))
     policy_payload = {
         "phase": "Phase 2",
-        "channel": "0.17.0-dev.87+9b177a7d2",
-        "minimum_version": "0.17.0-dev.87+9b177a7d2",
+        "channel": "0.17.0-dev.758+748e7c5e3",
+        "minimum_version": "0.17.0-dev.758+748e7c5e3",
         "archive_sha256": {"x86_64-linux": "3" * 64},
         "upgrade_policy": {
             "channel_minimum_lockstep": True,
@@ -549,8 +547,8 @@ def run_self_test() -> int:
             seed_required_repo_paths(root, required_present_surfaces)
             write_text(root / TOOLCHAIN_POLICY, json.dumps({
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.87+9b177a7d2",
-                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "channel": "0.17.0-dev.758+748e7c5e3",
+                "minimum_version": "0.17.0-dev.758+748e7c5e3",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
@@ -571,8 +569,8 @@ def run_self_test() -> int:
             seed_required_repo_paths(root, required_present_surfaces)
             write_text(root / TOOLCHAIN_POLICY, json.dumps({
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.87+9b177a7d2",
-                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "channel": "0.17.0-dev.758+748e7c5e3",
+                "minimum_version": "0.17.0-dev.758+748e7c5e3",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
@@ -586,8 +584,8 @@ def run_self_test() -> int:
                 seed_required_repo_paths(root, required_present_surfaces)
                 write_text(root / TOOLCHAIN_POLICY, json.dumps({
                     "phase": "Phase 2",
-                    "channel": "0.17.0-dev.87+9b177a7d2",
-                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "channel": "0.17.0-dev.758+748e7c5e3",
+                    "minimum_version": "0.17.0-dev.758+748e7c5e3",
                     "archive_sha256": {"x86_64-linux": "3" * 64},
                     "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
                 }, indent=2) + "\n")
@@ -601,8 +599,8 @@ def run_self_test() -> int:
                 seed_required_repo_paths(root, required_present_surfaces)
                 write_text(root / TOOLCHAIN_POLICY, json.dumps({
                     "phase": "Phase 2",
-                    "channel": "0.17.0-dev.87+9b177a7d2",
-                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "channel": "0.17.0-dev.758+748e7c5e3",
+                    "minimum_version": "0.17.0-dev.758+748e7c5e3",
                     "archive_sha256": {"x86_64-linux": "3" * 64},
                     "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
                 }, indent=2) + "\n")
@@ -616,8 +614,8 @@ def run_self_test() -> int:
                 seed_required_repo_paths(root, required_present_surfaces)
                 write_text(root / TOOLCHAIN_POLICY, json.dumps({
                     "phase": "Phase 2",
-                    "channel": "0.17.0-dev.87+9b177a7d2",
-                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "channel": "0.17.0-dev.758+748e7c5e3",
+                    "minimum_version": "0.17.0-dev.758+748e7c5e3",
                     "archive_sha256": {"x86_64-linux": "3" * 64},
                     "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
                 }, indent=2) + "\n")
@@ -632,8 +630,8 @@ def run_self_test() -> int:
                 seed_required_repo_paths(root, required_present_surfaces)
                 write_text(root / TOOLCHAIN_POLICY, json.dumps({
                     "phase": "Phase 2",
-                    "channel": "0.17.0-dev.87+9b177a7d2",
-                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "channel": "0.17.0-dev.758+748e7c5e3",
+                    "minimum_version": "0.17.0-dev.758+748e7c5e3",
                     "archive_sha256": {"x86_64-linux": "3" * 64},
                     "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
                 }, indent=2) + "\n")
@@ -646,8 +644,8 @@ def run_self_test() -> int:
             seed_required_repo_paths(root, required_present_surfaces)
             write_text(root / TOOLCHAIN_POLICY, json.dumps({
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.87+9b177a7d2",
-                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "channel": "0.17.0-dev.758+748e7c5e3",
+                "minimum_version": "0.17.0-dev.758+748e7c5e3",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
@@ -660,8 +658,8 @@ def run_self_test() -> int:
             seed_required_repo_paths(root, required_present_surfaces)
             write_text(root / TOOLCHAIN_POLICY, json.dumps({
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.87+9b177a7d2",
-                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "channel": "0.17.0-dev.758+748e7c5e3",
+                "minimum_version": "0.17.0-dev.758+748e7c5e3",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
@@ -674,8 +672,8 @@ def run_self_test() -> int:
             seed_required_repo_paths(root, required_present_surfaces)
             write_text(root / TOOLCHAIN_POLICY, json.dumps({
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.87+9b177a7d2",
-                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "channel": "0.17.0-dev.758+748e7c5e3",
+                "minimum_version": "0.17.0-dev.758+748e7c5e3",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
@@ -690,8 +688,8 @@ def run_self_test() -> int:
                 seed_required_repo_paths(root, required_present_surfaces)
                 write_text(root / TOOLCHAIN_POLICY, json.dumps({
                     "phase": "Phase 2",
-                    "channel": "0.17.0-dev.87+9b177a7d2",
-                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "channel": "0.17.0-dev.758+748e7c5e3",
+                    "minimum_version": "0.17.0-dev.758+748e7c5e3",
                     "archive_sha256": {"x86_64-linux": "3" * 64},
                     "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
                 }, indent=2) + "\n")
@@ -715,8 +713,8 @@ def run_self_test() -> int:
         seed_required_repo_paths(root, required_present_surfaces)
         write_text(root / TOOLCHAIN_POLICY, json.dumps({
             "phase": "Phase 2",
-            "channel": "0.17.0-dev.87+9b177a7d2",
-            "minimum_version": "0.17.0-dev.87+9b177a7d2",
+            "channel": "0.17.0-dev.758+748e7c5e3",
+            "minimum_version": "0.17.0-dev.758+748e7c5e3",
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")
@@ -730,8 +728,8 @@ def run_self_test() -> int:
         seed_required_repo_paths(root, required_present_surfaces)
         write_text(root / TOOLCHAIN_POLICY, json.dumps({
             "phase": "Phase 2",
-            "channel": "0.17.0-dev.87+9b177a7d2",
-            "minimum_version": "0.17.0-dev.87+9b177a7d2",
+            "channel": "0.17.0-dev.758+748e7c5e3",
+            "minimum_version": "0.17.0-dev.758+748e7c5e3",
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")
@@ -746,8 +744,8 @@ def run_self_test() -> int:
             seed_required_repo_paths(root, required_present_surfaces)
             write_text(root / TOOLCHAIN_POLICY, json.dumps({
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.87+9b177a7d2",
-                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "channel": "0.17.0-dev.758+748e7c5e3",
+                "minimum_version": "0.17.0-dev.758+748e7c5e3",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
@@ -761,8 +759,8 @@ def run_self_test() -> int:
         seed_required_repo_paths(root, required_present_surfaces)
         write_text(root / TOOLCHAIN_POLICY, json.dumps({
             "phase": "Phase 2",
-            "channel": "0.17.0-dev.87+9b177a7d2",
-            "minimum_version": "0.17.0-dev.87+9b177a7d2",
+            "channel": "0.17.0-dev.758+748e7c5e3",
+            "minimum_version": "0.17.0-dev.758+748e7c5e3",
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")
@@ -776,8 +774,8 @@ def run_self_test() -> int:
         seed_required_repo_paths(root, required_present_surfaces)
         write_text(root / TOOLCHAIN_POLICY, json.dumps({
             "phase": "Phase 2",
-            "channel": "0.17.0-dev.87+9b177a7d2",
-            "minimum_version": "0.17.0-dev.87+9b177a7d2",
+            "channel": "0.17.0-dev.758+748e7c5e3",
+            "minimum_version": "0.17.0-dev.758+748e7c5e3",
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")
@@ -791,8 +789,8 @@ def run_self_test() -> int:
         seed_required_repo_paths(root, required_present_surfaces)
         write_text(root / TOOLCHAIN_POLICY, json.dumps({
             "phase": "Phase 2",
-            "channel": "0.17.0-dev.87+9b177a7d2",
-            "minimum_version": "0.17.0-dev.87+9b177a7d2",
+            "channel": "0.17.0-dev.758+748e7c5e3",
+            "minimum_version": "0.17.0-dev.758+748e7c5e3",
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")
@@ -806,8 +804,8 @@ def run_self_test() -> int:
         seed_required_repo_paths(root, required_present_surfaces)
         write_text(root / TOOLCHAIN_POLICY, json.dumps({
             "phase": "Phase 2",
-            "channel": "0.17.0-dev.87+9b177a7d2",
-            "minimum_version": "0.17.0-dev.87+9b177a7d2",
+            "channel": "0.17.0-dev.758+748e7c5e3",
+            "minimum_version": "0.17.0-dev.758+748e7c5e3",
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")

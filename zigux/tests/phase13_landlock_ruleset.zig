@@ -76,7 +76,7 @@ test "phase13 landlock ruleset branch planning appends layers when replacing mat
         .layers = [_]ruleset.Layer{
             .{ .level = 1, .access = 0x1 },
             .{ .level = 3, .access = 0x4 },
-        } ++ ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 2)),
+        } ++ @as([ruleset.max_num_layers - 2]ruleset.Layer, @splat(.{ .level = 0, .access = 0 })),
     };
     const search_plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, true, 99, &.{ 10, 99, 120 }, 6);
     const branch_plan = try ruleset.RulesetHelperLab.planInsertRuleBranch(
@@ -100,7 +100,7 @@ test "phase13 landlock ruleset branch planning extends access for matched level-
         .num_layers = 1,
         .layers = [_]ruleset.Layer{
             .{ .level = 0, .access = 0x1 },
-        } ++ ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 1)),
+        } ++ @as([ruleset.max_num_layers - 1]ruleset.Layer, @splat(.{ .level = 0, .access = 0 })),
     };
     const search_plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, true, 99, &.{99}, 2);
     const branch_plan = try ruleset.RulesetHelperLab.planInsertRuleBranch(
@@ -136,7 +136,7 @@ test "phase13 landlock ruleset branch planning rejects missing layers and invali
                 .layers = [_]ruleset.Layer{
                     .{ .level = 1, .access = 0x1 },
                     .{ .level = 3, .access = 0x4 },
-                } ++ ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 2)),
+                } ++ @as([ruleset.max_num_layers - 2]ruleset.Layer, @splat(.{ .level = 0, .access = 0 })),
             },
             &.{
                 .{ .level = 5, .access = 0x10 },

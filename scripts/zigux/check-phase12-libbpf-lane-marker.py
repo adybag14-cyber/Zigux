@@ -11,11 +11,24 @@ from pathlib import Path
 from typing import Iterable
 
 
+SELF_PATH = Path(__file__).resolve()
+
+
+def infer_repo_root() -> Path:
+    for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
+        if (candidate / "Documentation/zigux").is_dir() and (
+            candidate / "zigux/Makefile"
+        ).is_file():
+            return candidate
+    return Path(".")
+
+
+ROOT = infer_repo_root()
 SNAPSHOT_REL_PATH = Path("zigux/tests/fixtures/phase12_libbpf_snapshot.json")
 SURVEY_NOTE_REL_PATH = Path("Documentation/zigux/phase12-libbpf-segment-survey.md")
 VERIFY_SHARD_NOTE_REL_PATH = Path("Documentation/zigux/phase12-libbpf-verify-shard-note.md")
 REVIEWABILITY_GATE_REL_PATH = Path("zigux/tests/phase12_libbpf_reviewability.zig")
-REVIEWABILITY_GATE_NOTE_MARKER = '"Documentation/zigux/phase12-libbpf-segment-survey.md"'
+REVIEWABILITY_GATE_NOTE_MARKER = '        "Documentation/zigux/phase12-libbpf-segment-survey.md",'
 VERIFY_SHARD_NOTE_CHECKER_MARKER = '- lane-marker guard: `scripts/zigux/check-phase12-libbpf-lane-marker.py`'
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
@@ -148,7 +161,9 @@ def build_self_test_tree(root: Path) -> None:
     )
     (root / REVIEWABILITY_GATE_REL_PATH).write_text(
         'const fixture_json = try readFileAlloc("zigux/tests/fixtures/phase12_libbpf_snapshot.json", 16 * 1024);\n'
-        'const survey_path = "Documentation/zigux/phase12-libbpf-segment-survey.md";\n'
+        "const expected_paths = [_][]const u8{\n"
+        '        "Documentation/zigux/phase12-libbpf-segment-survey.md",\n'
+        "};\n"
         'try std.testing.expectEqualStrings("P12-L16", fixture.lane_key);\n',
         encoding="utf-8",
     )
@@ -289,7 +304,7 @@ def run_self_test() -> int:
 def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--self-test", action="store_true")
-    parser.add_argument("--root", default=".")
+    parser.add_argument("--root", type=Path, default=ROOT)
     return parser.parse_args(argv)
 
 
@@ -297,7 +312,7 @@ def main() -> int:
     args = parse_args()
     if args.self_test:
         return run_self_test()
-    return check_lane_marker(Path(args.root))
+    return check_lane_marker(args.root)
 
 
 if __name__ == "__main__":

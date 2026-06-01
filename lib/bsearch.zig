@@ -80,7 +80,7 @@ pub const IndexRange = struct {
 
 fn validateComparatorReturnType(comptime fn_info: std.builtin.Type.Fn, comptime label: []const u8) void {
     const return_type = fn_info.return_type orelse @compileError(label ++ " return type must be explicit");
-    if (fn_info.calling_convention.eql(std.builtin.CallingConvention.c)) {
+    if (fn_info.attrs.@"callconv".eql(std.builtin.CallingConvention.c)) {
         if (return_type != CComparatorResult) {
             @compileError(label ++ " return type must be c_int for C ABI callconv");
         }
@@ -110,11 +110,11 @@ fn validateComparator(comptime Key: type, comptime T: type, comptime Compare: ty
         else => @compileError("bsearch comparator must be a function or function pointer"),
     };
 
-    if (fn_info.params.len != 2) @compileError("bsearch comparator must accept exactly two parameters");
-    if (fn_info.params[0].type orelse @compileError("bsearch comparator key parameter must be typed") != *const Key) {
+    if (fn_info.param_types.len != 2) @compileError("bsearch comparator must accept exactly two parameters");
+    if (fn_info.param_types[0] orelse @compileError("bsearch comparator key parameter must be typed") != *const Key) {
         @compileError("bsearch comparator first parameter must be *const Key");
     }
-    if (fn_info.params[1].type orelse @compileError("bsearch comparator item parameter must be typed") != *const T) {
+    if (fn_info.param_types[1] orelse @compileError("bsearch comparator item parameter must be typed") != *const T) {
         @compileError("bsearch comparator second parameter must be *const T");
     }
     validateComparatorReturnType(fn_info, "bsearch comparator");
@@ -130,11 +130,11 @@ fn validateRawComparator(comptime Compare: type) void {
         else => @compileError("bsearch raw comparator must be a function or function pointer"),
     };
 
-    if (fn_info.params.len != 2) @compileError("bsearch raw comparator must accept exactly two parameters");
-    if (fn_info.params[0].type orelse @compileError("bsearch raw comparator key parameter must be typed") != *const anyopaque) {
+    if (fn_info.param_types.len != 2) @compileError("bsearch raw comparator must accept exactly two parameters");
+    if (fn_info.param_types[0] orelse @compileError("bsearch raw comparator key parameter must be typed") != *const anyopaque) {
         @compileError("bsearch raw comparator first parameter must be *const anyopaque");
     }
-    if (fn_info.params[1].type orelse @compileError("bsearch raw comparator item parameter must be typed") != *const anyopaque) {
+    if (fn_info.param_types[1] orelse @compileError("bsearch raw comparator item parameter must be typed") != *const anyopaque) {
         @compileError("bsearch raw comparator second parameter must be *const anyopaque");
     }
     validateComparatorReturnType(fn_info, "bsearch raw comparator");

@@ -71,6 +71,15 @@ that live cleanup execution has returned. The same matrix packet now keeps
 machine-readable current-head manifest packet, and
 `scripts/zigux/check-phase11-hvc-current-head-manifest.py` fail-closes on its
 lane key, packet surface roster, direct checks, and bounded repo-reality gaps.
+The witness shard now rereads the live starter and the boundary note together.
+keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet.
+This matrix records repo-reality gaps instead of returned fallback evidence and
+keeps early console setup and device selection inside the same current-head
+marker lane.
+It also keeps `close_wait` ownership explicit for the final-close teardown
+carryover check.
+It keeps `hvc_kick()` wakeup-cue explicit with the notifier-irq and
+modem-control helper summaries reviewable on current `master`.
 
 ## Failure-Mode Evidence
 

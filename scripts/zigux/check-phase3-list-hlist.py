@@ -77,9 +77,9 @@ REQUIRED_MARKERS = {
     ),
     MAKEFILE_PATH: (
         "phase3-list-hlist-starter-packet:",
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
         "phase3-list-hlist-dump:",
-        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
     ),
     C_HARNESS_PATH: (
         'write_list_case("broken_backlink", &list_broken_head, &list_broken_first, &list_broken_second, false);',

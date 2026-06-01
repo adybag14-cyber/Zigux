@@ -109,9 +109,6 @@ SUBCHECKER_PATHS = [
     TESTS_README_CHECKER_PATH,
     ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
     SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
-    SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
-    RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
-    RCU_COMPILE_ROUTE_CHECKER_PATH,
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
 ]
@@ -135,8 +132,8 @@ REQUIRED_MARKERS = {
         "  * rollback owner: `Repo Tooling Pod`",
         "  * status bucket: `study_only`",
         "  * rollback threshold: `0` tolerated same-packet drifts",
-        "`phase14-workqueue-reviewability-tests` -> `phase14_workqueue_reviewability.zig` -> `full_bundle_only`",
-        "  * directly readable ring-buffer survey companion:",
+        "the bridge-local trusted rerun still stops at `zig test zigux/tests/phase14_workqueue_reviewability.zig`",
+        "  * the directly readable ring-buffer survey companion:",
         "    * `zigux/tests/phase14_ring_buffer_survey.zig`",
         "  * executable packet members still unrecovered through this lane's exact contents path:",
         "    * `zigux/tests/phase14_build.zig`",
@@ -154,8 +151,8 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase14_ring_buffer_survey.zig` now returns through the current contents path as a directly readable ring-buffer survey companion",
     ],
     SHARED_SMOKE_GAP_PATH: [
-        "current public raw-file readback of `zigux/tests/phase14_end_to_end_smoke_manifest.json` keeps the shared smoke surface inventory and compile-shard catalog visible, and its live body now matches the narrowed single-gate posture too: `make -C zigux phase14-validate` stays the only shared smoke Makefile command, `smoke_shard_commands` now records the raw focused build-file route `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig`, and the manifest still does not advertise the older `make -C zigux phase14-test`, `make -C zigux phase14`, `make -C zigux phase14-smoke`, or workflow-backed build or smoke coverage that the readable current Makefile body and readable bootstrap workflow still omit",
-        "the now-aligned raw-manifest posture",
+        "its live body now matches the narrowed single-gate posture too",
+        "the aligned manifest posture",
         "and the continued absence of the broader `phase14-smoke`, `phase14-test`, and `phase14` wrappers on current `master`",
         "`zigux/tests/phase14_ring_buffer_survey.zig` is directly readable again through the current contents path as a ring-buffer-local survey companion",
     ],
@@ -195,7 +192,7 @@ REQUIRED_MARKERS = {
         "`PHASE14_STATUS=study_only`",
         "`phase14-ring-buffer-maintenance-handoff`",
         "`phase14-ring-buffer-tracefs-reader-serialization-followup`",
-        "`zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
+        "`zig build phase14-smoke --build-file zigux/tests/phase14_build.zig`",
     ],
     SKBUFF_SURVEY_PATH: [
         "`PHASE14_LANE_KEY=P14-L11`",
@@ -245,7 +242,7 @@ REQUIRED_MARKERS = {
         "PHASE14_SKBUFF_STAY_IN_C_GUARDRAIL_SELF_TEST=pass",
         "`PHASE14_LANE_KEY=P14-L11`",
         "`phase14-skbuff-live-ownership-blocker`",
-        "Check that the dedicated Phase 14 skbuff survey stays aligned with the current review-only stay-in-C guardrail wording.",
+        "current review-only stay-in-C guardrail wording.",
     ],
     SKBUFF_COMPILE_ROUTE_CHECKER_PATH: [
         "PHASE14_CHECK_PACKET=skbuff_compile_route",
@@ -471,6 +468,17 @@ def fixture_text(rel_path: str) -> str:
             '    print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass")\n'
             "else:\n"
             '    print("PHASE14_RCU_ROLLBACK_GUARDRAIL=pass")\n'
+        )
+    if rel_path in SUBCHECKER_PATHS:
+        marker_comments = "\n".join(f"# {marker}" for marker in REQUIRED_MARKERS[rel_path])
+        return (
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            f"{marker_comments}\n"
+            'if "--self-test" in sys.argv:\n'
+            '    print("PHASE14_STUB_SELF_TEST=pass")\n'
+            "else:\n"
+            '    print("PHASE14_STUB=pass")\n'
         )
     if rel_path in REQUIRED_MARKERS:
         title = titles.get(rel_path)

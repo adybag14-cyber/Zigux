@@ -140,7 +140,7 @@ test "phase 5 bytestream fifo sample keeps helper, occupancy, and queue-shape be
     try std.testing.expectEqual(@as(usize, discard.len), module.dequeueSlice(discard[0..]));
     try std.testing.expectEqual(@as(usize, 2), module.enqueueSlice(&.{ 0, 1 }));
 
-    var wraparound_preview: [8]u8 = [_]u8{0} ** 8;
+    var wraparound_preview: [8]u8 = @splat(0);
     const wrap_preview = module.previewInto(wraparound_preview[0..]);
     try std.testing.expectEqual(@as(usize, wraparound_preview.len), wrap_preview.copied);
     try std.testing.expectEqual(@as(usize, 10), wrap_preview.total_visible);
@@ -173,7 +173,7 @@ test "phase 5 bytestream fifo sample keeps helper, occupancy, and queue-shape be
     try std.testing.expect(!full_occupancy.wrapped);
     try std.testing.expect(!full_occupancy.wrapped_window);
 
-    var full_preview: [sample.fifo_capacity]u8 = [_]u8{0} ** sample.fifo_capacity;
+    var full_preview: [sample.fifo_capacity]u8 = @splat(0);
     const full_preview_result = module.previewInto(full_preview[0..]);
     try std.testing.expectEqual(@as(usize, sample.fifo_capacity), full_preview_result.copied);
     try std.testing.expectEqual(@as(usize, sample.fifo_capacity), full_preview_result.total_visible);

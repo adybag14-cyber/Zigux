@@ -67,8 +67,8 @@ REQUIRED_MARKERS = {
     MAKEFILE_PATH: (
         'phase3-low-level-wrappers:',
         'phase3-low-level-wrappers-test:',
-        '$(ZIG) build phase3-low-level-wrappers --build-file zigux/tests/build.zig',
-        '$(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig',
+        '$(ZIG_REPO_ROOT) build phase3-low-level-wrappers --build-file zigux/tests/build.zig',
+        '$(ZIG_REPO_ROOT) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig',
         'phase3: phase3-validate phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase3-policy-unsafe-test phase3-test phase3-policy-dump phase3-dump',
     ),
     WORKFLOW_PATH: (

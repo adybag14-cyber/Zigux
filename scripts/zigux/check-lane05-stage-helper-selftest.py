@@ -6,7 +6,8 @@ import sys
 from pathlib import Path
 
 
-WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
+WORKFLOW_PATH = ROOT / ".github/workflows/zigux-bootstrap.yml"
 
 ARCHIVE_CHECK_STEP = "- name: Check current pinned Zig archive packet"
 ARCHIVE_CHECK_CMD = "python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing"
@@ -93,9 +94,9 @@ def check_workflow(text: str) -> None:
     ):
         require_exact_line(text, step, label)
 
-    require_order(text, ARCHIVE_CHECK_STEP, INSTALL_SELF_TEST_STEP, "lane05 anchor order")
-    require_order(text, INSTALL_SELF_TEST_STEP, STAGE_HELPER_SELF_TEST_STEP, "lane05 step order")
-    require_order(text, STAGE_HELPER_SELF_TEST_STEP, CONTRACT_SELF_TEST_STEP, "lane05 step order")
+    require_order(text, ARCHIVE_CHECK_STEP, STAGE_HELPER_SELF_TEST_STEP, "lane05 anchor order")
+    require_order(text, STAGE_HELPER_SELF_TEST_STEP, INSTALL_SELF_TEST_STEP, "lane05 step order")
+    require_order(text, INSTALL_SELF_TEST_STEP, CONTRACT_SELF_TEST_STEP, "lane05 step order")
     require_order(text, CONTRACT_SELF_TEST_STEP, CONTRACT_CHECK_STEP, "lane05 step order")
     require_order(text, CONTRACT_CHECK_STEP, SELF_TEST_STEP, "lane05 step order")
     require_order(text, SELF_TEST_STEP, CHECK_STEP, "lane05 step order")
@@ -109,10 +110,10 @@ jobs:
     steps:
       - name: Check current pinned Zig archive packet
         run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
-      - name: Self-test current Zig installer helper
-        run: python3 scripts/zigux/install-zig.py --self-test
       - name: Self-test current staged pinned Zig archive helper
         run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test
+      - name: Self-test current Zig installer helper
+        run: python3 scripts/zigux/install-zig.py --self-test
       - name: Self-test current Lane 05 stage helper contract checker
         run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test
       - name: Check current Lane 05 stage helper contract packet

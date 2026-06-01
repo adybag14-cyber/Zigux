@@ -39,7 +39,7 @@ fn writeCase(writer: anytype, name: []const u8, raw: usize, trailing_comma: bool
     const raw_decimal = try std.fmt.bufPrint(&decimal_buffer, "{}", .{raw});
 
     try writer.print(
-        "    {\n" ++
+        "    {{\n" ++
             "      \"name\": \"{s}\",\n" ++
             "      \"kind\": \"{s}\",\n" ++
             "      \"raw_hex\": \"{s}\",\n" ++
@@ -84,7 +84,7 @@ pub fn main(init: std.process.Init) !void {
     const inline_limit_raw = try xa_value.makeValue(xa_value.safe_inline_limit);
 
     try writer.print(
-        "{\n" ++
+        "{{\n" ++
             "  \"word_bits\": {},\n" ++
             "  \"safe_inline_limit\": {},\n" ++
             "  \"safe_inline_limit_raw_hex\": \"0x{x}\",\n" ++

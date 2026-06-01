@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 SELF_PATH = Path(__file__).resolve()
-DEFAULT_ROOT = SELF_PATH.parents[3] if len(SELF_PATH.parents) > 3 else Path.cwd()
+DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 3 else Path.cwd()
 
 BUILD_PATH = Path("zigux/tests/phase11_dw_wdt_build.zig")
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json")

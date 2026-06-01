@@ -153,10 +153,10 @@ HELP_USAGE = (
 )
 
 REQUIRED_MAKEFILE_LINES = (
-    "phase2-genksyms:",
+    "phase2-genksyms: phase2-toolchain",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
-    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms.zig",
 )
 
 REQUIRED_WORKFLOW_LINES = (
@@ -479,8 +479,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if count_exact_lines(genksyms_text, marker) != 1:
             issues.append(("HELPER_LOCAL_ANCHOR_MISMATCH", marker))
 
-    if '@embedFile("../../zigux/tests/fixtures/genksyms_bridge/help_expected.json")' not in genksyms_text:
-        issues.append(("MISSING_HELP_FIXTURE_EMBED", HELP_FIXTURE))
+    if 'const help_expected_path = "zigux/tests/fixtures/genksyms_bridge/help_expected.json";' not in genksyms_text:
+        issues.append(("MISSING_HELP_FIXTURE_READ", HELP_FIXTURE))
+    if "Io.Dir.cwd().readFileAlloc(testing.io, help_expected_path" not in genksyms_text:
+        issues.append(("MISSING_HELP_FIXTURE_READ", "readFileAlloc(testing.io, help_expected_path)"))
 
     help_payload, help_issue = read_json(root, HELP_FIXTURE, "INVALID_HELP_FIXTURE_JSON")
     if help_issue is not None:
@@ -567,10 +569,10 @@ def build_self_test_root(root: Path) -> None:
     write_text(
         root,
         MAKEFILE,
-        "phase2-genksyms:\n"
+        "phase2-genksyms: phase2-toolchain\n"
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test\n"
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py\n"
-        "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig\n",
+        "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms.zig\n",
     )
     write_text(
         root,
@@ -588,7 +590,12 @@ def build_self_test_root(root: Path) -> None:
     write_text(
         root,
         GENKSYMS_ZIG,
-        'const help_expected_json = @embedFile("../../zigux/tests/fixtures/genksyms_bridge/help_expected.json");\n\n' + helper_tests + "\n",
+        'const help_expected_path = "zigux/tests/fixtures/genksyms_bridge/help_expected.json";\n'
+        "test \"genksyms bridge help fixture stays aligned with live help output\" {\n"
+        "const help_expected_json = try Io.Dir.cwd().readFileAlloc(testing.io, help_expected_path, testing.allocator, .limited(4096));\n"
+        "}\n\n"
+        + helper_tests
+        + "\n",
     )
     write_text(
         root,
@@ -726,7 +733,7 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
-        write_text(root, MAKEFILE, "phase2-genksyms:\n")
+        write_text(root, MAKEFILE, "phase2-genksyms: phase2-toolchain\n")
         assert ("MAKEFILE_LINE_MISMATCH", REQUIRED_MAKEFILE_LINES[1]) in collect_issues(root)
         checks += 1
 
@@ -757,8 +764,8 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
-        write_text(root, GENKSYMS_ZIG, 'const help_expected_json = @embedFile("missing.json");\n')
-        assert ("MISSING_HELP_FIXTURE_EMBED", HELP_FIXTURE) in collect_issues(root)
+        write_text(root, GENKSYMS_ZIG, 'const help_expected_path = "missing.json";\n')
+        assert ("MISSING_HELP_FIXTURE_READ", HELP_FIXTURE) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)

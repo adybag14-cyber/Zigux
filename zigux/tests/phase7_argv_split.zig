@@ -199,7 +199,7 @@ test "phase 7 argv split companion replays caller-owned teardown and failure bou
     try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 
-    var backing = [_]u8{0} ** 15;
+    var backing: [15]u8 = @splat(0);
     var fba = std.heap.FixedBufferAllocator.init(&backing);
     var argc: usize = std.math.maxInt(usize);
     try std.testing.expectError(

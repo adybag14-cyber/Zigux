@@ -355,12 +355,12 @@ def write_fixture_tree(root: Path) -> None:
                 "reversible_delivery_evidence": KPROBE_REVERSIBLE_DELIVERY_EVIDENCE,
                 "next_bounded_evidence_step": KPROBE_NEXT_BOUNDED_EVIDENCE_STEP,
                 "survey_summary": {
-                    "kprobe_makefile_replay_present": true,
-                    "kprobe_anchor_symbol_present": true,
-                    "zig_sample_present": false,
-                    "phase4_build_present": true,
-                    "phase4_validation_matrix_present": true,
-                    "phase4_gate_evidence_present": true
+                    "kprobe_makefile_replay_present": True,
+                    "kprobe_anchor_symbol_present": True,
+                    "zig_sample_present": False,
+                    "phase4_build_present": True,
+                    "phase4_validation_matrix_present": True,
+                    "phase4_gate_evidence_present": True
                 },
                 "gaps": [
                     {"id": "phase4-kprobe-example-survey-manifest", "status": "starter_landed"},
@@ -398,12 +398,12 @@ def write_fixture_tree(root: Path) -> None:
                 "reversible_delivery_evidence": TEST_FSMOUNT_REVERSIBLE_DELIVERY_EVIDENCE,
                 "next_bounded_evidence_step": TEST_FSMOUNT_NEXT_BOUNDED_EVIDENCE_STEP,
                 "survey_summary": {
-                    "zig_sample_present": false,
-                    "phase4_build_present": true,
-                    "phase4_validation_matrix_present": true,
-                    "phase4_gate_evidence_present": true,
-                    "scripts_readme_present": true,
-                    "tests_readme_present": true
+                    "zig_sample_present": False,
+                    "phase4_build_present": True,
+                    "phase4_validation_matrix_present": True,
+                    "phase4_gate_evidence_present": True,
+                    "scripts_readme_present": True,
+                    "tests_readme_present": True
                 },
                 "gaps": [
                     {"id": "phase4-test-fsmount-survey-manifest", "status": "starter_landed"},

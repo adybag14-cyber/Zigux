@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 SELF_PATH = Path(__file__).resolve()
-DEFAULT_ROOT = SELF_PATH.parents[3] if len(SELF_PATH.parents) > 3 else Path.cwd()
+DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 3 else Path.cwd()
 
 SURVEY_PATH = Path("Documentation/zigux/phase11-hvc-console-survey.md")
 COMPANION_PATH = Path(
@@ -86,7 +86,7 @@ INVENTORY_FOCUSED_REPLAY = "zigux/tests/phase11_hvc_modem_control_proof_build.zi
 
 MAKEFILE_MARKERS = (
     "phase11-validate:",
-    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
 )
 
 
@@ -199,7 +199,7 @@ def run_self_test() -> int:
             (DRIVER_PATH, "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {"),
             (PROOF_PATH, 'test "phase11 hvc console keeps dedicated dtr_rts callbacks distinct from tiocmset masks" {'),
             (BUILD_PATH, 'root_module.addImport("hvc_console", hvc_console_module);'),
-            (MAKEFILE_PATH, "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig"),
+            (MAKEFILE_PATH, "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig"),
         ]
 
         for index, (rel, needle) in enumerate(cases, start=1):

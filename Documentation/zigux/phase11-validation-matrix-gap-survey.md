@@ -24,7 +24,7 @@ The currently reread driver-local Phase 11 matrix notes on current `master` are 
 
 `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` remains useful adjacent shared evidence, but it is not one of the driver-local Phase 11 validation matrices named by the roadmap.
 
-`zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/fixtures/phase11_validate_checks.json`, `zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json`, and `zigux/tests/phase11_dw_wdt_manifest.json` are the current machine-readable deterministic fixture surfaces inside the shared Phase 11 packet.
+`zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/fixtures/phase11_validate_checks.json`, `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`, `zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json`, and `zigux/tests/phase11_dw_wdt_manifest.json` are the current machine-readable deterministic fixture surfaces inside the shared Phase 11 packet.
 
 The shared build inventory now carries 3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays.
 
@@ -64,7 +64,7 @@ The returned bcm2835 matrix also keeps its bounded timeout, probe-summary owners
 
 ## Deterministic Tooling Gap
 
-The shared Phase 11 packet now rematerializes a dedicated golden-output fixture roster through `zigux/tests/fixtures/phase11_validate_checks.json` plus fail-closed `scripts/zigux/check-phase11-validate-check-roster.py`, `scripts/zigux/check-phase11-validate-route-alignment.py`, and `scripts/zigux/check-phase11-dw-wdt-build-route.py` guards while keeping both `zigux/tests/fixtures/phase11_build_inventory.json` and `zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json` inside the deterministic validator packet.
+The shared Phase 11 packet now rematerializes a dedicated golden-output fixture roster through `zigux/tests/fixtures/phase11_validate_checks.json`, the shared aggregate tooling manifest `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`, plus fail-closed `scripts/zigux/check-phase11-validate-check-roster.py`, `scripts/zigux/check-phase11-validate-route-alignment.py`, `scripts/zigux/check-phase11-deterministic-fixture-golden-output.py`, and `scripts/zigux/check-phase11-dw-wdt-build-route.py` guards while keeping `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`, and `zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json` inside the deterministic validator packet.
 
 It still does not rematerialize a refresh helper route or an artifact-diff-style deterministic output guard for the driver-local proof builds.
 

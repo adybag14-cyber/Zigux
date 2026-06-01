@@ -79,7 +79,7 @@ def build_sample_checker_text(*, include_helper: bool = True, include_error: boo
                 "def run_self_test():",
                 "    duplicate_archive_path = Path('zig.tar.xz')",
                 "    conflicting_archive_path = duplicate_archive_path.with_name(",
-                "        'zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (2).tar.xz'",
+                "        'zig-x86_64-linux-0.17.0-dev.758+748e7c5e3 (2).tar.xz'",
                 "    )",
                 "    expect_raises(",
                 "        lambda: resolve_policy_archive(),",
