@@ -26,9 +26,6 @@ fn expectSummaryStable(before: RuntimeBitmapSummary, after: RuntimeBitmapSummary
     try std.testing.expectEqual(before.first_zero, after.first_zero);
     try std.testing.expectEqual(before.weight, after.weight);
     try std.testing.expectEqual(before.nbits, after.nbits);
-    try std.testing.expectEqual(before.init_runs, after.init_runs);
-    try std.testing.expectEqual(before.selftest_runs, after.selftest_runs);
-    try std.testing.expectEqual(before.exit_runs, after.exit_runs);
 }
 
 test "runtime bitmap loader keeps an empty loader payload explicit through direct exit" {

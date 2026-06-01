@@ -44,10 +44,9 @@ test "shared runtime loader surface keeps the bounded request contract explicit"
     try expectContains(runtime_loader_contract_source, "unregister_api");
     try expectContains(runtime_loader_contract_source, "summary");
     try expectContains(runtime_loader_contract_source, "registration_snapshot");
-    try expectContains(runtime_loader_contract_source, "LoadPlan keeps blocked publication and depmod surfaces out of the shared request contract");
+    try expectContains(runtime_loader_contract_source, "LoadPlan keeps blocked publication outputs and install-root surfaces out of the shared request contract");
     try expectContains(runtime_loader_contract_source, "modinfo");
     try expectContains(runtime_loader_contract_source, "module_alias");
-    try expectContains(runtime_loader_contract_source, "module_aliases");
     try expectContains(runtime_loader_contract_source, "modules_alias_path");
     try expectContains(runtime_loader_contract_source, "module_install_root");
     try expectContains(runtime_loader_contract_source, "modules_order_path");
@@ -55,17 +54,15 @@ test "shared runtime loader surface keeps the bounded request contract explicit"
     try expectContains(runtime_loader_contract_source, "module_symvers_path");
     try expectContains(runtime_loader_contract_source, "depmod_script");
     try expectContains(runtime_loader_contract_source, "depmod_manifest");
-    try expectContains(runtime_loader_contract_source, "depmod_aliases");
 
     try expectContains(runtime_loader_source, "pub const PreparedRequest");
     try expectContains(runtime_loader_source, "pub fn prepareRequest");
     try expectContains(runtime_loader_source, "pub fn releaseWithoutSubstrate");
     try expectContains(runtime_loader_source, "waiting_on_runtime_substrate");
     try expectContains(runtime_loader_source, "released_without_substrate");
-    try expectContains(runtime_loader_source, "PreparedRequest keeps blocked publication and depmod surfaces out of the shared request boundary");
+    try expectContains(runtime_loader_source, "PreparedRequest keeps blocked publication outputs and install-root surfaces out of the shared request boundary");
     try expectContains(runtime_loader_source, "\"modinfo\"");
     try expectContains(runtime_loader_source, "\"module_alias\"");
-    try expectContains(runtime_loader_source, "\"module_aliases\"");
     try expectContains(runtime_loader_source, "\"modules_alias_path\"");
     try expectContains(runtime_loader_source, "\"module_install_root\"");
     try expectContains(runtime_loader_source, "\"modules_order_path\"");
@@ -73,7 +70,6 @@ test "shared runtime loader surface keeps the bounded request contract explicit"
     try expectContains(runtime_loader_source, "\"module_symvers_path\"");
     try expectContains(runtime_loader_source, "\"depmod_script\"");
     try expectContains(runtime_loader_source, "\"depmod_manifest\"");
-    try expectContains(runtime_loader_source, "\"depmod_aliases\"");
 }
 
 test "shared runtime loader surface rejects argv and environment control bleed-through" {
@@ -276,7 +272,6 @@ test "shared runtime loader surface rejects live initcall and runtime registrati
 test "shared runtime loader surface rejects publication and depmod bleed-through" {
     const contract_forbidden_field_decls = [_][]const u8{
         "modinfo:",
-        "module_alias:",
         "module_aliases:",
         "modules_alias_path:",
         "module_install_root:",
@@ -285,11 +280,9 @@ test "shared runtime loader surface rejects publication and depmod bleed-through
         "module_symvers_path:",
         "depmod_script:",
         "depmod_manifest:",
-        "depmod_aliases:",
     };
     const loader_forbidden_field_decls = [_][]const u8{
         "modinfo:",
-        "module_alias:",
         "module_aliases:",
         "modules_alias_path:",
         "module_install_root:",
@@ -298,7 +291,6 @@ test "shared runtime loader surface rejects publication and depmod bleed-through
         "module_symvers_path:",
         "depmod_script:",
         "depmod_manifest:",
-        "depmod_aliases:",
     };
 
     inline for (contract_forbidden_field_decls) |marker| {

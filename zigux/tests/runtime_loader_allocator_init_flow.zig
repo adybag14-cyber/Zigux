@@ -5,8 +5,25 @@ const contract = @import("runtime_loader_contract");
 const AllocatorHandoff = contract.AllocatorHandoff;
 const HandoffStage = contract.HandoffStage;
 const LoadPlan = contract.LoadPlan;
+const ModuleMetadata = contract.ModuleMetadata;
 const PreparedRequest = runtime_loader.PreparedRequest;
 const RequestState = contract.RequestState;
+
+fn moduleMetadataFor(module_name: []const u8) ModuleMetadata {
+    if (std.mem.eql(u8, module_name, "runtime_atomic64")) {
+        return .{ .license = "GPL", .aliases = &.{"zigux:runtime-pilot:runtime_atomic64"} };
+    }
+    if (std.mem.eql(u8, module_name, "runtime_bitmap")) {
+        return .{ .license = "GPL", .aliases = &.{"zigux:runtime-pilot:runtime_bitmap"} };
+    }
+    if (std.mem.eql(u8, module_name, "runtime_trace_events")) {
+        return .{ .license = "GPL", .aliases = &.{"zigux:runtime-pilot:runtime_trace_events"} };
+    }
+    if (std.mem.eql(u8, module_name, "runtime_kretprobe")) {
+        return .{ .license = "GPL", .aliases = &.{"zigux:runtime-pilot:runtime_kretprobe"} };
+    }
+    return .{};
+}
 
 fn makeInitializedPlan(
     module_name: []const u8,
@@ -22,6 +39,7 @@ fn makeInitializedPlan(
         .exit_symbol = exit_symbol,
         .requires_runtime_substrate = true,
         .provides_selftest_hook = true,
+        .module_metadata = moduleMetadataFor(module_name),
         .allocator_handoff = allocator_handoff,
         .init_flow = .{
             .handoff_stage = .initialized,
@@ -46,6 +64,7 @@ fn makeSelftestCompletePlan(
         .exit_symbol = exit_symbol,
         .requires_runtime_substrate = true,
         .provides_selftest_hook = true,
+        .module_metadata = moduleMetadataFor(module_name),
         .allocator_handoff = allocator_handoff,
         .init_flow = .{
             .handoff_stage = .selftest_complete,

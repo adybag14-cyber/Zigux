@@ -38,6 +38,10 @@ pub const RuntimeKretprobeLoader = struct {
             .exit_symbol = "zigux_runtime_kretprobe_exit",
             .requires_runtime_substrate = descriptor.requires_runtime_substrate,
             .provides_selftest_hook = descriptor.provides_selftest_hook,
+            .module_metadata = .{
+                .license = "GPL",
+                .aliases = &.{"zigux:runtime-pilot:runtime_kretprobe"},
+            },
             .allocator_handoff = allocator_handoff,
             .init_flow = .{
                 .handoff_stage = handoff_stage,

@@ -2,13 +2,18 @@ const std = @import("std");
 const runtime_loader = @import("runtime_loader");
 
 fn makePlan(stage: runtime_loader.HandoffStage) runtime_loader.LoadPlan {
+    const is_initialized = stage == .initialized;
     return .{
-        .module_name = "runtime_trace_events",
-        .anchor = "samples/trace_events/trace-events-sample.c",
-        .entry_symbol = "zigux_runtime_trace_events_init",
-        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .module_name = if (is_initialized) "runtime_bitmap" else "runtime_trace_events",
+        .anchor = if (is_initialized) "lib/test_bitmap.c" else "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = if (is_initialized) "zigux_runtime_bitmap_init" else "zigux_runtime_trace_events_init",
+        .exit_symbol = if (is_initialized) "zigux_runtime_bitmap_exit" else "zigux_runtime_trace_events_exit",
         .requires_runtime_substrate = true,
         .provides_selftest_hook = true,
+        .module_metadata = if (is_initialized)
+            .{ .license = "GPL", .aliases = &.{"zigux:runtime-pilot:runtime_bitmap"} }
+        else
+            .{ .license = "GPL", .aliases = &.{"zigux:runtime-pilot:runtime_trace_events"} },
         .allocator_handoff = .caller_provided,
         .init_flow = switch (stage) {
             .initialized => .{

@@ -63,7 +63,7 @@ The adjacent shared build shard in `zigux/tests/phase9_build.zig` now names `pha
 
 ## Keep earlier-phase references in their own lanes:
 
-- `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 references.
+- `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references.
 - `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references.
 - Those earlier-phase anchors stay adjacent context for the narrow trace-events packet rather than shared runtime-pilot evidence.
 

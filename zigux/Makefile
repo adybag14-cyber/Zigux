@@ -267,6 +267,29 @@ phase7-rbtree-survey:
 phase8-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py --self-test
 
+phase9-runtime-atomic64-test:
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-runtime-bitmap-test:
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-runtime-loader-shared-test:
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-runtime-loader-command-env-boundary-guard-test:
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase9-runtime-loader-command-env-boundary-guard-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-runtime-trace-events-test:
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-runtime-kretprobe-test:
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase9-runtime-kretprobe-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-first-loadable-runtime-module-parity-test:
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase9-first-loadable-runtime-module-parity-behavior-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-loader-command-env-boundary-guard-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test
+
 phase11-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig

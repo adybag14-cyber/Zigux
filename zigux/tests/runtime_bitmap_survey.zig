@@ -130,7 +130,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(survey_note, "`PHASE9_STATUS=active`");
     try expectContains(survey_note, "`PHASE9_LANE_KEY=P9-L08`");
     try expectContains(survey_note, "`PHASE9_SURVEYED_COMMIT=2026-05-22-runtime-bitmap-diff-returned`");
-    try expectContains(survey_note, "scope: partial reminder packet, direct sample proof, direct direct-init companion proof, direct cold-stage guard proof, direct loader proof, direct module proof, direct diff proof, manifest-backed ownership packet, top-bit companion proof, and no broader runtime-loader parity claim");
+    try expectContains(survey_note, "scope: partial reminder packet, direct sample proof, direct direct-init companion proof, direct cold-stage guard proof, direct loader proof, direct module proof, direct diff proof, manifest-backed ownership packet, top-bit and active-word-boundary companion proof, and no broader runtime-loader parity claim");
     try expectContains(survey_note, "trusted current-tree contents reads on 2026-05-22 do materialize");
     try expectContains(survey_note, "trusted current-tree contents reads on 2026-05-25 also materialize `samples/zigux/runtime_bitmap_direct_init_contract.zig` as a bounded direct-init normalization companion for the same Phase 9 packet");
     try expectContains(survey_note, "keep `zigux/Makefile` explicit as the narrow wrapper rerun handle for the same packet: current `master` now exposes `phase9-runtime-bitmap-test`, and that wrapper still shells into `zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig --summary all` rather than proving the broader runtime bitmap packet or shared runtime-loader parity");
@@ -154,7 +154,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
 
     try expectContains(module_slice_note, "`PHASE9_SLICE=runtime-bitmap-partial-slice`");
     try expectContains(module_slice_note, "`PHASE9_SURVEYED_COMMIT=2026-05-22-runtime-bitmap-diff-returned`");
-    try expectContains(module_slice_note, "scope: partial runtime bitmap reminder packet, direct sample proof, direct direct-init companion proof, direct cold-stage guard proof, direct loader proof, direct module proof, direct diff proof, manifest-backed ownership packet, top-bit companion proof, bounded build-bundle vocabulary, and no broader shared runtime-loader claim");
+    try expectContains(module_slice_note, "scope: partial runtime bitmap reminder packet, direct sample proof, direct direct-init companion proof, direct cold-stage guard proof, direct loader proof, direct module proof, direct diff proof, manifest-backed ownership packet, top-bit and active-word-boundary companion proof, bounded build-bundle vocabulary, and no broader shared runtime-loader claim");
     try expectContains(module_slice_note, "## Current visible slice");
     try expectContains(module_slice_note, "`samples/zigux/runtime_bitmap_direct_init_contract.zig`");
     try expectContains(module_slice_note, "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`");
@@ -168,10 +168,10 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(module_slice_note, "those adjacent shared-owner surfaces still do not prove the broader runtime bitmap packet has reached loadable pilot-module parity.");
     try expectContains(module_slice_note, "the blocked follow-through remains `broader shared runtime-loader family completion plus loadable Phase 9 runtime bitmap pilot module parity`");
 
-    try expectContains(lane_sequencing_note, "### 3. The runtime bitmap side now returns a broader direct packet without promoting the broader shared runtime-loader boundaries");
-    try expectContains(lane_sequencing_note, "`zigux/tests/runtime_bitmap_module.zig` and `zigux/tests/runtime_bitmap_diff.zig` now return on the trusted path as the module-side descriptor and lifecycle packet plus the bounded diff-side summary replay packet");
-    try expectContains(lane_sequencing_note, "the returned bitmap module gate and diff gate now stay inside that same bounded packet instead of the older repo-reality-gap bucket");
-    try expectContains(lane_sequencing_note, "no shared reminder surface should present the bounded runtime bitmap packet as equal to the shipped trace-events packet or as proof that every broader runtime boundary returned");
+    try expectContains(lane_sequencing_note, "### 3. The runtime bitmap side returns a broader direct packet without promoting the broader shared runtime-loader boundaries");
+    try expectContains(lane_sequencing_note, "`zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `zigux/tests/phase9_build.zig`");
+    try expectContains(lane_sequencing_note, "`zigux/tests/phase9_build.zig` keeps the returned bitmap packet inside the shared rerun bundle through `phase9-runtime-bitmap-tests` plus the dedicated `phase9-runtime-bitmap-cold-stage-guard-tests` route");
+    try expectContains(lane_sequencing_note, "that broader bitmap-side visibility still must not be used to imply that the broader shared runtime-loader or blocked publication boundaries returned");
 
     try expectContains(samples_readme, "Fresh trusted mixed reread on 2026-05-23 also confirms a broader runtime bitmap sample-side packet on current `master`");
     try expectContains(samples_readme, "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`");
@@ -217,7 +217,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(manifest, "Keep the direct sample initialized-to-exit summary-stability guard explicit when the manifest summarizes runtime lifecycle evidence.");
     try expectContains(manifest, "Keep the direct sample re-init guards explicit when the manifest summarizes runtime lifecycle evidence.");
     try expectContains(manifest, "Keep the loader empty-payload direct-exit guard explicit when the manifest summarizes runtime lifecycle evidence.");
-    try expectContains(manifest, "Keep the newer loader re-init, re-selftest, and direct-exit summary guards explicit when the manifest summarizes runtime lifecycle evidence.");
+    try expectContains(manifest, "Keep the newer loader re-init, re-selftest, direct-exit, and rejected re-exit rollback guards explicit when the manifest summarizes runtime lifecycle evidence.");
     try expectContains(manifest, "Keep the module-side descriptor, selftest-summary, lifecycle-summary, mutation-and-copy, and source-target guard proofs explicit when the manifest summarizes the direct module packet.");
     try expectContains(manifest, "Keep the diff-side summary replay, copy-tail clearing, and exit-guard coverage explicit when the manifest summarizes the bounded runtime bitmap packet.");
     try expectContains(manifest, "\"loadable Phase 9 runtime bitmap pilot module parity\"");
@@ -235,7 +235,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(phase9_build, "runtime_bitmap_cold_stage_guard");
 
     try expectContains(makefile, "phase9-runtime-bitmap-test:");
-    try expectContains(makefile, "$(ZIG) build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig --summary all");
+    try expectContains(makefile, "$(ZIG_REPO_ROOT) build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig --summary all");
 
     try expectContains(sample_file, "pub const sample_review_focus = [_]SampleFocus");
     try expectContains(sample_file, ".top_bit_contract,");
@@ -276,11 +276,9 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(diff_file, "try std.testing.expectEqual(@as(?u32, 70), target.nthSetBit(6));");
 
     try expectContains(top_bit_file, "runtime bitmap sample keeps the highest valid bit explicit");
+    try expectContains(top_bit_file, "runtime bitmap sample keeps active word-width boundary bits explicit");
+    try expectContains(top_bit_file, "runtime bitmap sample keeps duplicate boundary init arrays normalized");
     try expectContains(top_bit_file, "runtime bitmap sample keeps top-bit lifecycle mutation explicit");
-    try expectContains(top_bit_file, "runtime bitmap sample rejects exited top-bit source copies without disturbing the target sample leg");
-    try expectContains(top_bit_file, "runtime bitmap sample rejects cold top-bit source copies without disturbing the target sample leg");
-    try expectContains(top_bit_file, "runtime bitmap sample rejects copy reentry after target exit without disturbing either sample leg");
-    try expectContains(top_bit_file, "runtime bitmap sample copies selftest-complete top-bit state into an initialized target without disturbing the source sample leg");
 
     inline for (present_bitmap_family_files) |path| {
         try expectPresent(path);

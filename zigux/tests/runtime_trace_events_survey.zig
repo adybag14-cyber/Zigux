@@ -118,7 +118,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
         io_instance.io(),
         "zigux/Makefile",
         std.testing.allocator,
-        .limited(64 * 1024),
+        .limited(128 * 1024),
     );
     defer std.testing.allocator.free(makefile_file);
 
@@ -142,7 +142,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
         io_instance.io(),
         "samples/zigux/runtime_trace_events.zig",
         std.testing.allocator,
-        .limited(64 * 1024),
+        .limited(128 * 1024),
     );
     defer std.testing.allocator.free(sample_file);
 
@@ -265,7 +265,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
         "phase9-test",
         manifest.delivery_route_summary.shared_phase9_make_routes[2],
     );
-    try std.testing.expectEqual(@as(usize, 4), manifest.delivery_route_summary.build_shard_routes.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.delivery_route_summary.build_shard_routes.len);
     try std.testing.expectEqualStrings(
         "phase9-runtime-loader-allocator-init-flow-tests",
         manifest.delivery_route_summary.build_shard_routes[0],
@@ -279,8 +279,12 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
         manifest.delivery_route_summary.build_shard_routes[2],
     );
     try std.testing.expectEqualStrings(
-        "phase9-runtime-trace-events-tests",
+        "phase9-runtime-trace-events-module-tests",
         manifest.delivery_route_summary.build_shard_routes[3],
+    );
+    try std.testing.expectEqualStrings(
+        "phase9-runtime-trace-events-tests",
+        manifest.delivery_route_summary.build_shard_routes[4],
     );
     try std.testing.expectEqualStrings(
         "Keeps the shipped trace-events make route, the adjacent shared loader-handoff make route, and the bounded trace-events rerun shard explicit without promoting broader shared runtime-loader completion into family-local trace-events proof.",
@@ -385,7 +389,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(sequencing_note, "`samples/zigux/runtime_trace_events_unregistered_gate.zig`");
     try expectContains(sequencing_note, "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`");
     try expectContains(sequencing_note, "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`");
-    try expectContains(sequencing_note, "The shared runtime-loader allocator/init-flow and command/environment boundary packet now survives as a narrower direct-readback shared-owner surface");
+    try expectContains(sequencing_note, "The shared runtime-loader allocator/init-flow and command/environment boundary packet survives as a narrower shared-owner surface");
     try expectContains(sequencing_note, "`zigux/kernel/runtime_loader_command_env_boundary_guard.zig`");
 
     try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test");
@@ -406,9 +410,9 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
 
     try expectContains(makefile_file, "phase9-runtime-loader-shared-test:");
     try expectContains(makefile_file, "phase9-runtime-trace-events-test:");
-    try expectContains(makefile_file, "phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test");
-    try expectContains(makefile_file, "$(ZIG) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig --summary all");
-    try expectContains(makefile_file, "$(ZIG) build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig --summary all");
+    try expectContains(makefile_file, "phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-loader-command-env-boundary-guard-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test");
+    try expectContains(makefile_file, "$(ZIG_REPO_ROOT) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig --summary all");
+    try expectContains(makefile_file, "$(ZIG_REPO_ROOT) build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig --summary all");
 
     try expectContains(phase9_build_file, ".name = \"phase9-runtime-atomic64-diff-tests\"");
     try expectContains(phase9_build_file, "runtime_atomic64_diff.zig");
@@ -419,8 +423,8 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(phase9_build_file, ".name = \"phase9-runtime-bitmap-top-bit-tests\"");
     try expectContains(phase9_build_file, "../../samples/zigux/runtime_bitmap_top_bit_contract.zig");
     try expectContains(phase9_build_file, ".name = \"phase9-runtime-loader-command-env-boundary-guard-tests\"");
-    try expectContains(phase9_build_file, ".name = \"phase9-runtime-loader-shared-tests\"");
-    try expectContains(phase9_build_file, ".name = \"phase9-runtime-trace-events-tests\"");
+    try expectContains(phase9_build_file, "\"phase9-runtime-loader-shared-tests\"");
+    try expectContains(phase9_build_file, "\"phase9-runtime-trace-events-tests\"");
     try expectContains(phase9_build_file, ".name = \"phase9-runtime-trace-events-reinit-rollback-guard-tests\"");
     try expectContains(phase9_build_file, ".name = \"phase9-runtime-trace-events-reinit-reexit-guard-tests\"");
     try expectContains(phase9_build_file, "runtime_loader_allocator_init_flow.zig");

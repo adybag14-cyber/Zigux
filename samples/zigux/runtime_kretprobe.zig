@@ -57,7 +57,7 @@ pub const RuntimeKretprobeSample = struct {
     last_entry_timestamp_ns: ?i64 = null,
     last_return_timestamp_ns: ?i64 = null,
     last_duration_ns: ?i64 = null,
-    active_entry_timestamps_ns: [max_active_instances]?i64 = [_]?i64{null} ** max_active_instances,
+    active_entry_timestamps_ns: [max_active_instances]?i64 = @splat(null),
 
     pub fn descriptor() ModuleDescriptor {
         return .{

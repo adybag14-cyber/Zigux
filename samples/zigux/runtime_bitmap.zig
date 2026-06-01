@@ -80,7 +80,7 @@ pub const RuntimeBitmapSample = struct {
     const backing_word_count: usize = 2;
 
     stage_state: ModuleStage = .cold,
-    words: [backing_word_count]bitmap_view.Word = [_]bitmap_view.Word{0} ** backing_word_count,
+    words: [backing_word_count]bitmap_view.Word = @splat(0),
     init_runs: usize = 0,
     selftest_runs: usize = 0,
     exit_runs: usize = 0,
@@ -135,7 +135,7 @@ pub const RuntimeBitmapSample = struct {
     pub fn initWithSetBits(self: *Self, bits: []const u32) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
 
-        var next_words = [_]bitmap_view.Word{0} ** backing_word_count;
+        var next_words: [backing_word_count]bitmap_view.Word = @splat(0);
         for (bits) |bit| {
             if (bit >= bitmap_nbits) return error.BitRangeOutOfBounds;
             assignBitWords(next_words[0..], bit, true);
@@ -149,7 +149,7 @@ pub const RuntimeBitmapSample = struct {
     pub fn initFromBitList(self: *Self, bit_list: []const u8) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
 
-        var next_words = [_]bitmap_view.Word{0} ** backing_word_count;
+        var next_words: [backing_word_count]bitmap_view.Word = @splat(0);
         const trimmed = std.mem.trim(u8, bit_list, &std.ascii.whitespace);
         if (trimmed.len != 0) {
             var tokens = std.mem.splitScalar(u8, trimmed, ',');
