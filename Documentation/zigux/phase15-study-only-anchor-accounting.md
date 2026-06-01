@@ -33,6 +33,7 @@ This refresh closes the note's dated-readback drift and keeps the study-only acc
 
 - the current Phase 15 freeze-map governance note keeps the study-only scope unchanged while staying in maintenance mode
 - the current Phase 15 parity scorecard still records `study-only anchors tracked outside this scorecard: 2`
+- the freeze-map governance note, the parity scorecard, the handoff-next-steps survey, and the shared-summary gap note keep the same two-anchor study-only inventory visible without granting any status change
 - the current Phase 15 governance-lane sequencing note keeps the study-only inventory explicitly parked behind the owner packets and the remaining dedicated-build gap
 - the current Phase 15 handoff-next-steps survey keeps the same two study-only anchors parked beside the existing governance packet and reopens only if a broader reminder surface drifts
 - the current Phase 15 shared-summary gap note and landed tests-root governance reminder keep docs-root, checklist, scripts-root, tests-root, and validator-first wording drift framed as truthfulness follow-through rather than study-only status-change evidence

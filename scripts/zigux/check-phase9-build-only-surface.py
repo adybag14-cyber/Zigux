@@ -27,7 +27,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/runtime_loader_allocator_init_flow.zig`",
         "`zigux/kernel/runtime_loader.zig`",
         "`zigux/kernel/runtime_loader_contract.zig`",
-        "`phase9-runtime-loader-shared-tests` shard remain neighboring shared-owner evidence",
+        "the bounded `zigux/tests/phase9_build.zig` `phase9-runtime-loader-shared-tests` and `phase9-runtime-loader-command-env-boundary-guard-tests` shards",
         "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`",
         "the runtime bitmap sample, cold-stage guard, survey, module, diff, loader, and top-bit companion packet members",
         "`phase9-runtime-bitmap-cold-stage-guard-tests` plus the aggregate `phase9-runtime-bitmap-tests` handle",
@@ -68,15 +68,17 @@ REQUIRED_MARKERS = {
         "`zigux/tests/runtime_bitmap_diff.zig`",
     ],
     SCRIPTS_README_PATH: [
-        "`scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` keep the shipped shared Phase 9 reminder packet explicit from the scripts root",
-        "there is still no dedicated shared `validate-phase9.py` rerun path for this loader packet on current `master`",
-        "`zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the bounded `zigux/tests/phase9_build.zig` `phase9-runtime-loader-shared-tests` and `phase9-runtime-loader-command-env-boundary-guard-tests` shards, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` scaffold keep the narrower shared runtime-loader allocator/init-flow and command/environment boundary packet explicit beside the still-blocked module-metadata, install-root, and depmod-publication boundary",
+        "- `scripts/zigux/validate-phase9.py`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` keep the shipped shared Phase 9 reminder packet explicit from the scripts root",
+        "python3 scripts/zigux/validate-phase9.py --self-test",
+        "python3 scripts/zigux/validate-phase9.py",
+        "`zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the bounded `zigux/tests/phase9_build.zig` `phase9-runtime-loader-shared-tests` and `phase9-runtime-loader-command-env-boundary-guard-tests` shards, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` scaffold keep the narrower shared runtime-loader allocator/init-flow and command/environment boundary packet explicit beside the still-blocked module-metadata and install-root surfaces",
         "keep `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig` framed as historical wider-family vocabulary until trusted direct rereads return them",
     ],
     TESTS_README_PATH: [
         "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`",
-        "the partial runtime bitmap reminder packet including the returned cold-stage guard, module, and diff witnesses",
-        "Keep the bounded Phase 9 build bundle explicit as a rerun surface only: `zigux/tests/phase9_build.zig` reruns the atomic64 diff, bitmap survey, bitmap module, bitmap diff, bitmap cold-stage guard, bitmap top-bit companion, shared loader allocator/init-flow, shared loader command/environment boundary guard, the shared trace-events loader-substrate-drift shard, and the first-loadable parity-survey handle, but it is not proof that blocked publication boundaries or deeper runtime substrate work are complete.",
+        "keep the bounded runtime bitmap reminder packet distinct from that returned loader shard too",
+        "keep the bounded Phase 9 build bundle explicit as rerun vocabulary only",
+        "first-loadable parity-behavior handle",
     ],
     PHASE9_BUILD_PATH: [
         'const runtime_loader_allocator_init_flow_module = b.createModule(.{',
@@ -126,7 +128,7 @@ REQUIRED_MARKERS = {
         'test "releaseWithoutSubstrate preserves the waiting snapshot on drift"',
     ],
     RUNTIME_LOADER_CONTRACT_PATH: [
-        'test "LoadPlan keeps blocked publication and depmod surfaces out of the shared request contract"',
+        'test "LoadPlan keeps blocked publication outputs and install-root surfaces out of the shared request contract"',
         '"modinfo"',
         '"module_alias"',
         '"modules_alias_path"',
@@ -136,7 +138,6 @@ REQUIRED_MARKERS = {
         '"module_symvers_path"',
         '"depmod_script"',
         '"depmod_manifest"',
-        '"depmod_aliases"',
     ],
     RUNTIME_LOADER_ALLOCATOR_INIT_FLOW_PATH: [
         'test "shared runtime loader keeps initialized-stage bitmap and kretprobe request shape aligned"',
@@ -156,7 +157,7 @@ FORBIDDEN_MARKERS = {
 
 EXACT_ONCE_MARKERS = {
     SCRIPTS_README_PATH: [
-        "`scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` keep the shipped shared Phase 9 reminder packet explicit from the scripts root",
+        "- `scripts/zigux/validate-phase9.py`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` keep the shipped shared Phase 9 reminder packet explicit from the scripts root",
     ],
 }
 
