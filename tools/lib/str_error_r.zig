@@ -51,12 +51,12 @@ test "strErrorR accepts zero-length caller buffers for known and fallback messag
 }
 
 test "strErrorR truncates known and synthesized messages with a trailing terminator" {
-    var known = [_]u8{0xaa} ** 8;
+    var known: [8]u8 = @splat(0xaa);
     const known_rendered = strErrorR(13, &known);
     try std.testing.expectEqualStrings("Permiss", known_rendered);
     try std.testing.expectEqual(@as(u8, 0), known[7]);
 
-    var fallback = [_]u8{0xbb} ** 8;
+    var fallback: [8]u8 = @splat(0xbb);
     const fallback_rendered = strErrorR(4096, &fallback);
     try std.testing.expectEqualStrings("INTERNA", fallback_rendered);
     try std.testing.expectEqual(@as(u8, 0), fallback[7]);

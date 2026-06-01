@@ -53,8 +53,16 @@ pub fn emptyRoot(root: *const Root) bool {
     return root.node == null;
 }
 
+pub fn rb_empty_root(root: *const Root) bool {
+    return emptyRoot(root);
+}
+
 pub fn emptyNode(node: *const Node) bool {
     return node.parent == node;
+}
+
+pub fn rb_empty_node(node: *const Node) bool {
+    return emptyNode(node);
 }
 
 pub fn clearNode(node: *Node) void {
@@ -64,12 +72,20 @@ pub fn clearNode(node: *Node) void {
     node.color = .red;
 }
 
+pub fn rb_clear_node(node: *Node) void {
+    clearNode(node);
+}
+
 pub fn linkNode(node: *Node, parent: ?*Node, link: *?*Node) void {
     node.parent = parent;
     node.left = null;
     node.right = null;
     node.color = .red;
     link.* = node;
+}
+
+pub fn rb_link_node(node: *Node, parent: ?*Node, link: *?*Node) void {
+    linkNode(node, parent, link);
 }
 
 fn colorOf(node: ?*Node) Color {
@@ -1067,6 +1083,33 @@ test "rbtree postorder and empty node helpers behave" {
     var detached = Node.init();
     clearNode(&detached);
     try std.testing.expect(emptyNode(&detached));
+}
+
+test "rbtree low-level Linux-style aliases mirror node-state helpers" {
+    var primary_root = Root.init();
+    var alias_root = Root.init();
+    try std.testing.expectEqual(emptyRoot(&primary_root), rb_empty_root(&alias_root));
+
+    var primary_detached = Node.init();
+    var alias_detached = Node.init();
+    clearNode(&primary_detached);
+    rb_clear_node(&alias_detached);
+    try std.testing.expectEqual(emptyNode(&primary_detached), rb_empty_node(&alias_detached));
+
+    var primary_parent = Node.init();
+    var alias_parent = Node.init();
+    var primary_link: ?*Node = null;
+    var alias_link: ?*Node = null;
+    linkNode(&primary_detached, &primary_parent, &primary_link);
+    rb_link_node(&alias_detached, &alias_parent, &alias_link);
+
+    try std.testing.expectEqual(@as(?*Node, &primary_detached), primary_link);
+    try std.testing.expectEqual(@as(?*Node, &alias_detached), alias_link);
+    try std.testing.expect(primary_detached.parent == &primary_parent);
+    try std.testing.expect(alias_detached.parent == &alias_parent);
+    try std.testing.expectEqual(primary_detached.left, alias_detached.left);
+    try std.testing.expectEqual(primary_detached.right, alias_detached.right);
+    try std.testing.expectEqual(primary_detached.color, alias_detached.color);
 }
 
 test "rbtree findAdd keeps the first duplicate and inserts new keys" {

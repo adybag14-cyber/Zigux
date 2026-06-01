@@ -116,7 +116,37 @@ EXPECTED_REVIEW_FIELDS = {
     },
     "tools/lib/find_bit.zig": {
         "helper_test_anchors": [
+            'test "find first and next set bits across words, with andnot gaps explicit"',
+            'test "find zero bits respects the declared bit count"',
+            'test "find and bit returns the first shared set bit"',
+            'test "underscore entry points reuse the public helper behavior"',
+            'test "single-word next scans honor start masks"',
+            'test "single-word first scans clamp to the declared bit window"',
+            'test "single-word next scans clamp partial windows before returning nbits"',
+            'test "word-boundary next scans start fresh on the next word"',
+            'test "zero-bit windows return without reading bitmap words"',
+            'test "zero-sized scans ignore populated backing words"',
+            'test "next scans past nbits return without reading bitmap words"',
+            'test "tail mask ignores set bits beyond nbits"',
+            'test "tail mask ignores zero bits beyond nbits"',
+            'test "tail mask ignores shared bits beyond nbits"',
+            'test "tail-word next set scans skip earlier in-range matches before clamping"',
+            'test "clump8 scans align to the containing byte and return its value"',
+            'test "clump8 scans keep tail bytes reachable from partial final words"',
+            'test "clump8 scans mask tail bits beyond nbits"',
+            'test "clump8 scans leave the caller byte untouched when no set bit remains"',
+            'test "clump8 zero-bit and past-end windows leave the caller byte untouched"',
             'test "clump8 past-end scans return without reading bitmap words"',
+            'test "getValue8 reads aligned bytes from bitmap words"',
+            'test "getValue8 reads the last aligned byte of a word without folding in the next word"',
+            'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+            'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+            'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start"',
+            'test "find last bit scans backward across words"',
+            'test "find last bit ignores storage beyond an exact word boundary"',
+            'test "find last bit clamps tail words to nbits"',
+            'test "find last bit returns nbits when no set bits remain"',
+            'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
             'test "low-level underscore aliases mirror the primary find helpers, including andnot"',
             'test "Linux-style aliases mirror the primary find helpers, including andnot"',
         ],
@@ -132,31 +162,28 @@ EXPECTED_REVIEW_FIELDS = {
         "andnot_scan_entrypoint_contract": (
             "The shipped public, Linux-style, and underscore andnot scan entry points stay owned by the direct find_bit packet instead of being left implicit under generic alias wording."
         ),
-        "tail_clamp_fixture_keys": [
-            "tail_clamped_first",
-            "tail_clamped_next",
-            "tail_zero_clamped_first",
-            "tail_zero_clamped_next",
-            "tail_and_clamped_first",
-            "tail_and_clamped_next",
-            "tail_clamped_last",
-            "tail_clamped_empty_last",
-        ],
-        "tail_inclusive_boundary_fixture_keys": [
-            "tail_inclusive_boundary_next",
-            "tail_inclusive_boundary_zero",
-            "tail_inclusive_boundary_and",
+        "parity_fixture_keys": [
+            "bits_per_long",
+            "first",
+            "next_after_6",
+            "next_after_word",
+            "first_zero",
+            "next_zero",
+            "first_and",
+            "next_and",
+            "last",
         ],
         "review_packet_summary": (
-            "shared Phase 1 fixture keys own the exact tail-clamped and tail-inclusive-boundary find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, single-word tail inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, clump8, getValue8(), findLastBit(), underscore-alias, and Linux-style alias behavior review-visible on current master"
+            "the committed Phase 1 fixture still owns the live cross-word find_bit replay through `bits_per_long`, `first`, `next_after_6`, `next_after_word`, `first_zero`, `next_zero`, `first_and`, `next_and`, and `last`, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, single-word tail inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, clump8, getValue8(), findLastBit(), underscore-alias, and Linux-style alias behavior review-visible on current master"
         ),
         "next_safe_step_note": (
-            "If this helper lane reopens, keep find_bit parked unless a fresh reread finds direct-anchor "
-            "drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, "
-            "past-nbits, clump8, getValue8(), findLastBit(), underscore-alias, Linux-style alias coverage "
-            "including the shipped andnot scan entry points, or tail-word skip anchors, or committed "
-            "tail-clamped or tail-inclusive-boundary replay drift; do not reopen older saved validator cues "
-            "or neighboring helper families."
+            "If this helper lane reopens, keep find_bit parked unless a fresh reread finds drift in the "
+            "manifest-backed same-word start-mask, inclusive-boundary, zero-window, zero-sized "
+            "short-circuit, past-nbits, clump8, getValue8(), findLastBit(), underscore-alias, Linux-style "
+            "alias coverage including the shipped andnot scan entry points, or tail-word skip anchors, or "
+            "committed shared replay drift in the live `bits_per_long`, `first`, `next_after_6`, "
+            "`next_after_word`, `first_zero`, `next_zero`, `first_and`, `next_and`, or `last` fixture keys; "
+            "do not reopen older saved validator cues or neighboring helper families."
         ),
     },
     "tools/lib/rbtree.zig": {
@@ -193,11 +220,80 @@ EXPECTED_REVIEW_FIELDS = {
     },
     "tools/lib/string.zig": {
         "helper_test_anchors": [
-            'test "memchr_inv mirrors memchrInv byte-search semantics"',
+            'test "strtobool accepts common Linux forms"',
+            'test "strlcpy copies and returns the source length"',
+            'test "strlcat appends within the destination size and reports the attempted length"',
+            'test "strlcat truncates with a terminator and keeps the full attempted length"',
+            'test "strlcat treats an unterminated destination as full"',
+            'test "strlcat handles a zero-length destination buffer"',
+            'test "strscpy keeps NUL termination and reports truncation with -E2BIG"',
+            'test "strscpyPad zero-pads the tail after a short source"',
+            'test "strscpyPad stops at embedded NUL and pads the remaining tail"',
+            'test "strscpyPad preserves strscpy truncation semantics"',
+            'test "strscpy_pad mirrors strscpyPad padding semantics"',
+            'test "strscpy and strscpyPad keep one-byte destinations terminated"',
+            'test "memcpyAndPad copies the requested prefix and pads the destination tail"',
+            'test "memcpy_and_pad mirrors memcpyAndPad padding semantics"',
+            'test "strtomem copies a C-string prefix without adding a terminator or padding"',
+            'test "strtomem_pad copies through the first NUL and pads the remaining tail"',
+            'test "memtostr copies a bounded non-NUL source and adds one terminator"',
+            'test "memtostr stops at embedded NUL without padding the tail"',
+            'test "memtostrPad zero-pads the remaining tail after copying"',
+            'test "memtostr helpers keep one-byte destinations terminated"',
+            'test "streq matches C-string equality semantics"',
+            'test "skip trim remove and replace spaces work in place"',
+            'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
+            'test "strreplace mirrors replaceChar C-string semantics"',
+            'test "strHasPrefix returns the matched prefix length with C-string semantics"',
+            'test "strHasSuffix returns the matched suffix length with C-string semantics"',
+            'test "strstarts mirrors the header-level prefix helper"',
+            'test "strEndsWith honors C-string boundaries"',
+            'test "prefix and suffix Linux-style aliases mirror the primary helpers"',
+            'test "kbasename returns the final path component with C-string semantics"',
+            'test "sysfsStreq treats trailing newline and NUL as equivalent"',
+            'test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence"',
+            'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
+            'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
+            'test "matchString finds C-string matches and preserves first-match order"',
+            'test "match_string mirrors matchString for empty and matched lists"',
             'test "strcmp mirrors C-string lexical ordering"',
             'test "strcmp stops at embedded NULs and length mismatches"',
+            'test "strncmp honors the count limit before later mismatches"',
+            'test "strncmp stops at embedded NULs and shorter prefixes"',
+            'test "strcasecmp ignores ASCII case and preserves lexical ordering"',
+            'test "strcasecmp stops at embedded NULs and length mismatches"',
+            'test "strncasecmp honors the count limit before later mismatches"',
+            'test "strncasecmp stops at embedded NULs and shorter prefixes"',
+            'test "strstr mirrors full-length C-string substring searches"',
+            'test "strnstr honors count and C-string boundaries"',
+            'test "memdup and memchrInv preserve byte content"',
+            'test "memchr_inv mirrors memchrInv byte-search semantics"',
+            'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
+            'test "memchrInv follows the earliest dirty byte as long buffers change"',
+            'test "memchrInv dirty-word shortcut handles zero-value scans at word boundaries"',
+            'test "memchrInv zero-value scans keep the earliest dirty byte across every prefix alignment"',
+            'test "memchrInv keeps the earliest dirty byte for long non-zero scans across alignments"',
+            'test "memchrInv keeps the earliest dirty byte for long zero-value scans across alignments"',
+            'test "memchrInv short zero-value scans stay byte-accurate"',
+            'test "memchrInv keeps the earliest dirty byte across the fast-path cutoff"',
+            'test "memparse handles decimal hexadecimal octal and suffixes"',
+            'test "memparse keeps original rest when sign is not followed by digits"',
+            'test "memparse saturates signed overflow instead of trapping"',
+            'test "memparse clamps explicit positive signed overflow"',
+            'test "memparse keeps signed values and their trailing rest aligned"',
+            'test "memparse consumes suffix after saturation"',
+            'test "memparse applies suffixes before signed clamping"',
+            'test "strchr mirrors full-length C-string searches"',
+            'test "strrchr finds the last in-range match with C-string semantics"',
+            'test "strchr and strrchr return the terminator index when searching for NUL"',
+            'test "strpbrk finds the first accepted byte with C-string semantics"',
             'test "strspn counts the accepted prefix with C-string semantics"',
+            'test "strcspn counts until the first rejected byte with C-string semantics"',
+            'test "strnchr honors count and C-string boundaries"',
+            'test "strlen honors C-string boundaries"',
+            'test "strnlen honors count and C-string boundaries"',
             'test "strnchrNul returns the first match, NUL, or count boundary"',
+            'test "strchrNul and strchrnul return the first match or terminator boundary"',
         ],
         "memparse_review_anchors": [
             'test "memparse handles decimal hexadecimal octal and suffixes"',
@@ -226,19 +322,22 @@ EXPECTED_REVIEW_FIELDS = {
             'test "strnchr honors count and C-string boundaries"',
             'test "strnlen honors count and C-string boundaries"',
             'test "strnchrNul returns the first match, NUL, or count boundary"',
+            'test "strchrNul and strchrnul return the first match or terminator boundary"',
         ],
         "strnchr_review_summary": (
             "the direct counted-search and C-string search-length follow-up stays explicit because the "
             "shared Phase 1 replay still does not carry dedicated counted-search or search-length fixture "
             "keys, so strchr() or strrchr() full-length C-string searches, strpbrk() first-accepted-byte "
             "scanning, strspn() accepted-prefix scanning, strcspn() rejected-byte scanning, strnchr() "
-            "count-limited scanning, strnlen() count-clamped length, and strnchrNul() or strnchrnul() "
-            "match-or-NUL boundary behavior remain owned by the helper-local anchors"
+            "count-limited scanning, strnlen() count-clamped length, strnchrNul() or strnchrnul() "
+            "match-or-NUL boundary behavior, and strchrNul() or strchrnul() match-or-terminator "
+            "boundaries remain owned by the helper-local anchors"
         ),
         "next_safe_step_note": (
-            "If this helper lane reopens, keep the helper-local sysfs review anchors aligned across "
-            "the string review packet and this lane note unless dedicated shared sysfs fixture keys "
-            "land; do not reopen missing closure-side validator names by default."
+            "If this helper lane reopens, keep the helper-local strlcat, sysfs, case-insensitive compare, "
+            "and match-or-terminator review anchors aligned across the string review packet and this lane "
+            "note unless dedicated shared fixture keys land; do not reopen missing closure-side validator "
+            "names by default."
         ),
     },
 }

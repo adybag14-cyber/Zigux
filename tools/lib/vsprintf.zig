@@ -68,7 +68,7 @@ test "vscnprintf mirrors scnprintf across truncated caller buffers" {
 }
 
 test "scnprintfPad clamps logical size to the caller buffer and preserves a terminator slot" {
-    var buffer = [_]u8{0xcc} ** 6;
+    var buffer: [6]u8 = @splat(0xcc);
     const written = scnprintfPad(&buffer, 32, "{s}", .{"ab"});
 
     try std.testing.expectEqual(@as(usize, 4), written);
@@ -76,7 +76,7 @@ test "scnprintfPad clamps logical size to the caller buffer and preserves a term
 }
 
 test "scnprintfPad handles zero logical size and zero-length caller views" {
-    var zero_logical = [_]u8{0xdd} ** 4;
+    var zero_logical: [4]u8 = @splat(0xdd);
     const zero_written = scnprintfPad(&zero_logical, 0, "{s}", .{"zigux"});
     try std.testing.expectEqual(@as(usize, 0), zero_written);
     try std.testing.expectEqual(@as(u8, 0), zero_logical[0]);

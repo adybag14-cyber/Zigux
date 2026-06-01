@@ -1073,13 +1073,21 @@ test "bitmap Linux-style aliases mirror size state and allocation helpers" {
     var plain_direct: ?[]Word = try bitmapAlloc(allocator, nbits);
     defer bitmapFree(allocator, &plain_direct);
     var plain_alias: ?[]Word = try bitmap_alloc(allocator, nbits);
-    defer bitmap_free(allocator, &plain_alias);
+    defer {
+        if (plain_alias) |owned| {
+            allocator.free(owned);
+        }
+    }
     try std.testing.expectEqual(plain_direct.?.len, plain_alias.?.len);
 
     var zeroed_direct: ?[]Word = try bitmapZalloc(allocator, nbits);
     defer bitmapFree(allocator, &zeroed_direct);
     var zeroed_alias: ?[]Word = try bitmap_zalloc(allocator, nbits);
-    defer bitmap_free(allocator, &zeroed_alias);
+    defer {
+        if (zeroed_alias) |owned| {
+            allocator.free(owned);
+        }
+    }
     try std.testing.expectEqual(zeroed_direct.?.len, zeroed_alias.?.len);
     for (zeroed_alias.?) |word| {
         try std.testing.expectEqual(@as(Word, 0), word);

@@ -1,5 +1,5 @@
 const std = @import("std");
-const cmdline = @import("cmdline.zig");
+const cmdline = @import("cmdline");
 
 pub const ParseBoolError = error{Invalid};
 
@@ -1017,13 +1017,13 @@ test "memchr_inv mirrors memchrInv byte-search semantics" {
 }
 
 test "memchrInv keeps long-buffer first-dirty-byte results stable" {
-    var buf = [_]u8{0} ** 32;
+    var buf: [32]u8 = @splat(0);
     buf[19] = 1;
     try std.testing.expectEqual(@as(?usize, 19), memchrInv(buf[0..], 0));
 }
 
 test "memchrInv follows the earliest dirty byte as long buffers change" {
-    var buf = [_]u8{0} ** 32;
+    var buf: [32]u8 = @splat(0);
     buf[21] = 1;
     try std.testing.expectEqual(@as(?usize, 21), memchrInv(buf[0..], 0));
     buf[7] = 1;
@@ -1031,14 +1031,14 @@ test "memchrInv follows the earliest dirty byte as long buffers change" {
 }
 
 test "memchrInv dirty-word shortcut handles zero-value scans at word boundaries" {
-    var buf = [_]u8{0} ** 24;
+    var buf: [24]u8 = @splat(0);
     buf[@sizeOf(usize)] = 9;
     try std.testing.expectEqual(@as(?usize, @sizeOf(usize)), memchrInv(buf[0..], 0));
 }
 
 test "memchrInv zero-value scans keep the earliest dirty byte across every prefix alignment" {
     for (0..@sizeOf(usize)) |offset| {
-        var backing = [_]u8{0} ** 40;
+        var backing: [40]u8 = @splat(0);
         backing[offset + 9] = 2;
         try std.testing.expectEqual(@as(?usize, 9), memchrInv(backing[offset..], 0));
     }
@@ -1046,7 +1046,7 @@ test "memchrInv zero-value scans keep the earliest dirty byte across every prefi
 
 test "memchrInv keeps the earliest dirty byte for long non-zero scans across alignments" {
     for (0..@sizeOf(usize)) |offset| {
-        var backing = [_]u8{7} ** 40;
+        var backing: [40]u8 = @splat(7);
         backing[offset + 11] = 5;
         try std.testing.expectEqual(@as(?usize, 11), memchrInv(backing[offset .. offset + 32], 7));
     }
@@ -1054,7 +1054,7 @@ test "memchrInv keeps the earliest dirty byte for long non-zero scans across ali
 
 test "memchrInv keeps the earliest dirty byte for long zero-value scans across alignments" {
     for (0..@sizeOf(usize)) |offset| {
-        var backing = [_]u8{0} ** 40;
+        var backing: [40]u8 = @splat(0);
         backing[offset + 13] = 4;
         try std.testing.expectEqual(@as(?usize, 13), memchrInv(backing[offset .. offset + 32], 0));
     }
@@ -1062,7 +1062,7 @@ test "memchrInv keeps the earliest dirty byte for long zero-value scans across a
 
 test "memchrInv finds a dirty byte in the unaligned prefix before the word fast path" {
     for (1..@sizeOf(usize)) |offset| {
-        var backing = [_]u8{0} ** 40;
+        var backing: [40]u8 = @splat(0);
         backing[offset + 2] = 9;
         try std.testing.expectEqual(@as(?usize, 2), memchrInv(backing[offset..], 0));
     }
@@ -1070,7 +1070,7 @@ test "memchrInv finds a dirty byte in the unaligned prefix before the word fast 
 
 test "memchrInv keeps aligned word hits stable after consuming an unaligned prefix" {
     for (1..@sizeOf(usize)) |offset| {
-        var backing = [_]u8{7} ** 48;
+        var backing: [48]u8 = @splat(7);
         const aligned_index = @sizeOf(usize) - offset;
         backing[offset + aligned_index + @sizeOf(usize)] = 1;
         try std.testing.expectEqual(
@@ -1085,21 +1085,21 @@ test "memchrInv short zero-value scans stay byte-accurate" {
 }
 
 test "memchrInv keeps the earliest dirty byte across the fast-path cutoff" {
-    var short = [_]u8{0} ** (@sizeOf(usize) * 2 - 1);
+    var short: [@sizeOf(usize) * 2 - 1]u8 = @splat(0);
     short[short.len - 1] = 1;
     try std.testing.expectEqual(@as(?usize, short.len - 1), memchrInv(short[0..], 0));
 
-    var long = [_]u8{0} ** (@sizeOf(usize) * 2);
+    var long: [@sizeOf(usize) * 2]u8 = @splat(0);
     long[long.len - 1] = 1;
     try std.testing.expectEqual(@as(?usize, long.len - 1), memchrInv(long[0..], 0));
 }
 
 test "memchrInv keeps non-zero scans stable across the fast-path cutoff" {
-    var short = [_]u8{7} ** (@sizeOf(usize) * 2 - 1);
+    var short: [@sizeOf(usize) * 2 - 1]u8 = @splat(7);
     short[short.len - 1] = 9;
     try std.testing.expectEqual(@as(?usize, short.len - 1), memchrInv(short[0..], 7));
 
-    var long = [_]u8{7} ** (@sizeOf(usize) * 2);
+    var long: [@sizeOf(usize) * 2]u8 = @splat(7);
     long[long.len - 1] = 9;
     try std.testing.expectEqual(@as(?usize, long.len - 1), memchrInv(long[0..], 7));
 }

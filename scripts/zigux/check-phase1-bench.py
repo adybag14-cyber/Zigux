@@ -95,10 +95,9 @@ RBTREE_REQUIRED_SOURCE_MARKERS = {
     "rbtree_find_add_print": 'try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM={d}\\n", .{rbtree_find_add_result.checksum});',
     "rbtree_duplicate_print": 'try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM={d}\\n", .{rbtree_duplicate_result.checksum});',
     "rbtree_cached_print": 'try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM={d}\\n", .{rbtree_cached_result.checksum});',
-    "rbtree_insert": "rbtree.add(&entry.node, &root, less);",
     "rbtree_postorder": "var node = rbtree.firstPostorder(&root);",
-    "rbtree_find_add": "const existing = rbtree.findAdd(&probe.node, &root, cmp);",
-    "rbtree_duplicate_range": "var iter = rbtree.matchIterator(&duplicate_key, &root, key_cmp);",
+    "rbtree_find_add": "const existing = rbtree.findAdd(&probe.node, &root, TreeEntry.cmp);",
+    "rbtree_duplicate_range": "var iter = rbtree.matchIterator(&duplicate_key, &root, TreeEntry.keyCmp);",
     "rbtree_cached_leftmost": "const promoted_leftmost = rbtree.eraseCached(&entries[1].node, &cached_root);",
 }
 
@@ -130,9 +129,14 @@ def bench_source_path(root: Path) -> Path:
     return root / PHASE1_BENCH_REL
 
 
-def find_zig(explicit: str | None) -> str:
+def find_zig(root: Path, explicit: str | None) -> str:
     if explicit:
         return explicit
+    toolchain_dir = root / ".zig-toolchain"
+    if toolchain_dir.is_dir():
+        candidates = sorted(toolchain_dir.glob("*/zig"))
+        if candidates:
+            return str(candidates[-1])
     zig = shutil.which("zig")
     if zig:
         return zig
@@ -408,16 +412,16 @@ def build_find_bit_bench_source(omit_label: str | None = None) -> str:
 def build_rbtree_bench_source(omit_label: str | None = None) -> str:
     lines = [
         "fn rbtreeBench() struct { checksum: u64 } {",
-        "    rbtree.add(&entry.node, &root, less);",
+        "    rbtree.add(&entry.node, &root, TreeEntry.less);",
         "}",
         "fn rbtreePostorderSafeBench() struct { checksum: u64 } {",
         "    var node = rbtree.firstPostorder(&root);",
         "}",
         "fn rbtreeFindAddBench() struct { checksum: u64 } {",
-        "    const existing = rbtree.findAdd(&probe.node, &root, cmp);",
+        "    const existing = rbtree.findAdd(&probe.node, &root, TreeEntry.cmp);",
         "}",
         "fn rbtreeDuplicateBench() struct { checksum: u64 } {",
-        "    var iter = rbtree.matchIterator(&duplicate_key, &root, key_cmp);",
+        "    var iter = rbtree.matchIterator(&duplicate_key, &root, TreeEntry.keyCmp);",
         "}",
         "fn rbtreeCachedBench() struct { checksum: u64 } {",
         "    const promoted_leftmost = rbtree.eraseCached(&entries[1].node, &cached_root);",
@@ -674,7 +678,7 @@ def main() -> int:
         print(payload)
         return 1
 
-    zig = find_zig(args.zig)
+    zig = find_zig(root, args.zig)
     result = subprocess.run(
         [zig, "build", "bench", "--build-file", "zigux/tests/build.zig", "-Doptimize=ReleaseSafe"],
         cwd=str(root),

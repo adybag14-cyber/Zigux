@@ -1,5 +1,5 @@
 const std = @import("std");
-const find_bit = @import("../../tools/lib/find_bit.zig");
+const find_bit = @import("find_bit");
 
 const fixture_bytes = @embedFile("fixtures/phase1_helpers.json");
 

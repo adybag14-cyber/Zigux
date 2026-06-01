@@ -17,7 +17,7 @@
     "past_nbits_and": 7,
     "tail_clamped_first": 67,
     "tail_clamped_next": 69,
-    "tail_zero_clamped_first": 69,
+    "tail_zero_clamped_first": 68,
     "tail_zero_clamped_next": 69,
     "tail_and_clamped_first": 67,
     "tail_and_clamped_next": 69,

@@ -135,8 +135,8 @@ test "find_bit helpers match naive reference scans across bounded patterned inpu
     const max_nbits = bits_per_long * 2 + 9;
     const case_count = 24;
 
-    var lhs_storage = [_]Word{0} ** max_words;
-    var rhs_storage = [_]Word{0} ** max_words;
+    var lhs_storage: [max_words]Word = @splat(0);
+    var rhs_storage: [max_words]Word = @splat(0);
 
     for (0..max_nbits + 1) |nbits| {
         const nwords = find_bit.bitsToWords(nbits);
@@ -180,7 +180,7 @@ test "clump8 helpers match a byte-wise reference and preserve caller state on mi
     const max_nbits = bits_per_long * 2 + 9;
     const case_count = 24;
 
-    var storage = [_]Word{0} ** max_words;
+    var storage: [max_words]Word = @splat(0);
 
     for (0..max_nbits + 1) |nbits| {
         const nwords = find_bit.bitsToWords(nbits);

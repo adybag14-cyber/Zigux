@@ -8,7 +8,7 @@ import tempfile
 
 HERE = Path(__file__).resolve()
 ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
-FIND_BIT = ROOT / "tools" / "lib" / "find_bit.zig"
+FIND_BIT_REL = Path("tools/lib/find_bit.zig")
 
 REQUIRED_TEST_MARKERS = {
     "andnot_gap_test": 'test "find first and next set bits across words, with andnot gaps explicit" {',
@@ -38,18 +38,18 @@ REQUIRED_TEST_MARKERS = {
 }
 
 REQUIRED_SOURCE_COUNT_MARKERS = {
-    "find_next_boundary": ("findNextBit(&set_map, nbits, boundary)", 3),
-    "find_next_and_boundary": ("findNextAndBit(&and_lhs, &and_rhs, nbits, boundary)", 1),
-    "find_next_andnot_boundary": ("findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary)", 2),
-    "find_next_or_boundary": ("findNextOrBit(&or_lhs, &or_rhs, nbits, boundary)", 2),
-    "find_next_zero_boundary": ("findNextZeroBit(&zero_map, nbits, boundary)", 1),
-    "find_last_nbits_bitmap": ('try std.testing.expectEqual(@as(usize, nbits), findLastBit(&bitmap, nbits));', 2),
+    "find_next_boundary": ("findNextBit(&set_map, nbits, boundary)", 4),
+    "find_next_and_boundary": ("findNextAndBit(&and_lhs, &and_rhs, nbits, boundary)", 4),
+    "find_next_andnot_boundary": ("findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary)", 4),
+    "find_next_or_boundary": ("findNextOrBit(&or_lhs, &or_rhs, nbits, boundary)", 4),
+    "find_next_zero_boundary": ("findNextZeroBit(&zero_map, nbits, boundary)", 4),
+    "find_last_nbits_bitmap": ('try std.testing.expectEqual(@as(usize, nbits), findLastBit(&bitmap, nbits));', 3),
     "find_first_clump8_tail_word": ('try std.testing.expectEqual(@as(usize, bits_per_long), findFirstClump8(&clump, &bitmap, nbits));', 2),
-    "find_first_clump8_tail_value": ('try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);', 2),
+    "find_first_clump8_tail_value": ('try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);', 4),
+    "find_first_andnot_low_level_alias": ("try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), _find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));", 2),
 }
 
 REQUIRED_SOURCE_EXACT_MARKERS = {
-    "find_first_andnot_low_level_alias": "try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), _find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));",
     "find_first_andnot_gap": "findFirstAndNotBit(&andnot_lhs, &andnot_rhs, bits_per_long * 3)",
     "find_same_word_set_first": "try std.testing.expectEqual(@as(usize, 7), findNextBit(&set_bits, nbits, 3));",
     "find_same_word_set_second": "try std.testing.expectEqual(@as(usize, 11), findNextBit(&set_bits, nbits, 8));",
@@ -242,6 +242,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Validate that the live find_bit helper still carries the current bench-adjacent edge anchors, including the landed andnot, clump-forward-skip, and tail-word next-skip paths."
     )
+    parser.add_argument("--root", help="Override the repository root for validation.")
     parser.add_argument("--self-test", action="store_true", help="Run self-test cases only.")
     args = parser.parse_args()
 
@@ -249,7 +250,9 @@ def main() -> int:
         run_self_test()
         return 0
 
-    kind, payload = load_find_bit_source(FIND_BIT)
+    root = Path(args.root).resolve() if args.root else ROOT
+    find_bit = root / FIND_BIT_REL
+    kind, payload = load_find_bit_source(find_bit)
     if kind != "pass":
         print("PHASE1_FIND_BIT_BENCH_ANCHORS=fail")
         print(f"PHASE1_FIND_BIT_BENCH_ANCHORS_REASON={kind}")
@@ -257,7 +260,7 @@ def main() -> int:
         return 1
 
     print("PHASE1_FIND_BIT_BENCH_ANCHORS=pass")
-    print(f"PHASE1_FIND_BIT_BENCH_ANCHORS_SOURCE={FIND_BIT}")
+    print(f"PHASE1_FIND_BIT_BENCH_ANCHORS_SOURCE={find_bit}")
     return 0
 
 

@@ -96,6 +96,7 @@ fn addPhase1HostToolsSmoke(
     });
 
     bitmap_module.addImport("find_bit", find_bit_module);
+    string_module.addImport("cmdline", cmdline_module);
     root_module.addImport("argv_split", argv_split_module);
     root_module.addImport("cmdline", cmdline_module);
     root_module.addImport("find_bit", find_bit_module);
