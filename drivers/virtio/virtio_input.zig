@@ -202,7 +202,7 @@ pub const VirtioInputLab = struct {
         active: bool = false,
         select: ConfigSelect = .unset,
         subsel: u8 = 0,
-        supported_bits: ConfigBitmapBitSet = ConfigBitmapBitSet.initEmpty(),
+        supported_bits: ConfigBitmapBitSet = ConfigBitmapBitSet.empty,
     };
     const AbsInfoRecord = struct {
         active: bool = false,
@@ -213,11 +213,11 @@ pub const VirtioInputLab = struct {
         },
     };
 
-    name_buffer: [64]u8 = [_]u8{0} ** 64,
+    name_buffer: [64]u8 = @splat(0),
     name_len: usize = 0,
-    serial_buffer: [64]u8 = [_]u8{0} ** 64,
+    serial_buffer: [64]u8 = @splat(0),
     serial_len: usize = 0,
-    phys_buffer: [64]u8 = [_]u8{0} ** 64,
+    phys_buffer: [64]u8 = @splat(0),
     phys_len: usize = 0,
     ids: DeviceIds = .{},
     event_descriptor_count: u16 = 0,
@@ -226,9 +226,9 @@ pub const VirtioInputLab = struct {
     queued_status_count: usize = 0,
     suppressed_status_count: usize = 0,
     config_bitmap_count: usize = 0,
-    config_bitmaps: [config_bitmap_capacity]ConfigBitmapRecord = [_]ConfigBitmapRecord{ConfigBitmapRecord{}} ** config_bitmap_capacity,
+    config_bitmaps: [config_bitmap_capacity]ConfigBitmapRecord = @splat(ConfigBitmapRecord{}),
     abs_info_count: usize = 0,
-    abs_info_records: [abs_info_capacity]AbsInfoRecord = [_]AbsInfoRecord{AbsInfoRecord{}} ** abs_info_capacity,
+    abs_info_records: [abs_info_capacity]AbsInfoRecord = @splat(AbsInfoRecord{}),
     ready: bool = false,
     multitouch_enabled: bool = false,
     planned_multitouch_slots: u16 = 0,
@@ -265,9 +265,9 @@ pub const VirtioInputLab = struct {
         self.queued_status_count = 0;
         self.suppressed_status_count = 0;
         self.config_bitmap_count = 0;
-        self.config_bitmaps = [_]ConfigBitmapRecord{ConfigBitmapRecord{}} ** config_bitmap_capacity;
+        self.config_bitmaps = @splat(ConfigBitmapRecord{});
         self.abs_info_count = 0;
-        self.abs_info_records = [_]AbsInfoRecord{AbsInfoRecord{}} ** abs_info_capacity;
+        self.abs_info_records = @splat(AbsInfoRecord{});
         self.ready = false;
         self.multitouch_enabled = false;
         self.planned_multitouch_slots = 0;
@@ -344,7 +344,7 @@ pub const VirtioInputLab = struct {
             .active = true,
             .select = select,
             .subsel = subsel,
-            .supported_bits = ConfigBitmapBitSet.initEmpty(),
+            .supported_bits = ConfigBitmapBitSet.empty,
         };
 
         for (supported_bits) |bit| {

@@ -181,7 +181,7 @@ pub const VirtioRingLab = struct {
         notification_count: usize = 0,
     };
 
-    queues: [queue_capacity]QueueSlot = [_]QueueSlot{QueueSlot{}} ** queue_capacity,
+    queues: [queue_capacity]QueueSlot = @splat(QueueSlot{}),
     registered_queue_count: usize = 0,
 
     pub fn descriptor() ModuleDescriptor {

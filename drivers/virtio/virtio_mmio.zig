@@ -180,13 +180,13 @@ pub const VirtioMmioLab = struct {
     selected_driver_feature_word: u32 = 0,
     config_generation: u32 = 0,
     queue_count: usize = 0,
-    queues: [max_queue_count]QueueState = [_]QueueState{QueueState{}} ** max_queue_count,
+    queues: [max_queue_count]QueueState = @splat(QueueState{}),
     config_bytes_len: usize = 0,
-    config_bytes: [max_config_bytes]u8 = [_]u8{0} ** max_config_bytes,
+    config_bytes: [max_config_bytes]u8 = @splat(0),
     device_feature_words: [max_feature_words]u32 = [_]u32{ 0, 0 },
     driver_feature_words: [max_feature_words]u32 = [_]u32{ 0, 0 },
-    device_feature_words_known: [max_feature_words]bool = [_]bool{false} ** max_feature_words,
-    driver_feature_words_known: [max_feature_words]bool = [_]bool{false} ** max_feature_words,
+    device_feature_words_known: [max_feature_words]bool = @splat(false),
+    driver_feature_words_known: [max_feature_words]bool = @splat(false),
     pending_config_write: ?ConfigWritePlanSummary = null,
 
     pub fn init(device_id: u32, queue_sizes: []const u16) !Self {

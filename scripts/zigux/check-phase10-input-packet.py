@@ -286,8 +286,8 @@ SURVEY_GATE_MARKERS = [
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
-    '"id": "phase10-virtio-input-survey-gate"',
-    '"status": "blocked_on_risky_transport"',
+    '\\"id\\": \\"phase10-virtio-input-survey-gate\\"',
+    '\\"status\\": \\"blocked_on_risky_transport\\"',
     "the dedicated status-drain helper plus replay",
     "the dedicated teardown-preflight helper plus replay",
     "teardown-reset parity across reset",
@@ -395,7 +395,7 @@ def extract_survey_note_commit(survey_note: str) -> str | None:
     end = survey_note.find("\n", start)
     if end == -1:
         end = len(survey_note)
-    commit = survey_note[start:end].strip()
+    commit = survey_note[start:end].strip().strip("`").strip()
     return commit or None
 
 

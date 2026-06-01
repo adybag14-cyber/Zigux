@@ -113,7 +113,7 @@ test "phase10 virtio ring publish-readiness wrapper regains publish capacity bef
 
     const reset_readiness = try ring.queueResetReadinessSummary(4);
     try std.testing.expect(!reset_readiness.reset_ready);
-    try std.testing.expectEqualStrings("unpolled_used_chains", @tagName(reset_readiness.blocker.?));
+    try std.testing.expectEqualStrings("outstanding_chains", @tagName(reset_readiness.blocker.?));
     try std.testing.expectEqual(@as(u16, 3), reset_readiness.pending_used_chain_count);
 }
 

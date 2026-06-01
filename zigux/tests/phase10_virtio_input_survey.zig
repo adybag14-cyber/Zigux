@@ -52,6 +52,7 @@ test "phase10 virtio input survey note keeps the restored verifier, teardown par
     try expectContains(survey_note, "zigux/tests/build.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_status_drain.zig");
+    try expectContains(survey_note, "zigux/tests/phase10_virtio_input_teardown_preflight.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_survey.zig");
     try expectContains(
@@ -65,6 +66,10 @@ test "phase10 virtio input survey note keeps the restored verifier, teardown par
     try expectContains(
         survey_note,
         "wrapper-facing teardown-reset verify parity stays explicit across reset",
+    );
+    try expectContains(
+        survey_note,
+        "the dedicated teardown-preflight helper plus replay",
     );
     try expectContains(shared_build_file, "\"phase10-virtio-input-survey\"");
     try expectContains(shared_build_file, "\"phase10_virtio_input_survey.zig\"");

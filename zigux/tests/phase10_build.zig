@@ -20,6 +20,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    virtio_core_verify_module.addImport("virtio_core", virtio_core_module);
     const virtio_input_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/virtio/virtio_input.zig"),
         .target = target,
@@ -249,6 +250,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    phase10_virtio_ring_registration_replay_module.addImport("virtio_ring", virtio_ring_module);
 
     const phase10_virtio_ring_prepare_kick_idempotent_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_ring_prepare_kick_idempotent.zig"),
@@ -326,6 +328,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    phase10_virtio_core_interrupt_compound_ack_module.addImport("virtio_core", virtio_core_module);
 
     const phase10_virtio_core_reset_queue_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_core_reset_queue.zig"),

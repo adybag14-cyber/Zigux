@@ -62,6 +62,8 @@ test "phase10 virtio ring survey note keeps the broader replay explicit beside t
     try expectContains(survey_note, "drivers/virtio/virtio_ring.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_ring_verify.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_ring_publish_readiness.zig");
+    try expectContains(survey_note, "drivers/virtio/virtio_ring_notification_data.zig");
+    try expectContains(survey_note, "drivers/virtio/virtio_ring_callback_enable.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_ring_registration_summary.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_ring_used_buffer_poll.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring.zig");
@@ -70,7 +72,7 @@ test "phase10 virtio ring survey note keeps the broader replay explicit beside t
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_reset_readiness.zig");
     try expectContains(
         survey_note,
-        "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `drivers/virtio/virtio_ring_registration_summary.zig`, `drivers/virtio/virtio_ring_used_buffer_poll.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
+        "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `drivers/virtio/virtio_ring_notification_data.zig`, `drivers/virtio/virtio_ring_callback_enable.zig`, `drivers/virtio/virtio_ring_registration_summary.zig`, `drivers/virtio/virtio_ring_used_buffer_poll.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
     );
     try expectContains(survey_note, "phase10-used-buffer-polling-helper");
     try expectContains(survey_note, "phase10-queue-registration-summary-helper");
@@ -221,6 +223,7 @@ test "phase10 virtio ring survey manifest keeps lane identity and freeze-boundar
     try expectContains(manifest, "\"driver_local_lab_slices\"");
     try expectContains(manifest, "\"survey_manifests\"");
     try expectContains(manifest, "\"preexisting_phase10_test_files\": 9");
+    try expectContains(manifest, "\"preexisting_ring_registration_summary_present\": true");
     try expectContains(manifest, "\"preexisting_ring_used_buffer_poll_present\": true");
     try expectContains(manifest, "\"shared_validation_gates\"");
     try expectContains(manifest, "\"forbidden_transport_claims\": [");

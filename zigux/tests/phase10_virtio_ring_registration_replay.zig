@@ -1,5 +1,5 @@
 const std = @import("std");
-const virtio_ring = @import("../../drivers/virtio/virtio_ring.zig");
+const virtio_ring = @import("virtio_ring");
 
 test "phase10 virtio ring registration replay keeps noncontiguous queue registration counts explicit" {
     var ring = virtio_ring.VirtioRingLab{};

@@ -50,6 +50,15 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 - `Documentation/zigux/phase3-abi-h-boundary-next-step.md` is directly readable on current `master`, so keep that focused abi.h next-step follow-through explicit beside the bounded header-family survey, the shared ABI inventory, and the export/UAPI layout replay instead of leaving it in repo-reality-gap wording
 - keep this scripts-root summary bounded: exported ABI structs, scheduler-affinity policy, intrusive list mutation, container-of recovery, broader subsystem ownership behavior, and full interop parity remain outside the shipped helper-local, export/UAPI, header-family, catalog, manifest, binding-relay, and replay surfaces named here
 
+## Phase 10
+
+- `scripts/zigux/check-phase10-bootstrap-route.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, and `zigux/tests/phase10_closure_manifest.json` keep the returned Phase 10 checker-backed route stack explicit from the scripts root.
+- `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core.zig`, `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux/tests/phase10_virtio_core_survey.zig` keep the bounded core packet explicit, and the now-returned exact-path `drivers/virtio/virtio_driver_id.zig` plus `zigux/tests/phase10_virtio_driver_id.zig` pair stays explicit as the narrower core-side follow-through evidence on current `master`.
+- `drivers/virtio/virtio_ring_publish_readiness.zig` stays explicit as the ring-publish helper in the scripts-root Phase 10 packet.
+- `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` keep the returned shared build gate explicit from the scripts root.
+- Treat `scripts/zigux/README.md` as the current dedicated Phase 10 scripts-root packet on current `master` and keep it aligned with the shared closure note, lane-sequencing note, review checklist, and tests-root reminder instead of leaving it in neighboring-surface wording.
+- keep risky transport parked; do not widen this scripts-root packet into queue execution parity, IRQ delivery, DMA behavior, input registration lifecycle closure, or risky transport follow-through.
+
 ## Phase 11
 
 - Phase 11 flow - the current scripts-root reminder packet keeps the simple-production-driver tranche reviewable through the shared `phase11-validate` route, validator-roster guards, shared replay-contract counts checker, and focused proof fan-out without reviving the removed aggregate Phase 11 wrappers

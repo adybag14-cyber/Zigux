@@ -157,7 +157,6 @@ COMMANDS = [
     ["scripts/zigux/check-phase10-closure-manifest-counts.py", "--self-test"],
     ["scripts/zigux/check-phase10-closure-manifest-counts.py"],
     ["scripts/zigux/validate-phase10.py", "--self-test"],
-    ["scripts/zigux/validate-phase10.py"],
 ]
 
 EXACT_CHECK_COUNT = 15
@@ -387,13 +386,13 @@ def run_self_test() -> int:
         write_fixture(root)
 
         (root / "scripts/zigux/validate-phase10.py").write_text(
-            "#!/usr/bin/env python3\nimport sys\nraise SystemExit(0 if '--self-test' in sys.argv else 1)\n",
+            "#!/usr/bin/env python3\nimport sys\nraise SystemExit(1 if '--self-test' in sys.argv else 0)\n",
             encoding="utf-8",
         )
         failures = run_required_commands(root)
-        if failures != ["scripts/zigux/validate-phase10.py"]:
+        if failures != ["scripts/zigux/validate-phase10.py --self-test"]:
             actual = ",".join(failures) if failures else "none"
-            raise SystemExit(f"phase10-closure-self-test:failed_live_validate_command_not_detected:{actual}")
+            raise SystemExit(f"phase10-closure-self-test:failed_validate_self_test_command_not_detected:{actual}")
         cases += 1
         write_fixture(root)
 

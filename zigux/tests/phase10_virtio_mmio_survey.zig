@@ -9,7 +9,7 @@ fn readRepoRelative(allocator: std.mem.Allocator, relative_path: []const u8) ![]
     return try std.Io.Dir.cwd().readFileAlloc(io, relative_path, allocator, .limited(64 * 1024));
 }
 
-test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local companions, manifest companion, dedicated survey gate explicit beside the helper-local packet" {
+test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local companions, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {
     const allocator = std.testing.allocator;
 
     const survey_note = try readRepoRelative(
@@ -179,10 +179,7 @@ test "phase10 virtio mmio survey gate keeps survey-note lane identity, lane sequ
     );
     defer allocator.free(manifest);
 
-    try expectContains(
-        lane_sequencing_note,
-        "MMIO lane `P10-L11` owns the bounded MMIO helper packet",
-    );
+    try expectContains(lane_sequencing_note, "MMIO lane `P10-L11` owns the bounded MMIO helper packet");
     try expectContains(manifest, "\"lane_key\": \"P10-L11\"");
     try expectContains(manifest, "\"risky_transport_posture\": \"blocked_on_risky_transport\"");
     try expectContains(manifest, "\"id\": \"phase10-mmio-interrupt-ack-disposition-helper\"");
@@ -201,14 +198,8 @@ test "phase10 virtio mmio survey gate keeps helper-local queue isolation and pro
     );
     defer allocator.free(helper_tests);
 
-    try expectContains(
-        helper_tests,
-        "test \"phase10 virtio mmio selected queue readiness keeps per-queue state isolated across selector changes\" {",
-    );
-    try expectContains(
-        helper_tests,
-        "test \"phase10 virtio mmio probe preflight keeps queue-window and interrupt-ack blockers explicit\" {",
-    );
+    try expectContains(helper_tests, "test \"phase10 virtio mmio selected queue readiness keeps per-queue state isolated across selector changes\" {");
+    try expectContains(helper_tests, "test \"phase10 virtio mmio probe preflight keeps queue-window and interrupt-ack blockers explicit\" {");
     try expectContains(
         helper_tests,
         "test \"phase10 virtio mmio keeps config-write planning bounded to staged review state\" {",
@@ -221,22 +212,10 @@ test "phase10 virtio mmio survey gate keeps helper-local queue isolation and pro
         helper_tests,
         "test \"phase10 virtio mmio keeps config-write disposition planning-only across restaging\" {",
     );
-    try expectContains(
-        helper_tests,
-        "test \"phase10 virtio mmio apply observation keeps touched and changed bytes reviewable without mutating config bytes\" {",
-    );
-    try expectContains(
-        helper_tests,
-        "try std.testing.expect(!summary.bounded_queue_register_window_ready);",
-    );
-    try expectContains(
-        helper_tests,
-        "try std.testing.expect(!summary.interrupt_ack_ready);",
-    );
-    try expectContains(
-        helper_tests,
-        "try std.testing.expect(summary.queue_ready_for_handoff);",
-    );
+    try expectContains(helper_tests, "test \"phase10 virtio mmio apply observation keeps touched and changed bytes reviewable without mutating config bytes\" {");
+    try expectContains(helper_tests, "try std.testing.expect(!summary.bounded_queue_register_window_ready);");
+    try expectContains(helper_tests, "try std.testing.expect(!summary.interrupt_ack_ready);");
+    try expectContains(helper_tests, "try std.testing.expect(summary.queue_ready_for_handoff);");
 }
 
 test "phase10 virtio mmio survey note keeps risky transport work and freeze-boundary policy evidence explicit" {

@@ -61,7 +61,9 @@ EXPECTED_SURVEY_SUMMARY_FIELDS = {
     "preexisting_virtio_ring_doc_present": True,
     "preexisting_ring_verify_present": True,
     "preexisting_ring_publish_readiness_present": True,
+    "preexisting_ring_callback_enable_present": True,
     "preexisting_ring_registration_summary_present": True,
+    "preexisting_ring_reset_readiness_present": True,
     "preexisting_ring_used_buffer_poll_present": True,
 }
 EXPECTED_GAP_METADATA = {
@@ -81,7 +83,11 @@ EXPECTED_GAP_METADATA = {
     "phase10-virtio-ring-survey-note": ("documentation", "starter_landed", "Documentation/zigux/phase10-virtio-ring-survey.md"),
     "phase10-virtqueue-shape-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
     "phase10-used-buffer-polling-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring_used_buffer_poll.zig"),
-    "phase10-callback-enable-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
+    "phase10-callback-enable-helper": (
+        "queue_wrapper",
+        "starter_landed",
+        "drivers/virtio/virtio_ring_callback_enable.zig",
+    ),
     "phase10-callback-delay-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
     "phase10-notify-prepare-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
     "phase10-notification-data-summary-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
@@ -93,7 +99,11 @@ EXPECTED_GAP_METADATA = {
         "drivers/virtio/virtio_ring_registration_summary.zig",
     ),
     "phase10-queue-reset-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
-    "phase10-queue-reset-readiness-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
+    "phase10-queue-reset-readiness-helper": (
+        "queue_wrapper",
+        "starter_landed",
+        "drivers/virtio/virtio_ring_reset_readiness.zig",
+    ),
     "phase10-ring-publish-readiness-replay": ("validation", "starter_landed", "drivers/virtio/virtio_ring_publish_readiness.zig"),
     "phase10-ring-verify-replay": ("validation", "starter_landed", "drivers/virtio/virtio_ring_verify.zig"),
     "phase10-virtio-ring-slice-note": ("documentation", "starter_landed", "Documentation/zigux/phase10-virtio-ring-slice.md"),
@@ -116,7 +126,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`",
         "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`",
         "`zigux/tests/phase10_virtio_ring_queue_build_survey.zig`",
-        "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `drivers/virtio/virtio_ring_notification_data.zig`, `drivers/virtio/virtio_ring_registration_summary.zig`, `drivers/virtio/virtio_ring_used_buffer_poll.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
+        "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `drivers/virtio/virtio_ring_notification_data.zig`, `drivers/virtio/virtio_ring_callback_enable.zig`, `drivers/virtio/virtio_ring_registration_summary.zig`, `drivers/virtio/virtio_ring_used_buffer_poll.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
         "`phase10-used-buffer-polling-helper`",
         "`phase10-queue-registration-summary-helper`",
         "`phase10-ring-reset-readiness-replay`",
@@ -144,7 +154,7 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
         "`scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`",
-        "`drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`",
+        "`drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `drivers/virtio/virtio_ring_notification_data.zig`, `drivers/virtio/virtio_ring_callback_enable.zig`, `drivers/virtio/virtio_ring_registration_summary.zig`, `drivers/virtio/virtio_ring_reset_readiness.zig`, `drivers/virtio/virtio_ring_used_buffer_poll.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`",
         "Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet when shared reviewer-facing reminders refresh",
         "the ring survey, slice, and freeze-boundary notes, the direct ring helper packet through `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`,",
     ],
@@ -246,10 +256,10 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase10_virtio_ring_queue_build_survey.zig": [
         "test \"phase10 virtio ring queue build keeps the focused queue packet explicit\" {",
-        ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_notification_data.zig\"),",
-        ".root_source_file = b.path(\"phase10_virtio_ring_queue_build_survey.zig\"),",
-        ".name = \"phase10-virtio-ring-notification-data-wrapper-tests\",",
-        ".name = \"phase10-virtio-ring-queue-build-survey-tests\",",
+        ".root_source_file = b.path(\\\"../../drivers/virtio/virtio_ring_notification_data.zig\\\"),",
+        ".root_source_file = b.path(\\\"phase10_virtio_ring_queue_build_survey.zig\\\"),",
+        ".name = \\\"phase10-virtio-ring-notification-data-wrapper-tests\\\",",
+        ".name = \\\"phase10-virtio-ring-queue-build-survey-tests\\\",",
         "run_phase10_virtio_ring_notification_data_wrapper_tests.step",
         "run_phase10_virtio_ring_queue_build_survey_tests.step",
     ],
@@ -264,7 +274,7 @@ REQUIRED_MARKERS = {
         "try expectContains(manifest, \"\\\"id\\\": \\\"phase10-queue-registration-summary-helper\\\"\");",
         "const used_buffer_poll_file = try readRepoRelative(",
         "test \"phase10 virtio ring used-buffer-poll wrapper stays direct current-head evidence in the survey packet\" {",
-        "try expectContains(used_buffer_poll_file, \"test \\\"phase10 virtio ring used-buffer-poll wrapper exposes newly used chains before the follow-up poll settles\\\" {\");",
+        "phase10 virtio ring used-buffer-poll wrapper exposes newly used chains before the follow-up poll settles",
     ],
 }
 

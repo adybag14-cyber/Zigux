@@ -98,6 +98,73 @@ test "phase10 virtio mmio keeps selected queue readiness bounded to in-memory re
     try std.testing.expectError(error.QueueSizeExceedsAdvertised, device.writeRegister(.queue_num, 32));
 }
 
+test "phase10 virtio mmio selected queue readiness keeps per-queue state isolated across selector changes" {
+    var device = try virtio_mmio.VirtioMmioLab.init(88, &[_]u16{ 8, 16 });
+
+    _ = try device.writeRegister(.queue_sel, 0);
+    _ = try device.writeRegister(.queue_num, 8);
+    _ = try device.writeRegister(.queue_ready, 1);
+
+    _ = try device.writeRegister(.queue_sel, 1);
+    var summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expectEqual(@as(u16, 1), summary.selected_queue);
+    try std.testing.expectEqual(@as(u16, 16), summary.advertised_queue_size);
+    try std.testing.expectEqual(@as(u16, 0), summary.programmed_queue_size);
+    try std.testing.expect(!summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_num, 16);
+    _ = try device.writeRegister(.queue_ready, 1);
+    summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expect(summary.queue_size_programmed);
+    try std.testing.expect(summary.queue_size_matches_advertised);
+    try std.testing.expect(summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_sel, 0);
+    summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expectEqual(@as(u16, 0), summary.selected_queue);
+    try std.testing.expectEqual(@as(u16, 8), summary.advertised_queue_size);
+    try std.testing.expectEqual(@as(u16, 8), summary.programmed_queue_size);
+    try std.testing.expect(summary.queue_size_programmed);
+    try std.testing.expect(summary.queue_size_matches_advertised);
+    try std.testing.expect(summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_sel, 1);
+    _ = try device.writeRegister(.queue_ready, 0);
+    summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expectEqual(@as(u16, 16), summary.programmed_queue_size);
+    try std.testing.expect(summary.queue_size_matches_advertised);
+    try std.testing.expect(!summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_sel, 0);
+    summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expectEqual(@as(u16, 8), summary.programmed_queue_size);
+    try std.testing.expect(summary.queue_ready_for_handoff);
+}
+
+test "phase10 virtio mmio probe preflight keeps queue-window and interrupt-ack blockers explicit" {
+    var device = try virtio_mmio.VirtioMmioLab.init(84, &[_]u16{8});
+
+    device.queue_count = 0;
+    var summary = device.probePreflightSummary();
+    try std.testing.expect(!summary.bounded_queue_register_window_ready);
+    try std.testing.expect(summary.interrupt_ack_ready);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    device.queue_count = 1;
+    device.interrupt_ack_mask = 0;
+    summary = device.probePreflightSummary();
+    try std.testing.expect(summary.bounded_queue_register_window_ready);
+    try std.testing.expect(!summary.interrupt_ack_ready);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    device.interrupt_ack_mask = 0x3;
+    summary = device.probePreflightSummary();
+    try std.testing.expect(summary.bounded_queue_register_window_ready);
+    try std.testing.expect(summary.interrupt_ack_ready);
+    try std.testing.expect(summary.ready_for_probe_handoff);
+}
+
 test "phase10 virtio mmio records feature mismatches without claiming live negotiation" {
     var device = try virtio_mmio.VirtioMmioLab.init(93, &[_]u16{ 8, 16 });
     try device.stageDeviceFeatureWord(0, 0b1110);
