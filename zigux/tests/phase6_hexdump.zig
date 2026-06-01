@@ -135,8 +135,8 @@ test "phase 6 hexdump direct pack helpers keep uppercase and lowercase nibble pa
 }
 
 test "phase 6 hexdump uppercase bulk parity and grouped-ascii exact-capacity buffers stay aligned" {
-    var upper: [8]u8 = @splat(0xaa);
-    var alias_upper: [8]u8 = @splat(0xbb);
+    var upper: [9]u8 = @splat(0xaa);
+    var alias_upper: [9]u8 = @splat(0xbb);
 
     const direct_upper = try hexdump.bin2hexUpper(upper[0..], fixtures.data_b[0..4]);
     const alias_upper_text = try hexdump.bin2HexUpper(alias_upper[0..], fixtures.data_b[0..4]);
