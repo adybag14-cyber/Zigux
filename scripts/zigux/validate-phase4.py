@@ -35,6 +35,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase4-remaining-gap-matrix.py",
     "scripts/zigux/check-phase4-repo-reality-warning.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
+    "scripts/zigux/check-phase4-runtime-atomic64-packet.py",
     "scripts/zigux/check-phase4-tests-readme-packet.py",
     "scripts/zigux/check-phase4-validation-lane-sequencing.py",
     "scripts/zigux/check-phase4-workflow-route-counts.py",
@@ -259,6 +260,20 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     ),
     "phase4-gate-evidence-self-test": (("phase4 gate evidence self-test", "phase4 gate evidence self-test: PASS (45 cases)"),),
     "phase4-gate-evidence": (("phase4 gate evidence check passed", "phase4 gate evidence check passed"),),
+    "phase4-runtime-atomic64-packet-self-test": (
+        ("PHASE4_RUNTIME_ATOMIC64_PACKET_SELF_TEST", "PHASE4_RUNTIME_ATOMIC64_PACKET_SELF_TEST=pass"),
+        (
+            "PHASE4_RUNTIME_ATOMIC64_PACKET_SELF_TEST_CASE_COUNT",
+            "PHASE4_RUNTIME_ATOMIC64_PACKET_SELF_TEST_CASE_COUNT=11",
+        ),
+        (
+            "PHASE4_RUNTIME_ATOMIC64_PACKET_SELF_TEST_CASES",
+            "PHASE4_RUNTIME_ATOMIC64_PACKET_SELF_TEST_CASES=",
+        ),
+    ),
+    "phase4-runtime-atomic64-packet": (
+        ("PHASE4_RUNTIME_ATOMIC64_PACKET", "PHASE4_RUNTIME_ATOMIC64_PACKET=pass"),
+    ),
     "phase4-perf-baseline-packet-self-test": (
         ("PHASE4_PERF_BASELINE_PACKET_SELF_TEST", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass"),
         ("PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=39"),
@@ -319,6 +334,20 @@ class CheckSpec:
     name: str
     command: tuple[str, ...]
 
+
+def run_phase4_runtime_atomic64_packet_check() -> tuple[CheckSpec, CheckSpec]:
+    return (
+        CheckSpec(
+            "phase4-runtime-atomic64-packet-self-test",
+            ("python", "scripts/zigux/check-phase4-runtime-atomic64-packet.py", "--self-test"),
+        ),
+        CheckSpec(
+            "phase4-runtime-atomic64-packet",
+            ("python", "scripts/zigux/check-phase4-runtime-atomic64-packet.py"),
+        ),
+    )
+
+
 CHECKS = (
     CheckSpec("phase4-repo-reality-warning-self-test", ("python", "scripts/zigux/check-phase4-repo-reality-warning.py", "--self-test")),
     CheckSpec("phase4-repo-reality-warning", ("python", "scripts/zigux/check-phase4-repo-reality-warning.py")),
@@ -335,6 +364,7 @@ CHECKS = (
     CheckSpec("phase4-artifact-diff-validator-replays", ("python", "scripts/zigux/check-phase4-artifact-diff-validator-replays.py")),
     CheckSpec("phase4-gate-evidence-self-test", ("python", "scripts/zigux/check-phase4-gate-evidence.py", "--self-test")),
     CheckSpec("phase4-gate-evidence", ("python", "scripts/zigux/check-phase4-gate-evidence.py")),
+    *run_phase4_runtime_atomic64_packet_check(),
     CheckSpec("phase4-perf-baseline-packet-self-test", ("python", "scripts/zigux/check-phase4-perf-baseline-packet.py", "--self-test")),
     CheckSpec("phase4-perf-baseline-packet", ("python", "scripts/zigux/check-phase4-perf-baseline-packet.py")),
     CheckSpec("phase4-perf-threshold-matrix-self-test", ("python", "scripts/zigux/check-phase4-perf-threshold-matrix.py", "--self-test")),
@@ -606,6 +636,15 @@ def configure_phase4_output_stubs(root: Path) -> None:
         root / "scripts/zigux/check-phase4-gate-evidence.py",
         self_test_stdout_lines=("phase4 gate evidence self-test: PASS (45 cases)",),
         live_stdout_lines=("phase4 gate evidence check passed",),
+    )
+    build_stub_script(
+        root / "scripts/zigux/check-phase4-runtime-atomic64-packet.py",
+        self_test_stdout_lines=(
+            "PHASE4_RUNTIME_ATOMIC64_PACKET_SELF_TEST=pass",
+            "PHASE4_RUNTIME_ATOMIC64_PACKET_SELF_TEST_CASE_COUNT=11",
+            "PHASE4_RUNTIME_ATOMIC64_PACKET_SELF_TEST_CASES=",
+        ),
+        live_stdout_lines=("PHASE4_RUNTIME_ATOMIC64_PACKET=pass",),
     )
     build_stub_script(
         root / "scripts/zigux/check-phase4-ownership-matrix.py",

@@ -85,7 +85,7 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
 - purpose: manifest-backed review packet for the Phase 4 atomic64 wrapper-to-runtime handoff
 - companion manifest: `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`
 - local survey wrapper: `zig build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig`
-- note: keeps the gate-evidence note, review checklist, validation matrix blob pin, and current roadmap-gap summary aligned with the shipped runtime replay
+- note: `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` manifest-backed survey that keeps the wrapper, runtime replay body, validator, matrix, and reviewer checklist aligned around the same bounded atomic64 handoff
 
 ### `zigux/tests/bitmap_diff.zig`
   * anchor: `lib/test_bitmap.c`

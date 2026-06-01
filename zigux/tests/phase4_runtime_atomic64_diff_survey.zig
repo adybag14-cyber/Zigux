@@ -5,6 +5,13 @@ const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
 const phase4_runtime_atomic64_diff_survey_source = @embedFile("phase4_runtime_atomic64_diff_survey.zig");
 
+// Manifest source pins mirrored for scripts/zigux/check-phase4-runtime-atomic64-packet.py.
+// phase4_build_blob_sha=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4
+// phase4_validator_blob_sha=96f542c0b3c1c39d1c451713852172f26786f97f
+// phase4_validation_matrix_blob_sha=057957ccb1ed578e2bee444a23708dd2837c3b06
+// phase4_review_checklist_blob_sha=2968214ecec4777fa016b0808e3d73f161cfee70
+// phase9_build_blob_sha=0a093698e7bee23e37b6eb2fceae57bbe310ad29
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,

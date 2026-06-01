@@ -1,25 +1,26 @@
 # Phase 4 Gate Evidence
 
 ## Status
-  * `PHASE4_VALIDATION_MATRIX_BLOB_SHA=43789166370910686ce37e2f7a81e09b671e0750`
+  * `PHASE4_VALIDATION_MATRIX_BLOB_SHA=057957ccb1ed578e2bee444a23708dd2837c3b06`
   * `PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=adbf024eaafb71f9e606f1ff6eefa6db6844a91f`
   * `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=6ac9c08ffdc75a5cce761f204c93babd833ea89c`
   * `PHASE4_ARTIFACT_DIFF_HELPER_BLOB_SHA=3ff77318f7511d889e15a5b482d7fa486029ed09`
   * `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=48e611aa0a53540d8594dbb5c2200bb258d03d08`
-  * `PHASE4_MAKEFILE_BLOB_SHA=54547f3317c639a37edeee7432561bb4698d13e3`
+  * `PHASE4_MAKEFILE_BLOB_SHA=cbed188d39026ec2fa3da5008053107d26903892`
   * `PHASE4_WORKFLOW_BLOB_SHA=9126c791ddf71e61a5aa33125f5120fc66fb7737`
   * `PHASE4_DOC_README_BLOB_SHA=dc1f5ad531558a6fde4845590291b2a5cabbb783`
-  * `PHASE4_SCRIPT_README_BLOB_SHA=2e0f0b2001b407303d757a8f99e8a6b5e5bb11f2`
+  * `PHASE4_SCRIPT_README_BLOB_SHA=5486c053868d4180a560c48a6888dfbcfb38a766`
   * `PHASE4_TESTS_README_BLOB_SHA=453383fa889e8ef37986c35a010397423dcf13c6`
-  * `PHASE4_VALIDATOR_BLOB_SHA=6840d9c60266850b9e270c527c9ce6596aee01e0`
+  * `PHASE4_VALIDATOR_BLOB_SHA=96f542c0b3c1c39d1c451713852172f26786f97f`
   * `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=366eab807fe408bbe4839a981eabf7d550d1b08b`
+  * `PHASE4_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`
   * `PHASE4_ATOMIC64_DIFF_BLOB_SHA=14b756f595525973c4a65d7dac88133d97e28f0a`
   * `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=907c937190fcb0266d58cb80bcff44ccf6092874`
-  * `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=c7c25e93ef9601fd8e1a230c798142d916e916f3`
-  * `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=87b72410a69b90e0cd4377ac30f7c47d0d9943c2`
-  * `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=054d72577930763b9642c8e83e50e4e3c95fb8b3`
+  * `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=4a56024c77c8cae1815f1544fef5f87a53c011a6`
+  * `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=0de59dc3a63fb7d27591c2457991ebaaaa0d0b85`
+  * `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=2968214ecec4777fa016b0808e3d73f161cfee70`
   * `PHASE4_PHASE9_BUILD_BLOB_SHA=0a093698e7bee23e37b6eb2fceae57bbe310ad29`
-  * `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE_BLOB_SHA=4720c6aa7911a01ee98353f2b51a57ded0dc9e91`
+  * `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE_BLOB_SHA=a59dcb8dd523898f6854a09708821bdc26c2ca06`
   * `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19`
   * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=45`
   * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=baseline_round_trip,shipped_target_count_drift,missing_exact_readback_heading,forbidden_gate_evidence_checker_self_pin,validator_blob_pin_drift,phase4_build_manifest_blob_pin_drift,phase4_build_survey_blob_pin_drift,phase9_build_manifest_blob_pin_drift,phase9_build_survey_blob_pin_drift,doc_readme_blob_pin_drift,script_readme_blob_pin_drift,tests_readme_blob_pin_drift,gate_evidence_self_test_case_count_drift,gate_evidence_self_test_cases_drift,shared_validator_reruns_gate_evidence_check_drift,shared_validator_reruns_gate_evidence_self_test_drift,shared_validator_expected_target_count_drift,shared_validator_expected_self_test_case_count_drift,runtime_atomic64_survey_packet_presence_drift,bitmap_manifest_gate_evidence_blob_drift,workflow_route_checker_matrix_presence_drift,kprobe_gap_packet_presence_drift,kprobe_owner_drift,kprobe_validation_entrypoint_drift,kprobe_next_step_drift,perf_baseline_packet_presence_drift,perf_baseline_note_split_marker_drift,perf_baseline_owner_drift,perf_baseline_shared_promotion_status_drift,test_fsmount_gap_packet_presence_drift,test_fsmount_threshold_posture_drift,test_fsmount_owner_drift,test_fsmount_validation_entrypoint_drift,test_fsmount_linux_style_wrapper_drift,test_fsmount_next_step_drift,missing_validator_file,missing_phase4_build_file,missing_artifact_diff_helper_file,missing_workflow_route_checker_file,missing_atomic64_manifest_file,missing_bitmap_manifest_file,missing_perf_survey_file,missing_kprobe_manifest_file,missing_test_fsmount_survey_file,missing_note_file`
@@ -41,6 +42,7 @@
   * The paired bitmap survey packet also keeps the already-landed zero-length range and prefix no-op checks plus the zero-length copy invariant explicit beside the exact 35-bit and 115-bit synthetic fill prefixes and the rounded 64-bit and 128-bit zero boundaries.
   * The broader bitmap reviewability details still belong in the surrounding matrix and reminder packet rather than this exact-readback note while the shared validator-first packet stays narrower than the coupled bitmap survey surfaces on current `master`.
   * The adjacent local-only perf packet remains explicit through `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and the shared posture that local-only benchmark commands and acceptable limits are approved today while shared CI perf promotion pending remains unchanged.
+  * The shared CI perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.
   * `scripts/zigux/check-phase4-workflow-route-counts.py` keeps the shared `make -C zigux phase4-validate`, `make -C zigux phase4-artifact-diff-contract`, and `make -C zigux phase4-test` wrapper inventory explicit beside the dedicated local survey wrappers so the validator-first route packet cannot drift away from this exact-readback note unnoticed.
   * The parked starter-gap packet keeps `PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix` explicit beside the current `make -C zigux phase4-kprobe-example-survey` and `make -C zigux phase4-test-fsmount-survey` wrappers.
   * `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig`
