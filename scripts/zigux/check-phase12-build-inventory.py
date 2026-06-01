@@ -157,13 +157,13 @@ pub fn build(b: *std.Build) void {
 }
 """
     makefile_text = """phase12-smoke:
-	cd $(ZIGUX_ROOT) && $(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build smoke --build-file zigux/tests/phase12_build.zig --summary all
 
 phase12-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase12_build.zig --summary all
 
 phase12-virtio-net-syntax-lab-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all
 
 phase12: phase12-validate phase12-smoke phase12-test
 """
@@ -232,7 +232,7 @@ def run_self_test() -> int:
         write_fixture_root(base)
         (base / MAKEFILE_PATH).write_text(
             "phase12-test:\n"
-            "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all\n",
+            "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase12_build.zig --summary all\n",
             encoding="utf-8",
         )
         failures = validate(base)
