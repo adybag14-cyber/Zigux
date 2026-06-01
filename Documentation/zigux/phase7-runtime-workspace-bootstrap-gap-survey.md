@@ -18,7 +18,8 @@ This note keeps the Phase 7 shared-control workspace bootstrap glue reviewable a
 ## Current Workspace Bootstrap Glue
 
 - `.github/workflows/zigux-bootstrap.yml` self-tests `scripts/zigux/check-phase7-shared-control-gap.py` and `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
-- the readable `zigux/Makefile` still exposes only `phase7-validate` for the shared Phase 7 packet
+- the readable `zigux/Makefile` still exposes `phase7-validate` as the shared Phase 7 foothold
+- the readable `zigux/Makefile` now also exposes `phase7-rbtree-test:` and `phase7-rbtree-survey:` as dedicated helper-local wrappers, not as returned aggregate shared-control routes
 - `zigux/tests/phase7_build.zig` remains readable non-owner build evidence rather than a returned shared workspace route by itself
 - current readback also shows that readable build shard carrying helper-local survey, sample-boundary, and `string_helpers` format-boundary replays inside the shared build graph without turning those helper-local routes into returned shared-control wrappers
 
@@ -27,7 +28,7 @@ This note keeps the Phase 7 shared-control workspace bootstrap glue reviewable a
 - current `master` still does not materialize `phase7-test` or `phase7` in `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml` still omits direct `make -C zigux phase7-validate`, `make -C zigux phase7-test`, and `zig build test --build-file zigux/tests/phase7_build.zig --summary all` steps
 - the roadmap-backed helper anchors are present, but the shared workspace bootstrap glue remains a narrow validation foothold rather than a returned end-to-end Phase 7 workspace route
-- that readable build shard now exposes extra helper-local survey and boundary replay evidence, but those routes still stop at direct build-shard readback and do not return as shared Makefile or workflow hooks
+- that readable build shard now exposes extra helper-local survey and boundary replay evidence, with the rbtree replay and survey also surfaced through dedicated Makefile wrappers, but those routes still do not return as aggregate shared Makefile or workflow hooks
 - treat that gap as shared-control reminder debt, not as missing helper-local proof for `string_helpers`, `cmdline`, `argv_split`, or `rbtree`
 
 ## Next Bounded Step

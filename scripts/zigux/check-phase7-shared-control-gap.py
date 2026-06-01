@@ -62,8 +62,6 @@ ABSENT_MAKEFILE_MARKERS = [
     "phase7-cmdline-survey:",
     "phase7-argv-split-test:",
     "phase7-argv-split-survey:",
-    "phase7-rbtree-test:",
-    "phase7-rbtree-survey:",
 ]
 
 REQUIRED_WORKFLOW_LINES = [
@@ -84,7 +82,7 @@ REQUIRED_SEQUENCING_SNIPPETS = [
     "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
     "- `scripts/zigux/check-phase7-shared-control-gap.py`",
     "- `scripts/zigux/validate-phase7.py`",
-    "the readable non-owner shared-control files in this slot are still `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/phase7_build.zig`, and fresh reread now shows the workflow carries the current `check-phase7-shared-control-gap.py` and `check-phase7-make-wrapper-selftest-alignment.py` self-test hooks while the readable `zigux/Makefile` still exposes only the narrow `phase7-validate` foothold and still omits `phase7-test`, `phase7`, and the helper-local Phase 7 wrapper routes. Keep shared-control truthfulness anchored to that returned validator foothold, those returned checker hooks, the readable non-owner build shard, and the still-absent broader wrapper boundaries instead of claiming the older workflow-backed test routes have returned.",
+    "the readable non-owner shared-control files in this slot are still `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/phase7_build.zig`, and fresh reread now shows the workflow carries the current `check-phase7-shared-control-gap.py` and `check-phase7-make-wrapper-selftest-alignment.py` self-test hooks while the readable `zigux/Makefile` exposes the narrow `phase7-validate` foothold plus the dedicated helper-local `phase7-rbtree-test:` and `phase7-rbtree-survey:` wrappers, and still omits aggregate `phase7-test`, aggregate `phase7`, and the other helper-local Phase 7 wrapper routes. Keep shared-control truthfulness anchored to that returned validator foothold, those returned checker hooks, the readable non-owner build shard, the returned rbtree wrappers as helper-local evidence, and the still-absent broader wrapper boundaries instead of claiming the older workflow-backed test routes have returned.",
     "so `P7-L08` should treat that helper-local packet as the current same-lane packet instead of widening into shared validator or Makefile follow-through.",
     "Treat recurring lane `P7-L04` as the shared-control workspace-bootstrap follow-through; keep it narrowed to `Documentation/zigux/phase7-helper-lane-sequencing.md`, `Documentation/zigux/phase7-runtime-workspace-bootstrap-gap-survey.md`, `Documentation/zigux/phase7-shared-control-review-checkpoint.md`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/check-phase7-shared-control-gap.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `samples/zigux/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, or the readable non-owner `zigux/tests/phase7_build.zig` instead of reassigning that lane to helper-local string_helpers ownership.",
     "treat recurring helper-local lane `P7-Y01` as same-family follow-through inside that one packet rather than as a separate helper family",
@@ -119,7 +117,8 @@ REQUIRED_WORKSPACE_BOOTSTRAP_SURVEY_SNIPPETS = [
     "`zigux/tests/phase7_build.zig` wires all four returned helpers into the shared Phase 7 build graph",
     "`scripts/zigux/validate-phase7.py` plus `make -C zigux phase7-validate` keep one returned shared validation foothold explicit on current `master`",
     "`.github/workflows/zigux-bootstrap.yml` self-tests `scripts/zigux/check-phase7-shared-control-gap.py` and `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
-    "the readable `zigux/Makefile` still exposes only `phase7-validate` for the shared Phase 7 packet",
+    "the readable `zigux/Makefile` still exposes `phase7-validate` as the shared Phase 7 foothold",
+    "the readable `zigux/Makefile` now also exposes `phase7-rbtree-test:` and `phase7-rbtree-survey:` as dedicated helper-local wrappers, not as returned aggregate shared-control routes",
     "current `master` still does not materialize `phase7-test` or `phase7` in `zigux/Makefile`",
     "`.github/workflows/zigux-bootstrap.yml` still omits direct `make -C zigux phase7-validate`, `make -C zigux phase7-test`, and `zig build test --build-file zigux/tests/phase7_build.zig --summary all` steps",
     "the roadmap-backed helper anchors are present, but the shared workspace bootstrap glue remains a narrow validation foothold rather than a returned end-to-end Phase 7 workspace route",
@@ -139,10 +138,13 @@ REQUIRED_CMDLINE_SLICE_SNIPPETS = [
 
 REQUIRED_MAKEFILE_LINES = [
     "phase7-validate:",
-    "$(PYTHON) scripts/zigux/validate-phase7.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
+    "phase7-rbtree-test:",
+    "phase7-rbtree-survey:",
 ]
 
-SELF_TEST_CASE_COUNT = 23
+SELF_TEST_CASE_COUNT = 25
 
 
 class ValidationError(RuntimeError):
@@ -234,7 +236,23 @@ def scaffold_repo(root: Path) -> None:
             continue
         write(path, "# direct phase7 shared-control packet file\n")
     write(root / WORKFLOW_PATH, "\n".join(REQUIRED_WORKFLOW_LINES) + "\n")
-    write(root / MAKEFILE_PATH, "phase7-validate:\n\t$(PYTHON) scripts/zigux/validate-phase7.py\n")
+    write(
+        root / MAKEFILE_PATH,
+        "\n".join(
+            [
+                "phase7-validate:",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
+                "",
+                "phase7-rbtree-test:",
+                "\t$(ZIG_REPO_ROOT) build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig",
+                "",
+                "phase7-rbtree-survey:",
+                "\t$(ZIG_REPO_ROOT) build phase7-rbtree-survey --build-file zigux/tests/phase7_build.zig",
+                "",
+            ]
+        ),
+    )
     write(root / BUILD_PATH, "// readable non-owner build shard\n")
 
 
@@ -270,6 +288,8 @@ def run_self_test() -> None:
             (MAKEFILE_PATH, REQUIRED_MAKEFILE_LINES[0], "phase7:\n"),
             (MAKEFILE_PATH, "", "phase7-test:\n"),
             (MAKEFILE_PATH, "", "phase7-string-helpers-format-boundary:\n"),
+            (MAKEFILE_PATH, REQUIRED_MAKEFILE_LINES[3], "phase7-string-helpers-test:"),
+            (MAKEFILE_PATH, REQUIRED_MAKEFILE_LINES[4], "phase7-string-helpers-survey:"),
             (SHARED_SURFACE_VALIDATOR_PATH, "make -C zigux phase7-validate", "make -C zigux phase7"),
         ]
         for rel, old, new in cases:
@@ -297,7 +317,10 @@ def run_self_test() -> None:
             raise AssertionError("expected validation failure")
 
         scaffold_repo(root)
-        write(root / MAKEFILE_PATH, read_text(root / MAKEFILE_PATH) + "\t$(PYTHON) scripts/zigux/validate-phase7.py\n")
+        write(
+            root / MAKEFILE_PATH,
+            read_text(root / MAKEFILE_PATH) + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py\n",
+        )
         try:
             validate(root)
         except ValidationError:

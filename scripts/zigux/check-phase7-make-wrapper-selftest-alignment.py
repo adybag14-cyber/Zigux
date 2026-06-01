@@ -28,7 +28,7 @@ REQUIRED_SEQUENCING_MARKERS = (
     "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
     "- `scripts/zigux/check-phase7-shared-control-gap.py`",
     "- `scripts/zigux/validate-phase7.py`",
-    "the readable non-owner shared-control files in this slot are still `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/phase7_build.zig`",
+    "the readable non-owner shared-control files in this slot are still `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/phase7_build.zig`, and fresh reread now shows the workflow carries the current `check-phase7-shared-control-gap.py` and `check-phase7-make-wrapper-selftest-alignment.py` self-test hooks while the readable `zigux/Makefile` exposes the narrow `phase7-validate` foothold plus the dedicated helper-local `phase7-rbtree-test:` and `phase7-rbtree-survey:` wrappers, and still omits aggregate `phase7-test`, aggregate `phase7`, and the other helper-local Phase 7 wrapper routes.",
 )
 
 REQUIRED_WORKFLOW_LINES = (
@@ -51,6 +51,10 @@ REQUIRED_MAKEFILE_LINES = (
     "phase7-validate:",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
+    "phase7-rbtree-test:",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig",
+    "phase7-rbtree-survey:",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase7-rbtree-survey --build-file zigux/tests/phase7_build.zig",
 )
 
 REQUIRED_VALIDATOR_MARKERS = (
@@ -63,7 +67,7 @@ FORBIDDEN_MAKEFILE_LINES = (
     "phase7:",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 19
+EXPECTED_SELF_TEST_CASE_COUNT = 21
 
 
 def read_text(path: Path) -> str:
@@ -194,6 +198,12 @@ def build_self_test_root(root: Path) -> None:
                 "phase7-validate:",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
+                "",
+                "phase7-rbtree-test:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig",
+                "",
+                "phase7-rbtree-survey:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase7-rbtree-survey --build-file zigux/tests/phase7_build.zig",
             ]
         )
         + "\n",
@@ -275,6 +285,20 @@ def run_self_test() -> int:
         path.write_text(path.read_text(encoding="utf-8") + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py\n", encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_MAKEFILE_LINES", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py:count=2") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(path.read_text(encoding="utf-8").replace("phase7-rbtree-test:\n", "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_MAKEFILE_LINES", "phase7-rbtree-test:") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(path.read_text(encoding="utf-8").replace("phase7-rbtree-survey:\n", "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_MAKEFILE_LINES", "phase7-rbtree-survey:") in issues
         cases += 1
 
         build_self_test_root(root)

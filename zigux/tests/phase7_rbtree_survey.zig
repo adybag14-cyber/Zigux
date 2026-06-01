@@ -7,7 +7,7 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     defer std.testing.allocator.free(fixture);
     const c_harness = try std.Io.Dir.cwd().readFileAlloc(std.testing.io, "zigux/tests/fixtures/phase7_rbtree_c_harness.c", std.testing.allocator, .limited(16384));
     defer std.testing.allocator.free(c_harness);
-    const helper_companion = try std.Io.Dir.cwd().readFileAlloc(std.testing.io, "zigux/tests/phase7_rbtree.zig", std.testing.allocator, .limited(16384));
+    const helper_companion = try std.Io.Dir.cwd().readFileAlloc(std.testing.io, "zigux/tests/phase7_rbtree.zig", std.testing.allocator, .limited(32768));
     defer std.testing.allocator.free(helper_companion);
 
     try std.testing.expect(std.mem.indexOf(u8, manifest_json, "cached-churn invariants witness aligned with the dedicated replay") != null);
