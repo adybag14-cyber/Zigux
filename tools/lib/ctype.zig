@@ -124,6 +124,62 @@ test "ctype transforms and ascii helpers behave" {
     try std.testing.expect(!isodigit('8'));
 }
 
+test "ctype pins ascii boundary classes and transform no-ops" {
+    const controls = [_]u8{ 0x00, 0x1f, 0x7f };
+    for (controls) |ch| {
+        try std.testing.expect(iscntrl(ch));
+        try std.testing.expect(!isprint(ch));
+        try std.testing.expect(!isgraph(ch));
+        try std.testing.expect(!isalnum(ch));
+        try std.testing.expectEqual(ch, tolower(ch));
+        try std.testing.expectEqual(ch, toupper(ch));
+        try std.testing.expectEqual(ch, fastTolower(ch));
+    }
+
+    const spaces = [_]u8{ '\t', '\n', 0x0b, 0x0c, '\r', ' ' };
+    for (spaces) |ch| {
+        try std.testing.expect(isspace(ch));
+        try std.testing.expect(!isgraph(ch));
+        try std.testing.expect(!isalnum(ch));
+        try std.testing.expect(!ispunct(ch));
+    }
+    try std.testing.expect(isprint(' '));
+    try std.testing.expect(!iscntrl(' '));
+
+    const punctuation = [_]u8{ '!', '/', ':', '@', '[', '`', '{', '~' };
+    for (punctuation) |ch| {
+        try std.testing.expect(ispunct(ch));
+        try std.testing.expect(isgraph(ch));
+        try std.testing.expect(isprint(ch));
+        try std.testing.expect(!isalnum(ch));
+        try std.testing.expectEqual(ch, tolower(ch));
+        try std.testing.expectEqual(ch, toupper(ch));
+        try std.testing.expectEqual(ch, fastTolower(ch));
+    }
+
+    try std.testing.expect(isdigit('0'));
+    try std.testing.expect(isdigit('9'));
+    try std.testing.expect(isodigit('0'));
+    try std.testing.expect(isodigit('7'));
+    try std.testing.expect(!isodigit('8'));
+    try std.testing.expect(isxdigit('0'));
+    try std.testing.expect(isxdigit('9'));
+    try std.testing.expect(isxdigit('A'));
+    try std.testing.expect(isxdigit('F'));
+    try std.testing.expect(isxdigit('a'));
+    try std.testing.expect(isxdigit('f'));
+    try std.testing.expect(!isxdigit('G'));
+    try std.testing.expect(!isxdigit('g'));
+
+    try std.testing.expectEqual(@as(u8, 'a'), tolower('A'));
+    try std.testing.expectEqual(@as(u8, 'f'), fastTolower('F'));
+    try std.testing.expectEqual(@as(u8, 'G'), toupper('g'));
+    try std.testing.expectEqual(@as(u8, '7'), tolower('7'));
+    try std.testing.expectEqual(@as(u8, '7'), toupper('7'));
+    try std.testing.expectEqual(@as(u8, 0x00), toascii(0x80));
+    try std.testing.expectEqual(@as(u8, 0x7f), toascii(0xff));
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
