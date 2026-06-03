@@ -1,1 +1,2 @@
 placeholder rust metadata fixture for fixdep comment continuation coverage
+CONFIG_ZIGUX_COMMENT_RMETA_SHOULD_NOT_PARSE
