@@ -86,3 +86,33 @@ test "lane10 zalloc value zeroing survives formatted status updates" {
     zalloc.zfreeValue(allocator, Status, &status);
     try std.testing.expect(status == null);
 }
+
+test "lane10 zero-length memory and single-byte formatting boundaries stay stable" {
+    const allocator = std.testing.allocator;
+
+    slab.kmalloc_nr_allocated = 0;
+    const empty_slab = slab.kmallocBytes(0, slab.GFP_KERNEL | slab.__GFP_ZERO) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), empty_slab.len);
+    try std.testing.expectEqual(@as(isize, 1), slab.kmalloc_nr_allocated);
+    slab.kfree(null);
+    try std.testing.expectEqual(@as(isize, 1), slab.kmalloc_nr_allocated);
+    slab.kfree(empty_slab);
+    try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
+
+    var errno_byte: [1]u8 = @splat(0xaa);
+    const rendered_errno = str_error_r.strErrorR(22, &errno_byte);
+    try std.testing.expectEqual(@as(usize, 0), rendered_errno.len);
+    try std.testing.expectEqual(@as(u8, 0), errno_byte[0]);
+
+    var formatted_byte: [1]u8 = @splat(0xbb);
+    const written = vsprintf.scnprintfPad(&formatted_byte, 32, "{s}", .{"ignored"});
+    try std.testing.expectEqual(@as(usize, 0), written);
+    try std.testing.expectEqual(@as(u8, 0), formatted_byte[0]);
+
+    var empty_zalloc: ?[]u8 = try zalloc.zallocBytes(allocator, 0);
+    try std.testing.expectEqual(@as(usize, 0), empty_zalloc.?.len);
+    zalloc.zfreeBytes(allocator, &empty_zalloc);
+    try std.testing.expect(empty_zalloc == null);
+    zalloc.zfreeBytes(allocator, &empty_zalloc);
+    try std.testing.expect(empty_zalloc == null);
+}
