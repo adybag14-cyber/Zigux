@@ -48,6 +48,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const kprobe_example_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase4_kprobe_example_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const bitmap_diff_module = b.createModule(.{
         .root_source_file = b.path("bitmap_diff.zig"),
         .target = target,
@@ -89,6 +94,12 @@ pub fn build(b: *std.Build) void {
         .root_module = test_fsmount_survey_module,
     });
     const run_test_fsmount_survey_tests = b.addRunArtifact(test_fsmount_survey_tests);
+
+    const kprobe_example_survey_tests = b.addTest(.{
+        .name = "phase4-kprobe-example-survey-tests",
+        .root_module = kprobe_example_survey_module,
+    });
+    const run_kprobe_example_survey_tests = b.addRunArtifact(kprobe_example_survey_tests);
 
     const bitmap_diff_tests = b.addTest(.{
         .name = "phase4-bitmap-diff-tests",
@@ -138,6 +149,12 @@ pub fn build(b: *std.Build) void {
         "Run the dedicated Phase 4 test_fsmount gap survey without promoting a shipped Zig starter",
     );
     test_fsmount_survey_step.dependOn(&run_test_fsmount_survey_tests.step);
+
+    const kprobe_example_survey_step = b.step(
+        "phase4-kprobe-example-survey",
+        "Run the dedicated Phase 4 kprobe_example gap survey without promoting a shipped Zig starter",
+    );
+    kprobe_example_survey_step.dependOn(&run_kprobe_example_survey_tests.step);
 
     const bitmap_diff_step = b.step("phase4-bitmap-diff", "Run the isolated Phase 4 bitmap diff replay");
     bitmap_diff_step.dependOn(&run_bitmap_diff_tests.step);
