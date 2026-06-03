@@ -27,17 +27,29 @@ const helper_mode_markers = [_][]const u8{
 };
 
 const helper_case_markers = [_][]const u8{
-    "\"text_pass\"",
-    "\"json_pass\"",
-    "\"json_invalid_expected\"",
-    "\"json_invalid_actual\"",
-    "\"json_invalid_both\"",
-    "\"bytes_pass\"",
-    "\"bytes_drift\"",
-    "\"legacy_sha256_alias\"",
-    "\"missing_mode_value_rejected\"",
-    "\"invalid_mode_rejected\"",
-    "\"extra_positional_rejected\"",
+    "    \"text_pass\",",
+    "    \"text_mismatch\",",
+    "    \"json_pass\",",
+    "    \"json_mismatch\",",
+    "    \"json_invalid_expected\",",
+    "    \"json_invalid_actual\",",
+    "    \"json_invalid_both\",",
+    "    \"json_missing_expected\",",
+    "    \"json_missing_actual\",",
+    "    \"json_missing_both\",",
+    "    \"bytes_pass\",",
+    "    \"bytes_drift\",",
+    "    \"text_missing_expected\",",
+    "    \"text_missing_actual\",",
+    "    \"text_missing_both\",",
+    "    \"bytes_missing_expected\",",
+    "    \"bytes_missing_actual\",",
+    "    \"bytes_missing_both\",",
+    "    \"legacy_sha256_alias\",",
+    "    \"missing_mode_value_rejected\",",
+    "    \"missing_positional_arguments_rejected\",",
+    "    \"invalid_mode_rejected\",",
+    "    \"extra_positional_rejected\",",
 };
 
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
@@ -75,9 +87,16 @@ fn requireInOrder(haystack: []const u8, markers: []const []const u8) !void {
     }
 }
 
+fn selfTestCasesBlock(helper: []const u8) ![]const u8 {
+    const start = std.mem.indexOf(u8, helper, "SELF_TEST_CASES = [") orelse return ContractError.MissingMarker;
+    const relative_end = std.mem.indexOf(u8, helper[start..], "\n]") orelse return ContractError.MissingMarker;
+    return helper[start .. start + relative_end];
+}
+
 fn requireSelfTestCases(helper: []const u8) !void {
-    try requireAll(helper, &helper_case_markers);
-    try requireInOrder(helper, &helper_case_markers);
+    const cases_block = try selfTestCasesBlock(helper);
+    try requireAll(cases_block, &helper_case_markers);
+    try requireInOrder(cases_block, &helper_case_markers);
     try requireOnce(helper, "assert_case(covered == SELF_TEST_CASES, \"self_test_case_order\")");
 }
 
