@@ -42,7 +42,10 @@ test "explicit archive target is fail-closed against archive_target_scope" {
     try requireContains("raise ValueError(f\"archive target {archive_target!r} is not pinned in {policy_path}\")");
 
     try requireOrdered("archive_targets = [str(target) for target in payload", "if target is not None and target not in archive_targets:");
-    try requireOrdered("if target is not None and target not in archive_targets:", "if explicit_archive is not None:");
+    try requireOrdered(
+        "if target is not None and target not in archive_targets:",
+        "    if explicit_archive is not None:\n        if target is None:",
+    );
 }
 
 test "self-test keeps target-scope and not-pinned coverage live" {

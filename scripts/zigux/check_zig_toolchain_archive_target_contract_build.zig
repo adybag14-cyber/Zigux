@@ -22,5 +22,11 @@ pub fn build(b: *std.Build) void {
     );
     test_step.dependOn(&run_contract_tests.step);
 
+    const default_test_step = b.step(
+        "test",
+        "Run the check-zig-toolchain explicit archive target contract tests.",
+    );
+    default_test_step.dependOn(&run_contract_tests.step);
+
     b.default_step.dependOn(test_step);
 }
