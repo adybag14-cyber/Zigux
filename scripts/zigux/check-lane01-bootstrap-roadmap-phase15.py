@@ -115,6 +115,13 @@ def run_self_test() -> int:
             )
         case_count += 1
 
+        _write(root / ROADMAP_PATH, _sample_roadmap().replace(f"{PREVIOUS_HEADING}\n\n", "", 1))
+        errors = check_phase15_packet(root)
+        if errors != [f"missing heading: {PREVIOUS_HEADING}"]:
+            raise AssertionError(f"unexpected previous-heading error: {errors}")
+        _write(root / ROADMAP_PATH, _sample_roadmap())
+        case_count += 1
+
         _write(root / ROADMAP_PATH, _sample_roadmap().replace(f"{SECTION_HEADING}\n\n", "", 1))
         errors = check_phase15_packet(root)
         if errors != [f"missing heading: {SECTION_HEADING}"]:
