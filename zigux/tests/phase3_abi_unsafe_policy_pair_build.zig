@@ -42,4 +42,13 @@ pub fn build(b: *std.Build) void {
     );
     test_step.dependOn(&run_abi_tests.step);
     test_step.dependOn(&run_unsafe_policy_tests.step);
+
+    const default_test_step = b.step(
+        "test",
+        "Run the focused Phase 3 ABI bindings and unsafe policy helper pair tests",
+    );
+    default_test_step.dependOn(&run_abi_tests.step);
+    default_test_step.dependOn(&run_unsafe_policy_tests.step);
+
+    b.default_step.dependOn(test_step);
 }
