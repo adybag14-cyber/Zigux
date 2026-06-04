@@ -75,7 +75,7 @@ test "phase 15 reminder surfaces keep dedicated wrapper routes gap tracked" {
 
     try expectContains(docs_root, "make -C zigux phase15-validate");
     try expectContains(docs_root, "remain blocked route vocabulary rather than shipped replay paths");
-    try expectContains(freeze_map, "broader dedicated `phase15*` wrapper routes or shared-CI route");
+    try expectContains(freeze_map, "still-missing dedicated `phase15*` wrapper routes, shared-CI companions");
     try expectContains(shared_gap, "no dedicated `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized");
     try expectContains(shared_gap, "no dedicated Phase 15 validate, test, or aggregate route name");
     try expectContains(handoff, "no directly readable `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body");
