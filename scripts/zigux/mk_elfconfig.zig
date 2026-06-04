@@ -71,17 +71,21 @@ fn readHeader(fd: std.posix.fd_t) !struct { bytes: [ei_nident]u8, len: usize } {
     return .{ .bytes = header, .len = filled };
 }
 
+pub fn runMkElfconfigFromFd(fd: std.posix.fd_t, stdout: anytype, stderr: anytype) !u8 {
+    const header = try readHeader(fd);
+    return renderOutcome(stdout, stderr, classify(header.bytes[0..header.len]));
+}
+
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
-    const header = try readHeader(std.posix.STDIN_FILENO);
     var stdout_buffer: [128]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
     var stderr_buffer: [128]u8 = undefined;
     var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-    const exit_code = try renderOutcome(
+    const exit_code = try runMkElfconfigFromFd(
+        std.posix.STDIN_FILENO,
         &stdout_writer.interface,
         &stderr_writer.interface,
-        classify(header.bytes[0..header.len]),
     );
     try stdout_writer.interface.flush();
     try stderr_writer.interface.flush();
@@ -131,6 +135,47 @@ test "classifies non-ELF input" {
 test "classifies unsupported ELF class silently" {
     const header = [_]u8{ 0x7f, 'E', 'L', 'F', 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     try std.testing.expectEqual(Outcome.invalid_class, classify(&header));
+}
+
+test "fd-backed exact 64-bit ELF header exits with stdout at EOF" {
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+    const file = try temp_dir.dir.createFile(io, "elf64_exact.bin", .{ .read = true });
+    defer file.close(io);
+    try file.writePositionalAll(io, &[_]u8{
+        0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
+        0,    0,   0,   0,   0,          0, 0, 0,
+    }, 0);
+
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromFd(file.handle, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 0), exit_code);
+    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
+test "fd-backed exact truncated header exits with stderr at EOF" {
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+    const file = try temp_dir.dir.createFile(io, "truncated_exact.bin", .{ .read = true });
+    defer file.close(io);
+    try file.writePositionalAll(io, &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 }, 0);
+
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromFd(file.handle, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
 }
 
 test "renders 32-bit define" {
