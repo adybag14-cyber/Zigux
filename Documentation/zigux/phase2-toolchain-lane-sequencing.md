@@ -5,7 +5,7 @@ Use this note when a Phase 2 change touches the shared toolchain packet recorded
 Keep the current lane split explicit:
 - shared sequencing lane `P2-Y10` owns only shared Phase 2 toolchain reminder and anti-overlap work
 - shared backlog truthfulness lane `P2-Y12` owns turning current cross-family backlog evidence into one bounded next-safe-step correction when a shared reminder surface overclaims unshipped direct replays or wider checker coverage on current `master`
-- Makefile toolchain lane `P2-X09` owns the repo-local `.zig-toolchain` fallback and the six Linux-style Phase 2 routes in `zigux/Makefile`
+- Makefile toolchain lane `P2-X09` owns the repo-local `.zig-toolchain` fallback and the shipped Phase 2 routes in `zigux/Makefile`
 - fixdep route-governance lane `P2-Y01` owns fixdep gate-marker and route-inventory wording around `scripts/zigux/check-phase2-fixdep-gate.py`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `Documentation/zigux/phase2-closure.md`, and directly coupled reminder surfaces
 - fixdep closure lane `P2-Y02` owns bounded next-step or closure truthfulness after the route-governance packet is already split, including same-family reminder wording around `Documentation/zigux/phase2-fixdep-next-step-note.md`, `Documentation/zigux/artifact-diff.md`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, and `zigux/tests/fixtures/fixdep/`
 - genksyms roadmap-survey lane `P2-L07` owns repo-versus-roadmap evidence for the wrapper-first bridge packet recorded in `Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`
@@ -30,7 +30,7 @@ Keep the current owner map explicit:
 - `P2-L19` stays parked as survey evidence only; `P2-Y07` owns the current confdata checker undercount and `P2-L24` owns bridge-local malformed-quote or helper-anchor truthfulness.
 Shared sequencing lanes should not treat the parked survey label as the active confdata maintenance lane.
 ## Current Backlog Evidence
-Current `master` already keeps the shared Phase 2 toolchain packet bounded around the six Linux-style routes in `zigux/Makefile`, the closure wording in `Documentation/zigux/phase2-closure.md`, the shared manifest plus checker packet, and this dedicated owner-map note.
+Current `master` already keeps the shared Phase 2 toolchain packet bounded around the shipped Phase 2 routes in `zigux/Makefile`, the closure wording in `Documentation/zigux/phase2-closure.md`, the shared manifest plus checker packet, and this dedicated owner-map note.
 The remaining shared anti-overlap risk is narrower:
 - current `master` already carries the separate genksyms dual-implementation survey, conf bridge survey, confdata survey, fixdep next-step note, and the newer bridge-checker or gate follow-through records, so the shared owner map should now stay parked unless one of those already-split lane boundaries drifts again on a closure-facing reminder surface
 - the remaining shared correction path is therefore narrower than a fresh sequencing-note rewrite: reopen `P2-Y10` only for multi-family route, manifest, validator, or reminder-surface drift, and reopen `P2-Y12` only when a shared backlog note points at the wrong next safe Phase 2 follow-through
@@ -61,13 +61,15 @@ When a real cross-family Phase 2 toolchain change lands, keep these shared surfa
 - `make -C zigux phase2-tools`
 - `make -C zigux phase2-kconfig`
 - `make -C zigux phase2-cross`
+- `make -C zigux phase2-genksyms`
+- `make -C zigux phase2-fixdep`
 - `make -C zigux phase2`
 ## Sequencing Rules
 Use this note to keep the bounded work order honest:
 1. Prefer one Phase 2 lane at a time instead of batching Makefile, fixdep, genksyms, and kconfig follow-up into one mixed change.
 2. Reopen `P2-Y10` only for shared route-inventory, reminder-surface, tool-manifest, cross-target, or validator alignment drift that affects more than one Phase 2 tool family at once.
 3. Reopen `P2-Y12` only when current `master` evidence shows a shared backlog or review surface pointing at the wrong next step; keep that lane limited to the smallest owner-map, README, or checker truthfulness repair that turns the backlog into one bounded follow-through.
-4. Keep `P2-X09` parked unless the repo-local `.zig-toolchain` fallback or the six Linux-style route inventory drifts in `zigux/Makefile` or the shared notes that restate it.
+4. Keep `P2-X09` parked unless the repo-local `.zig-toolchain` fallback or the shipped Phase 2 route inventory drifts in `zigux/Makefile` or the shared notes that restate it.
 5. Keep the genksyms split explicit: use `P2-L07` for roadmap-survey evidence, `P2-L12` for same-family survey-note or closure truthfulness, `P2-L10` for fixture or expected-output drift, and `P2-L11` for workflow-backed replay or validator wiring.
 6. Keep `P2-X05` for `conf_bridge` behavior-to-expected-output drift and `P2-L18` for the current checker-and-manifest parity packet; do not reopen the shared lane for older broad conf-bridge wording when current repo evidence already narrowed the gap to one of those tool-local steps.
 7. Keep `P2-L19` parked as survey-only evidence; use `P2-Y07` for confdata checker undercount and `P2-L24` for bridge-local malformed-quote or helper-anchor truthfulness if confdata reopens.
