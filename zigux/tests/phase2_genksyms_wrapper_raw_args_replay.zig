@@ -72,8 +72,8 @@ test "raw args preserve explicit terminator position separately from bridge rend
 
                 const expected_rendered = [_][]const u8{
                     "-VV",
-                    "--",
                     "delayed.c",
+                    "--",
                     "-d",
                     "--reference",
                     "tail.symref",
@@ -86,7 +86,7 @@ test "raw args preserve explicit terminator position separately from bridge rend
                 try testing.expect(std.mem.indexOf(
                     u8,
                     rendered.written(),
-                    "\"argv\":[\"scripts/genksyms/genksyms\",\"-VV\",\"--\",\"delayed.c\",\"-d\",\"--reference\",\"tail.symref\"]",
+                    "\"argv\":[\"scripts/genksyms/genksyms\",\"-VV\",\"delayed.c\",\"--\",\"-d\",\"--reference\",\"tail.symref\"]",
                 ) != null);
             },
             else => return error.ExpectedRequest,
