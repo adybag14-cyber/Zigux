@@ -1,10 +1,9 @@
 const std = @import("std");
 
 fn readRepoFile(b: *std.Build, path: []const u8) []const u8 {
-    const absolute_path = b.pathFromRoot(path);
     return std.Io.Dir.cwd().readFileAlloc(
         b.graph.io,
-        absolute_path,
+        path,
         b.allocator,
         .limited(512 * 1024),
     ) catch |err| {
@@ -20,12 +19,12 @@ pub fn build(b: *std.Build) void {
     options.addOption(
         []const u8,
         "checker_source",
-        readRepoFile(b, "../../scripts/zigux/check-artifact-diff-contract.py"),
+        readRepoFile(b, "scripts/zigux/check-artifact-diff-contract.py"),
     );
     options.addOption(
         []const u8,
         "helper_source",
-        readRepoFile(b, "../../scripts/zigux/artifact_diff.py"),
+        readRepoFile(b, "scripts/zigux/artifact_diff.py"),
     );
 
     const root_module = b.createModule(.{

@@ -62,7 +62,7 @@ test "phase1 parity checker keeps the committed fixture and artifact diff helper
 
     try expectContains(checker, "PHASE1_PARITY_SELF_TEST=pass");
     try expectContains(checker, "PHASE1_PARITY=pass");
-    try expectContains(checker, "artifact_diff_path");
+    try expectContains(checker, "ARTIFACT_DIFF_REL");
 }
 
 test "phase1 parity and artifact diff gates keep fail closed marker catalogs visible" {
@@ -74,13 +74,12 @@ test "phase1 parity and artifact diff gates keep fail closed marker catalogs vis
     defer std.testing.allocator.free(artifact_contract);
 
     const parity_issue_markers = [_][]const u8{
-        "PHASE1_PARITY_INPUT_ISSUES_START",
-        "PHASE1_PARITY_INPUT_ISSUES_END",
-        "PHASE1_PARITY_OUTPUT_ISSUES_START",
-        "PHASE1_PARITY_OUTPUT_ISSUES_END",
-        "PHASE1_PARITY_KEY_ISSUES_START",
-        "PHASE1_PARITY_KEY_ISSUES_END",
-        "PHASE1_PARITY_REFRESH=pass",
+        "PHASE1_PARITY_ISSUE=",
+        "artifact_diff:self_test:returncode",
+        "artifact_diff:self_test:pass",
+        "manifest:review_anchors:",
+        "fixture:sections",
+        "replay_build:",
     };
     for (parity_issue_markers) |marker| {
         try expectContains(parity_checker, marker);
@@ -217,6 +216,6 @@ test "artifact diff gate keeps binary diff mode and review coverage visible" {
     try expectContains(contract, "ARTIFACT_DIFF_CONTRACT=pass");
 
     try expectContains(note, "scripts/zigux/artifact_diff.py");
-    try expectContains(note, "owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`");
-    try expectContains(note, "rollback owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`");
+    try expectContains(note, "`Tooling and Validation Team` owns the shared Phase 4 artifact-diff note packet");
+    try expectContains(note, "Near-term follow-through should stay limited to truthful catalog refreshes");
 }

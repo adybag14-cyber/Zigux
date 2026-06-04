@@ -128,7 +128,7 @@ test "artifact diff contract checker keeps helper binding and summary markers" {
     try expectContains(checker_source, "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=");
     try expectContains(checker_source, "owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`");
     try expectContains(checker_source, "rollback owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`");
-    try expectContains(checker_source, "deterministic checker catalog:");
+    try expectContains(checker_source, "ARTIFACT_DIFF_CONTRACT_CASES=");
 }
 
 test "artifact diff helper and checker catalogs stay aligned" {
