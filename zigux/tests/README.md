@@ -59,6 +59,7 @@ Purpose
   * `scripts/zigux/check-phase2-toolchain-pin-scope.py`
   * `scripts/zigux/check-phase2-docs-shared-reminder.py`
   * `scripts/zigux/check-phase2-tool-manifest.py`
+  * `scripts/zigux/check-phase2-bootstrap-workflow-routes.py`
   * `scripts/zigux/check-phase2-artifact-tools-manifest.py`
   * `scripts/zigux/check-phase2-required-make-routes.py`
   * `scripts/zigux/check-genksyms-bridge.py`

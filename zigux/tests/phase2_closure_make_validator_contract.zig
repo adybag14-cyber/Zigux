@@ -32,6 +32,10 @@ const validator_paths = [_][]const u8{
     "scripts/zigux/validate-phase2-closure.py",
 };
 
+const makefile_validator_markers = [_][]const u8{
+    "$(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
+};
+
 const shared_checker_commands = [_][]const u8{
     "python3 scripts/zigux/check-phase2-tool-manifest.py",
     "python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
@@ -48,6 +52,16 @@ const shared_checker_paths = [_][]const u8{
     "scripts/zigux/check-phase2-artifact-tools-manifest.py",
     "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
     "scripts/zigux/check-phase2-cross.py",
+    "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-fixdep-diff.py",
+};
+
+const makefile_shared_checker_markers = [_][]const u8{
+    "$(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
+    "$(PHASE2_SCRIPT_ROOT)/check-phase2-bootstrap-workflow-routes.py",
+    "$(PHASE2_SCRIPT_ROOT)/check-phase2-artifact-tools-manifest.py",
+    "$(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py",
+    "$(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
     "scripts/zigux/check-phase2-fixdep-gate.py",
     "scripts/zigux/check-fixdep-diff.py",
 };
@@ -129,6 +143,9 @@ test "phase 2 closure keeps validator and shared checker commands visible" {
     const makefile = try readRepoFile("zigux/Makefile", 128 * 1024);
     defer std.testing.allocator.free(makefile);
 
+    const workflow = try readRepoFile(".github/workflows/zigux-bootstrap.yml", 256 * 1024);
+    defer std.testing.allocator.free(workflow);
+
     const manifest = try readRepoFile("zigux/tests/fixtures/phase2_tool_manifest.json", 256 * 1024);
     defer std.testing.allocator.free(manifest);
 
@@ -139,7 +156,10 @@ test "phase 2 closure keeps validator and shared checker commands visible" {
     inline for (validator_paths) |path| {
         try expectContains(tests_readme, path);
         try expectContains(manifest, path);
-        try expectContains(makefile, path);
+        try expectContains(workflow, path);
+    }
+    inline for (makefile_validator_markers) |marker| {
+        try expectContains(makefile, marker);
     }
 
     try expectContains(closure_note, "PHASE2_SHARED_TOOLING_CHECKERS=");
@@ -149,7 +169,10 @@ test "phase 2 closure keeps validator and shared checker commands visible" {
     inline for (shared_checker_paths) |path| {
         try expectContains(tests_readme, path);
         try expectContains(manifest, path);
-        try expectContains(makefile, path);
+        try expectContains(workflow, path);
+    }
+    inline for (makefile_shared_checker_markers) |marker| {
+        try expectContains(makefile, marker);
     }
 }
 
