@@ -21,7 +21,7 @@ fn localBit(bit_index: usize) Word {
 }
 
 fn fixtureWords() [word_count]Word {
-    var words = [_]Word{0} ** word_count;
+    var words = std.mem.zeroes([word_count]Word);
     words[0] = localBit(first_bit) | localBit(second_bit);
     words[tail_word_index] =
         localBit(tail_a) |
@@ -40,7 +40,7 @@ fn supersetWords() [word_count]Word {
 }
 
 fn disjointWords() [word_count]Word {
-    var words = [_]Word{0} ** word_count;
+    var words = std.mem.zeroes([word_count]Word);
     words[0] = localBit(first_bit + 1) | localBit(second_bit + 1);
     words[tail_word_index] =
         localBit(tail_base + 1) |
