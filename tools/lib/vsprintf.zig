@@ -87,3 +87,30 @@ test "scnprintfPad handles zero logical size and zero-length caller views" {
     try std.testing.expectEqual(@as(usize, 0), empty_written);
     try std.testing.expectEqual(@as(u8, 0xee), backing[0]);
 }
+
+test "scnprintf and vscnprintf keep caller subview sentinels outside exact-fit windows" {
+    var direct = [_]u8{
+        0xa1, 0xa2, 0xa3, 0xa4,
+        0xa5, 0xa6, 0xa7, 0xa8,
+        0xa9, 0xaa,
+    };
+    var alias = [_]u8{
+        0xb1, 0xb2, 0xb3, 0xb4,
+        0xb5, 0xb6, 0xb7, 0xb8,
+        0xb9, 0xba,
+    };
+
+    const direct_written = scnprintf(direct[2..7], "{s}", .{"core"});
+    const alias_written = vscnprintf(alias[3..8], "{s}", .{"port"});
+
+    try std.testing.expectEqual(@as(usize, 4), direct_written);
+    try std.testing.expectEqual(@as(usize, 4), alias_written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xa1, 0xa2 }, direct[0..2]);
+    try std.testing.expectEqualSlices(u8, "core", direct[2..6]);
+    try std.testing.expectEqual(@as(u8, 0), direct[6]);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xa8, 0xa9, 0xaa }, direct[7..10]);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xb1, 0xb2, 0xb3 }, alias[0..3]);
+    try std.testing.expectEqualSlices(u8, "port", alias[3..7]);
+    try std.testing.expectEqual(@as(u8, 0), alias[7]);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xb9, 0xba }, alias[8..10]);
+}

@@ -61,3 +61,25 @@ test "strErrorR truncates known and synthesized messages with a trailing termina
     try std.testing.expectEqualStrings("INTERNA", fallback_rendered);
     try std.testing.expectEqual(@as(u8, 0), fallback[7]);
 }
+
+test "strErrorR preserves exact-fit caller terminators and surrounding bytes" {
+    var known: [20]u8 = @splat(0xaa);
+    const known_window = known[2..19];
+    const known_rendered = strErrorR(22, known_window);
+    try std.testing.expectEqualStrings("Invalid argument", known_rendered);
+    try std.testing.expectEqual(@as(u8, 0xaa), known[0]);
+    try std.testing.expectEqual(@as(u8, 0xaa), known[1]);
+    try std.testing.expectEqual(@as(u8, 0), known[18]);
+    try std.testing.expectEqual(@as(u8, 0xaa), known[19]);
+
+    var fallback: [52]u8 = @splat(0xbb);
+    const fallback_window = fallback[3..50];
+    const fallback_rendered = strErrorR(4096, fallback_window);
+    try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(4096, [buf], 47)=22", fallback_rendered);
+    try std.testing.expectEqual(@as(u8, 0xbb), fallback[0]);
+    try std.testing.expectEqual(@as(u8, 0xbb), fallback[1]);
+    try std.testing.expectEqual(@as(u8, 0xbb), fallback[2]);
+    try std.testing.expectEqual(@as(u8, 0), fallback[49]);
+    try std.testing.expectEqual(@as(u8, 0xbb), fallback[50]);
+    try std.testing.expectEqual(@as(u8, 0xbb), fallback[51]);
+}
