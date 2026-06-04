@@ -65,6 +65,45 @@ test "phase1 parity checker keeps the committed fixture and artifact diff helper
     try expectContains(checker, "artifact_diff_path");
 }
 
+test "phase1 parity and artifact diff gates keep fail closed marker catalogs visible" {
+    const parity_checker = try readFileAlloc("scripts/zigux/check-phase1-parity.py");
+    defer std.testing.allocator.free(parity_checker);
+    const artifact_helper = try readFileAlloc("scripts/zigux/artifact_diff.py");
+    defer std.testing.allocator.free(artifact_helper);
+    const artifact_contract = try readFileAlloc("scripts/zigux/check-artifact-diff-contract.py");
+    defer std.testing.allocator.free(artifact_contract);
+
+    const parity_issue_markers = [_][]const u8{
+        "PHASE1_PARITY_INPUT_ISSUES_START",
+        "PHASE1_PARITY_INPUT_ISSUES_END",
+        "PHASE1_PARITY_OUTPUT_ISSUES_START",
+        "PHASE1_PARITY_OUTPUT_ISSUES_END",
+        "PHASE1_PARITY_KEY_ISSUES_START",
+        "PHASE1_PARITY_KEY_ISSUES_END",
+        "PHASE1_PARITY_REFRESH=pass",
+    };
+    for (parity_issue_markers) |marker| {
+        try expectContains(parity_checker, marker);
+    }
+
+    try expectContains(artifact_helper, "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=");
+    try expectContains(artifact_helper, "ARTIFACT_DIFF_SELF_TEST_CASES=");
+    try expectContains(artifact_contract, "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=");
+    try expectContains(artifact_contract, "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=");
+    try expectContains(artifact_contract, "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=");
+    try expectContains(artifact_contract, "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=");
+    try expectContains(artifact_contract, "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES=");
+
+    try expectAnyContains(artifact_contract, &.{
+        "\"cli_missing_mode_value\"",
+        "\"cli_invalid_mode\"",
+    });
+    try expectAnyContains(artifact_contract, &.{
+        "\"bytes_missing_both\"",
+        "\"sha256_missing_both\"",
+    });
+}
+
 test "phase1 committed fixture and manifest keep helper coverage aligned" {
     const fixture = try readFileAlloc("zigux/tests/fixtures/phase1_helpers.json");
     defer std.testing.allocator.free(fixture);
