@@ -591,7 +591,7 @@ test "phase3 mmio helper keeps MmioRange typed-access windows explicit before fu
 }
 
 test "phase3 mmio helper keeps range-bound accessors inside the blessed MMIO window" {
-    var bytes: [16]u8 = @splat(0);
+    var bytes: [16]u8 align(@alignOf(u32)) = @splat(0);
     const base_addr = @intFromPtr(&bytes[0]);
     const range = try rangeScoped(base_addr, 16, 4, .volatile_mmio);
 

@@ -20,6 +20,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    uapi_version_module.addImport("abi_bindings", abi_bindings_module);
     const dev_t_binding_module = b.createModule(.{
         .root_source_file = b.path("../bindings/dev_t.zig"),
         .target = target,

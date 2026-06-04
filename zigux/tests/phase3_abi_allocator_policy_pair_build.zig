@@ -16,11 +16,17 @@ pub fn build(b: *std.Build) void {
     });
     abi_bindings_module.addImport("notifier_abi", notifier_abi_module);
 
+    const uapi_dev_t_module = b.createModule(.{
+        .root_source_file = b.path("../uapi/dev_t.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const dev_t_binding_module = b.createModule(.{
         .root_source_file = b.path("../bindings/dev_t.zig"),
         .target = target,
         .optimize = optimize,
     });
+    dev_t_binding_module.addImport("uapi_dev_t", uapi_dev_t_module);
     const version_binding_module = b.createModule(.{
         .root_source_file = b.path("../bindings/version.zig"),
         .target = target,
@@ -32,6 +38,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    uapi_version_module.addImport("abi_bindings", abi_bindings_module);
+    version_binding_module.addImport("uapi_version", uapi_version_module);
     const header_family_binding_module = b.createModule(.{
         .root_source_file = b.path("../bindings/header_family.zig"),
         .target = target,
@@ -85,6 +93,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     unsafe_policy_helpers_module.addImport("abi_bindings", abi_bindings_module);
+    unsafe_policy_helpers_module.addImport("narrow", narrow_unsafe_module);
     unsafe_policy_helpers_module.addImport("narrow_unsafe", narrow_unsafe_module);
 
     const phase3_abi_module = b.createModule(.{
