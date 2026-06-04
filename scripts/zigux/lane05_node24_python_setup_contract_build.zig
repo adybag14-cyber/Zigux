@@ -5,7 +5,7 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
     const workflow_text = std.Io.Dir.cwd().readFileAlloc(
         b.graph.io,
-        b.path("../../.github/workflows/zigux-bootstrap.yml").getPath(b),
+        ".github/workflows/zigux-bootstrap.yml",
         b.allocator,
         .limited(1024 * 1024),
     ) catch @panic("failed to read zigux-bootstrap workflow");

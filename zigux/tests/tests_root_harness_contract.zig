@@ -53,10 +53,10 @@ test "shared build root keeps cross-phase route vocabulary ordered" {
     try requireContains(build_text, "\"phase10-virtio-core-survey\"");
     try requireContains(build_text, "\"phase12-virtio-net-throughput-parity\"");
 
-    try requireOrdered(build_text, "\"phase1-host-tools-smoke\"", "\"phase3-test\"");
-    try requireOrdered(build_text, "\"phase3-test\"", "\"phase4-runtime-atomic64-diff-survey\"");
-    try requireOrdered(build_text, "\"phase4-runtime-atomic64-diff-survey\"", "\"phase7-argv-split-survey\"");
-    try requireOrdered(build_text, "\"phase7-argv-split-survey\"", "\"phase8-host-tools-alpha\"");
-    try requireOrdered(build_text, "\"phase8-host-tools-alpha\"", "\"phase10-virtio-core-survey\"");
-    try requireOrdered(build_text, "\"phase10-virtio-core-survey\"", "\"phase12-virtio-net-throughput-parity\"");
+    try requireOrdered(build_text, "const phase1_step = b.step(", "const phase3_test_step = b.step(");
+    try requireOrdered(build_text, "const phase3_test_step = b.step(", "const phase4_step = b.step(");
+    try requireOrdered(build_text, "const phase4_step = b.step(", "const phase7_step = b.step(");
+    try requireOrdered(build_text, "const phase7_step = b.step(", "const phase8_host_tools_alpha_step = b.step(");
+    try requireOrdered(build_text, "const phase8_host_tools_alpha_step = b.step(", "const phase10_step = b.step(");
+    try requireOrdered(build_text, "const phase10_step = b.step(", "const phase12_throughput_step = b.step(");
 }

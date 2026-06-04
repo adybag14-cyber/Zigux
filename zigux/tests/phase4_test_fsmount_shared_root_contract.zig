@@ -85,7 +85,7 @@ test "phase4 test_fsmount manifest and survey keep absent-starter boundary expli
     try expectContains(manifest, "\"threshold_posture\": \"reviewability_only_no_perf_threshold\"");
     try expectContains(manifest, "\"current_measurable_status\": \"absent_on_current_master_but_reviewable_through_the_dedicated_gap_packet_without_claiming_a_shipped_zig_starter\"");
 
-    try expectContains(survey, "phase4 test_fsmount survey keeps the parked gap packet explicit");
-    try expectContains(survey, "phase4 test_fsmount survey keeps the tests-root reminder aligned");
+    try expectContains(survey, "phase4 test_fsmount survey manifest records the parked survey packet and remaining sample gap");
+    try expectContains(survey, "tests_readme_present");
     try expectContains(note, "Current `master` still does not ship `samples/zigux/test_fsmount.zig`.");
 }

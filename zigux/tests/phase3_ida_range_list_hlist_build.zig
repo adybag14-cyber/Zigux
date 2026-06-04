@@ -33,6 +33,13 @@ pub fn build(b: *std.Build) void {
     ida_bitmap_view_module.addImport("bitmap_view", bitmap_view_module);
     ida_bitmap_view_module.addImport("narrow_unsafe", narrow_unsafe_module);
 
+    const ida_alloc_view_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/ida_alloc_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    ida_alloc_view_module.addImport("ida_bitmap_view", ida_bitmap_view_module);
+
     const ida_range_view_module = b.createModule(.{
         .root_source_file = b.path("../helpers/ida_range_view.zig"),
         .target = target,
@@ -40,6 +47,8 @@ pub fn build(b: *std.Build) void {
     });
     ida_range_view_module.addImport("abi_bindings", abi_bindings_module);
     ida_range_view_module.addImport("bitmap_view", bitmap_view_module);
+    ida_range_view_module.addImport("ida_bitmap_view", ida_bitmap_view_module);
+    ida_range_view_module.addImport("ida_alloc_view", ida_alloc_view_module);
     ida_range_view_module.addImport("narrow_unsafe", narrow_unsafe_module);
 
     const list_view_module = b.createModule(.{

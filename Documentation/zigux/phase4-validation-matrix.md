@@ -136,6 +136,8 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
   * rollback owner: `Validation and Perf Team`
   * current measurable status: absent on current `master`
   * reviewability-only no-perf-threshold posture
+  * current replay path: `make M=samples/vfs`
+  * dedicated local survey wrapper: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
   * validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
   * dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`
   * survey owner: `Validation and Perf Team`
