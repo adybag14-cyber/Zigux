@@ -19,7 +19,7 @@ test "archive-only CLI surface stays explicit and separate from zig probing" {
     try requireBefore(
         checker_source,
         "if args.archive_only:",
-        "zig: str | None = None",
+        "\n    zig: str | None = None",
     );
     try requireBefore(
         checker_source,
@@ -47,30 +47,17 @@ test "archive-only validation emits status path target expected and actual diges
         "archive_status, note, validated_expected_sha, actual_sha = validate_policy_archive(",
         "print(f\"ZIG_TOOLCHAIN_ARCHIVE_STATUS={archive_status}\")",
     );
-    try requireBefore(
+    try requireContains(
         checker_source,
-        "print(f\"ZIG_TOOLCHAIN_ARCHIVE_STATUS={archive_status}\")",
-        "print(f\"ZIG_TOOLCHAIN_ARCHIVE_PATH={archive_path}\")",
-    );
-    try requireBefore(
-        checker_source,
-        "print(f\"ZIG_TOOLCHAIN_ARCHIVE_PATH={archive_path}\")",
-        "print(f\"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target or 'unresolved'}\")",
-    );
-    try requireBefore(
-        checker_source,
-        "print(f\"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target or 'unresolved'}\")",
-        "print(f\"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_SHA256={validated_expected_sha}\")",
-    );
-    try requireBefore(
-        checker_source,
-        "print(f\"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_SHA256={validated_expected_sha}\")",
-        "print(f\"ZIG_TOOLCHAIN_ARCHIVE_ACTUAL_SHA256={actual_sha}\")",
-    );
-    try requireBefore(
-        checker_source,
-        "print(f\"ZIG_TOOLCHAIN_ARCHIVE_ACTUAL_SHA256={actual_sha}\")",
-        "print(f\"ZIG_TOOLCHAIN_NOTE={note}\")",
+        \\        print(f"ZIG_TOOLCHAIN_ARCHIVE_STATUS={archive_status}")
+        \\        print(f"ZIG_TOOLCHAIN_ARCHIVE_PATH={archive_path}")
+        \\        print(f"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target or 'unresolved'}")
+        \\        if expected_filename is not None:
+        \\            print(f"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_FILENAME={expected_filename}")
+        \\        print(f"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_SHA256={validated_expected_sha}")
+        \\        print(f"ZIG_TOOLCHAIN_ARCHIVE_ACTUAL_SHA256={actual_sha}")
+        \\        if note is not None:
+        \\            print(f"ZIG_TOOLCHAIN_NOTE={note}")
     );
     try requireContains(checker_source, "return 1");
     try requireContains(checker_source, "return 0");
