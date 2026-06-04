@@ -26,7 +26,8 @@ test "helper ports A bitmap gaps feed find-bit scans and formatting" {
     try std.testing.expectEqual(@as(usize, bits_per_long + 1), find_bit.findNextZeroBit(&map, nbits, bits_per_long));
     try std.testing.expectEqual(@as(usize, bits_per_long + 10), find_bit.findLastBit(&map, nbits));
 
-    var formatted = [_]u8{0xaa} ** 64;
+    var formatted: [64]u8 = undefined;
+    @memset(&formatted, 0xaa);
     const written = bitmap.scnprintf(&map, nbits, &formatted);
     var expected_storage: [64]u8 = undefined;
     const expected = try std.fmt.bufPrint(
@@ -41,7 +42,8 @@ test "helper ports A bitmap gaps feed find-bit scans and formatting" {
 }
 
 test "helper ports A string padding preserves sysfs token matching" {
-    var padded = [_]u8{0xcc} ** 12;
+    var padded: [12]u8 = undefined;
+    @memset(&padded, 0xcc);
     try std.testing.expectEqual(@as(isize, 6), string.strscpy_pad(&padded, "target"));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 't', 'a', 'r', 'g', 'e', 't', 0, 0, 0, 0, 0, 0 }, &padded);
 
