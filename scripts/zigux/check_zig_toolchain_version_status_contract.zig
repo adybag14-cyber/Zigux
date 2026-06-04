@@ -36,7 +36,7 @@ test "toolchain version status decisions remain exact and ordered" {
 
     try requireOrdered(source, "if parsed_version < min_version:", "return \"too_old\", None");
     try requireOrdered(source, "return \"too_old\", None", "if expected_channel_raw is not None:");
-    try requireOrdered(source, "return \"not_pinned\", f\"expected pinned Zig channel {expected_channel_raw}\"", "return \"present\", None");
+    try requireContains(source, "return \"not_pinned\", f\"expected pinned Zig channel {expected_channel_raw}\"\n    return \"present\", None");
 }
 
 test "toolchain CLI reports the final status packet" {
@@ -59,9 +59,9 @@ test "toolchain CLI reports the final status packet" {
 test "checker self-test covers present not-pinned and too-old outcomes" {
     const source = checker_source;
 
-    try requireContains(source, "evaluate_toolchain_version(\"0.17.0-dev.87+9b177a7d2\", \"0.17.0-dev.87+9b177a7d2\")");
+    try requireContains(source, "evaluate_toolchain_version(\"0.17.0-dev.758+748e7c5e3\", \"0.17.0-dev.758+748e7c5e3\")");
     try requireContains(source, "(\"present\", None)");
-    try requireContains(source, "(\"not_pinned\", \"expected pinned Zig channel 0.17.0-dev.87+9b177a7d2\")");
+    try requireContains(source, "(\"not_pinned\", \"expected pinned Zig channel 0.17.0-dev.758+748e7c5e3\")");
     try requireContains(source, "(\"too_old\", None)");
     try requireContains(source, "ZIG_TOOLCHAIN_SELF_TEST=pass");
     try requireContains(source, "ZIG_TOOLCHAIN_SELF_TEST_CASE_COUNT=");
