@@ -34,8 +34,8 @@ fn collectForward(root: *const rbtree.RootCached, out: []usize) usize {
 
 fn buildSplicedBitmap(out: []Word, mask: []Word) void {
     const nbits = bitmap.bits_per_long + 19;
-    var old = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var new = [_]Word{0} ** bitmap.bitsToWords(nbits);
+    var old: [bitmap.bitsToWords(nbits)]Word = @splat(0);
+    var new: [bitmap.bitsToWords(nbits)]Word = @splat(0);
 
     bitmap.setRange(&old, 2, 4);
     bitmap.setRange(&old, 16, 3);
@@ -52,8 +52,8 @@ fn buildSplicedBitmap(out: []Word, mask: []Word) void {
 
 test "helper ports A mask splice clamps replacement and and-not scans" {
     const nbits = bitmap.bits_per_long + 19;
-    var spliced = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var mask = [_]Word{0} ** bitmap.bitsToWords(nbits);
+    var spliced: [bitmap.bitsToWords(nbits)]Word = @splat(0);
+    var mask: [bitmap.bitsToWords(nbits)]Word = @splat(0);
     buildSplicedBitmap(&spliced, &mask);
 
     try std.testing.expectEqual(@as(usize, 13), bitmap.weight(&spliced, nbits));
@@ -68,7 +68,7 @@ test "helper ports A mask splice clamps replacement and and-not scans" {
     try std.testing.expectEqual(expected.len, written);
     try std.testing.expectEqualStrings(expected, rendered[0..written]);
 
-    var copied = [_]u8{0xaa} ** 32;
+    var copied: [32]u8 = @splat(0xaa);
     try std.testing.expectEqual(@as(isize, expected.len), string.strscpy_pad(&copied, expected));
     try std.testing.expectEqual(@as(?usize, 1), string.strnchr(&copied, written, '-'));
     try std.testing.expectEqual(@as(?usize, null), string.strnchr(&copied, written, 'z'));
@@ -85,8 +85,8 @@ test "helper ports A mask splice clamps replacement and and-not scans" {
 
 test "helper ports A spliced keys preserve cached rbtree erase and reinsert order" {
     const nbits = bitmap.bits_per_long + 19;
-    var spliced = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var mask = [_]Word{0} ** bitmap.bitsToWords(nbits);
+    var spliced: [bitmap.bitsToWords(nbits)]Word = @splat(0);
+    var mask: [bitmap.bitsToWords(nbits)]Word = @splat(0);
     buildSplicedBitmap(&spliced, &mask);
 
     var entries = [_]Entry{
