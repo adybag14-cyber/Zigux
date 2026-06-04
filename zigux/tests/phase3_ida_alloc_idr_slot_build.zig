@@ -27,6 +27,7 @@ fn addIdaAllocIdrSlotTest(
         .target = target,
         .optimize = optimize,
     });
+    xa_value.addImport("err_ptr", err_ptr);
     const xarray_slot_view = b.createModule(.{
         .root_source_file = b.path("../helpers/xarray_slot_view.zig"),
         .target = target,
