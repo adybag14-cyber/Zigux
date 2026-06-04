@@ -2,7 +2,7 @@ const std = @import("std");
 const testing = std.testing;
 const genksyms = @import("genksyms.zig");
 
-test "abbreviated inline required arguments resume before terminator tail" {
+test "abbreviated inline required arguments preserve terminator tail ordering" {
     var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena_state.deinit();
 
@@ -30,8 +30,8 @@ test "abbreviated inline required arguments resume before terminator tail" {
                 try testing.expectEqualStrings("--dump-t=types\nfile.symtypes", request.rendered_args[1]);
                 try testing.expectEqualStrings("--ver", request.rendered_args[2]);
                 try testing.expectEqualStrings("-d", request.rendered_args[3]);
-                try testing.expectEqualStrings("--", request.rendered_args[4]);
-                try testing.expectEqualStrings("early.c", request.rendered_args[5]);
+                try testing.expectEqualStrings("early.c", request.rendered_args[4]);
+                try testing.expectEqualStrings("--", request.rendered_args[5]);
                 try testing.expectEqualStrings("--ref=tail.symref", request.rendered_args[6]);
                 try testing.expectEqualStrings("--dump-t=tail.symtypes", request.rendered_args[7]);
             },
@@ -69,7 +69,7 @@ test "abbreviated inline required argument tail renders escaped JSON" {
 
     try genksyms.renderGenksymsBridge(&output.writer, request);
     try testing.expectEqualStrings(
-        "{\"tool\":\"scripts/genksyms/genksyms\",\"stdin\":\"cpp-stream\",\"stdout\":\"symversions\",\"argv\":[\"scripts/genksyms/genksyms\",\"--ref=alpha.symref\",\"--dump-t=types\\nfile.symtypes\",\"--ver\",\"-d\",\"--\",\"early.c\",\"--ref=tail.symref\",\"--dump-t=tail.symtypes\"],\"options\":{\"debug_level\":1,\"warnings\":false,\"dump_defs\":false,\"preserve\":false,\"reference_files\":[\"alpha.symref\"],\"dump_types_file\":\"types\\nfile.symtypes\"}}\n",
+        "{\"tool\":\"scripts/genksyms/genksyms\",\"stdin\":\"cpp-stream\",\"stdout\":\"symversions\",\"argv\":[\"scripts/genksyms/genksyms\",\"--ref=alpha.symref\",\"--dump-t=types\\nfile.symtypes\",\"--ver\",\"-d\",\"early.c\",\"--\",\"--ref=tail.symref\",\"--dump-t=tail.symtypes\"],\"options\":{\"debug_level\":1,\"warnings\":false,\"dump_defs\":false,\"preserve\":false,\"reference_files\":[\"alpha.symref\"],\"dump_types_file\":\"types\\nfile.symtypes\"}}\n",
         output.written(),
     );
 }
