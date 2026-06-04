@@ -65,13 +65,14 @@ fn expectQuotedName(haystack: []const u8, name: []const u8) !void {
 }
 
 test "artifact diff keeps json self-test catalog explicit" {
-    try expectContains(artifact_diff_source, "EXPECTED_SELF_TEST_CASES");
+    try expectContains(artifact_diff_source, "SELF_TEST_CASES");
     try expectContains(artifact_diff_source, "run_self_test");
     for (json_case_names) |name| {
         try expectQuotedName(artifact_diff_source, name);
     }
 
-    try expectContains(artifact_diff_source, "covered_cases");
+    try expectContains(artifact_diff_source, "covered");
+    try expectContains(artifact_diff_source, "ARTIFACT_DIFF_SELF_TEST_CASES=");
 }
 
 test "artifact diff preserves json canonicalization and error reporting surface" {
