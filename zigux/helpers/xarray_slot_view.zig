@@ -45,6 +45,10 @@ pub const SlotView = struct {
         return self.kind() == .pointer;
     }
 
+    pub fn isTaggedEntry(self: SlotView) bool {
+        return isTaggedInternalEntry(self.raw);
+    }
+
     pub fn value(self: SlotView) ?usize {
         if (!self.isValue()) {
             return null;
@@ -175,4 +179,24 @@ test "value constructor still rejects entries that would overlap err_ptr space" 
         error.ValueWouldOverlapErrPtr,
         fromValue(xa_value.safe_inline_limit + 1),
     );
+}
+
+test "slot-level tagged entry query matches raw xarray helper state" {
+    const null_slot = nullSlot();
+    const value_slot = try fromValue(29);
+    const pointer_slot = fromRaw(err_ptr.err_floor - 1);
+    const err_floor_slot = fromRaw(err_ptr.err_floor);
+    const top_err_slot = fromErrorCode(-1);
+
+    try std.testing.expectEqual(isTaggedInternalEntry(null_slot.rawValue()), null_slot.isTaggedEntry());
+    try std.testing.expectEqual(isTaggedInternalEntry(value_slot.rawValue()), value_slot.isTaggedEntry());
+    try std.testing.expectEqual(isTaggedInternalEntry(pointer_slot.rawValue()), pointer_slot.isTaggedEntry());
+    try std.testing.expectEqual(isTaggedInternalEntry(err_floor_slot.rawValue()), err_floor_slot.isTaggedEntry());
+    try std.testing.expectEqual(isTaggedInternalEntry(top_err_slot.rawValue()), top_err_slot.isTaggedEntry());
+
+    try std.testing.expect(!null_slot.isTaggedEntry());
+    try std.testing.expect(value_slot.isTaggedEntry());
+    try std.testing.expect(!pointer_slot.isTaggedEntry());
+    try std.testing.expect(err_floor_slot.isTaggedEntry());
+    try std.testing.expect(top_err_slot.isTaggedEntry());
 }
