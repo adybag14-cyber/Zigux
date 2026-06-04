@@ -612,9 +612,8 @@ test "phase 1 helper ports match committed parity fixture" {
     for (zeroed.?) |byte| {
         try std.testing.expectEqual(@as(u8, 0), byte);
     }
-    var freed_view = zeroed;
-    zalloc.zfreeBytes(allocator, &freed_view);
-    try std.testing.expectEqual(fixture.zalloc.freed_is_null, freed_view == null);
+    zalloc.zfreeBytes(allocator, &zeroed);
+    try std.testing.expectEqual(fixture.zalloc.freed_is_null, zeroed == null);
 
     const ZeroValue = struct {
         count: u32,
@@ -623,9 +622,8 @@ test "phase 1 helper ports match committed parity fixture" {
     var zero_value: ?*ZeroValue = try zalloc.zallocValue(allocator, ZeroValue);
     defer zalloc.zfreeValue(allocator, ZeroValue, &zero_value);
     try std.testing.expectEqual(fixture.zalloc.value_zeroed, zero_value.?.count == 0 and zero_value.?.enabled == false);
-    var freed_value = zero_value;
-    zalloc.zfreeValue(allocator, ZeroValue, &freed_value);
-    try std.testing.expectEqual(fixture.zalloc.value_freed_is_null, freed_value == null);
+    zalloc.zfreeValue(allocator, ZeroValue, &zero_value);
+    try std.testing.expectEqual(fixture.zalloc.value_freed_is_null, zero_value == null);
 
     var root = rbtree.Root.init();
     try std.testing.expectEqual(fixture.rbtree.empty_root, root.node == null);

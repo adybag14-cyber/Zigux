@@ -37,7 +37,7 @@
     "tail_clump_exhausted_value": 90
   },
   "bitmap": {
-    "weight": 3,
+    "weight": 5,
     "scnprintf": "1-3,66-67",
     "truncated_scnprintf_len": 7,
     "truncated_scnprintf": "1-3,66-",
@@ -94,11 +94,11 @@
     "postorder_count": 3,
     "erase_init_node_empty": true,
     "cleared_node_empty": true,
-    "find_found_key": 15,
+    "find_found_key": 10,
     "find_missing": true,
     "find_first_serial": 0,
-    "next_match_serials": [0, 2, 4],
-    "match_iterator_serials": [0, 2, 4],
+    "next_match_serials": [0, 2, 6],
+    "match_iterator_serials": [0, 2, 6],
     "cached_leftmost_return_serials": [0, -1, 2, -1],
     "cached_root_transition_serials": [0, 0, 4, 2],
     "next_match_terminal_null": true
