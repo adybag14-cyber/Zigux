@@ -23,7 +23,8 @@ test "slab overflow failure preserves zalloc value owner reset" {
     try std.testing.expectEqual(@as(usize, 0), record.?.len);
     try std.testing.expectEqual(@as(i32, 0), record.?.err);
     try std.testing.expectEqual(false, record.?.ready);
-    try std.testing.expectEqualSlices(u8, &([_]u8{0} ** 12), record.?.bytes[0..]);
+    const zero_record: [12]u8 = @splat(0);
+    try std.testing.expectEqualSlices(u8, zero_record[0..], record.?.bytes[0..]);
 
     const payload = slab.kmallocArray(3, 4, slab.GFP_KERNEL | slab.__GFP_ZERO) orelse return error.TestUnexpectedResult;
     defer slab.kfree(payload);
