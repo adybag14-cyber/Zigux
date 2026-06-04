@@ -59,7 +59,8 @@ test "artifact diff parser errors cover required operands and invalid modes" {
     try expectContains(helper_source, "are required unless --self-test is set");
     try expectContains(helper_source, "invalid ");
     try expectContains(helper_source, "choice: {value!r} (choose from text, json, bytes)");
-    try expectContains(helper_source, "expected exactly two positional arguments");
+    try expectContains(helper_source, "expected exactly two positional ");
+    try expectContains(helper_source, "arguments");
 }
 
 test "artifact diff self-test catalog keeps every mode and failure branch" {

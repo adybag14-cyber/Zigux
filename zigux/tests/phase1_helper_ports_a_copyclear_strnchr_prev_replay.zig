@@ -38,7 +38,7 @@ test "helper ports A copy-clear tail feeds clamped find-bit scans" {
 
 test "helper ports A padded string copies keep counted search boundaries" {
     const src = [_]u8{ 'p', 'r', 'e', 0, 'x', 'y' };
-    var padded = [_]u8{0xcc} ** 8;
+    var padded = [_]u8{ 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc };
 
     try std.testing.expectEqual(@as(isize, 3), string.strscpy_pad(&padded, &src));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'p', 'r', 'e', 0, 0, 0, 0, 0 }, &padded);
