@@ -86,7 +86,7 @@ fn addPhase3AbiReplay(
         .optimize = optimize,
     });
     narrow_surface.addImport("abi_bindings", abi_bindings);
-    narrow_surface.addImport("unsafe_policy", unsafe_policy);
+    unsafe_policy.addImport("narrow", narrow_surface);
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_abi.zig"),

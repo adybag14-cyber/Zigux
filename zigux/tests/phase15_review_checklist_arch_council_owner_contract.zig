@@ -18,10 +18,10 @@ test "review checklist routes Architecture Council prompts to owner notes" {
     try expectContains(checklist, "if a freeze-map anchor is entering Architecture Council status review");
     try expectContains(checklist, "required approver set");
     try expectContains(checklist, "rollback owner");
-    try expectContains(checklist, "validation gate summary");
+    try expectContains(checklist, "validator-first maintenance gate");
     try expectContains(checklist, "evidence archive path");
-    try expectContains(checklist, "explicit non-goals");
-    try expectContains(checklist, "written rationale");
+    try expectContains(checklist, "exact Architecture Council field inventory");
+    try expectContains(checklist, "reopen-evidence details");
     try expectContains(checklist, "Documentation/zigux/phase15-architecture-council-review-process.md");
     try expectContains(checklist, "Documentation/zigux/phase15-architecture-council-decision-record-template.md");
     try expectContains(checklist, "Documentation/zigux/phase15-indefinite-c-policy.md");
