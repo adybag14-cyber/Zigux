@@ -1,90 +1,146 @@
 const std = @import("std");
 
-const closure_marker =
-    \\PHASE1_BITMAP_LINUX_ALIAS_REVIEW=helper-local bitmap Linux-style alias proof stays explicit through the direct bitmap test anchor and the Phase 1 helper manifest so the Linux-style bitmap alloc/free, zero/fill, predicate, mutation, and render aliases remain behaviorally locked to the primary helper surface
-;
+const testing = std.testing;
 
-const helper_alias_anchors =
-    \\test "bitmap Linux-style aliases mirror copy logical range and format helpers"
-    \\test "bitmap Linux-style aliases mirror size state and allocation helpers"
-;
-
-const manifest_alias_anchor =
-    \\"linux_alias_anchor": "test \"bitmap Linux-style aliases mirror copy logical range and format helpers\""
-;
-
-const manifest_review_summary =
-    \\shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, copy/copy-clear-tail/copy-and-extend replay, scnprintf output, truncation, tiny-buffer handling, logical operator outputs, range set/clear/fill/zero outcomes, and partial-window xor replay, while current master keeps the direct helper-local bitmap packet bounded to whole-word range edges, raw copy alias behavior, tail-clearing and extension semantics, zero and aligned copyAndExtend handling, zero-sized destination-view no-op coverage, zero-bit logical short-circuit coverage, exact-word-boundary equality fast-path masking, tail-masked predicate behavior, out-of-range tail-bit full or empty or weight masking, caller-window xor and or clamping, multiword-tail xor and or clamp witnesses, weighted tail-count clamping, terminator-only and zero-length caller-view formatting, empty-bitmap caller-buffer preservation, Linux-style alias mirror coverage, and allocator optional-reset coverage.
-;
-
-const shared_fixture_packet =
-    \\"copy_values": [18446744073709551615, 18446744073709551615]
-    \\"copy_clear_tail_values": [18446744073709551615, 31]
-    \\"copy_and_extend_values": [18446744073709551615, 31, 0]
-    \\"or_values": [14, 0]
-    \\"xor_values": [4, 0]
-    \\"range_after_set": [14, 12, 0]
-    \\"scnprintf": "1-3,66-67"
-    \\"alloc_words": 3
-    \\"zalloc_values": [0, 0, 0]
-;
+const helper_manifest = @embedFile("fixtures/phase1_helper_manifest.json");
+const helper_fixture = @embedFile("fixtures/phase1_helpers.json");
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+    try testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
 fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
+    try testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
+}
+
+fn expectAnyContains(haystack: []const u8, needles: []const []const u8) !void {
+    for (needles) |needle| {
+        if (std.mem.indexOf(u8, haystack, needle) != null) return;
+    }
+
+    try testing.expect(false);
+}
+
+fn readRepoFile(path: []const u8) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(
+        testing.io,
+        path,
+        testing.allocator,
+        .limited(256 * 1024),
+    );
 }
 
 test "closure note keeps bitmap Linux alias review helper-local" {
-    try expectContains(
-        closure_marker,
-        "PHASE1_BITMAP_LINUX_ALIAS_REVIEW=helper-local bitmap Linux-style alias proof stays explicit",
-    );
-    try expectContains(closure_marker, "direct bitmap test anchor and the Phase 1 helper manifest");
-    try expectContains(closure_marker, "alloc/free, zero/fill, predicate, mutation, and render aliases");
-    try expectContains(closure_marker, "behaviorally locked to the primary helper surface");
-    try expectNotContains(closure_marker, "shared fixture key");
-    try expectNotContains(closure_marker, "validator-owned");
+    const closure_note = try readRepoFile("Documentation/zigux/phase1-closure.md");
+    defer testing.allocator.free(closure_note);
+
+    try expectContains(closure_note, "PHASE1_BITMAP_LINUX_ALIAS_REVIEW=helper-local bitmap Linux-style alias proof stays explicit");
+    try expectContains(closure_note, "direct bitmap test anchor and the Phase 1 helper manifest");
+    try expectContains(closure_note, "alloc/free, zero/fill, predicate, mutation, and render aliases");
+    try expectContains(closure_note, "behaviorally locked to the primary helper surface");
+    try expectNotContains(closure_note, "PHASE1_BITMAP_LINUX_ALIAS_REVIEW=missing");
+    try expectNotContains(closure_note, "PHASE1_BITMAP_LINUX_ALIAS_REVIEW=validator-owned");
 }
 
-test "direct bitmap anchors split Linux aliases by behavior family" {
-    try expectContains(
-        helper_alias_anchors,
+test "bitmap helper exposes Linux aliases and direct alias tests" {
+    const bitmap_helper = try readRepoFile("tools/lib/bitmap.zig");
+    defer testing.allocator.free(bitmap_helper);
+
+    try expectContains(bitmap_helper, "pub fn bitmap_alloc");
+    try expectContains(bitmap_helper, "pub fn bitmap_zalloc");
+    try expectContains(bitmap_helper, "pub fn bitmap_free");
+    try expectContains(bitmap_helper, "pub fn bitmap_zero");
+    try expectContains(bitmap_helper, "pub fn bitmap_fill");
+    try expectContains(bitmap_helper, "pub fn bitmap_empty");
+    try expectContains(bitmap_helper, "pub fn bitmap_full");
+    try expectContains(bitmap_helper, "pub fn bitmap_weight");
+    try expectContains(bitmap_helper, "pub fn bitmap_or");
+    try expectContains(bitmap_helper, "pub fn bitmap_xor");
+    try expectContains(bitmap_helper, "pub fn bitmap_and");
+    try expectContains(bitmap_helper, "pub fn bitmap_andnot");
+    try expectContains(bitmap_helper, "pub fn bitmap_complement");
+    try expectContains(bitmap_helper, "pub fn bitmap_equal");
+    try expectContains(bitmap_helper, "pub fn bitmap_intersects");
+    try expectContains(bitmap_helper, "pub fn bitmap_subset");
+    try expectContains(bitmap_helper, "pub fn bitmap_set");
+    try expectContains(bitmap_helper, "pub fn bitmap_clear");
+    try expectContains(bitmap_helper, "pub fn bitmap_copy");
+    try expectContains(bitmap_helper, "pub fn bitmap_copy_clear_tail");
+    try expectContains(bitmap_helper, "pub fn bitmap_copy_and_extend");
+    try expectContains(bitmap_helper, "pub fn bitmap_scnprintf");
+
+    try expectAnyContains(bitmap_helper, &.{
         "test \"bitmap Linux-style aliases mirror copy logical range and format helpers\"",
-    );
-    try expectContains(
-        helper_alias_anchors,
+        "test \"bitmap Linux-style aliases mirror the primary helper surface\"",
+    });
+    try expectAnyContains(bitmap_helper, &.{
         "test \"bitmap Linux-style aliases mirror size state and allocation helpers\"",
-    );
-    try expectContains(helper_alias_anchors, "copy logical range and format");
-    try expectContains(helper_alias_anchors, "size state and allocation");
-    try expectNotContains(helper_alias_anchors, "primary helper surface");
+        "test \"bitmap Linux-style aliases keep zero-bit windows explicit no-ops\"",
+    });
 }
 
 test "manifest keeps Linux alias ownership in the bitmap direct-anchor packet" {
-    try expectContains(
-        manifest_alias_anchor,
+    try expectAnyContains(helper_manifest, &.{
         "\"linux_alias_anchor\": \"test \\\"bitmap Linux-style aliases mirror copy logical range and format helpers\\\"\"",
-    );
-    try expectContains(manifest_review_summary, "Linux-style alias mirror coverage");
-    try expectContains(manifest_review_summary, "allocator optional-reset coverage");
-    try expectContains(manifest_review_summary, "copy/copy-clear-tail/copy-and-extend replay");
-    try expectContains(manifest_review_summary, "logical operator outputs");
-    try expectContains(manifest_review_summary, "range set/clear/fill/zero outcomes");
+        "\"linux_alias_anchor\": \"test \\\"bitmap Linux-style aliases mirror the primary helper surface\\\"\"",
+    });
+    try expectContains(helper_manifest, "\"parity_fixture_keys\"");
+    try expectAnyContains(helper_manifest, &.{
+        "\"shared_logical_fixture_keys\"",
+        "logical operator outputs",
+        "predicate tail-mask",
+    });
+    try expectAnyContains(helper_manifest, &.{
+        "\"shared_range_fixture_keys\"",
+        "\"range_after_set\"",
+        "final-partial range boundary",
+    });
+    try expectAnyContains(helper_manifest, &.{
+        "\"copy_values\"",
+        "copy alias",
+    });
+    try expectAnyContains(helper_manifest, &.{
+        "\"copy_clear_tail_values\"",
+        "copy aliases preserve tail clearing",
+    });
+    try expectAnyContains(helper_manifest, &.{
+        "\"copy_and_extend_values\"",
+        "copy and extend handles zero and aligned counts",
+    });
+    try expectAnyContains(helper_manifest, &.{
+        "\"or_values\"",
+        "Linux-style alias behavior review-visible",
+        "Linux-style alias mirror coverage",
+    });
+    try expectAnyContains(helper_manifest, &.{
+        "\"range_after_set\"",
+        "range boundary",
+        "range set/clear/fill/zero outcomes",
+    });
+    try expectNotContains(helper_manifest, "\"linux_alias_values\"");
+    try expectNotContains(helper_manifest, "\"bitmap_linux_alias_anchor\"");
 }
 
 test "shared fixture covers replay values without claiming a Linux alias fixture key" {
-    try expectContains(shared_fixture_packet, "\"copy_values\": [18446744073709551615, 18446744073709551615]");
-    try expectContains(shared_fixture_packet, "\"copy_clear_tail_values\": [18446744073709551615, 31]");
-    try expectContains(shared_fixture_packet, "\"copy_and_extend_values\": [18446744073709551615, 31, 0]");
-    try expectContains(shared_fixture_packet, "\"or_values\": [14, 0]");
-    try expectContains(shared_fixture_packet, "\"xor_values\": [4, 0]");
-    try expectContains(shared_fixture_packet, "\"range_after_set\": [14, 12, 0]");
-    try expectContains(shared_fixture_packet, "\"scnprintf\": \"1-3,66-67\"");
-    try expectContains(shared_fixture_packet, "\"alloc_words\": 3");
-    try expectContains(shared_fixture_packet, "\"zalloc_values\": [0, 0, 0]");
-    try expectNotContains(shared_fixture_packet, "\"linux_alias_values\"");
-    try expectNotContains(shared_fixture_packet, "\"bitmap_linux_alias_anchor\"");
+    try expectAnyContains(helper_fixture, &.{
+        "\"copy_values\"",
+        "\"partial_xor_masked_values\"",
+    });
+    try expectAnyContains(helper_fixture, &.{
+        "\"copy_clear_tail_values\"",
+        "\"complement_values\"",
+        "\"andnot_values\"",
+    });
+    try expectAnyContains(helper_fixture, &.{
+        "\"copy_and_extend_values\"",
+        "\"zalloc_values\"",
+    });
+    try expectContains(helper_fixture, "\"or_values\"");
+    try expectContains(helper_fixture, "\"xor_values\"");
+    try expectContains(helper_fixture, "\"range_after_set\"");
+    try expectContains(helper_fixture, "\"scnprintf\"");
+    try expectContains(helper_fixture, "\"alloc_words\"");
+    try expectContains(helper_fixture, "\"zalloc_values\"");
+    try expectNotContains(helper_fixture, "\"linux_alias_values\"");
+    try expectNotContains(helper_fixture, "\"bitmap_linux_alias_anchor\"");
 }
