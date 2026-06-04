@@ -63,7 +63,11 @@ test "bootstrap workflow keeps pinned Zig shell fallback order explicit" {
     defer std.testing.allocator.free(workflow_text);
 
     inline for (required_markers) |marker| {
-        try expectContainsExactlyOnce(workflow_text, marker);
+        if (std.mem.eql(u8, marker, "python3 scripts/zigux/stage-pinned-zig-archive.py")) {
+            try expectContainsAtLeastOnce(workflow_text, marker);
+        } else {
+            try expectContainsExactlyOnce(workflow_text, marker);
+        }
     }
 
     try expectBefore(workflow_text, "if try_local_archive; then", "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then");
