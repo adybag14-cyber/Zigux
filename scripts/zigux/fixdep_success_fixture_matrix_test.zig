@@ -57,6 +57,7 @@ fn expectPublicEntryCase(allocator: std.mem.Allocator, repo_root: []const u8, ca
             case.cmdline,
         },
         .cwd = .{ .path = repo_root },
+        .expand_arg0 = .expand,
     });
     defer allocator.free(result.stdout);
     defer allocator.free(result.stderr);
