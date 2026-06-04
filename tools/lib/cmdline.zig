@@ -330,3 +330,23 @@ test "nextArg keeps empty and unterminated quoted values aligned" {
     try std.testing.expectEqualStrings("fast boot", unterminated.value.?);
     try std.testing.expectEqualStrings("", unterminated.remaining);
 }
+
+test "cmdline quote cursors and chained suffixes preserve exact rests" {
+    const quoted = next_arg("  \"single word arg\" size=1KKtail") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("single word arg", quoted.param);
+    try std.testing.expect(quoted.value == null);
+    try std.testing.expectEqualStrings("size=1KKtail", quoted.remaining);
+
+    const key_value = nextArg(quoted.remaining) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("size", key_value.param);
+    try std.testing.expectEqualStrings("1KKtail", key_value.value.?);
+    try std.testing.expectEqualStrings("", key_value.remaining);
+
+    const unsigned = memparse(key_value.value.?);
+    try std.testing.expectEqual(@as(u64, 1 << 10), unsigned.value);
+    try std.testing.expectEqualStrings("Ktail", unsigned.rest);
+
+    const signed = memparse("-2MMtail");
+    try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -(2 << 20)))), signed.value);
+    try std.testing.expectEqualStrings("Mtail", signed.rest);
+}
