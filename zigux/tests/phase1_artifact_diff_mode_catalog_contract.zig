@@ -76,6 +76,19 @@ test "artifact diff self-test catalog keeps every mode and failure branch" {
     }
 }
 
+test "artifact diff path problems report missing and non-file inputs separately" {
+    try expectContains(helper_source, "def path_problem_lines(expected: Path, actual: Path) -> list[str] | None:");
+    try expectContains(helper_source, "expected_exists = expected.exists()");
+    try expectContains(helper_source, "actual_exists = actual.exists()");
+    try expectContains(helper_source, "expected_is_file = expected.is_file()");
+    try expectContains(helper_source, "actual_is_file = actual.is_file()");
+    try expectContains(helper_source, "EXPECTED_EXISTS={expected_exists}");
+    try expectContains(helper_source, "ACTUAL_EXISTS={actual_exists}");
+    try expectContains(helper_source, "EXPECTED_IS_FILE={expected_is_file}");
+    try expectContains(helper_source, "ACTUAL_IS_FILE={actual_is_file}");
+    try expectContains(helper_source, "problem = path_problem_lines(expected, actual)");
+}
+
 test "artifact diff digest mode reports stable bytes labels" {
     try expectContains(helper_source, "SHA256={expected_digest}");
     try expectContains(helper_source, "EXPECTED_SHA256={expected_digest}");
