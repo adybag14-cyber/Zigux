@@ -110,7 +110,7 @@ test "argvSplit collapses repeated whitespace and blank inputs to zero arguments
     defer spaced.deinit();
     try std.testing.expectEqual(@as(usize, 3), spaced.argc());
     try std.testing.expectEqualStrings("alpha", spaced.argv[0]);
-    try std.testing.expectEqualStrings("beta", result.argv[1]);
+    try std.testing.expectEqualStrings("beta", spaced.argv[1]);
     try std.testing.expectEqualStrings("gamma", spaced.argv[2]);
 
     var only_spaces = try argv_split(std.testing.allocator, " \n\t ");
