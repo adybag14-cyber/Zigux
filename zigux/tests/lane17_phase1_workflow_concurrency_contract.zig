@@ -69,5 +69,6 @@ test "stale broad workflow grouping patterns stay absent" {
 
     try std.testing.expectEqual(@as(usize, 0), countOccurrences(workflow, "group: ${{ github.workflow }}"));
     try std.testing.expectEqual(@as(usize, 0), countOccurrences(workflow, "group: ${{ github.ref }}"));
-    try std.testing.expectEqual(@as(usize, 0), countOccurrences(workflow, "format('{0}-{1}', github.workflow, github.sha)"));
+    try std.testing.expectEqual(@as(usize, 0), countOccurrences(workflow, "group: ${{ format('{0}-{1}', github.workflow, github.sha) }}"));
+    try std.testing.expectEqual(@as(usize, 0), countOccurrences(workflow, "group: ${{ format('{0}-{1}', github.workflow, github.ref) }}"));
 }
