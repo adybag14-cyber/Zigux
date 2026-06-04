@@ -121,9 +121,16 @@ test "artifact diff text results report identity without digest noise" {
 }
 
 test "artifact diff text mode shares stable missing-file reporting" {
+    const has_current_path_problem_surface =
+        std.mem.indexOf(u8, artifact_diff_source, "def path_problem_lines(expected: Path, actual: Path)") != null;
     const has_current_missing_surface =
         std.mem.indexOf(u8, artifact_diff_source, "def missing_lines(expected: Path, actual: Path)") != null;
-    if (has_current_missing_surface) {
+    if (has_current_path_problem_surface) {
+        try expectContains(artifact_diff_source, "EXPECTED_EXISTS={expected_exists}");
+        try expectContains(artifact_diff_source, "ACTUAL_EXISTS={actual_exists}");
+        try expectContains(artifact_diff_source, "EXPECTED_IS_FILE={expected_is_file}");
+        try expectContains(artifact_diff_source, "ACTUAL_IS_FILE={actual_is_file}");
+    } else if (has_current_missing_surface) {
         try expectContains(artifact_diff_source, "EXPECTED_EXISTS={expected_exists}");
         try expectContains(artifact_diff_source, "ACTUAL_EXISTS={actual_exists}");
     } else {
