@@ -40,8 +40,9 @@ const archive_cli_markers = [_][]const u8{
     "\"--archive-target\"",
     "ZIG_TOOLCHAIN_ARCHIVE_STATUS=missing",
     "ZIG_TOOLCHAIN_ARCHIVE_STATUS=invalid",
-    "ZIG_TOOLCHAIN_ARCHIVE_STATUS=present",
-    "ZIG_TOOLCHAIN_ARCHIVE_STATUS=mismatch",
+    "ZIG_TOOLCHAIN_ARCHIVE_STATUS={archive_status}",
+    "return \"present\", None, expected_sha, actual_sha",
+    "\"mismatch\"",
 };
 
 fn readCheckerSource(allocator: std.mem.Allocator) ![]u8 {
