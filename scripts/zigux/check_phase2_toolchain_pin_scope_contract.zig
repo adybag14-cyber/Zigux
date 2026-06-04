@@ -69,6 +69,13 @@ fn expectBefore(haystack: []const u8, first: []const u8, second: []const u8) !vo
     try std.testing.expect(first_index < second_index);
 }
 
+fn sliceBetween(haystack: []const u8, first: []const u8, second: []const u8) ![]const u8 {
+    const first_index = std.mem.indexOf(u8, haystack, first) orelse return error.MissingFirstMarker;
+    const body_start = first_index + first.len;
+    const second_relative_index = std.mem.indexOf(u8, haystack[body_start..], second) orelse return error.MissingSecondMarker;
+    return haystack[body_start .. body_start + second_relative_index];
+}
+
 test "pin-scope checker keeps the toolchain marker families visible" {
     const source = try readCheckerSource(std.testing.allocator);
     defer std.testing.allocator.free(source);
@@ -89,8 +96,9 @@ test "pin-scope checker keeps policy and archive scope checks explicit" {
     defer std.testing.allocator.free(source);
 
     try expectContainsAll(source, &policy_markers);
-    try expectBefore(source, "channel_minimum_lockstep", "archive_target_scope");
-    try expectBefore(source, "archive_target_scope", "required_make_routes");
+    const policy_body = try sliceBetween(source, "def validate_policy", "def collect_issues");
+    try expectBefore(policy_body, "channel_minimum_lockstep", "archive_target_scope");
+    try expectBefore(policy_body, "archive_target_scope", "required_make_routes");
 }
 
 test "pin-scope checker keeps workflow and make-route action paths explicit" {
