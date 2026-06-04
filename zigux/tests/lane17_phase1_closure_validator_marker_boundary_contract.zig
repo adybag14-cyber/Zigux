@@ -73,8 +73,8 @@ test "closure validator still owns the core enforced marker roster" {
         try expectExactlyOnce(validator, marker);
     }
 
-    try expectExactlyOnce(validator, "EXPECTED_CLOSURE_MARKERS");
-    try expectExactlyOnce(validator, "FORBIDDEN_CLOSURE_MARKERS");
+    try expectExactlyOnce(validator, "EXPECTED_CLOSURE_MARKERS = {");
+    try expectExactlyOnce(validator, "FORBIDDEN_CLOSURE_MARKERS = {");
     try expectExactlyOnce(validator, "PHASE1_CLOSURE_VALIDATION=pass");
 }
 
