@@ -1,0 +1,40 @@
+const std = @import("std");
+
+pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+    const workflow = std.Io.Dir.cwd().readFileAlloc(
+        b.graph.io,
+        ".github/workflows/zigux-bootstrap.yml",
+        b.allocator,
+        .limited(1024 * 1024),
+    ) catch |err| @panic(@errorName(err));
+
+    const options = b.addOptions();
+    options.addOption([]const u8, "workflow", workflow);
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("lane17_phase1_bench_live_guard_bootstrap_integration.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addOptions("lane17_phase1_bench_live_guard_bootstrap_integration_options", options);
+
+    const tests = b.addTest(.{
+        .name = "lane17-phase1-bench-live-guard-bootstrap-integration",
+        .root_module = root_module,
+    });
+    const run_tests = b.addRunArtifact(tests);
+
+    const contract_step = b.step(
+        "lane17-phase1-bench-live-guard-bootstrap-integration",
+        "Run the Lane 17 Phase 1 bench live-check workflow guard bootstrap integration contract",
+    );
+    contract_step.dependOn(&run_tests.step);
+
+    const test_step = b.step(
+        "test",
+        "Run the Lane 17 Phase 1 bench live-check workflow guard bootstrap integration contract",
+    );
+    test_step.dependOn(&run_tests.step);
+}
