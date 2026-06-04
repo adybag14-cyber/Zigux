@@ -110,7 +110,7 @@ test "argvSplit collapses repeated whitespace and blank inputs to zero arguments
     defer spaced.deinit();
     try std.testing.expectEqual(@as(usize, 3), spaced.argc());
     try std.testing.expectEqualStrings("alpha", spaced.argv[0]);
-    try std.testing.expectEqualStrings("beta", spaced.argv[1]);
+    try std.testing.expectEqualStrings("beta", result.argv[1]);
     try std.testing.expectEqualStrings("gamma", spaced.argv[2]);
 
     var only_spaces = try argv_split(std.testing.allocator, " \n\t ");
@@ -146,4 +146,27 @@ test "argvSplit preserves literal shell-like bytes and embedded nul tokens" {
 
     result.argv[0][0] = 'K';
     try std.testing.expectEqualStrings("Key=value", result.argv[0]);
+}
+
+test "argvSplit treats exactly ASCII whitespace bytes as separators" {
+    const whitespace = [_]u8{ ' ', '\t', '\n', '\r', 0x0b, 0x0c };
+    for (whitespace) |separator| {
+        var text = [_]u8{ separator, 'a', separator, 'b', separator };
+        var result = try argvSplit(std.testing.allocator, text[0..]);
+        defer result.deinit();
+
+        try std.testing.expectEqual(@as(usize, 2), result.argc());
+        try std.testing.expectEqualStrings("a", result.argv[0]);
+        try std.testing.expectEqualStrings("b", result.argv[1]);
+    }
+
+    const controls = [_]u8{ 0x00, 0x01, 0x1f, 0x7f };
+    for (controls) |control| {
+        var text = [_]u8{ 'a', control, 'b' };
+        var result = try argv_split(std.testing.allocator, text[0..]);
+        defer argv_free(&result);
+
+        try std.testing.expectEqual(@as(usize, 1), result.argc());
+        try std.testing.expectEqualSlices(u8, text[0..], result.argv[0]);
+    }
 }
