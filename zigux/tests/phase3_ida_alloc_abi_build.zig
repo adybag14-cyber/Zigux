@@ -9,11 +9,35 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const uapi_dev_t = b.createModule(.{
+        .root_source_file = b.path("../uapi/dev_t.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const uapi_version = b.createModule(.{
+        .root_source_file = b.path("../uapi/version.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    uapi_version.addImport("abi_bindings", abi_bindings);
+    const dev_t_binding = b.createModule(.{
+        .root_source_file = b.path("../bindings/dev_t.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    dev_t_binding.addImport("uapi_dev_t", uapi_dev_t);
+    const version_binding = b.createModule(.{
+        .root_source_file = b.path("../bindings/version.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    version_binding.addImport("uapi_version", uapi_version);
     const narrow_surface = b.createModule(.{
         .root_source_file = b.path("../unsafe/narrow.zig"),
         .target = target,
         .optimize = optimize,
     });
+    narrow_surface.addImport("abi_bindings", abi_bindings);
     const layout_assert = b.createModule(.{
         .root_source_file = b.path("../helpers/layout_assert.zig"),
         .target = target,
@@ -45,12 +69,16 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     export_shim.addImport("abi_bindings", abi_bindings);
+    export_shim.addImport("dev_t_binding", dev_t_binding);
+    export_shim.addImport("version_binding", version_binding);
     const header_family = b.createModule(.{
         .root_source_file = b.path("../bindings/header_family.zig"),
         .target = target,
         .optimize = optimize,
     });
     header_family.addImport("abi_bindings", abi_bindings);
+    header_family.addImport("dev_t_binding", dev_t_binding);
+    header_family.addImport("version_binding", version_binding);
     const bitmap_view = b.createModule(.{
         .root_source_file = b.path("../helpers/bitmap_view.zig"),
         .target = target,
@@ -73,6 +101,7 @@ pub fn build(b: *std.Build) void {
     });
     ida_alloc_view.addImport("abi_bindings", abi_bindings);
     ida_alloc_view.addImport("bitmap_view", bitmap_view);
+    ida_alloc_view.addImport("ida_bitmap_view", ida_bitmap_view);
     ida_alloc_view.addImport("narrow_unsafe", narrow_surface);
 
     const ida_alloc_packet = b.createModule(.{
