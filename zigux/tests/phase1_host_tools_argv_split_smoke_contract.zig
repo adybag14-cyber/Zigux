@@ -21,7 +21,7 @@ fn markerIndex(haystack: []const u8, marker: []const u8) !usize {
 test "smoke harness keeps argv_split imported and freed through the public aliases" {
     try requireContains(smoke_text, "const argv_split = @import(\"argv_split\");");
     try requireContains(smoke_text, "try std.testing.expect(@hasDecl(argv_split, \"argvSplit\"));");
-    try requireContains(smoke_text, "var split = try argv_split.argv_split(std.testing.allocator, \"  zigux   host\\ttools  \');");
+    try requireContains(smoke_text, "var split = try argv_split.argv_split(std.testing.allocator, \"  zigux   host\\ttools  \");");
     try requireContains(smoke_text, "defer argv_split.argv_free(&split);");
     try requireContains(smoke_text, "try std.testing.expectEqual(@as(usize, 3), split.argc());");
     try requireContains(smoke_text, "try std.testing.expectEqualStrings(\"zigux\", split.argv[0]);");
@@ -36,7 +36,7 @@ test "argv_split smoke slice stays in the first live helper behavior block" {
     );
     const split_call = try markerIndex(
         smoke_text,
-        "var split = try argv_split.argv_split(std.testing.allocator, \"  zigux   host\\ttools  \');",
+        "var split = try argv_split.argv_split(std.testing.allocator, \"  zigux   host\\ttools  \");",
     );
     const first_cmdline = try markerIndex(smoke_text, "const parsed = cmdline.memparse(\"64K tail\");");
     const first_ctype = try markerIndex(smoke_text, "try std.testing.expectEqual(@as(u8, 0x41), ctype.mask('A'));");

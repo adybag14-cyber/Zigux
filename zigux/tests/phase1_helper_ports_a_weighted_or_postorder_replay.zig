@@ -98,7 +98,7 @@ test "rbtree postorder covers bitmap-derived keys before cached reseed" {
     try std.testing.expectEqual(@as(usize, 1), keyOf(rbtree.first(&root.root).?));
     try std.testing.expectEqual(@as(usize, tail_base + 3), keyOf(rbtree.last(&root.root).?));
 
-    var seen = [_]bool{false} ** entries.len;
+    var seen: [entries.len]bool = @splat(false);
     var visited: usize = 0;
     var last_seen: ?*rbtree.Node = null;
     var cursor = rbtree.firstPostorder(&root.root);
