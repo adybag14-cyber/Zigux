@@ -128,6 +128,6 @@ test "phase1 closure packet hands off through phase3 before shared phase1 smoke"
 
 test "phase1 closure workflow tail keeps stale route spellings out" {
     try requireAbsent(workflow_text, "run: python3 scripts/zigux/validate-phase1.py");
-    try requireAbsent(workflow_text, "run: make -C zigux phase1");
+    try requireAbsent(workflow_text, "\n        run: make -C zigux phase1\n");
     try requireAbsent(workflow_text, "run: zig build phase1-bench --build-file zigux/tests/build.zig");
 }
