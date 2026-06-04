@@ -28,24 +28,22 @@ const required_once_markers = [_][]const u8{
     "try std.testing.expectEqualSlices(i32, &.{ 0, -1, 2, -1 }, &cached_leftmost_return_serials);",
     "var cached_root_transition_serials: [4]i32 = undefined;",
     "try std.testing.expectEqualSlices(i32, &.{ 0, 0, 4, 2 }, &cached_root_transition_serials);",
-    "collect_duplicate_json_key_paths",
     "manifest:duplicate_json_key",
     "fixture:duplicate_json_key",
-    "run_self_test()",
     "PHASE1_RBTREE_DIRECT_OWNER=rbtree keeps ordered Linux-style alias",
     "PHASE1_RBTREE_NEXT_SAFE_STEP=rbtree reopens only to keep the already-landed cached_leftmost_return_serials",
 };
 
 const required_present_markers = [_][]const u8{
-    "test \\\"rbtree ordered Linux-style aliases mirror traversal and replacement helpers\\\"",
-    "test \\\"rbtree low-level Linux-style aliases mirror node-state helpers\\\"",
-    "test \\\"rbtree findAdd keeps the first duplicate and inserts new keys\\\"",
-    "test \\\"rbtree nextMatch walks the duplicate range in order\\\"",
-    "test \\\"rbtree matchIterator walks the duplicate range in order\\\"",
-    "test \\\"rbtree addCached returns the inserted node only when it becomes leftmost\\\"",
-    "test \\\"rbtree findAddCached keeps cached leftmost stable while inserting misses\\\"",
-    "test \\\"rbtree cached-root Linux-style aliases mirror the primary helpers\\\"",
-    "test \\\"rbtree eraseInitCached clears singleton cached roots before reseed\\\"",
+    "test \"rbtree ordered Linux-style aliases mirror traversal and replacement helpers\"",
+    "test \"rbtree low-level Linux-style aliases mirror node-state helpers\"",
+    "test \"rbtree findAdd keeps the first duplicate and inserts new keys\"",
+    "test \"rbtree nextMatch walks the duplicate range in order\"",
+    "test \"rbtree matchIterator walks the duplicate range in order\"",
+    "test \"rbtree addCached returns the inserted node only when it becomes leftmost\"",
+    "test \"rbtree findAddCached keeps cached leftmost stable while inserting misses\"",
+    "test \"rbtree cached-root Linux-style aliases mirror the primary helpers\"",
+    "test \"rbtree eraseInitCached clears singleton cached roots before reseed\"",
     "\"find_found_key\"",
     "\"find_missing\"",
     "\"find_first_serial\"",
@@ -54,8 +52,10 @@ const required_present_markers = [_][]const u8{
     "\"next_match_terminal_null\"",
     "\"cached_leftmost_return_serials\"",
     "\"cached_root_transition_serials\"",
-    "try std.testing.expect(@hasDecl(rbtree, \\\"find\\\"));",
-    "try std.testing.expect(@hasDecl(rbtree, \\\"matchIterator\\\"));",
+    "collect_duplicate_json_key_paths",
+    "run_self_test()",
+    "try std.testing.expect(@hasDecl(rbtree, \"find\"));",
+    "try std.testing.expect(@hasDecl(rbtree, \"matchIterator\"));",
 };
 
 const required_order = [_][]const u8{
@@ -130,6 +130,6 @@ test "phase1 rbtree review checker self-test guards representative drift modes" 
         try std.testing.expect(std.mem.indexOf(u8, checker, marker) != null);
     }
 
-    try std.testing.expect(std.mem.indexOf(u8, checker, "PHASE1_RBTREE_REVIEW_PACKET_SELF_TEST=pass") != null);
-    try std.testing.expect(std.mem.indexOf(u8, checker, "PHASE1_RBTREE_REVIEW_PACKET_STATUS=pass") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checker, "self-test:ok") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checker, "phase1-rbtree-review-packet:ok") != null);
 }
