@@ -33,6 +33,27 @@ fn Capture(comptime capacity: usize) type {
     };
 }
 
+test "runGenksymsCrc escapes JSON-sensitive bytes without changing hashed input" {
+    const quoted_path = "quoted \"symbol\"\tpath\\name";
+    const low_control = "ctrl \x01end";
+
+    var capture = try Capture(256).init(std.testing.allocator);
+    defer capture.deinit();
+    try genksyms_crc.runGenksymsCrc(
+        quoted_path ++ "\n" ++ low_control ++ "\n",
+        &capture,
+    );
+
+    const expected = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{{\"cases\":[{{\"input\":\"quoted \\\"symbol\\\"\\tpath\\\\name\",\"crc_hex\":\"0x{x:0>8}\"}},{{\"input\":\"ctrl \\u0001end\",\"crc_hex\":\"0x{x:0>8}\"}}]}}\n",
+        .{ genksyms_crc.crc32(quoted_path), genksyms_crc.crc32(low_control) },
+    );
+    defer std.testing.allocator.free(expected);
+
+    try std.testing.expectEqualStrings(expected, capture.list.items);
+}
+
 test "runGenksymsCrc escapes quoted paths and low control bytes in JSON output" {
     var capture = try Capture(256).init(std.testing.allocator);
     defer capture.deinit();
