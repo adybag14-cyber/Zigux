@@ -98,10 +98,10 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectContains(checker, "PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass");
     try expectNotContains(checker, "\"Documentation/zigux/phase7-helper-lane-sequencing.md\",");
     try expectContains(checker, "phase7_argv_split_vectors = [_]ArgvSplitVector{");
-    try expectContains(checker, "test \\\"phase 7 argv split companion replays repeated blank-result sentinel reuse\\\" {");
-    try expectContains(checker, "test \\\"phase 7 argv split companion replays whitespace-before-first-NUL sentinel reuse\\\" {");
-    try expectContains(checker, "test \\\"phase 7 argv split companion replays fixture-backed leading-NUL ownership and quoted-token boundaries\\\" {");
-    try expectContains(checker, "test \\\"argvSplit reports overflow before sizing the null-terminated argv vector\\\" {");
+    try expectContains(checker, "test \"phase 7 argv split companion replays repeated blank-result sentinel reuse\" {");
+    try expectContains(checker, "test \"phase 7 argv split companion replays whitespace-before-first-NUL sentinel reuse\" {");
+    try expectContains(checker, "test \"phase 7 argv split companion replays fixture-backed leading-NUL ownership and quoted-token boundaries\" {");
+    try expectContains(checker, "test \"argvSplit reports overflow before sizing the null-terminated argv vector\" {");
 
     try expectContains(fixture_vectors, "pub const ArgvSplitVector = struct {");
     try expectContains(fixture_vectors, "pub const phase7_argv_split_vectors = [_]ArgvSplitVector{");
@@ -128,12 +128,12 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectContains(helper, "pub fn argvFree");
     try expectContains(helper, "pub fn cArgv(self: *const ArgvSplitResult)");
     try expectContains(helper, "fn nextSplitArgSpan");
-    try expectContains(helper, "test \\\"argvSplit treats whitespace before the first NUL as blank input\\\" {");
-    try expectContains(helper, "test \\\"argvSplit treats a leading NUL as blank input\\\" {");
-    try expectContains(helper, "test \\\"argvSplit truncates owned storage at the first NUL and ignores the tail\\\" {");
-    try expectContains(helper, "test \\\"argvSplit reuses shared blank sentinel views without argc output\\\" {");
-    try expectContains(helper, "test \\\"argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too\\\" {");
-    try expectContains(helper, "test \\\"argvSplit reports overflow before sizing the null-terminated argv vector\\\" {");
+    try expectContains(helper, "test \"argvSplit treats whitespace before the first NUL as blank input\" {");
+    try expectContains(helper, "test \"argvSplit treats a leading NUL as blank input\" {");
+    try expectContains(helper, "test \"argvSplit truncates owned storage at the first NUL and ignores the tail\" {");
+    try expectContains(helper, "test \"argvSplit reuses shared blank sentinel views without argc output\" {");
+    try expectContains(helper, "test \"argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too\" {");
+    try expectContains(helper, "test \"argvSplit reports overflow before sizing the null-terminated argv vector\" {");
 
     try expectContains(helper_companion, "const argv_split = @import(\"argv_split\");");
     try expectContains(helper_companion, "phase 7 argv split companion replays copied-storage token ownership");

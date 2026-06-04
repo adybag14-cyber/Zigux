@@ -4,17 +4,16 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const build_dir = std.fs.path.dirname(@src().file) orelse ".";
     const smoke_path = b.option(
         []const u8,
         "smoke-path",
         "Path to phase1_host_tools_smoke.zig",
-    ) orelse b.pathJoin(&.{ build_dir, "phase1_host_tools_smoke.zig" });
+    ) orelse "zigux/tests/phase1_host_tools_smoke.zig";
     const build_path = b.option(
         []const u8,
         "tests-build-path",
         "Path to zigux/tests/build.zig",
-    ) orelse b.pathJoin(&.{ build_dir, "build.zig" });
+    ) orelse "zigux/tests/build.zig";
 
     const smoke_text = std.Io.Dir.cwd().readFileAlloc(
         b.graph.io,
