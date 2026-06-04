@@ -73,6 +73,14 @@ pub const HListView = struct {
         return count;
     }
 
+    pub fn contains(self: HListView, target: *const HListNode) bool {
+        var it = self.iterator();
+        while (it.next()) |node| {
+            if (node == target) return true;
+        }
+        return false;
+    }
+
     pub fn firstPprevMatchesHead(self: HListView) bool {
         const first_node = self.first() orelse return true;
         return first_node.pprev == @intFromPtr(&self.head.first);
@@ -169,6 +177,26 @@ test "hlist view walks a bounded chain in order" {
     try std.testing.expectEqual(@as(?*const HListNode, &first), it.next());
     try std.testing.expectEqual(@as(?*const HListNode, &second), it.next());
     try std.testing.expectEqual(@as(?*const HListNode, null), it.next());
+}
+
+test "hlist view reports visible-node membership" {
+    var head = HListHead{ .first = 0 };
+    var first = HListNode{ .next = 0, .pprev = 0 };
+    var second = HListNode{ .next = 0, .pprev = 0 };
+    var detached = HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&first);
+    first.next = @intFromPtr(&second);
+    first.pprev = @intFromPtr(&head.first);
+    second.next = 0;
+    second.pprev = @intFromPtr(&first.next);
+    detached.next = 0;
+    detached.pprev = 0;
+
+    const view = HListView.init(&head);
+    try std.testing.expect(view.contains(&first));
+    try std.testing.expect(view.contains(&second));
+    try std.testing.expect(!view.contains(&detached));
 }
 
 test "hlist view reports the first broken prev-link witness" {
