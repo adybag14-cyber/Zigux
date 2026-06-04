@@ -33,16 +33,6 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-fn expectExactOccurrences(haystack: []const u8, needle: []const u8, expected: usize) !void {
-    var count: usize = 0;
-    var cursor: usize = 0;
-    while (std.mem.indexOfPos(u8, haystack, cursor, needle)) |found| {
-        count += 1;
-        cursor = found + needle.len;
-    }
-    try std.testing.expectEqual(expected, count);
-}
-
 fn expectUnique(comptime items: []const []const u8) !void {
     for (items, 0..) |item, index| {
         for (items[0..index]) |previous| {
