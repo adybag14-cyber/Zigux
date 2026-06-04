@@ -101,14 +101,22 @@ def canonical_json_bytes(path: Path, *, side: str) -> tuple[bytes | None, str | 
     return (json.dumps(value, indent=2, sort_keys=True, ensure_ascii=True) + "\n").encode("utf-8"), None
 
 
-def missing_lines(expected: Path, actual: Path) -> list[str] | None:
+def path_problem_lines(expected: Path, actual: Path) -> list[str] | None:
     expected_exists = expected.exists()
     actual_exists = actual.exists()
-    if expected_exists and actual_exists:
+    if not expected_exists or not actual_exists:
+        return [
+            f"EXPECTED_EXISTS={expected_exists}",
+            f"ACTUAL_EXISTS={actual_exists}",
+        ]
+
+    expected_is_file = expected.is_file()
+    actual_is_file = actual.is_file()
+    if expected_is_file and actual_is_file:
         return None
     return [
-        f"EXPECTED_EXISTS={expected_exists}",
-        f"ACTUAL_EXISTS={actual_exists}",
+        f"EXPECTED_IS_FILE={expected_is_file}",
+        f"ACTUAL_IS_FILE={actual_is_file}",
     ]
 
 
@@ -156,9 +164,9 @@ def normalize_mode(mode: str) -> str:
 
 def compare(mode: str, expected: Path, actual: Path) -> ComparisonResult:
     mode = normalize_mode(mode)
-    missing = missing_lines(expected, actual)
-    if missing is not None:
-        return ComparisonResult(ok=False, extra_lines=missing)
+    problem = path_problem_lines(expected, actual)
+    if problem is not None:
+        return ComparisonResult(ok=False, extra_lines=problem)
     if mode == "text":
         return compare_text(expected, actual)
     if mode == "json":
