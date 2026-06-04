@@ -13,6 +13,11 @@ const phase15_targets = [_]Phase15Target{
         .root_source_file = "phase15_freeze_map_governance.zig",
     },
     .{
+        .step_name = "phase15-freeze-map-status-change-boundary",
+        .description = "Run the focused Phase 15 freeze-map status-change boundary contract",
+        .root_source_file = "phase15_freeze_map_status_change_boundary.zig",
+    },
+    .{
         .step_name = "phase15-architecture-council-review-process",
         .description = "Run the focused Phase 15 Architecture Council review-process test",
         .root_source_file = "phase15_architecture_council_review_process.zig",
