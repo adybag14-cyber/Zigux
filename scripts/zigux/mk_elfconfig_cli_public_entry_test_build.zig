@@ -27,6 +27,15 @@ pub fn build(b: *std.Build) void {
     });
     const run_cli_contract_tests = b.addRunArtifact(cli_contract_tests);
 
+    const output_partition_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("mk_elfconfig_output_partition_public_entry_test.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+    const run_output_partition_tests = b.addRunArtifact(output_partition_tests);
+
     const exe = b.addExecutable(.{
         .name = "mk_elfconfig_cli_contract",
         .root_module = b.createModule(.{
@@ -79,6 +88,7 @@ pub fn build(b: *std.Build) void {
     const cli_step = b.step("mk-elfconfig-cli-public-entry-test", "Run mk_elfconfig CLI public-entry checks");
     cli_step.dependOn(&run_helper_tests.step);
     cli_step.dependOn(&run_cli_contract_tests.step);
+    cli_step.dependOn(&run_output_partition_tests.step);
     cli_step.dependOn(&run_elf32.step);
     cli_step.dependOn(&run_elf64_tail.step);
     cli_step.dependOn(&run_truncated.step);
