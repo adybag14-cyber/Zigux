@@ -54,11 +54,7 @@ test "third party archive readme keeps pinned archive and staged helper surfaces
         "Lane 05 bootstrap first reuses",
         "If the exact archive file is absent but",
     );
-    try expectOrder(
-        archive_readme,
-        "canonical `adybag14-cyber/zig` release",
-        "community-mirrors.txt",
-    );
+    try expectContains(archive_readme, "falls back to the canonical `adybag14-cyber/zig` release before `community-mirrors.txt` and the direct `ziglang.org` download URL");
 }
 
 test "lane05 archive checkers expose the guarded local first replay commands" {
@@ -80,7 +76,7 @@ test "lane05 archive checkers expose the guarded local first replay commands" {
     try expectContains(readme_checker, "expected exactly one archive target");
     try expectContains(readme_checker, "duplicate-suffix archive copies");
     try expectContains(readme_checker, "LANE05_LOCAL_ARCHIVE_README_MARKER_COUNT");
-    try expectContains(readme_checker, "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3 (1).tar.xz");
+    try expectContains(readme_checker, "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3 (1).tar.xz");
 
     try expectContains(scripts_readme, "third_party/README.md");
     try expectContains(scripts_readme, "scripts/zigux/stage-pinned-zig-archive.py");

@@ -77,9 +77,9 @@ test "conf bridge survey stays parked below wider closure or confdata work" {
     try expectContains(survey, "Do not widen this note into broader Phase 2 closure maintenance");
     try expectContains(survey, "confdata work unless the bridge-only reminder surfaces drift again");
 
-    try expectContains(closure, "scripts/zigux/kconfig/conf_bridge.zig");
-    try expectContains(closure, "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json");
-    try expectContains(closure, "zigux/tests/fixtures/kconfig_bridge/cases.json");
+    try expectContains(closure, "`Documentation/zigux/phase2-conf-bridge-survey.md` remains the dedicated conf bridge survey note");
+    try expectContains(closure, "live `conf_bridge.zig`, checker, fixture roster, manifest, and closure-reminder packet");
+    try expectContains(closure, "PHASE2_KCONFIG_BRIDGE_CONF_HELPER_ANCHOR_COUNT=4");
     try expectBefore(survey, "## Survey Result", "## Next Bounded Step");
 }
 

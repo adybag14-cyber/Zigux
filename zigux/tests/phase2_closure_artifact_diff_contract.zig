@@ -23,7 +23,7 @@ test "phase2 closure keeps artifact support and shared tooling packet explicit" 
     try expectContains(closure, "PHASE2_STATUS=parked");
     try expectContains(closure, "PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest");
     try expectContains(closure, "scripts/zigux/check-phase2-artifact-tools-manifest.py");
-    try expectContains(closure, "scripts/zigux/artifact_diff.py and zigux/tests/fixtures/phase2_artifact_tools_manifest.json");
+    try expectContains(closure, "`scripts/zigux/artifact_diff.py` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair");
     try expectContains(closure, "PHASE2_SHARED_TOOLING_CHECKERS=python3 scripts/zigux/check-phase2-tool-manifest.py,python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py,python3 scripts/zigux/check-phase2-artifact-tools-manifest.py");
     try expectContains(closure, "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2");
 
