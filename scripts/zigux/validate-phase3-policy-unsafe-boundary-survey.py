@@ -30,8 +30,8 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_POLICY_DUMP_GATE=python3 scripts/zigux/check-phase3-policy-dump.py",
     "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "PHASE3_LOW_LEVEL_WRAPPER_TEST_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
-    "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-helper-local-policy-slice-and-the-directly-coupled-low-level-wrapper-packet",
-    "PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-helper-local-policy-slice-or-the-directly-coupled-low-level-wrapper-survey-drifts-again",
+    "PHASE3_BOUNDARY_GAP=no-further-policy-unsafe-gap-beyond-keeping-the-helper-local-packet-dedicated-replay-pair-and-the-directly-coupled-low-level-wrapper-packet-aligned",
+    "PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-layout-assert-panic-policy-allocator-policy-unsafe-policy-mmio-or-narrow-helper-surfaces-or-the-dedicated-policy-unsafe-survey-gate-drift-again",
     "Documentation/zigux/phase3-policy-slice.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
 )
@@ -215,8 +215,8 @@ SELF_TEST_SURVEY_TEMPLATE = """\
 - `PHASE3_POLICY_DUMP_GATE=python3 scripts/zigux/check-phase3-policy-dump.py`
 - `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `PHASE3_LOW_LEVEL_WRAPPER_TEST_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
-- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-helper-local-policy-slice-and-the-directly-coupled-low-level-wrapper-packet`
-- `PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-the-helper-local-policy-slice-or-the-directly-coupled-low-level-wrapper-survey-drifts-again`
+- `PHASE3_BOUNDARY_GAP=no-further-policy-unsafe-gap-beyond-keeping-the-helper-local-packet-dedicated-replay-pair-and-the-directly-coupled-low-level-wrapper-packet-aligned`
+- `PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-layout-assert-panic-policy-allocator-policy-unsafe-policy-mmio-or-narrow-helper-surfaces-or-the-dedicated-policy-unsafe-survey-gate-drift-again`
 - `Documentation/zigux/phase3-policy-slice.md`
 - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
 """

@@ -16,7 +16,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_UNSAFE_POLICY_SCOPE=helper-local-unsafe-scope-relay-over-the-shared-narrow-decoder-plus-access-boundary-surface-and-permit-audit-aliases`
 - `PHASE3_UNSAFE_POLICY_BLOB_SHA=131221814ce388037afa658d0d6903d4319c4e4a`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
-- `PHASE3_MMIO_BLOB_SHA=8073e2e027a6a1458f8447ee0bc9b97e911bc7ea`
+- `PHASE3_MMIO_BLOB_SHA=36b1cf4367f73575e4aeb8d51c687f4dd069981b`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge-with-explicit-audit-gates`
 - `PHASE3_UNSAFE_BLOB_SHA=0a2bfa31a3fc061f9ec24bc0975cde8ce41e1f62`
