@@ -77,6 +77,7 @@ Every closeout record must also keep all of the following explicit in the linked
 If those outcome fields cannot be named honestly, the request stays blocked instead of presenting a stay-in-C closeout or status-bucket change as more settled than the current evidence supports.
 
 This note does not define an exception path outside those reviewable outcomes.
+There is no silent exception path around the indefinite-C policy.
 
 ## Stay-in-C closeout rule
 

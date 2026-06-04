@@ -70,16 +70,16 @@ test "bootstrap workflow carries every policy-required make route exactly once" 
     }
 }
 
-test "bootstrap validator remains part of the current workflow packet" {
+test "bootstrap workflow route validator remains part of the current workflow packet" {
     const workflow = try readRepoFile(".github/workflows/zigux-bootstrap.yml", 256 * 1024);
     defer std.testing.allocator.free(workflow);
 
     try std.testing.expectEqual(
         @as(usize, 1),
-        countExactTrimmedLine(workflow, "run: python3 scripts/zigux/validate-bootstrap.py --self-test"),
+        countExactTrimmedLine(workflow, "run: python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py --self-test"),
     );
     try std.testing.expectEqual(
         @as(usize, 1),
-        countExactTrimmedLine(workflow, "run: python3 scripts/zigux/validate-bootstrap.py"),
+        countExactTrimmedLine(workflow, "run: python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py"),
     );
 }

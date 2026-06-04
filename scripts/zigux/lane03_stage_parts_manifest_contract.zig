@@ -41,7 +41,7 @@ test "stage helper keeps parts-dir CLI and input-mode boundary" {
     try requireOrder(
         helper_source,
         "parts_dir = args.parts_dir.resolve() if args.parts_dir is not None else None",
-        "metadata, status, actual_sha, destination, input_mode = stage_archive(",
+        "metadata, status, actual_sha, destination, input_mode = stage_archive(\n            root,\n            source,\n            parts_dir=parts_dir,",
     );
 }
 
@@ -84,7 +84,11 @@ test "parts reconstruction reads ordered shards and validates final archive" {
     try requireContains(helper_source, "return validate_source_archive(");
     try requireContains(helper_source, "expected_size=expected_size,");
     try requireContains(helper_source, "expected_sha=expected_sha,");
-    try requireOrder(helper_source, "manifest = load_shard_manifest(parts_dir)", "destination.parent.mkdir(parents=True, exist_ok=True)");
+    try requireOrder(
+        helper_source,
+        "manifest = load_shard_manifest(parts_dir)",
+        "destination.parent.mkdir(parents=True, exist_ok=True)\n    with destination.open(\"wb\") as handle:",
+    );
     try requireOrder(helper_source, "for index in range(part_count):", "return validate_source_archive(");
     try std.testing.expectEqual(@as(usize, 1), countContains(helper_source, "for index in range(part_count):"));
 }

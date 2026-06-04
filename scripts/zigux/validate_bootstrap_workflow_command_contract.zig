@@ -59,8 +59,8 @@ test "validator reports exact workflow drift and stable bootstrap count summarie
     try expectContains(validate_bootstrap_text, "\"run: python3 scripts/zigux/check-phase1-route-summary-counts.py\"");
     try expectContains(validate_bootstrap_text, "\"run: make -C zigux phase6-validate\"");
     try expectContains(validate_bootstrap_text, "\"run: zig build test --build-file zigux/tests/phase6_build.zig --summary all\"");
-    try expectContains(validate_bootstrap_text, "(\"MISSING_WORKFLOW_LINE\", \"run: python3 scripts/zigux/install-zig.py --self-test\")");
-    try expectContains(validate_bootstrap_text, "(\"DUPLICATE_WORKFLOW_LINE\", \"run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing:count=2\")");
+    try expectContains(validate_bootstrap_text, "\"MISSING_WORKFLOW_LINE\",\n            \"run: python3 scripts/zigux/install-zig.py --self-test\",");
+    try expectContains(validate_bootstrap_text, "\"DUPLICATE_WORKFLOW_LINE\",\n            \"run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing:count=2\",");
     try expectContains(validate_bootstrap_text, "BOOTSTRAP_VALIDATION=fail");
     try expectContains(validate_bootstrap_text, "BOOTSTRAP_VALIDATION=pass");
     try expectContains(validate_bootstrap_text, "BOOTSTRAP_REQUIRED_PATH_COUNT");
