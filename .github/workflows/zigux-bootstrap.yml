@@ -100,9 +100,7 @@ jobs:
               if [ ! -d "$repo_archive_parts_dir" ]; then
                 return 1
               fi
-              python3 scripts/zigux/stage-pinned-zig-archive.py \
-                --root "$GITHUB_WORKSPACE" \
-                --parts-dir "$repo_archive_parts_dir" || return 1
+              python3 scripts/zigux/stage-pinned-zig-archive.py                 --root "$GITHUB_WORKSPACE"                 --parts-dir "$repo_archive_parts_dir" || return 1
             fi
             if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
               tar -xJf "$repo_archive_path" -C .zig-toolchain
