@@ -1,2 +1,3 @@
 placeholder shared-object fixture for fixdep multi-target coverage
 CONFIG_ZIGUX_SAMPLE2_SO_NO_PARSE_SENTINEL=y
+CONFIG_ZIGUX_SAMPLE2_SO_MODULE_SHOULD_NOT_PARSE=m
