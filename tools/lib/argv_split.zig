@@ -132,3 +132,18 @@ test "argvSplit releases partial allocations when duplication fails" {
         .{"alpha beta gamma"},
     );
 }
+
+test "argvSplit preserves literal shell-like bytes and embedded nul tokens" {
+    var result = try argv_split(std.testing.allocator, "  key=value  \"quoted\"  path\\name\x00tail  ");
+    defer argv_free(&result);
+
+    try std.testing.expectEqual(@as(usize, 3), result.argc());
+    try std.testing.expectEqualStrings("key=value", result.argv[0]);
+    try std.testing.expectEqualStrings("\"quoted\"", result.argv[1]);
+    try std.testing.expectEqualStrings("path\\name\x00tail", result.argv[2]);
+    try std.testing.expectEqual(@as(usize, 14), result.argv[2].len);
+    try std.testing.expectEqual(@as(u8, 0), result.argv[2][9]);
+
+    result.argv[0][0] = 'K';
+    try std.testing.expectEqualStrings("Key=value", result.argv[0]);
+}
