@@ -47,7 +47,7 @@ CHECKS = (
         ("--self-test",),
         exact_markers=(
             "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass",
-            "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=12",
+            "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=13",
         ),
     ),
     CheckSpec(

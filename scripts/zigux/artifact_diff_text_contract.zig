@@ -100,7 +100,8 @@ test "artifact diff text mode remains exact and separate from json and byte dige
 
 test "artifact diff text results report identity without digest noise" {
     try expectContains(artifact_diff_source, "ARTIFACT_DIFF=pass");
-    try expectContains(artifact_diff_source, "ARTIFACT_DIFF=fail");
+    try expectContains(artifact_diff_source, "print(f\"ARTIFACT_DIFF={status}\")");
+    try expectContains(artifact_diff_source, "\"pass\" if result.ok else \"fail\"");
     try expectContains(artifact_diff_source, "MODE=");
     try expectContains(artifact_diff_source, "EXPECTED=");
     try expectContains(artifact_diff_source, "ACTUAL=");
