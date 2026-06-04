@@ -383,12 +383,12 @@ def run_self_test() -> int:
             WORKFLOW,
             duplicate_exact_line(
                 read_text(root, WORKFLOW),
-                "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+                REQUIRED_WORKFLOW_LINES[2],
             ),
         )
         assert (
             "DUPLICATE_WORKFLOW_LINE",
-            "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing:count=2",
+            f"{REQUIRED_WORKFLOW_LINES[2]}:count=2",
         ) in collect_issues(root)
         checks += 1
 

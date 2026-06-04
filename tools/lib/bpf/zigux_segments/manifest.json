@@ -73,8 +73,11 @@
     },
     {
       "id": "P8-L13-S05",
+      "slug": "fdinfo-map-info-helpers", "status": "starter_landed",
+      "validator_marker": {
       "slug": "fdinfo-map-info-helpers",
-      "status": "starter_landed",
+      "status": "starter_landed"
+      },
       "kind": "helper_first",
       "anchor_ranges": [
         "tools/lib/bpf/libbpf.c: bpf_get_map_info_from_fdinfo() pathname and fdinfo text parsing"
@@ -84,8 +87,11 @@
     },
     {
       "id": "P8-L13-S06",
+      "slug": "map-reuse-compatibility", "status": "starter_landed",
+      "validator_marker": {
       "slug": "map-reuse-compatibility",
-      "status": "starter_landed",
+      "status": "starter_landed"
+      },
       "kind": "helper_first",
       "anchor_ranges": [
         "tools/lib/bpf/libbpf.c: bpf_map__reuse_fd() name selection and bpf_object__reuse_map() compatibility checks"
@@ -95,9 +101,12 @@
     },
     {
       "id": "P8-L13-S07",
+      "slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary",
+      "validator_marker": {
       "slug": "file-path-and-handle-bridge",
       "status": "deferred_high_risk",
-      "kind": "resource_boundary",
+      "kind": "resource_boundary"
+      },
       "anchor_ranges": [
         "tools/lib/bpf/libbpf.c: bpf_object_prepare_token() and bpf_object__reuse_map() handle-bridging paths"
       ],

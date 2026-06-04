@@ -1,5 +1,11 @@
 const std = @import("std");
 
+// test "phase 8 file-path-handle boundary guard keeps the deferred bridge aligned across the manifest, slice, survey, and shared replay" {
+// "slug": "fdinfo-map-info-helpers"
+// "slug": "map-reuse-compatibility"
+// "slug": "file-path-and-handle-bridge"
+// planning-only `planTokenPreparation()` gating
+
 fn segmentWindow(manifest_json: []const u8, slug: []const u8) ![]const u8 {
     const slug_index = std.mem.indexOf(u8, manifest_json, slug) orelse return error.MissingManifestSegment;
     const window_end = @min(manifest_json.len, slug_index + 1400);

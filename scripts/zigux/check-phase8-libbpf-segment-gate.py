@@ -41,6 +41,10 @@ LANDED_SLUGS = [
     "fdinfo-map-info-helpers",
     "map-reuse-compatibility",
     "perf-buffer-poll-bookkeeping",
+    "fdinfo-path-and-reuse-name-footholds",
+    "ready-buffer-fd-lookup",
+    "ready-buffer-window-lookup",
+    "perf-buffer-wait-budget",
 ]
 DEFERRED_SLUGS = [
     "file-path-and-handle-bridge",

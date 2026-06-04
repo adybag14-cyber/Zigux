@@ -229,6 +229,12 @@ jobs:
       - name: Check current Lane 01 bootstrap charter packet
         run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py
 
+      - name: Self-test current bootstrap validator
+        run: python3 scripts/zigux/validate-bootstrap.py --self-test
+
+      - name: Validate current bootstrap packet
+        run: python3 scripts/zigux/validate-bootstrap.py
+
       - name: Self-test current kconfig bridge checker
         run: python3 scripts/zigux/check-kconfig-bridge.py --self-test
 

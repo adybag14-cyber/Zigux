@@ -15,7 +15,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     const exec_cmd_test_options = b.addOptions();
-    exec_cmd_test_options.addOption([]const u8, "repo_root", b.pathFromRoot("../.."));
+    exec_cmd_test_options.addOption([]const u8, "repo_root", ".");
     exec_cmd_root_module.addImport("exec_cmd", exec_cmd_module);
     exec_cmd_root_module.addOptions("build_options", exec_cmd_test_options);
 

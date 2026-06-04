@@ -1,6 +1,15 @@
 const std = @import("std");
 const file_path_handle_bridge = @import("file_path_handle_bridge");
 
+// test "phase 8 file-path handle bridge helper stays wired into the Linux-style replay routes" {
+// "slug": "fdinfo-map-info-helpers", "status": "starter_landed"
+// "slug": "map-reuse-compatibility", "status": "starter_landed"
+// "slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"
+// phase 8 file-path handle bridge proof keeps helper-local routing evidence smaller than deferred setup-side routing
+// phase 8 file-path handle bridge proof keeps the current libbpf survey reminder-only bridge split explicit
+// Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md
+// tools/lib/bpf/zigux_segments/online_cpu_routing.zig
+
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
@@ -92,11 +101,11 @@ test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and
 
     try expectContains(
         manifest,
-        "\"slug\": \"fdinfo-map-info-helpers\",\n      \"status\": \"starter_landed\"",
+        "\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"",
     );
     try expectContains(
         manifest,
-        "\"slug\": \"map-reuse-compatibility\",\n      \"status\": \"starter_landed\"",
+        "\"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"",
     );
     try expectContains(
         manifest,
@@ -116,7 +125,7 @@ test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and
     );
     try expectContains(
         manifest,
-        "\"slug\": \"file-path-and-handle-bridge\",\n      \"status\": \"deferred_high_risk\",\n      \"kind\": \"resource_boundary\"",
+        "\"slug\": \"file-path-and-handle-bridge\", \"status\": \"deferred_high_risk\", \"kind\": \"resource_boundary\"",
     );
     try expectContains(manifest, "direct procfs reads and descriptor ownership flow");
     try expectContains(manifest, "token creation, bpffs reopen flow, and other fd-handle bridge side effects");

@@ -25,7 +25,7 @@ test "phase 8 perf-buffer poll tests README keeps the current direct-readback pa
     const note = try readWorkspaceFile(
         std.testing.allocator,
         "zigux/tests/README.md",
-        32 * 1024,
+        128 * 1024,
     );
     defer std.testing.allocator.free(note);
 
@@ -78,7 +78,7 @@ test "phase 8 perf-buffer poll scripts README keeps the current bridge packet ex
     const note = try readWorkspaceFile(
         std.testing.allocator,
         "scripts/zigux/README.md",
-        32 * 1024,
+        128 * 1024,
     );
     defer std.testing.allocator.free(note);
 
@@ -440,6 +440,102 @@ test "phase 8 perf-buffer poll helper keeps ready-buffer fd lookup returns compa
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
         perf_buffer_poll.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &missing_fd, 1),
+    );
+}
+
+test "phase 8 perf-buffer poll helper resolves ready-buffer mapped-window lookups without manual slot plumbing" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    const buffer_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    try std.testing.expectEqual(
+        @as(usize, 4096),
+        try perf_buffer_poll.resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &buffer_windows, 0),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 8192),
+        try perf_buffer_poll.resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &buffer_windows, 1),
+    );
+    try std.testing.expectError(
+        error.MissingReadyBuffer,
+        perf_buffer_poll.resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &buffer_windows, 2),
+    );
+
+    const short_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+    };
+    try std.testing.expectError(
+        error.InvalidIndex,
+        perf_buffer_poll.resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &short_windows, 1),
+    );
+
+    const missing_window = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        null,
+    };
+    try std.testing.expectError(
+        error.MissingWindow,
+        perf_buffer_poll.resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &missing_window, 1),
+    );
+}
+
+test "phase 8 perf-buffer poll helper keeps ready-buffer window lookup returns errno-shaped" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    const buffer_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    try std.testing.expectEqual(
+        @as(i32, 0),
+        perf_buffer_poll.resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &buffer_windows, 0),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 0),
+        perf_buffer_poll.resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &buffer_windows, 1),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &buffer_windows, 2),
+    );
+
+    const short_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+    };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        perf_buffer_poll.resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &short_windows, 1),
+    );
+
+    const missing_window = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        null,
+    };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &missing_window, 1),
     );
 }
 

@@ -322,8 +322,9 @@ test "weak object symbol classes keep the current C helper classification" {
 }
 
 test "parseLine truncates oversized names without keeping a parser-local error surface" {
-    const too_long_name = "a" ** (KSYM_NAME_LEN + 9);
-    const oversized_line = try std.fmt.allocPrint(std.testing.allocator, "1 T {s}", .{too_long_name});
+    var too_long_name: [KSYM_NAME_LEN + 9]u8 = undefined;
+    @memset(&too_long_name, 'a');
+    const oversized_line = try std.fmt.allocPrint(std.testing.allocator, "1 T {s}", .{too_long_name[0..]});
     defer std.testing.allocator.free(oversized_line);
 
     const parsed = parseLine(oversized_line) orelse unreachable;
@@ -364,11 +365,12 @@ test "callback file parsing keeps oversized symbol names bounded and NUL-termina
         }
     };
 
-    const too_long_name = "a" ** (KSYM_NAME_LEN + 73);
+    var too_long_name: [KSYM_NAME_LEN + 73]u8 = undefined;
+    @memset(&too_long_name, 'a');
     const contents = try std.fmt.allocPrint(
         std.testing.allocator,
         "1 T {s}\r\n2 t done\r\n",
-        .{too_long_name},
+        .{too_long_name[0..]},
     );
     defer std.testing.allocator.free(contents);
 
@@ -454,7 +456,8 @@ test "chunked parsing preserves split records and truncates oversized names" {
     for (parsed.items) |*symbol| symbol.deinit(std.testing.allocator);
     parsed.clearRetainingCapacity();
 
-    const too_long_name = "a" ** (KSYM_NAME_LEN + 21);
+    var too_long_name: [KSYM_NAME_LEN + 21]u8 = undefined;
+    @memset(&too_long_name, 'a');
     const first_chunk = try std.fmt.allocPrint(std.testing.allocator, "1 T {s}", .{too_long_name[0..40]});
     defer std.testing.allocator.free(first_chunk);
     const second_chunk = try std.fmt.allocPrint(std.testing.allocator, "{s}\n", .{too_long_name[40..]});
@@ -501,7 +504,8 @@ test "chunked parsing bounds oversized line buffering to the current helper wind
         }
     };
 
-    const too_long_name = "a" ** (KSYM_NAME_LEN + 2048);
+    var too_long_name: [KSYM_NAME_LEN + 2048]u8 = undefined;
+    @memset(&too_long_name, 'a');
     const first_chunk = try std.fmt.allocPrint(std.testing.allocator, "1 T {s}", .{too_long_name[0..100]});
     defer std.testing.allocator.free(first_chunk);
     const second_chunk = try std.fmt.allocPrint(std.testing.allocator, "{s}\n2 t done\n", .{too_long_name[100..]});

@@ -79,6 +79,7 @@ Phase 15 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phas
 * `zigux/tests/phase15_build.zig` stays the directly readable shared build companion, while `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` remain blocked route vocabulary rather than shipped replay paths on current `master`.
 * `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-architecture-council-packet.py`, and `scripts/zigux/validate-phase15.py` keep the current docs-root Phase 15 reminder packet reviewable while the remaining shared-summary follow-through stays limited to the handoff note, the shared-summary gap note, the scripts-root reminder, and the tests-root reminder rather than widening into deep-core delivery or approval claims.
 * keep the shared reminder surfaces explicit here too: `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` may summarize the same bounded packet, but they do not own freeze-map decisions or broader route recovery by themselves.
+* `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`, so shared reminder surfaces route those summaries back to the owning accounting note instead of treating them as delivery evidence.
 
 ## Phase 4 Exact-Readback Reminder
 
@@ -95,3 +96,8 @@ Phase 15 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phas
 ## Phase 7 Shared Surface Addendum
 
 * `zigux/tests/phase7_build.zig` keeps `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` wired through the dedicated helper, survey, sample-boundary, and format-boundary routes plus the shared `test` step, while `zigux/Makefile` keeps only the narrow `make -C zigux phase7-validate` foothold explicit and leaves broader wrapper routes outside this packet.
+
+## Phase 8 Notes
+
+* Phase 8 notes - `scripts/zigux/validate-phase8.py`, `tools/lib/subcmd/exec-cmd.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`, and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` keep the current docs-root userspace-adjacent tooling reminder explicit beside the shipped validation entrypoint, command helper, surviving perf-buffer poll helper, and mixed-source file-path-handle bridge slice.
+* `Documentation/zigux/phase8-exec-cmd-slice.md`, `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_exec_cmd_only_build.zig`, `make -C zigux phase8-exec-cmd-test`, and `make -C zigux phase8-validate` keep the direct exec-cmd packet explicit from the docs root.

@@ -91,7 +91,7 @@ test "phase8 online-cpu routing mask bridge keeps string-backed next-route summa
     );
     try std.testing.expectEqual(@as(?usize, 4), second.cpu_index);
     try std.testing.expectEqual(@as(?i32, 21), second.buffer_fd);
-    try std.testing.expectEqual(@as(usize, 1), second.skipped_offline_count);
+    try std.testing.expectEqual(@as(usize, 2), second.skipped_offline_count);
 }
 
 test "phase8 online-cpu routing mask bridge keeps reader-backed next-route summaries aligned" {

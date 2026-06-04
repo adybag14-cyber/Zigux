@@ -17,7 +17,7 @@ pub fn build(b: *std.Build) void {
     });
 
     const test_options = b.addOptions();
-    test_options.addOption([]const u8, "repo_root", b.pathFromRoot("../.."));
+    test_options.addOption([]const u8, "repo_root", ".");
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase8_cpu_mask.zig"),

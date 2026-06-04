@@ -5,7 +5,7 @@ fn readPhase8HelpSlice(b: *std.Build) []const u8 {
     const cwd = std.Io.Dir.cwd();
     return cwd.readFileAlloc(
         io,
-        b.pathFromRoot("../../Documentation/zigux/phase8-help-slice.md"),
+        "Documentation/zigux/phase8-help-slice.md",
         b.allocator,
         .limited(1024 * 1024),
     ) catch @panic("unable to read Documentation/zigux/phase8-help-slice.md");

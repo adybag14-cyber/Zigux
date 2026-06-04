@@ -5,7 +5,7 @@ fn readPhase8HelpSlice(b: *std.Build) []const u8 {
     const cwd = std.Io.Dir.cwd();
     return cwd.readFileAlloc(
         io,
-        b.pathFromRoot("../../Documentation/zigux/phase8-help-slice.md"),
+        "Documentation/zigux/phase8-help-slice.md",
         b.allocator,
         .limited(1024 * 1024),
     ) catch @panic("unable to read Documentation/zigux/phase8-help-slice.md");
@@ -16,7 +16,7 @@ fn readPhase8KallsymsSlice(b: *std.Build) []const u8 {
     const cwd = std.Io.Dir.cwd();
     return cwd.readFileAlloc(
         io,
-        b.pathFromRoot("../../Documentation/zigux/phase8-kallsyms-slice.md"),
+        "Documentation/zigux/phase8-kallsyms-slice.md",
         b.allocator,
         .limited(1024 * 1024),
     ) catch @panic("unable to read Documentation/zigux/phase8-kallsyms-slice.md");
@@ -37,7 +37,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     const exec_cmd_test_options = b.addOptions();
-    exec_cmd_test_options.addOption([]const u8, "repo_root", b.pathFromRoot("../.."));
+    exec_cmd_test_options.addOption([]const u8, "repo_root", ".");
     exec_cmd_root_module.addImport("exec_cmd", exec_cmd_module);
     exec_cmd_root_module.addOptions("build_options", exec_cmd_test_options);
 

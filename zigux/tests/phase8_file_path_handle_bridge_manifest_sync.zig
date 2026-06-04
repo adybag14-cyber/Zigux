@@ -1,5 +1,10 @@
 const std = @import("std");
 
+// "lane_key": "P8-L13"
+// "id": "P8-L13-S07"
+// "slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"
+// planning-only token-readiness gating as a reviewable landed helper slice
+
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
@@ -16,7 +21,7 @@ fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usiz
     );
 }
 
-test "phase 8 file-path handle bridge manifest keeps the current landed helper packet and deferred boundary explicit" {
+test "phase 8 file-path handle bridge manifest keeps the landed helper wording explicit" {
     const manifest = try readWorkspaceFile(
         std.testing.allocator,
         "tools/lib/bpf/zigux_segments/manifest.json",
@@ -26,15 +31,18 @@ test "phase 8 file-path handle bridge manifest keeps the current landed helper p
 
     try expectContains(manifest, "\"slug\": \"fdinfo-map-info-helpers\"");
     try expectContains(manifest, "\"status\": \"starter_landed\"");
+    try expectContains(manifest, "\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"");
     try expectContains(manifest, "bounded procfs path construction");
     try expectContains(manifest, "fdinfo text parsing");
     try expectContains(manifest, "\"slug\": \"map-reuse-compatibility\"");
     try expectContains(manifest, "\"status\": \"starter_landed\"");
+    try expectContains(manifest, "\"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"");
     try expectContains(manifest, "reused-map-name chooser");
     try expectContains(manifest, "compatibility comparison");
     try expectContains(manifest, "\"slug\": \"file-path-and-handle-bridge\"");
     try expectContains(manifest, "\"status\": \"deferred_high_risk\"");
     try expectContains(manifest, "\"kind\": \"resource_boundary\"");
+    try expectContains(manifest, "\"slug\": \"file-path-and-handle-bridge\", \"status\": \"deferred_high_risk\", \"kind\": \"resource_boundary\"");
     try expectContains(manifest, "procfs reads");
     try expectContains(manifest, "bpffs opens");
     try expectContains(manifest, "token creation");

@@ -2,6 +2,8 @@
 
 This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zigux around `tools/lib/subcmd/exec-cmd.c`.
 
+The exec-cmd review packet stays focused on the launch-free command preparation helper and its shared Phase 8 validation route.
+
 ## Status
 
 - `PHASE8_STATUS=parked`
@@ -22,6 +24,8 @@ The Phase 8 roadmap explicitly calls for `tools/lib/subcmd/*.zig` as the first p
 That keeps the lane honest: `exec-cmd` now covers the smallest reviewable setup, argv-preparation, and deferred-handoff planning surface from the C helper without widening into direct process-launch side effects or sibling `help.c` behavior.
 
 The roadmap boundary matters here too: Phase 8 is the repo-hosted tooling tranche, while `kernel/workqueue.c` remains a Phase 14 boundary-study target. So this slice can model argument preparation and environment setup for later deferred execution, and it can package launch-free `execv_cmd()` and `execl_cmd()` handoff plans for later use, but it must stop before `execvp()` side effects, scheduler-facing transport ownership, or anything that reads like a workqueue-style execution substrate.
+
+The plain-text boundary stays explicit too: kernel/workqueue.c remains a Phase 14 boundary-study target.
 
 ## Gates
 

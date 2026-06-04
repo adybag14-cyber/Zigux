@@ -17,6 +17,12 @@ That landed helper packet keeps bounded `"/proc/%d/fdinfo/%d"` pathname shaping 
 
 The helper packet also now keeps helper-only `mapReuseObservationFromFdinfo()` handoff, `summarizeMapReuseCompatibility()` and `isMapReuseCompatible()` reviewable, while `resolveReusePinnedMapAttempt()` stays explicit as planning-only `resolveReusePinnedMapAttempt()` gating and `planTokenPreparation()` stays explicit as planning-only `planTokenPreparation()` gating.
 
+The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.
+
+The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.
+
+The planTokenPreparation() gating explicit reminder stays planning-only and does not promote token creation or live bridge ownership.
+
 The focused helper proof now also keeps terminated-prefix and truncated-fixed-width retained-name dispositions explicit, along with incomplete-fdinfo reuse planning that must fail closed before any reopen or token step.
 
 Those planning-only helpers remain bounded: no live bpffs opens, no descriptor replacement, transfer, or close ownership semantics, no token materialization, and no direct file-open bridge-heavy behavior.

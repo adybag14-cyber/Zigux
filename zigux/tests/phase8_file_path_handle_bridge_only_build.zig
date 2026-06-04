@@ -27,7 +27,7 @@ pub fn build(b: *std.Build) void {
         file_path_handle_bridge_tests,
     );
 
-    const test_step = b.step("test", "Run focused Phase 8 file-path handle bridge tests");
+    const test_step = b.step("test", "Run focused Phase 8 file-path-handle bridge tests");
     test_step.dependOn(&run_file_path_handle_bridge_tests.step);
     b.default_step.dependOn(test_step);
 }

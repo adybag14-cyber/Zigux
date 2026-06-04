@@ -123,6 +123,10 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
         scripts_readme,
         "surviving perf-buffer poll route",
     );
+    try expectContains(
+        scripts_readme,
+        "`tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig`",
+    );
 
     const poll_slice = try readRepoFile("Documentation/zigux/phase8-perf-buffer-poll-slice.md");
     defer std.testing.allocator.free(poll_slice);
@@ -174,12 +178,25 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
     try expectContains(poll_gate, "no standalone clockevent helper behavior");
     try expectContains(poll_gate, "broader perf-buffer-online-cpu-routing parity");
 
+    const perf_buffer_wait_budget_source = try readRepoFile(
+        "tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig",
+    );
+    defer std.testing.allocator.free(perf_buffer_wait_budget_source);
+    try expectContains(
+        perf_buffer_wait_budget_source,
+        "phase8 perf-buffer wait budget normalizes bounded waits into ms and ns budgets",
+    );
+
     const validator = try readRepoFile("scripts/zigux/validate-phase8.py");
     defer std.testing.allocator.free(validator);
 
     try expectContains(
         validator,
         "PERF_BUFFER_POLL_GATE_CHECKER = Path(\"scripts/zigux/check-phase8-perf-buffer-poll-gate.py\")",
+    );
+    try expectContains(
+        validator,
+        "PERF_BUFFER_WAIT_BUDGET_SEGMENT = Path(",
     );
     try expectContains(
         validator,
