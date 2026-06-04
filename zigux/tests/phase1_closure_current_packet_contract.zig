@@ -102,7 +102,7 @@ test "current reminder packet keeps closure validator current and broader Phase 
     try expectContains(closure_text, "It still does not expose `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, or `make -C zigux phase1`");
 }
 
-test "bootstrap workflow runs Phase 1 closure after direct-anchor checks and before Phase 2 validation" {
+test "bootstrap workflow runs Phase 1 closure after direct-anchor checks and before Phase 3 validation" {
     const allocator = std.testing.allocator;
     const workflow_text = try readFile(allocator, contract_options.workflow_path);
     defer allocator.free(workflow_text);
@@ -116,7 +116,9 @@ test "bootstrap workflow runs Phase 1 closure after direct-anchor checks and bef
     const closure_self = try indexOfRequired(workflow_text, "Self-test current Phase 1 closure validator");
     const closure_live = try indexOfRequired(workflow_text, "Check current Phase 1 closure packet");
     const phase2_closure = try indexOfRequired(workflow_text, "Check current Phase 2 closure packet");
+    const phase3_interop = try indexOfRequired(workflow_text, "Self-test current Phase 3 interop packet");
 
+    try std.testing.expect(phase2_closure < direct_owner_self);
     try std.testing.expect(direct_owner_self < direct_owner_live);
     try std.testing.expect(direct_owner_live < direct_anchor_self);
     try std.testing.expect(direct_anchor_self < direct_anchor_live);
@@ -124,7 +126,7 @@ test "bootstrap workflow runs Phase 1 closure after direct-anchor checks and bef
     try std.testing.expect(shared_reminder_self < shared_reminder_live);
     try std.testing.expect(shared_reminder_live < closure_self);
     try std.testing.expect(closure_self < closure_live);
-    try std.testing.expect(closure_live < phase2_closure);
+    try std.testing.expect(closure_live < phase3_interop);
 
     try expectOnce(workflow_text, "run: python3 scripts/zigux/validate-phase1-closure.py --self-test");
     try expectOnce(workflow_text, "\n        run: python3 scripts/zigux/validate-phase1-closure.py\n");
