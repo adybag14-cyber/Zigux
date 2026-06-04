@@ -53,6 +53,10 @@ pub const ListView = struct {
         return self.head.next == self_ptr and self.head.prev == self_ptr;
     }
 
+    pub fn isSingular(self: ListView) bool {
+        return self.first() != null and self.head.next == self.head.prev;
+    }
+
     pub fn first(self: ListView) ?*const ListHead {
         const node = ptrFromRaw(self.head.next) orelse return null;
         return if (node == self.head) null else node;
@@ -130,6 +134,7 @@ test "list view treats a sentinel-only list as empty" {
 
     const view = ListView.init(&head);
     try std.testing.expect(view.isEmpty());
+    try std.testing.expect(!view.isSingular());
     try std.testing.expectEqual(@as(usize, 0), view.len());
     try std.testing.expectEqual(@as(?*const ListHead, null), view.first());
     try std.testing.expectEqual(@as(?*const ListHead, null), view.last());
@@ -144,12 +149,31 @@ test "list view does not treat a broken sentinel backlink as empty" {
 
     const view = ListView.init(&head);
     try std.testing.expect(!view.isEmpty());
+    try std.testing.expect(!view.isSingular());
 
     const breakage = view.firstBrokenBacklink().?;
     try std.testing.expectEqual(@as(usize, 0), breakage.current_index);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head)), breakage.expected_prev);
     try std.testing.expectEqual(@as(usize, 0), breakage.actual_prev);
     try std.testing.expect(!view.hasConsistentBacklinks());
+}
+
+test "list view recognizes a singular list_head chain" {
+    var head = ListHead{ .next = 0, .prev = 0 };
+    var only = ListHead{ .next = 0, .prev = 0 };
+
+    head.next = @intFromPtr(&only);
+    head.prev = @intFromPtr(&only);
+    only.next = @intFromPtr(&head);
+    only.prev = @intFromPtr(&head);
+
+    const view = ListView.init(&head);
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expect(view.isSingular());
+    try std.testing.expectEqual(@as(usize, 1), view.len());
+    try std.testing.expectEqual(@as(?*const ListHead, &only), view.first());
+    try std.testing.expectEqual(@as(?*const ListHead, &only), view.last());
+    try std.testing.expect(view.hasConsistentBacklinks());
 }
 
 test "list view walks a circular list_head chain in order" {
@@ -166,6 +190,7 @@ test "list view walks a circular list_head chain in order" {
 
     const view = ListView.init(&head);
     try std.testing.expect(!view.isEmpty());
+    try std.testing.expect(!view.isSingular());
     try std.testing.expectEqual(@as(usize, 2), view.len());
     try std.testing.expectEqual(@as(?*const ListHead, &first), view.first());
     try std.testing.expectEqual(@as(?*const ListHead, &second), view.last());
