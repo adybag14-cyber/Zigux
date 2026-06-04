@@ -28,7 +28,7 @@ test "offset helper windows survive failed allocs and owner reuse" {
     try expectBytes(&[_]u8{ 0x71, 0x71, 0x71 }, slab_owner[21..24]);
 
     const slab_written = vsprintf.scnprintfPad(slab_owner[2..11], 7, "s={d}", .{5});
-    try std.testing.expectEqual(@as(usize, 6), slab_written);
+    try std.testing.expectEqual(@as(usize, 7), slab_written);
     try expectBytes(&[_]u8{ 0x71, 0x71 }, slab_owner[0..2]);
     try std.testing.expectEqualStrings("s=5    ", slab_owner[2..9]);
     try std.testing.expectEqual(@as(u8, 0), slab_owner[9]);

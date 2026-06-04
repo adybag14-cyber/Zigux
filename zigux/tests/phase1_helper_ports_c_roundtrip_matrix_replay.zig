@@ -50,7 +50,7 @@ test "helper ports C caller windows compose padded formatting and fallback error
     @memset(backing, 0x5a);
 
     const padded_written = vsprintf.scnprintfPad(backing[5..20], 10, "x{d}", .{9});
-    try std.testing.expectEqual(@as(usize, 9), padded_written);
+    try std.testing.expectEqual(@as(usize, 10), padded_written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0x5a, 0x5a, 0x5a, 0x5a, 0x5a }, backing[0..5]);
     try std.testing.expectEqualStrings("x9        ", backing[5..15]);
     try std.testing.expectEqual(@as(u8, 0), backing[15]);
@@ -78,7 +78,7 @@ test "helper ports C caller windows compose padded formatting and fallback error
     cell.?.count = @intCast(padded_written + fallback.len);
     cell.?.active = true;
     @memcpy(&cell.?.label, "c10!");
-    try std.testing.expectEqual(@as(u16, 18), cell.?.count);
+    try std.testing.expectEqual(@as(u16, 19), cell.?.count);
     try std.testing.expect(cell.?.active);
 
     zalloc.zfreeValue(allocator, MatrixCell, &cell);

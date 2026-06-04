@@ -39,7 +39,7 @@ test "phase1 helper ports C keeps offset views and reset guards contained" {
 
     var padded_backing: [12]u8 = @splat('!');
     const padded_len = vsprintf.scnprintfPad(padded_backing[2..9], 6, "{s}", .{"id"});
-    try std.testing.expectEqual(@as(usize, 5), padded_len);
+    try std.testing.expectEqual(@as(usize, 6), padded_len);
     try std.testing.expectEqualSlices(u8, "!!", padded_backing[0..2]);
     try std.testing.expectEqualSlices(u8, "id    ", padded_backing[2..8]);
     try std.testing.expectEqual(@as(u8, 0), padded_backing[8]);

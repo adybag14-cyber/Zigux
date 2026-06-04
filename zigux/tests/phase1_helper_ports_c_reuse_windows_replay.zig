@@ -53,7 +53,7 @@ test "vsprintf reuse windows clamp independently before zalloc owners reset" {
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xcc, 'a', 'b', 'c', 'd', 0, 0xcc, 0xcc, 0xcc, 0xcc }, &line);
 
     const second = vsprintf.scnprintfPad(line[3..9], 16, "{s}", .{"xy"});
-    try std.testing.expectEqual(@as(usize, 4), second);
+    try std.testing.expectEqual(@as(usize, 5), second);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xcc, 'a', 'b', 'x', 'y', ' ', ' ', ' ', 0, 0xcc }, &line);
 
     const allocator = std.testing.allocator;

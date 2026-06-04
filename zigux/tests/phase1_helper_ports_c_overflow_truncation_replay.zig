@@ -37,7 +37,7 @@ test "strErrorR and vsprintf keep terminators on narrow caller buffers" {
 test "vsprintf padding clamps logical size before zalloc frees reset optionals" {
     var padded = [_]u8{ 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd };
     const padded_len = vsprintf.scnprintfPad(&padded, 128, "{s}", .{"xy"});
-    try std.testing.expectEqual(@as(usize, 4), padded_len);
+    try std.testing.expectEqual(@as(usize, 5), padded_len);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'x', 'y', ' ', ' ', ' ', 0 }, &padded);
 
     const allocator = std.testing.allocator;

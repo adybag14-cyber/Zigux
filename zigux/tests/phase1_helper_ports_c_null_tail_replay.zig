@@ -57,7 +57,7 @@ test "phase 1 helper ports C preserve slab windows across bounded fallback and p
     try std.testing.expectEqual(@as(u8, 0x52), owner[16]);
 
     const padded_len = vsprintf.scnprintfPad(owner[17..26], 8, "id={d}", .{7});
-    try std.testing.expectEqual(@as(usize, 7), padded_len);
+    try std.testing.expectEqual(@as(usize, 8), padded_len);
     try std.testing.expectEqualStrings("id=7    ", owner[17..25]);
     try std.testing.expectEqual(@as(u8, 0), owner[25]);
     try std.testing.expectEqual(@as(u8, 0x53), owner[26]);

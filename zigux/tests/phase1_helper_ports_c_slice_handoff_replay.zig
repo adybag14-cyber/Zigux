@@ -72,7 +72,7 @@ test "phase1 helper ports C keep fallback error lengths tied to the active zallo
     try std.testing.expectEqual(@as(u8, 0xcc), owner.?[47]);
 
     const rewritten = vsprintf.scnprintfPad(owner.?[8..20], 12, "{s}", .{"ok"});
-    try std.testing.expectEqual(@as(usize, 10), rewritten);
+    try std.testing.expectEqual(@as(usize, 11), rewritten);
     try std.testing.expectEqualSlices(
         u8,
         &[_]u8{ 'o', 'k', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 0 },

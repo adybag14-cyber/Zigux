@@ -43,7 +43,7 @@ test "fragmented caller buffers keep fallback and padded views bounded" {
     try std.testing.expectEqual(@as(u8, 0xa1), backing[10]);
 
     const padded = vsprintf.scnprintfPad(backing[5..13], 6, "{s}", .{"io"});
-    try std.testing.expectEqual(@as(usize, 5), padded);
+    try std.testing.expectEqual(@as(usize, 6), padded);
     try std.testing.expectEqualSlices(
         u8,
         &[_]u8{ 0xa1, 0xa1, 0xa1, 'I', 'N', 'i', 'o', ' ', ' ', ' ', ' ', 0, 0xa1, 0xa1 },

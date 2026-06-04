@@ -12,7 +12,7 @@ test "phase1 format helper clamps logical size and preserves caller tail" {
     var padded = [_]u8{ 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb };
     const padded_written = vsprintf.scnprintfPad(&padded, 7, "{s}", .{"ok"});
 
-    try std.testing.expectEqual(@as(usize, 6), padded_written);
+    try std.testing.expectEqual(@as(usize, 7), padded_written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'o', 'k', ' ', ' ', ' ', ' ', ' ', 0, 0xbb }, &padded);
 }
 

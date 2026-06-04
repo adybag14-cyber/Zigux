@@ -34,7 +34,7 @@ test "slab payload transfers into zalloc owner while format windows stay bounded
     try std.testing.expectEqual(@as(u8, 0), owned.?[11]);
 
     const padded = vsprintf.scnprintfPad(owned.?[12..21], 8, "e{d}", .{22});
-    try std.testing.expectEqual(@as(usize, 7), padded);
+    try std.testing.expectEqual(@as(usize, 8), padded);
     try std.testing.expectEqualStrings("e22     ", owned.?[12..20]);
     try std.testing.expectEqual(@as(u8, 0), owned.?[20]);
     try std.testing.expectEqual(@as(u8, 0), owned.?[21]);

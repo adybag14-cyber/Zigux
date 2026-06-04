@@ -179,7 +179,7 @@ test "phase1 host-tools smoke exercises live helper behavior" {
 
     var padded_render: [12]u8 = undefined;
     const padded_len = vsprintf.scnprintfPad(&padded_render, 10, "id={d}", .{7});
-    try std.testing.expectEqual(@as(usize, 9), padded_len);
+    try std.testing.expectEqual(@as(usize, 10), padded_len);
     try std.testing.expectEqualStrings("id=7      ", padded_render[0..10]);
 
     const allocator = std.testing.allocator;

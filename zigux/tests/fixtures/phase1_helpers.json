@@ -225,6 +225,6 @@
     "scnprintf_text": "zigux:7",
     "scnprintf_len": 7,
     "pad_text": "id=7    ",
-    "pad_len": 7
+    "pad_len": 8
   }
 }

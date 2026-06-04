@@ -57,7 +57,7 @@ test "helper ports C keep truncated render contracts aligned" {
 
     var pad_buf: [7]u8 = @splat(0xdd);
     const pad_written = vsprintf.scnprintfPad(&pad_buf, 6, "{s}", .{"xy"});
-    try std.testing.expectEqual(@as(usize, 5), pad_written);
+    try std.testing.expectEqual(@as(usize, 6), pad_written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'x', 'y', ' ', ' ', ' ', ' ', 0 }, &pad_buf);
 
     const allocator = std.testing.allocator;

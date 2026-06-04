@@ -69,7 +69,7 @@ test "phase1 helper ports C share subview boundaries across strerror and vsprint
 test "phase1 helper ports C pad formatting and strerror fallback report active windows" {
     var padded = [_]u8{ 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb };
     const padded_written = vsprintf.scnprintfPad(&padded, padded.len - 1, "{s}", .{"ok"});
-    try std.testing.expectEqual(@as(usize, 6), padded_written);
+    try std.testing.expectEqual(@as(usize, 7), padded_written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'o', 'k', ' ', ' ', ' ', ' ', ' ', 0 }, &padded);
 
     var fallback: [48]u8 = @splat(0xcc);

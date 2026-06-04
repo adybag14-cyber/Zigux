@@ -25,7 +25,7 @@ test "helper ports C reuse tail windows without touching sentinels" {
     @memset(slab_bytes, 0xcc);
     const fmt_window = slab_bytes[5..16];
     const written = vsprintf.scnprintfPad(fmt_window, fmt_window.len - 1, "tail={d}", .{7});
-    try std.testing.expectEqual(@as(usize, 9), written);
+    try std.testing.expectEqual(@as(usize, 10), written);
     try std.testing.expectEqualSlices(u8, "tail=7    ", fmt_window[0 .. fmt_window.len - 1]);
     try std.testing.expectEqual(@as(u8, 0xcc), slab_bytes[4]);
     try std.testing.expectEqual(@as(u8, 0), slab_bytes[15]);

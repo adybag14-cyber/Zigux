@@ -57,7 +57,7 @@ test "error and padded formatting share bounded zalloc subviews" {
 
     const pad_window = owner.?[24..40];
     const written = vsprintf.scnprintfPad(pad_window, 12, "ok:{d}", .{7});
-    try std.testing.expectEqual(@as(usize, 11), written);
+    try std.testing.expectEqual(@as(usize, 12), written);
     try std.testing.expectEqualStrings("ok:7        ", pad_window[0..12]);
     try std.testing.expectEqual(@as(u8, 0), pad_window[12]);
     try std.testing.expectEqual(@as(u8, 0xcc), owner.?[40]);
