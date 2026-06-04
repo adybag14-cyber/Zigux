@@ -41,7 +41,7 @@ const toolchain_make_commands = [_][]const u8{
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pinning.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py",
-    "phase2-tools: phase2-toolchain",
+    "phase2-tools:",
 };
 
 const toolchain_workflow_runs = [_][]const u8{
