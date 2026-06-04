@@ -10,10 +10,11 @@ fn bit(index: usize) usize {
 
 test "sexquadragintuple trailing empty banks preserve first and next cpu walks across the sparse gulf" {
     const capacity = (48 * bitmap_view.word_bits) + 13;
+    const empty46: [46]usize = @splat(0);
     const words = [_]usize{
         bit(2) | bit(5) | bit(11),
         bit(1) | bit(9) | bit(14) | bit(17),
-    } ++ [_]usize{0} ** 46 ++ [_]usize{
+    } ++ empty46 ++ [_]usize{
         bit(0) | bit(3) | bit(6) | bit(9) | bit(12),
         std.math.maxInt(usize),
     };
@@ -40,35 +41,37 @@ test "sexquadragintuple trailing empty banks preserve first and next cpu walks a
 
 test "sexquadragintuple trailing empty banks keep subset and overlap decisions independent of ignored tail noise" {
     const capacity = (48 * bitmap_view.word_bits) + 13;
+    const empty46: [46]usize = @splat(0);
+    const empty48: [48]usize = @splat(0);
     const base_words = [_]usize{
         bit(2) | bit(5) | bit(11),
         bit(1) | bit(9) | bit(14) | bit(17),
-    } ++ [_]usize{0} ** 46 ++ [_]usize{
+    } ++ empty46 ++ [_]usize{
         bit(0) | bit(3) | bit(6) | bit(9) | bit(12),
         std.math.maxInt(usize),
     };
     const subset_words = [_]usize{
         bit(2) | bit(11),
         bit(14),
-    } ++ [_]usize{0} ** 46 ++ [_]usize{
+    } ++ empty46 ++ [_]usize{
         bit(3) | bit(12),
         std.math.maxInt(usize),
     };
     const overlap_words = [_]usize{
         bit(5),
         bit(9) | bit(17),
-    } ++ [_]usize{0} ** 46 ++ [_]usize{
+    } ++ empty46 ++ [_]usize{
         bit(0) | bit(6),
         std.math.maxInt(usize),
     };
     const disjoint_words = [_]usize{
         bit(0) | bit(7),
         bit(3) | bit(12),
-    } ++ [_]usize{0} ** 46 ++ [_]usize{
+    } ++ empty46 ++ [_]usize{
         bit(1) | bit(10),
         std.math.maxInt(usize),
     };
-    const ignored_tail_words = [_]usize{0} ** 48 ++ [_]usize{
+    const ignored_tail_words = empty48 ++ [_]usize{
         bit(14) | bit(21) | bit(30),
         std.math.maxInt(usize),
     };
