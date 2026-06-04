@@ -106,7 +106,7 @@ test "phase2 tests readme mirrors the closure artifact tools packet" {
     try requireContains(tests_readme, artifact_tool_checker);
     try requireContains(tests_readme, artifact_tool_manifest);
     try requireContains(tests_readme, "fixture-backed tool-manifest and artifact-tools-manifest guards");
-    try requireContains(tests_readme, "Keep the fixture-backed tool-manifest and artifact-tools-manifest guards");
+    try requireContains(tests_readme, "keep the fixture-backed tool-manifest and artifact-tools-manifest guards");
     try requireOrdered(tests_readme, "scripts/zigux/check-phase2-tool-manifest.py", artifact_tool_checker);
     try requireOrdered(tests_readme, artifact_tool_checker, "scripts/zigux/check-phase2-required-make-routes.py");
 
