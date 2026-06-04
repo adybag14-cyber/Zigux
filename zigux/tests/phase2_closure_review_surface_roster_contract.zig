@@ -32,15 +32,14 @@ const closure_status_markers = [_][]const u8{
     "shared validator pair: `python3 scripts/zigux/validate-phase2.py` and `python3 scripts/zigux/validate-phase2-closure.py`",
 };
 
-const manifest_surface_packet =
-    \\"review_surfaces": [
-    \\  "Documentation/zigux/README.md",
-    \\  "Documentation/zigux/phase2-closure.md",
-    \\  "Documentation/zigux/review-checklist.md",
-    \\  "scripts/zigux/README.md",
-    \\  "zigux/tests/README.md"
-    \\]
-;
+fn readFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        path,
+        allocator,
+        .limited(2 * 1024 * 1024),
+    );
+}
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
@@ -56,25 +55,71 @@ fn expectOrdered(haystack: []const u8, first: []const u8, second: []const u8) !v
     try std.testing.expect(first_index < second_index);
 }
 
+fn section(haystack: []const u8, marker: []const u8) ![]const u8 {
+    const start = std.mem.indexOf(u8, haystack, marker) orelse return error.MissingSection;
+    const tail = haystack[start..];
+    const end = std.mem.indexOf(u8, tail, "\n    ]") orelse return error.UnterminatedSection;
+    return tail[0..end];
+}
+
 test "phase2 closure review surfaces remain a five-file manifest roster" {
+    const allocator = std.testing.allocator;
+    const manifest = try readFile(allocator, "zigux/tests/fixtures/phase2_tool_manifest.json");
+    defer allocator.free(manifest);
+    const review_surface_section = try section(manifest, "\"review_surfaces\": [");
+
     for (review_surfaces) |surface| {
-        try expectContains(manifest_surface_packet, surface);
+        try expectContains(review_surface_section, surface);
     }
 
-    try expectOrdered(manifest_surface_packet, review_surfaces[0], review_surfaces[1]);
-    try expectOrdered(manifest_surface_packet, review_surfaces[1], review_surfaces[2]);
-    try expectOrdered(manifest_surface_packet, review_surfaces[2], review_surfaces[3]);
-    try expectOrdered(manifest_surface_packet, review_surfaces[3], review_surfaces[4]);
+    try expectOrdered(review_surface_section, review_surfaces[0], review_surfaces[1]);
+    try expectOrdered(review_surface_section, review_surfaces[1], review_surfaces[2]);
+    try expectOrdered(review_surface_section, review_surfaces[2], review_surfaces[3]);
+    try expectOrdered(review_surface_section, review_surfaces[3], review_surfaces[4]);
 
-    try expectMissing(manifest_surface_packet, "Documentation/zigux/artifact-diff.md");
-    try expectMissing(manifest_surface_packet, "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md");
-    try expectMissing(manifest_surface_packet, "Documentation/zigux/phase3-abi-slice.md");
+    try expectMissing(review_surface_section, "Documentation/zigux/artifact-diff.md");
+    try expectMissing(review_surface_section, "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md");
+    try expectMissing(review_surface_section, "Documentation/zigux/phase3-abi-slice.md");
 }
 
 test "phase2 closure keeps closure notes and validator pair distinct from review roster" {
-    const manifest_packet =
-        \\"closure_notes": [
-        \\  "Documentation/zigux/phase2-closure.md",
-        \\  "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
-        \\],
-        \\
+    const allocator = std.testing.allocator;
+    const manifest = try readFile(allocator, "zigux/tests/fixtures/phase2_tool_manifest.json");
+    defer allocator.free(manifest);
+    const closure_note_section = try section(manifest, "\"closure_notes\": [");
+    const validator_section = try section(manifest, "\"validators\": [");
+
+    for (closure_notes) |note| {
+        try expectContains(closure_note_section, note);
+    }
+    try expectOrdered(closure_note_section, closure_notes[0], closure_notes[1]);
+
+    for (validators) |validator| {
+        try expectContains(validator_section, validator);
+    }
+    try expectOrdered(validator_section, validators[0], validators[1]);
+}
+
+test "phase2 manifest keeps review surface notes explicit" {
+    const allocator = std.testing.allocator;
+    const manifest = try readFile(allocator, "zigux/tests/fixtures/phase2_tool_manifest.json");
+    defer allocator.free(manifest);
+
+    for (manifest_note_markers) |marker| {
+        try expectContains(manifest, marker);
+    }
+}
+
+test "phase2 closure note pins status and validator replay markers" {
+    const allocator = std.testing.allocator;
+    const closure = try readFile(allocator, "Documentation/zigux/phase2-closure.md");
+    defer allocator.free(closure);
+
+    for (closure_status_markers) |marker| {
+        try expectContains(closure, marker);
+    }
+
+    try expectContains(closure, "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2");
+    try expectContains(closure, "PHASE2_CLOSURE_VALIDATORS=python3 scripts/zigux/validate-phase2.py,python3 scripts/zigux/validate-phase2-closure.py");
+    try expectMissing(closure, "PHASE2_STATUS=active");
+}
