@@ -42,6 +42,11 @@ pub const HListView = struct {
         return self.head.first == 0;
     }
 
+    pub fn isSingular(self: HListView) bool {
+        const first_node = self.first() orelse return false;
+        return first_node.next == 0;
+    }
+
     pub fn first(self: HListView) ?*const HListNode {
         return nodeFromRaw(self.head.first);
     }
@@ -110,12 +115,32 @@ test "hlist view treats an empty head as empty" {
     const view = HListView.init(&head);
 
     try std.testing.expect(view.isEmpty());
+    try std.testing.expect(!view.isSingular());
     try std.testing.expectEqual(@as(usize, 0), view.len());
     try std.testing.expectEqual(@as(?*const HListNode, null), view.first());
     try std.testing.expectEqual(@as(?*const HListNode, null), view.last());
     try std.testing.expect(view.firstPprevMatchesHead());
     try std.testing.expect(view.hasConsistentPrevLinks());
     try std.testing.expect(view.firstBrokenPrevLink() == null);
+    try std.testing.expect(view.tailNextIsNull());
+}
+
+test "hlist view recognizes a singular bounded chain" {
+    var head = HListHead{ .first = 0 };
+    var only = HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&only);
+    only.next = 0;
+    only.pprev = @intFromPtr(&head.first);
+
+    const view = HListView.init(&head);
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expect(view.isSingular());
+    try std.testing.expectEqual(@as(usize, 1), view.len());
+    try std.testing.expectEqual(@as(?*const HListNode, &only), view.first());
+    try std.testing.expectEqual(@as(?*const HListNode, &only), view.last());
+    try std.testing.expect(view.firstPprevMatchesHead());
+    try std.testing.expect(view.hasConsistentPrevLinks());
     try std.testing.expect(view.tailNextIsNull());
 }
 
@@ -132,6 +157,7 @@ test "hlist view walks a bounded chain in order" {
 
     const view = HListView.init(&head);
     try std.testing.expect(!view.isEmpty());
+    try std.testing.expect(!view.isSingular());
     try std.testing.expectEqual(@as(usize, 2), view.len());
     try std.testing.expectEqual(@as(?*const HListNode, &first), view.first());
     try std.testing.expectEqual(@as(?*const HListNode, &second), view.last());
