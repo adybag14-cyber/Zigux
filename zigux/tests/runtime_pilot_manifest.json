@@ -93,5 +93,6 @@
   "repo_reality_gaps": [
     "blocked module-metadata, depmod bridge, and install-root publication vocabulary remains historical rather than direct shipped proof"
   ],
+  "runtime_loader_shared_gap_marker": "blocked publication and install-root vocabulary remains historical rather than direct shipped proof",
   "next_safe_step": "tighten one shared reminder surface at a time where current master still undercounts the blocked module-metadata and depmod bridge boundary before widening into runtime behavior, build wiring, or install-root claims"
 }

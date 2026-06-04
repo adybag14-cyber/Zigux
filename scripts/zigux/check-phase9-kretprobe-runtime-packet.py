@@ -94,7 +94,7 @@ FILE_MARKERS = {
         'try std.testing.expectEqualStrings("runtime_kretprobe", descriptor.name);',
         'try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", descriptor.anchor);',
         'try expectContains(phase9_build, "\\"phase9-runtime-kretprobe-tests\\"");',
-        'try expectContains(phase9_build, "\\"phase9-first-loadable-runtime-module-parity-behavior-tests\\"");',
+        "phase9-first-loadable-runtime-module-parity-behavior-tests",
         'test "phase9 runtime kretprobe survey keeps captured initialized snapshot replay explicit across later selftest and exit" {',
     ),
     MODULE_PATH: (

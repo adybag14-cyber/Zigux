@@ -37,7 +37,7 @@ FILE_MARKERS: dict[str, list[str]] = {
         '"samples/zigux/runtime_atomic64.zig"',
         '"samples/zigux/runtime_atomic64_loader.zig"',
         '"zig build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig"',
-        '"tighten one stale shared reminder surface at a time when it undercounts the atomic64',
+        '"tighten one shared reminder surface at a time where current master still undercounts',
     ],
     MANIFEST_PATH: [
         '"scripts/zigux/check-phase9-atomic64-runtime-packet.py"',
@@ -46,7 +46,7 @@ FILE_MARKERS: dict[str, list[str]] = {
         '"samples/zigux/runtime_atomic64.zig"',
         '"samples/zigux/runtime_atomic64_loader.zig"',
         '"zig build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig"',
-        '"scope": "shared reminder, manifest, catalog, and ownership surfaces for the atomic64 pilot packet',
+        '"scope": "shared reminder, manifest, catalog, ownership, validation, and module-metadata and depmod bridge boundary surfaces for the atomic64 pilot packet',
     ],
     PHASE9_BUILD_PATH: [
         '.root_source_file = b.path("../../samples/zigux/runtime_atomic64.zig")',
@@ -62,7 +62,7 @@ FILE_MARKERS: dict[str, list[str]] = {
     ],
     MAKEFILE_PATH: [
         "phase9-runtime-atomic64-test:",
-        "$(ZIG) build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig --summary all",
+        "$(ZIG_REPO_ROOT) build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig --summary all",
         "phase9-test: phase9-runtime-atomic64-test",
     ],
     SAMPLE_PATH: [
@@ -92,12 +92,11 @@ FILE_MARKERS: dict[str, list[str]] = {
         'test "runtime atomic64 sample keeps rejected re-exit rollback explicit at the module boundary" {',
     ],
     DIFF_PATH: [
-        'test "atomic64 diff wrapper keeps the shipped runtime handoff blob pins exact" {',
-        'test "atomic64 diff wrapper keeps the current phase4 and phase9 build routing explicit" {',
-        'test "atomic64 diff wrapper keeps post-exit guard-path rejection coverage explicit" {',
-        'test "atomic64 diff wrapper executes the bounded threshold replay through the shipped runtime gate" {',
-        "phase9_build_manifest_blob_pin_drift",
-        "phase9_build_survey_blob_pin_drift",
+        'test "runtime atomic64 diff gate replays bounded atomic64_test.c arithmetic, exchange, cmpxchg, add_unless, and bitwise expectations" {',
+        'test "runtime atomic64 diff gate keeps inc_not_zero and dec_if_positive guard paths explicit" {',
+        'test "runtime atomic64 diff gate keeps selftest family coverage explicit" {',
+        'test "runtime atomic64 diff gate rejects an empty threshold replay batch" {',
+        'test "runtime atomic64 diff gate keeps a deterministic threshold replay batch ready for future perf baselines" {',
     ],
 }
 

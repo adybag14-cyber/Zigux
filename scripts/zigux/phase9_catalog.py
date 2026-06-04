@@ -21,6 +21,7 @@ EXPECTED_SCOPE = (
 EXPECTED_GAPS = [
     "blocked module-metadata, depmod bridge, and install-root publication vocabulary remains historical rather than direct shipped proof",
 ]
+RUNTIME_LOADER_SHARED_GAP_MARKER = "blocked publication and install-root vocabulary remains historical rather than direct shipped proof"
 EXPECTED_NEXT_SAFE_STEP = (
     "tighten one shared reminder surface at a time where current master still undercounts "
     "the blocked module-metadata and depmod bridge boundary before widening into runtime behavior, "
