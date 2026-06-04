@@ -24,9 +24,6 @@ pub fn build(b: *std.Build) void {
 
     const tests = b.addTest(.{ .root_module = replay_mod });
     const run_tests = b.addRunArtifact(tests);
-    if (b.args) |args| {
-        run_tests.addArgs(args);
-    }
 
     const replay_step = b.step("phase3-list-hlist-head-swap-replay", "Run the Phase 3 list/hlist head-swap replay");
     replay_step.dependOn(&run_tests.step);
