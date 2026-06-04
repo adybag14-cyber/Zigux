@@ -3,7 +3,7 @@ const str_error_r = @import("str_error_r");
 const vsprintf = @import("vsprintf");
 
 test "phase1 format helper preserves width precision and terminator boundaries" {
-    var buffer = [_]u8{0xaa} ** 24;
+    var buffer: [24]u8 = @splat(0xaa);
     const written = vsprintf.scnprintf(&buffer, "{s: >8}|{d:0>4}|{d:.2}", .{
         "xy",
         37,
@@ -17,7 +17,7 @@ test "phase1 format helper preserves width precision and terminator boundaries" 
 }
 
 test "phase1 format helper truncates after formatted precision without clobbering tail" {
-    var buffer = [_]u8{0xbb} ** 12;
+    var buffer: [12]u8 = @splat(0xbb);
     const written = vsprintf.vscnprintf(&buffer, "{d:.2}:{d:0>6}", .{
         @as(f64, 3.125),
         42,
@@ -29,10 +29,10 @@ test "phase1 format helper truncates after formatted precision without clobberin
 }
 
 test "phase1 padded format keeps logical precision window and caller tail" {
-    var buffer = [_]u8{0xcc} ** 14;
+    var buffer: [14]u8 = @splat(0xcc);
     const written = vsprintf.scnprintfPad(buffer[2..12], 8, "{d:.2}", .{@as(f64, 3.125)});
 
-    try std.testing.expectEqual(@as(usize, 7), written);
+    try std.testing.expectEqual(@as(usize, 8), written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xcc, 0xcc }, buffer[0..2]);
     try std.testing.expectEqualSlices(u8, &[_]u8{ '3', '.', '1', '3', ' ', ' ', ' ', ' ', 0, 0xcc }, buffer[2..12]);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xcc, 0xcc }, buffer[12..14]);
