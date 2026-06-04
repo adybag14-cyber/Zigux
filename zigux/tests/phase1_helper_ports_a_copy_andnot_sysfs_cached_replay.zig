@@ -18,7 +18,7 @@ test "bitmap copy-and-extend feeds andnot scans across a tail window" {
         (@as(Word, 1) << 8) | (@as(Word, 1) << 14),
     };
     var copied = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
-    var andnot = [_]Word{0} ** 3;
+    var andnot = [_]Word{ 0, 0, 0 };
 
     bitmap.bitmap_copy_and_extend(&copied, &original, nbits, bits_per_long * 3);
     try std.testing.expectEqual(@as(usize, 3), bitmap.bitsToWords(bits_per_long * 3));
