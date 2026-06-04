@@ -40,13 +40,7 @@ REQUIRED_MAKE_MARKERS = [
     "phase4-bitmap-live-helper-replay phase4-test-fsmount-survey "
     "phase4-kprobe-example-survey phase4",
     "phase4-validate:",
-    "scripts/zigux/validate-phase4.py --self-test",
-    "scripts/zigux/validate-phase4.py",
-    "scripts/zigux/check-artifact-diff-contract.py",
-    "scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
-    "scripts/zigux/check-phase4-artifact-diff-determinism.py",
-    "scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
-    "scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
+    "$(MAKE) phase4-artifact-diff-contract",
     "scripts/zigux/check-phase4-gate-evidence.py",
     "scripts/zigux/check-phase4-remaining-gap-matrix.py",
     "scripts/zigux/check-phase4-workflow-route-counts.py",
@@ -54,10 +48,18 @@ REQUIRED_MAKE_MARKERS = [
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "scripts/zigux/check-phase4-validation-lane-sequencing.py --self-test",
     "scripts/zigux/check-phase4-validation-lane-sequencing.py",
+    "scripts/zigux/check-phase4-perf-threshold-matrix.py --self-test",
+    "scripts/zigux/check-phase4-perf-threshold-matrix.py",
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
+    "scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
+    "scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
+    "scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
+    "scripts/zigux/check-phase4-artifact-diff-makefile-contract.py --self-test",
+    "scripts/zigux/check-phase4-artifact-diff-makefile-contract.py",
+    "scripts/zigux/artifact_diff_text_contract_build.zig",
     "phase4-artifact-diff-contract:",
     "scripts/zigux/artifact_diff.py --self-test",
-    "scripts/zigux/check-artifact-diff-contract.py --self-test",
     "phase4-test:",
     "$(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase4_build.zig",
     "phase4-runtime-atomic64-diff:",
@@ -80,15 +82,7 @@ REQUIRED_MAKE_MARKERS = [
 ]
 
 REQUIRED_PHASE4_VALIDATE_COMMANDS = [
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py --self-test",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
+    "\t$(MAKE) phase4-artifact-diff-contract",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-remaining-gap-matrix.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py",
@@ -96,21 +90,28 @@ REQUIRED_PHASE4_VALIDATE_COMMANDS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-validation-lane-sequencing.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-validation-lane-sequencing.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-perf-threshold-matrix.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-perf-threshold-matrix.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-perf-baseline-packet.py",
 ]
 
 REQUIRED_PHASE4_VALIDATE_ORDERED_COMMANDS = [
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "\t$(MAKE) phase4-artifact-diff-contract",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-remaining-gap-matrix.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test",
 ]
 
 REQUIRED_PHASE4_ARTIFACT_DIFF_CONTRACT_COMMANDS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-makefile-contract.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-makefile-contract.py",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build artifact-diff-text-contract --build-file scripts/zigux/artifact_diff_text_contract_build.zig",
 ]
 
 REQUIRED_WORKFLOW_MARKERS = [
@@ -248,15 +249,7 @@ SELFTEST_CASES = [
 SELFTEST_MAKEFILE = """PHONY += phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4
 
 phase4-validate:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py
+	$(MAKE) phase4-artifact-diff-contract
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-remaining-gap-matrix.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py
@@ -264,12 +257,19 @@ phase4-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-reversible-delivery-pins.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-validation-lane-sequencing.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-validation-lane-sequencing.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-perf-threshold-matrix.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-perf-threshold-matrix.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-perf-baseline-packet.py
 
 phase4-artifact-diff-contract:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-makefile-contract.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-makefile-contract.py
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build artifact-diff-text-contract --build-file scripts/zigux/artifact_diff_text_contract_build.zig
 
 phase4-test:
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase4_build.zig
@@ -699,7 +699,7 @@ def run_selftest() -> None:
         write_baseline()
         makefile.write_text(
             makefile.read_text(encoding="utf-8").replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test\n",
+                "\t$(MAKE) phase4-artifact-diff-contract\n",
                 "",
                 1,
             ),
@@ -711,10 +711,10 @@ def run_selftest() -> None:
         write_baseline()
         makefile.write_text(
             makefile.read_text(encoding="utf-8").replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test\n",
+                "\t$(MAKE) phase4-artifact-diff-contract\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py\n"
+                "\t$(MAKE) phase4-artifact-diff-contract\n",
                 1,
             ),
             encoding="utf-8",
@@ -727,11 +727,17 @@ def run_selftest() -> None:
             makefile.read_text(encoding="utf-8").replace(
                 "phase4-artifact-diff-contract:\n"
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-makefile-contract.py --self-test\n",
                 "phase4-artifact-diff-contract:\n"
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py\n",
                 1,
             ),
             encoding="utf-8",
