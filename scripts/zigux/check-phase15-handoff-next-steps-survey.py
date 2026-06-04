@@ -22,6 +22,8 @@ DIRECT_PACKET_PATHS = (
     "Documentation/zigux/phase15-shared-summary-gap.md",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_readiness_gate_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps.zig",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
     "scripts/zigux/check-phase15-shared-summary-gap.py",
@@ -29,19 +31,16 @@ DIRECT_PACKET_PATHS = (
     "zigux/tests/README.md",
 )
 
-MISSING_HANDOFF_COMPANIONS = (
-    "zigux/tests/phase15_handoff_next_steps_manifest.json",
-    "zigux/tests/phase15_handoff_next_steps.zig",
-)
+MISSING_HANDOFF_COMPANIONS = ()
 
 REQUIRED_MARKERS = (
     "PHASE15_STATUS=handoff_next_steps_survey_landed",
-    "PHASE15_LANE_KEY=P15-L11",
+    "PHASE15_LANE_KEY=P15-L12",
     "PHASE15_SLICE=existing_governance_packet_handoff_inventory",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
-    "surveyed against dated current-master readback marker `current-master-readback-2026-05-18`",
-    "the dedicated governance notes, the shared-gap guard, and the focused tests-root checker now define the tighter same-lane boundaries",
-    "no dedicated handoff-specific manifest or Zig replay is directly materialized on current `master`",
+    "surveyed against dated current-master readback marker `current-master-readback-2026-05-29`",
+    "The dedicated validator, the dedicated Architecture Council packet checker, the shared build companion, the readiness gap matrix, the governance-lane sequencing companions, the Architecture Council decision index, the directly materialized reminder-surface checkers, and the blocked-route recovery checker now define the tighter same-lane boundaries",
+    "The dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`.",
     "keep the four freeze-in-C anchors parked",
     "keep the two roadmap study-only anchors parked",
     "do not treat any direct Zig deep-core bridge as a next-phase commitment while the current blocker posture remains unchanged",
@@ -92,22 +91,22 @@ def _sample_handoff_note() -> str:
 ## Status
 
 - `PHASE15_STATUS=handoff_next_steps_survey_landed`
-- `PHASE15_LANE_KEY=P15-L11`
+- `PHASE15_LANE_KEY=P15-L12`
 - `PHASE15_SLICE=existing_governance_packet_handoff_inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-29`
 
 ## Why this note exists
 
-the dedicated governance notes, the shared-gap guard, and the focused tests-root checker now define the tighter same-lane boundaries.
-no dedicated handoff-specific manifest or Zig replay is directly materialized on current `master`.
+The dedicated validator, the dedicated Architecture Council packet checker, the shared build companion, the readiness gap matrix, the governance-lane sequencing companions, the Architecture Council decision index, the directly materialized reminder-surface checkers, and the blocked-route recovery checker now define the tighter same-lane boundaries.
+The dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`.
 
 ## Current handed-off packet on current master
 
 {direct_paths}
 - `Documentation/zigux/README.md`, which should be treated as a shared-summary gap source only when fresh Phase 15 wording actually appears there
 - the broad `zigux/tests/README.md` reminder surface, which should be reread with `scripts/zigux/check-phase15-tests-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the dedicated Phase 15 governance packet instead of being carried here as an unlanded future target by default
-- no dedicated handoff-specific manifest or Zig replay is directly materialized on current `master`, so treat this note as the handoff-specific source of truth until those companions actually land
+- the dedicated handoff-specific manifest and Zig replay are directly materialized on current `master`, so treat this note plus those companions as the handoff-specific source of truth
 
 ## Current governance posture to preserve
 
@@ -123,13 +122,9 @@ no dedicated handoff-specific manifest or Zig replay is directly materialized on
 
 This note does not claim:
 
-- that a dedicated handoff-specific manifest or Zig replay is already shipped on current `master`
+- that the dedicated handoff-specific manifest or Zig replay by itself lands broader Phase 15 wrapper routes
 - that the broader Phase 15 validator-first route or dedicated Phase 15 Zig build routes are already shipped on current `master`
 
-## Missing dedicated handoff companions
-
-- `{MISSING_HANDOFF_COMPANIONS[0]}`
-- `{MISSING_HANDOFF_COMPANIONS[1]}`
 """
 
 
@@ -152,14 +147,14 @@ def run_self_test() -> int:
         _write(
             missing_marker_root / HANDOFF_NOTE_PATH,
             _sample_handoff_note().replace(
-                "the dedicated governance notes, the shared-gap guard, and the focused tests-root checker now define the tighter same-lane boundaries.\n",
+                "The dedicated validator, the dedicated Architecture Council packet checker, the shared build companion, the readiness gap matrix, the governance-lane sequencing companions, the Architecture Council decision index, the directly materialized reminder-surface checkers, and the blocked-route recovery checker now define the tighter same-lane boundaries.\n",
                 "",
                 1,
             ),
         )
         failures = collect_failures(missing_marker_root)
         expected = [
-            "handoff_note:missing_marker:the dedicated governance notes, the shared-gap guard, and the focused tests-root checker now define the tighter same-lane boundaries"
+            "handoff_note:missing_marker:The dedicated validator, the dedicated Architecture Council packet checker, the shared build companion, the readiness gap matrix, the governance-lane sequencing companions, the Architecture Council decision index, the directly materialized reminder-surface checkers, and the blocked-route recovery checker now define the tighter same-lane boundaries"
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-marker failure: {failures}")
@@ -189,31 +184,8 @@ def run_self_test() -> int:
         if failures != expected:
             raise AssertionError(f"unexpected missing-path-marker failure: {failures}")
 
-        returned_gap_root = root / "returned_gap"
-        _seed_repo(returned_gap_root)
-        _write(returned_gap_root / MISSING_HANDOFF_COMPANIONS[0], "returned\n")
-        failures = collect_failures(returned_gap_root)
-        expected = [f"repo:gap_path_returned:{MISSING_HANDOFF_COMPANIONS[0]}"]
-        if failures != expected:
-            raise AssertionError(f"unexpected returned-gap failure: {failures}")
-
-        missing_gap_marker_root = root / "missing_gap_marker"
-        _seed_repo(missing_gap_marker_root)
-        _write(
-            missing_gap_marker_root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace(
-                f"- `{MISSING_HANDOFF_COMPANIONS[1]}`\n",
-                "",
-                1,
-            ),
-        )
-        failures = collect_failures(missing_gap_marker_root)
-        expected = [f"handoff_note:missing_gap_path:`{MISSING_HANDOFF_COMPANIONS[1]}`"]
-        if failures != expected:
-            raise AssertionError(f"unexpected missing-gap-marker failure: {failures}")
-
     print("PHASE15_HANDOFF_NEXT_STEPS_SURVEY_SELF_TEST=pass")
-    print("PHASE15_HANDOFF_NEXT_STEPS_SURVEY_SELF_TEST_CASES=5")
+    print("PHASE15_HANDOFF_NEXT_STEPS_SURVEY_SELF_TEST_CASES=4")
     return 0
 
 

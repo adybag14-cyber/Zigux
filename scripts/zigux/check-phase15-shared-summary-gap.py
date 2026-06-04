@@ -7,7 +7,7 @@ from pathlib import Path
 
 GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
-CURRENT_READBACK_MARKER = "current-master-readback-2026-05-25"
+CURRENT_READBACK_MARKER = "current-master-readback-2026-05-27"
 WATCHPOINTS_HEADING = "## Current shared-summary watchpoints"
 
 STATUS_MARKERS = (
