@@ -96,7 +96,7 @@ test "lane03 self-test covers status and archive failure cases" {
     try requireMarker(checker, "\"zig version command returned empty output\"");
     try requireMarker(checker, "\"zig version command failed: permission denied\"");
     if (hasMarker(checker, "--archive-only")) {
-        try requireMarker(checker, "\"explicit archive path is a directory, expected a regular file\"");
+        try requireMarker(checker, "explicit archive path is a directory, expected a regular file");
         try requireMarker(checker, "\"multiple repo-local pinned archive candidates matched\"");
         try requireMarker(checker, "\"expected sha256 {expected_archive_sha} for x86_64-linux, got {drift_sha}\"");
         try requireMarker(checker, "\"minimum_version must match channel\"");
