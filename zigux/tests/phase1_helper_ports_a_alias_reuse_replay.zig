@@ -10,19 +10,19 @@ const bits_per_long = bitmap.bits_per_long;
 test "bitmap allocation aliases feed tail-safe find-bit scans and formatting" {
     const allocator = std.testing.allocator;
     const nbits = bits_per_long + 7;
-    var allocated = try bitmap.bitmap_zalloc(allocator, nbits);
+    var allocated: ?[]Word = try bitmap.bitmap_zalloc(allocator, nbits);
     defer bitmap.bitmap_free(allocator, &allocated);
 
     const map = allocated.?;
-    bitmap.__bitmap_set(map, 1, 2);
-    bitmap.__bitmap_set(map, bits_per_long - 1, 1);
-    bitmap.__bitmap_set(map, bits_per_long + 2, 3);
-    bitmap.__bitmap_set(map, nbits - 1, 1);
+    bitmap.bitmap_set(map, 1, 2);
+    bitmap.bitmap_set(map, bits_per_long - 1, 1);
+    bitmap.bitmap_set(map, bits_per_long + 2, 3);
+    bitmap.bitmap_set(map, nbits - 1, 1);
 
     var copied = [_]Word{ 0, ~@as(Word, 0) };
     bitmap.bitmap_copy_clear_tail(&copied, map, nbits);
 
-    var mask = [_]Word{0} ** 2;
+    var mask = std.mem.zeroes([2]Word);
     bitmap.bitmap_set(&mask, 1, 1);
     bitmap.bitmap_set(&mask, bits_per_long + 2, 1);
     bitmap.bitmap_set(&mask, nbits - 1, 1);
@@ -47,7 +47,8 @@ test "bitmap allocation aliases feed tail-safe find-bit scans and formatting" {
 }
 
 test "string aliases keep c-string padding and sysfs matching reusable" {
-    var padded = [_]u8{0xaa} ** 12;
+    var padded: [12]u8 = undefined;
+    @memset(&padded, 0xaa);
     try std.testing.expectEqual(@as(isize, 5), string.strscpy_pad(&padded, "portA\x00ignored"));
     try std.testing.expectEqualSlices(
         u8,

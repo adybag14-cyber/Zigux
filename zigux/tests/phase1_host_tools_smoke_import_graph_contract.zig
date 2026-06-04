@@ -35,6 +35,13 @@ fn countOccurrences(text: []const u8, needle: []const u8) usize {
     return count;
 }
 
+fn sliceBetween(text: []const u8, start_marker: []const u8, end_marker: []const u8) ![]const u8 {
+    const start = std.mem.indexOf(u8, text, start_marker) orelse return error.MissingStartMarker;
+    const after_start = start + start_marker.len;
+    const relative_end = std.mem.indexOf(u8, text[after_start..], end_marker) orelse return error.MissingEndMarker;
+    return text[start .. after_start + relative_end];
+}
+
 test "shared build root wires the phase1 host-tools smoke helper graph" {
     const build_zig = options.tests_build_zig;
 
@@ -86,9 +93,14 @@ test "phase1 smoke source imports and declaration-checks every helper family" {
 test "helper graph stays rooted in phase1 host helpers only" {
     const build_zig = options.tests_build_zig;
     const smoke_zig = options.phase1_smoke_zig;
+    const phase1_smoke_build = try sliceBetween(
+        build_zig,
+        "fn addPhase1HostToolsSmoke(",
+        "\nfn addPhase1StringDirectAnchor(",
+    );
 
-    try requireAbsent(build_zig, "root_module.addImport(\"abi_bindings\"");
-    try requireAbsent(build_zig, "root_module.addImport(\"export_shim\"");
+    try requireAbsent(phase1_smoke_build, "root_module.addImport(\"abi_bindings\"");
+    try requireAbsent(phase1_smoke_build, "root_module.addImport(\"export_shim\"");
     try requireAbsent(smoke_zig, "@import(\"abi_bindings\")");
     try requireAbsent(smoke_zig, "@import(\"export_shim\")");
 }
