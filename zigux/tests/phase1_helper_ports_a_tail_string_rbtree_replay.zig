@@ -46,7 +46,7 @@ fn expectSerialsForKey(root: *const rbtree.Root, key: i32, expected: []const u8)
 
 test "phase1 ports A tail bitmap scans and string labels agree" {
     const nbits = bits_per_long + 9;
-    var map = [_]Word{0} ** 2;
+    var map: [2]Word = @splat(0);
     var rendered: [48]u8 = undefined;
 
     bitmap.bitmap_set(map[0..], bits_per_long - 3, 6);
@@ -74,7 +74,7 @@ test "phase1 ports A tail bitmap scans and string labels agree" {
 }
 
 test "phase1 ports A bitmap predicates select duplicate rbtree key runs" {
-    var selector = [_]Word{0} ** 1;
+    var selector: [1]Word = @splat(0);
     bitmap.bitmap_set(selector[0..], 2, 1);
     bitmap.bitmap_set(selector[0..], 5, 1);
     bitmap.bitmap_set(selector[0..], 8, 1);
