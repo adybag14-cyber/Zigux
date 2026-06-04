@@ -20,7 +20,7 @@ fn render(buffer: []u8, logical_size: usize, pad: bool, comptime fmt: []const u8
     if (pad and copied < limit) {
         @memset(buffer[copied..limit], ' ');
         buffer[limit] = 0;
-        return limit -| 1;
+        return limit;
     }
 
     buffer[copied] = 0;
@@ -49,7 +49,7 @@ test "scnprintf truncates to buffer minus terminator" {
 test "scnprintfPad pads the remaining bytes with spaces" {
     var buffer: [9]u8 = undefined;
     const written = scnprintfPad(&buffer, buffer.len - 1, "id={d}", .{7});
-    try std.testing.expectEqual(@as(usize, 7), written);
+    try std.testing.expectEqual(@as(usize, 8), written);
     try std.testing.expectEqualStrings("id=7    ", buffer[0 .. buffer.len - 1]);
 }
 
@@ -71,7 +71,7 @@ test "scnprintfPad clamps logical size to the caller buffer and preserves a term
     var buffer: [6]u8 = @splat(0xcc);
     const written = scnprintfPad(&buffer, 32, "{s}", .{"ab"});
 
-    try std.testing.expectEqual(@as(usize, 4), written);
+    try std.testing.expectEqual(@as(usize, 5), written);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'b', ' ', ' ', ' ', 0 }, &buffer);
 }
 
@@ -113,4 +113,20 @@ test "scnprintf and vscnprintf keep caller subview sentinels outside exact-fit w
     try std.testing.expectEqualSlices(u8, "port", alias[3..7]);
     try std.testing.expectEqual(@as(u8, 0), alias[7]);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xb9, 0xba }, alias[8..10]);
+}
+
+test "scnprintfPad reports full padded subview length while preserving sentinels" {
+    var backing = [_]u8{
+        0xc1, 0xc2, 0xc3, 0xc4,
+        0xc5, 0xc6, 0xc7, 0xc8,
+        0xc9, 0xca,
+    };
+
+    const window = backing[2..8];
+    const written = scnprintfPad(window, 5, "{s}", .{"io"});
+
+    try std.testing.expectEqual(@as(usize, 5), written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xc1, 0xc2 }, backing[0..2]);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'i', 'o', ' ', ' ', ' ', 0 }, backing[2..8]);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xc9, 0xca }, backing[8..10]);
 }
