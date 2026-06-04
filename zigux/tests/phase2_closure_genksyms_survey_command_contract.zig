@@ -28,8 +28,8 @@ test "phase 2 closure note keeps genksyms survey replay commands explicit" {
     try expectContains(closure_note, "scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py");
     try expectContains(closure_note, "`python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py --self-test`");
     try expectContains(closure_note, "`python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py`");
-    try expectContains(closure_note, "missing CRC-side dual-implementation gap statement explicit");
-    try expectContains(closure_note, "still-missing CRC-side evidence recorded in the survey");
+    try expectContains(closure_note, "restored CRC-side tool-plus-checker evidence");
+    try expectContains(closure_note, "restored CRC-side evidence and wrapper bridge packet");
     try expectAbsent(closure_note, "PHASE2_CURRENT_GAP_PACKET=Documentation/zigux/phase2-genksyms-dual-implementation-survey.md");
 }
 

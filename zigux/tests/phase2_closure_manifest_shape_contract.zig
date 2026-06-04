@@ -113,6 +113,6 @@ test "phase2 closure manifest covers each Phase 2 implementation family once in 
     try expectCount(manifest, "\"scripts/zigux/kconfig/confdata_bridge.zig\"", 1);
     try expectCount(manifest, "\"scripts/zigux/genksyms.zig\"", 1);
     try expectCount(manifest, "\"scripts/zigux/fixdep.zig\"", 1);
-    try expectCount(manifest, "\"zigux/tests/fixtures/phase2_cross_targets.json\"", 2);
+    try expectCount(manifest, "\"zigux/tests/fixtures/phase2_cross_targets.json\"", 1);
     try expectCount(manifest, "\"scripts/zigux/zig-toolchain-policy.json\"", 1);
 }

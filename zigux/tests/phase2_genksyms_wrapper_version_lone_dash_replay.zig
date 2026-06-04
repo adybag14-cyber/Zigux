@@ -66,8 +66,8 @@ test "abbreviated version before lone dash and terminator keeps tail positional"
     };
     const expected_rendered = [_][]const u8{
         "--ver",
-        "--",
         "-",
+        "--",
         "-d",
     };
 

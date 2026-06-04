@@ -14,7 +14,7 @@ const closure_kconfig_next_step =
 ;
 
 const closure_resume_policy =
-    \\Keep the shared Phase 2 closure packet parked unless one shared reminder surface drifts again. If the kconfig bridge lane resumes substantive implementation instead of closure upkeep, start with one smallest same-family step that preserves the live split between request-plan overrides, the non-empty sentinel packet, and helper-local explicit-override coverage, then add a direct `conf.c` / `confdata.c` provenance anchor once those C sources are readable in-tree again on current `master`. If the `genksyms` lane resumes substantive implementation instead of closure upkeep, start with one smallest same-family step around the still-missing CRC-side evidence recorded in the survey rather than widening this shared note again.
+    \\Keep the shared Phase 2 closure packet parked unless one shared reminder surface drifts again. If the kconfig bridge lane resumes substantive implementation instead of closure upkeep, start with one smallest same-family step that preserves the live split between request-plan overrides, the non-empty sentinel packet, and helper-local explicit-override coverage, then add a direct `conf.c` / `confdata.c` provenance anchor once those C sources are readable in-tree again on current `master`. If the `genksyms` lane resumes substantive implementation instead of closure upkeep, start with one smallest same-family step that preserves the restored CRC-side evidence and wrapper bridge packet before widening this shared note again.
 ;
 
 test "closure gap packet stays kconfig survey scoped" {
@@ -37,5 +37,5 @@ test "next step keeps kconfig and genksyms implementation lanes separate from cl
     try testing.expect(std.mem.containsAtLeast(u8, closure_kconfig_next_step, 1, "`allnoconfig` and `allyesconfig`"));
     try testing.expect(std.mem.containsAtLeast(u8, closure_resume_policy, 1, "Keep the shared Phase 2 closure packet parked"));
     try testing.expect(std.mem.containsAtLeast(u8, closure_resume_policy, 1, "direct `conf.c` / `confdata.c` provenance anchor"));
-    try testing.expect(std.mem.containsAtLeast(u8, closure_resume_policy, 1, "still-missing CRC-side evidence"));
+    try testing.expect(std.mem.containsAtLeast(u8, closure_resume_policy, 1, "restored CRC-side evidence"));
 }

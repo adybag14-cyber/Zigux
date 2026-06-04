@@ -18,9 +18,9 @@ SURVEY_MARKERS = (
     "scripts/zigux/genksyms_crc.zig",
     "scripts/zigux/check-genksyms-crc-diff.py",
     "scripts/zigux/check-genksyms-bridge.py",
-    "wrapper bridge landed, deeper same-family dual-implementation evidence missing.",
-    "restore the missing CRC-side tool-plus-checker evidence",
-    "wire the dedicated survey checker into the shared `phase2-genksyms` replay surfaces",
+    "CRC-side tool-plus-checker evidence restored",
+    "wrapper bridge and CRC-side dual-implementation evidence both materialized.",
+    "Leave this survey parked unless a future reread finds another genksyms-local wording, inventory, or replay drift.",
 )
 
 EXPECTED_SELF_TEST_CASE_COUNT = 5
@@ -103,8 +103,8 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         survey_path = root / SURVEY.relative_to(ROOT)
-        remove_marker_once(survey_path, "wrapper bridge landed, deeper same-family dual-implementation evidence missing.")
-        expect_issue(root, ("MISSING_SURVEY_MARKER", "wrapper bridge landed, deeper same-family dual-implementation evidence missing."))
+        remove_marker_once(survey_path, "wrapper bridge and CRC-side dual-implementation evidence both materialized.")
+        expect_issue(root, ("MISSING_SURVEY_MARKER", "wrapper bridge and CRC-side dual-implementation evidence both materialized."))
         checks_run += 1
 
         build_self_test_root(root)
@@ -115,8 +115,8 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         survey_path = root / SURVEY.relative_to(ROOT)
-        remove_marker_once(survey_path, "wire the dedicated survey checker into the shared `phase2-genksyms` replay surfaces")
-        expect_issue(root, ("MISSING_SURVEY_MARKER", "wire the dedicated survey checker into the shared `phase2-genksyms` replay surfaces"))
+        remove_marker_once(survey_path, "Leave this survey parked unless a future reread finds another genksyms-local wording, inventory, or replay drift.")
+        expect_issue(root, ("MISSING_SURVEY_MARKER", "Leave this survey parked unless a future reread finds another genksyms-local wording, inventory, or replay drift."))
         checks_run += 1
 
         build_self_test_root(root)
@@ -136,7 +136,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Check the Phase 2 genksyms dual-implementation survey against live wrapper-first repo evidence.")
+    parser = argparse.ArgumentParser(description="Check the Phase 2 genksyms dual-implementation survey against live wrapper and CRC-side repo evidence.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()

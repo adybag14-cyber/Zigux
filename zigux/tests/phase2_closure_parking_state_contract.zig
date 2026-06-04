@@ -10,7 +10,7 @@ const closure_note =
     \\- Keep the shared Phase 2 closure packet parked unless one shared reminder surface drifts again.
     \\- If the kconfig bridge lane resumes substantive implementation instead of closure upkeep
     \\- If the `genksyms` lane resumes substantive implementation instead of closure upkeep
-    \\- start with one smallest same-family step around the still-missing CRC-side evidence recorded in the survey
+    \\- start with one smallest same-family step that preserves the restored CRC-side evidence and wrapper bridge packet
     \\- `PHASE2_CLOSURE_VALIDATORS=python3 scripts/zigux/validate-phase2.py,python3 scripts/zigux/validate-phase2-closure.py`
 ;
 
@@ -45,7 +45,7 @@ const parking_split_markers = [_][]const u8{
     "Keep the shared Phase 2 closure packet parked unless one shared reminder surface drifts again.",
     "If the kconfig bridge lane resumes substantive implementation instead of closure upkeep",
     "If the `genksyms` lane resumes substantive implementation instead of closure upkeep",
-    "start with one smallest same-family step around the still-missing CRC-side evidence recorded in the survey",
+    "start with one smallest same-family step that preserves the restored CRC-side evidence and wrapper bridge packet",
 };
 
 const validator_commands = [_][]const u8{

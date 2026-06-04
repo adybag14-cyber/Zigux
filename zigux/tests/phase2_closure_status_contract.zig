@@ -59,7 +59,7 @@ test "phase 2 closure next step preserves kconfig and genksyms implementation ha
     try expectContains(closure, "request-plan `allconfig` overrides stay limited to `allmodconfig`, `alldefconfig`, and `randconfig`");
     try expectContains(closure, "`allconfig_sentinel_packet` still covers `allnoconfig` and `allyesconfig`");
     try expectContains(closure, "the helper-local explicit-override roster remains broader by design");
-    try expectContains(closure, "start with one smallest same-family step around the still-missing CRC-side evidence recorded in the survey");
+    try expectContains(closure, "start with one smallest same-family step that preserves the restored CRC-side evidence and wrapper bridge packet");
     try expectOrder(
         closure,
         "If the kconfig bridge lane resumes substantive implementation",

@@ -34,6 +34,8 @@ GENKSYMS_COMMANDS = (
     "python3 scripts/zigux/check-genksyms-bridge.py",
     "python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+    "python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py --self-test",
+    "python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py",
     "zig test scripts/zigux/genksyms.zig",
     "make -C zigux phase2-genksyms",
 )
@@ -52,6 +54,7 @@ GENKSYMS_REQUIRED_NOTE_MARKERS = (
     "Documentation/zigux/phase2-genksyms-dual-implementation-survey.md",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+    "scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py",
     "scripts/zigux/genksyms.zig",
     "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
     "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
@@ -287,6 +290,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms.zig",
         "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py --self-test",
         "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py",
+        "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-dual-implementation-survey.py --self-test",
+        "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-dual-implementation-survey.py",
         "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
     )
     for marker in expected_makefile_lines:
@@ -437,6 +442,7 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
 - `Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`
 - `scripts/zigux/check-genksyms-bridge.py`
 - `scripts/zigux/check-phase2-genksyms-selftest-alignment.py`
+- `scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py`
 - `scripts/zigux/genksyms.zig`
 - `scripts/zigux/genksyms_version_before_invalid_long_option_test.zig`
 - `scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig`
@@ -446,6 +452,8 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
 - `python3 scripts/zigux/check-genksyms-bridge.py`
 - `python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py --self-test`
 - `python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py`
+- `python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py --self-test`
+- `python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py`
 - `zig test scripts/zigux/genksyms.zig`
 - `make -C zigux phase2-genksyms`
 - `PHASE2_CURRENT_GENKSYMS_PROCESS_OUTPUT_PACKET=zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json,zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json,zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json,zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json,zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json,zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json,zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json`
@@ -488,6 +496,8 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
             "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms.zig",
             "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py --self-test",
             "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py",
+            "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-dual-implementation-survey.py --self-test",
+            "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-dual-implementation-survey.py",
             "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
         ]
     )
@@ -514,6 +524,7 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
         "scripts/zigux/validate-phase2-closure.py",
         "scripts/zigux/check-genksyms-bridge.py",
         "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+        "scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py",
         "scripts/zigux/check-phase2-tool-manifest.py",
         "scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
         "scripts/zigux/check-phase2-artifact-tools-manifest.py",
