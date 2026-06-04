@@ -27,4 +27,7 @@ pub fn build(b: *std.Build) void {
         "Run the focused Phase 1 ctype boundary replay from zigux/tests",
     );
     phase1_ctype_boundary_replay.dependOn(&run_tests.step);
+
+    const test_step = b.step("test", "Run the focused Phase 1 ctype boundary replay");
+    test_step.dependOn(&run_tests.step);
 }
