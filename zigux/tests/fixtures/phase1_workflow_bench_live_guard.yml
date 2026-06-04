@@ -1,0 +1,38 @@
+      - name: Self-test current Phase 1 route summary checker
+        run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test
+
+      - name: Check current Phase 1 route summary packet
+        run: python3 scripts/zigux/check-phase1-route-summary-counts.py
+
+      - name: Self-test current Phase 1 bench checker
+        run: python3 scripts/zigux/check-phase1-bench.py --self-test
+
+      - name: Check current Phase 1 bench packet
+        run: python3 scripts/zigux/check-phase1-bench.py
+
+      - name: Self-test current Phase 1 bench live-check workflow guard
+        run: python3 scripts/zigux/check-phase1-bench-live-check-workflow.py --self-test
+
+      - name: Check current Phase 1 bench live-check workflow guard packet
+        run: python3 scripts/zigux/check-phase1-bench-live-check-workflow.py
+
+      - name: Self-test current Phase 1 find-bit bench anchor checker
+        run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --self-test
+
+      - name: Check current Phase 1 find-bit bench anchor packet
+        run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py
+
+      - name: Self-test current Phase 1 shared reminder checker
+        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test
+
+      - name: Check current Phase 1 shared reminder packet
+        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py
+
+      - name: Self-test current Phase 1 closure validator
+        run: python3 scripts/zigux/validate-phase1-closure.py --self-test
+
+      - name: Check current Phase 1 closure packet
+        run: python3 scripts/zigux/validate-phase1-closure.py
+
+      - name: Run current Phase 1 shared tests-root smoke
+        run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig
