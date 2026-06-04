@@ -92,6 +92,7 @@ test "artifact diff CLI help and parser errors remain stable" {
     try expectContainsAny(&.{ "INVALID_MODE_ERROR_TEMPLATE = (", "invalid_mode_rejected" });
     try expectContainsAny(&.{
         "invalid choice: {value!r} (choose from text, json, bytes)",
+        "choice: {value!r} (choose from text, json, bytes)",
         "invalid artifact diff mode rejected",
         "unsupported artifact diff mode: yaml",
     });
