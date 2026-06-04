@@ -80,6 +80,14 @@ pub const ListView = struct {
         return count;
     }
 
+    pub fn contains(self: ListView, target: *const ListHead) bool {
+        var it = self.iterator();
+        while (it.next()) |node| {
+            if (node == target) return true;
+        }
+        return false;
+    }
+
     pub fn hasConsistentBacklinks(self: ListView) bool {
         return self.firstBrokenBacklink() == null;
     }
@@ -200,6 +208,28 @@ test "list view walks a circular list_head chain in order" {
     try std.testing.expectEqual(@as(?*const ListHead, &second), it.next());
     try std.testing.expectEqual(@as(?*const ListHead, null), it.next());
     try std.testing.expect(view.hasConsistentBacklinks());
+}
+
+test "list view reports visible-node membership" {
+    var head = ListHead{ .next = 0, .prev = 0 };
+    var first = ListHead{ .next = 0, .prev = 0 };
+    var second = ListHead{ .next = 0, .prev = 0 };
+    var detached = ListHead{ .next = 0, .prev = 0 };
+
+    head.next = @intFromPtr(&first);
+    head.prev = @intFromPtr(&second);
+    first.next = @intFromPtr(&second);
+    first.prev = @intFromPtr(&head);
+    second.next = @intFromPtr(&head);
+    second.prev = @intFromPtr(&first);
+    detached.next = @intFromPtr(&detached);
+    detached.prev = @intFromPtr(&detached);
+
+    const view = ListView.init(&head);
+    try std.testing.expect(view.contains(&first));
+    try std.testing.expect(view.contains(&second));
+    try std.testing.expect(!view.contains(&head));
+    try std.testing.expect(!view.contains(&detached));
 }
 
 test "list view reports the first broken backlink witness" {
