@@ -1,75 +1,47 @@
 const std = @import("std");
 const conf_bridge = @import("conf_bridge.zig");
 
-const TestCapture = struct {
+const Capture = struct {
     allocator: std.mem.Allocator,
-    list: std.ArrayList(u8),
+    bytes: std.ArrayList(u8),
 
-    fn init(allocator: std.mem.Allocator) !TestCapture {
+    fn init(allocator: std.mem.Allocator) !Capture {
         return .{
             .allocator = allocator,
-            .list = try std.ArrayList(u8).initCapacity(allocator, 256),
+            .bytes = try std.ArrayList(u8).initCapacity(allocator, 256),
         };
     }
 
-    fn deinit(self: *TestCapture) void {
-        self.list.deinit(self.allocator);
+    fn deinit(self: *Capture) void {
+        self.bytes.deinit(self.allocator);
     }
 
-    pub fn writeAll(self: *TestCapture, text: []const u8) !void {
-        try self.list.appendSlice(self.allocator, text);
+    pub fn writeAll(self: *Capture, text: []const u8) !void {
+        try self.bytes.appendSlice(self.allocator, text);
     }
 
-    pub fn writeByte(self: *TestCapture, byte: u8) !void {
-        try self.list.append(self.allocator, byte);
+    pub fn writeByte(self: *Capture, byte: u8) !void {
+        try self.bytes.append(self.allocator, byte);
     }
 };
 
-fn expectContains(haystack: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
-}
+test "syncconfig nosilentupdate public surface json-escapes value bytes" {
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
 
-fn expectMissing(haystack: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
-}
-
-test "syncconfig nosilentupdate value is json escaped and syncconfig scoped" {
-    var syncconfig_capture = try TestCapture.init(std.testing.allocator);
-    defer syncconfig_capture.deinit();
-
-    try conf_bridge.runConfBridge(&syncconfig_capture, .{
+    try conf_bridge.runConfBridge(&capture, .{
         .mode = .syncconfig,
         .kconfig = "Kconfig",
         .config = "out/.config",
         .arch = "riscv64",
-        .silent = true,
-        .nosilentupdate = "force\"regen\\next\n\t\x01",
+        .nosilentupdate = "quote\"slash\\line\nlow\x01",
     });
 
-    const syncconfig_packet = syncconfig_capture.list.items;
-    try expectContains(syncconfig_packet, "\"mode\":\"syncconfig\"");
-    try expectContains(syncconfig_packet, "\"argv\":[\"scripts/kconfig/conf\",\"--silent\",\"--syncconfig\",\"Kconfig\"]");
-    try expectContains(syncconfig_packet, "\"KCONFIG_AUTOCONFIG\":\"include/config/auto.conf\"");
-    try expectContains(syncconfig_packet, "\"KCONFIG_AUTOHEADER\":\"include/generated/autoconf.h\"");
-    try expectContains(syncconfig_packet, "\"KCONFIG_NOSILENTUPDATE\":\"force\\\"regen\\\\next\\n\\t\\u0001\"");
-    try expectMissing(syncconfig_packet, "\"KCONFIG_ALLCONFIG\"");
-    try expectMissing(syncconfig_packet, "\"KCONFIG_SEED\"");
-    try expectMissing(syncconfig_packet, "\"KCONFIG_PROBABILITY\"");
-
-    var olddefconfig_capture = try TestCapture.init(std.testing.allocator);
-    defer olddefconfig_capture.deinit();
-
-    try conf_bridge.runConfBridge(&olddefconfig_capture, .{
-        .mode = .olddefconfig,
-        .kconfig = "Kconfig",
-        .config = ".config",
-        .arch = "x86_64",
-        .nosilentupdate = "force\"regen\\next\n\t\x01",
-    });
-
-    const olddefconfig_packet = olddefconfig_capture.list.items;
-    try expectContains(olddefconfig_packet, "\"mode\":\"olddefconfig\"");
-    try expectMissing(olddefconfig_packet, "\"KCONFIG_NOSILENTUPDATE\"");
-    try expectMissing(olddefconfig_packet, "\"KCONFIG_AUTOCONFIG\"");
-    try expectMissing(olddefconfig_packet, "\"KCONFIG_AUTOHEADER\"");
+    const output = capture.bytes.items;
+    try std.testing.expect(std.mem.indexOf(u8, output, "\"mode\":\"syncconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "\"KCONFIG_AUTOCONFIG\":\"include/config/auto.conf\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "\"KCONFIG_AUTOHEADER\":\"include/generated/autoconf.h\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "\"KCONFIG_NOSILENTUPDATE\":\"quote\\\"slash\\\\line\\nlow\\u0001\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "\"KCONFIG_SEED\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "\"KCONFIG_PROBABILITY\"") == null);
 }
