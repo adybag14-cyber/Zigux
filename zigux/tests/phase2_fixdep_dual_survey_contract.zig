@@ -54,7 +54,7 @@ test "fixdep dual survey records the current Phase 2 packet" {
     try expectContains(survey, "The shared closure note now enumerates `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md`");
     try expectContains(survey, "Keep `scripts/zigux/check-phase2-fixdep-gate.py` aligned with the current helper-local test roster");
     try expectNotContains(survey, "bounded twelve-case external fixdep packet");
-    try expectNotContains(survey, "helper still omits `error.PermissionDenied`");
+    try expectContains(survey, "The live repo no longer supports the older survey claim that the helper still omits `error.PermissionDenied`");
 }
 
 test "fixdep gate and fixtures match the survey roster" {
@@ -69,7 +69,7 @@ test "fixdep gate and fixtures match the survey roster" {
     defer parsed_cases.deinit();
 
     try testing.expectEqual(@as(usize, 13), parsed_cases.value.array.items.len);
-    try expectContains(gate, "EXPECTED_FIXDEP_TEST_COUNT = 26");
+    try expectContains(gate, "FIXDEP_REQUIRED_EXACT_LINES = (");
     try expectContains(gate, "\"sample_dependency_continuation\"");
     try expectContains(gate, "\"sample_comment_continuation\"");
     try expectContains(gate, "\"sample_double_backslash_comment\"");
@@ -102,7 +102,7 @@ test "fixdep helper and reminder surfaces keep the survey packet replayable" {
     try expectContains(closure, "scripts/zigux/check-fixdep-diff.py");
     try expectContains(closure, "make -C zigux phase2-fixdep");
 
-    try expectContains(tests_readme, survey_path);
+    try expectContains(tests_readme, "current `master` also directly materializes `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`");
     try expectContains(tests_readme, "zigux/tests/fixtures/fixdep/cases.json");
     try expectContains(scripts_readme, "scripts/zigux/check-phase2-fixdep-gate.py");
     try expectContains(scripts_readme, "python3 scripts/zigux/check-fixdep-diff.py --self-test");
