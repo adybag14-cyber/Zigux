@@ -15,6 +15,8 @@ GENKSYMS_ZIG = ROOT / "scripts" / "zigux" / "genksyms.zig"
 VERSION_SIDE_EFFECT_TEST = ROOT / "scripts" / "zigux" / "genksyms_version_before_invalid_long_option_test.zig"
 AMBIGUOUS_VERSION_SIDE_EFFECT_TEST = ROOT / "scripts" / "zigux" / "genksyms_version_before_ambiguous_long_option_test.zig"
 INLINE_SHORT_ARGUMENT_TEST = ROOT / "scripts" / "zigux" / "genksyms_inline_short_option_argument_test.zig"
+REPEATED_VERSION_BEFORE_ABBREV_ARGUMENT_TEST = ROOT / "scripts" / "zigux" / "genksyms_repeated_version_before_abbrev_argument_failure_test.zig"
+ABBREVIATED_WARNING_QUIET_TERMINATOR_TEST = ROOT / "scripts" / "zigux" / "genksyms_abbreviated_warning_quiet_terminator_test.zig"
 CASES_FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "cases.json"
 MANIFEST_FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "manifest.json"
 HELP_FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "help_expected.json"
@@ -32,6 +34,11 @@ MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
     "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_inline_short_option_argument_test.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_repeated_version_before_abbrev_argument_failure_test.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_abbreviated_warning_quiet_terminator_test.zig",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py",
 )
@@ -98,6 +105,8 @@ STANDALONE_PROOF_PATHS = (
     VERSION_SIDE_EFFECT_TEST.relative_to(ROOT).as_posix(),
     AMBIGUOUS_VERSION_SIDE_EFFECT_TEST.relative_to(ROOT).as_posix(),
     INLINE_SHORT_ARGUMENT_TEST.relative_to(ROOT).as_posix(),
+    REPEATED_VERSION_BEFORE_ABBREV_ARGUMENT_TEST.relative_to(ROOT).as_posix(),
+    ABBREVIATED_WARNING_QUIET_TERMINATOR_TEST.relative_to(ROOT).as_posix(),
 )
 
 
@@ -240,6 +249,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         VERSION_SIDE_EFFECT_TEST,
         AMBIGUOUS_VERSION_SIDE_EFFECT_TEST,
         INLINE_SHORT_ARGUMENT_TEST,
+        REPEATED_VERSION_BEFORE_ABBREV_ARGUMENT_TEST,
+        ABBREVIATED_WARNING_QUIET_TERMINATOR_TEST,
         CASES_FIXTURE,
         MANIFEST_FIXTURE,
         HELP_FIXTURE,
@@ -363,6 +374,8 @@ def build_self_test_root(root: Path) -> None:
         'test "genksyms bridge preserves version side effect before ambiguous long option" {\n}\n'
         'test "genksyms bridge preserves abbreviated version side effect before ambiguous long option" {\n}\n')
     write_text(root / INLINE_SHORT_ARGUMENT_TEST.relative_to(ROOT), 'test "genksyms bridge accepts inline short option arguments" {\n}\n')
+    write_text(root / REPEATED_VERSION_BEFORE_ABBREV_ARGUMENT_TEST.relative_to(ROOT), 'test "genksyms bridge preserves repeated versions before abbreviated version argument failure" {\n}\n')
+    write_text(root / ABBREVIATED_WARNING_QUIET_TERMINATOR_TEST.relative_to(ROOT), 'test "abbreviated warning toggles stop before explicit option terminator" {\n}\n')
 
     bridge_checker_text = read_text(root / BRIDGE_CHECKER.relative_to(ROOT))
     case_fixtures, process_output_packet, helper_local_anchors, _, _, _ = extract_bridge_packets(bridge_checker_text, source_path=BRIDGE_CHECKER)

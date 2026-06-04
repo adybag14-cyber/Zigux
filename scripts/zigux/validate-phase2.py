@@ -15,6 +15,9 @@ GENKSYMS_DUAL_IMPLEMENTATION_SURVEY = "Documentation/zigux/phase2-genksyms-dual-
 FIXDEP_DUAL_IMPLEMENTATION_SURVEY = "Documentation/zigux/phase2-fixdep-dual-implementation-survey.md"
 GENKSYMS_VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
 GENKSYMS_VERSION_SIDE_EFFECT_AMBIGUOUS_TEST = "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig"
+GENKSYMS_INLINE_SHORT_ARGUMENT_TEST = "scripts/zigux/genksyms_inline_short_option_argument_test.zig"
+GENKSYMS_REPEATED_VERSION_BEFORE_ABBREV_ARGUMENT_TEST = "scripts/zigux/genksyms_repeated_version_before_abbrev_argument_failure_test.zig"
+GENKSYMS_ABBREVIATED_WARNING_QUIET_TERMINATOR_TEST = "scripts/zigux/genksyms_abbreviated_warning_quiet_terminator_test.zig"
 GENKSYMS_MANIFEST_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
 GENKSYMS_PROCESS_OUTPUT_FIXTURES = (
     "zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json",
@@ -208,6 +211,9 @@ REQUIRED_PATHS = (
     "scripts/zigux/genksyms.zig",
     GENKSYMS_VERSION_SIDE_EFFECT_TEST,
     GENKSYMS_VERSION_SIDE_EFFECT_AMBIGUOUS_TEST,
+    GENKSYMS_INLINE_SHORT_ARGUMENT_TEST,
+    GENKSYMS_REPEATED_VERSION_BEFORE_ABBREV_ARGUMENT_TEST,
+    GENKSYMS_ABBREVIATED_WARNING_QUIET_TERMINATOR_TEST,
     "scripts/zigux/fixdep.zig",
     TOOLCHAIN_POLICY,
     "scripts/zigux/artifact_diff.py",
@@ -332,6 +338,11 @@ STATIC_REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
     "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_inline_short_option_argument_test.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_repeated_version_before_abbrev_argument_failure_test.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_abbreviated_warning_quiet_terminator_test.zig",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py",
     "phase2-fixdep: phase2-toolchain",

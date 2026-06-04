@@ -13,6 +13,8 @@ GENKSYMS_ZIG = "scripts/zigux/genksyms.zig"
 VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
 AMBIGUOUS_VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig"
 INLINE_SHORT_ARGUMENT_TEST = "scripts/zigux/genksyms_inline_short_option_argument_test.zig"
+REPEATED_VERSION_BEFORE_ABBREV_ARGUMENT_TEST = "scripts/zigux/genksyms_repeated_version_before_abbrev_argument_failure_test.zig"
+ABBREVIATED_WARNING_QUIET_TERMINATOR_TEST = "scripts/zigux/genksyms_abbreviated_warning_quiet_terminator_test.zig"
 HELP_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/help_expected.json"
 CASES_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/cases.json"
 MANIFEST_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
@@ -135,6 +137,8 @@ STANDALONE_PROOF_PACKET = (
     VERSION_SIDE_EFFECT_TEST,
     AMBIGUOUS_VERSION_SIDE_EFFECT_TEST,
     INLINE_SHORT_ARGUMENT_TEST,
+    REPEATED_VERSION_BEFORE_ABBREV_ARGUMENT_TEST,
+    ABBREVIATED_WARNING_QUIET_TERMINATOR_TEST,
 )
 
 HELP_USAGE = (
@@ -157,6 +161,11 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
     "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_inline_short_option_argument_test.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_repeated_version_before_abbrev_argument_failure_test.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_abbreviated_warning_quiet_terminator_test.zig",
 )
 
 REQUIRED_WORKFLOW_LINES = (
@@ -572,7 +581,12 @@ def build_self_test_root(root: Path) -> None:
         "phase2-genksyms: phase2-toolchain\n"
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test\n"
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py\n"
-        "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms.zig\n",
+        "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms.zig\n"
+        "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_version_before_invalid_long_option_test.zig\n"
+        "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig\n"
+        "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_inline_short_option_argument_test.zig\n"
+        "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_repeated_version_before_abbrev_argument_failure_test.zig\n"
+        "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_abbreviated_warning_quiet_terminator_test.zig\n",
     )
     write_text(
         root,
@@ -613,6 +627,16 @@ def build_self_test_root(root: Path) -> None:
         root,
         INLINE_SHORT_ARGUMENT_TEST,
         'test "genksyms bridge accepts inline short option arguments" {\n}\n',
+    )
+    write_text(
+        root,
+        REPEATED_VERSION_BEFORE_ABBREV_ARGUMENT_TEST,
+        'test "genksyms bridge preserves repeated versions before abbreviated version argument failure" {\n}\n',
+    )
+    write_text(
+        root,
+        ABBREVIATED_WARNING_QUIET_TERMINATOR_TEST,
+        'test "abbreviated warning toggles stop before explicit option terminator" {\n}\n',
     )
     write_text(root, HELP_FIXTURE, json.dumps({"stdout": "", "stderr": HELP_USAGE, "exit_code": 0}, indent=2) + "\n")
     write_text(root, CASES_FIXTURE, json.dumps([dict(case) for case in CASE_FIXTURES], indent=2) + "\n")
