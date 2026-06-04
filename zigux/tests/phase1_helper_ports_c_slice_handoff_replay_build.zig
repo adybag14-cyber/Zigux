@@ -39,11 +39,14 @@ pub fn build(b: *std.Build) void {
         .name = "phase1-helper-ports-c-slice-handoff-replay-tests",
         .root_module = root_module,
     });
-
     const run_tests = b.addRunArtifact(tests);
-    const replay_step = b.step("phase1-helper-ports-c-slice-handoff-replay", "Run Phase 1 helper ports C slice handoff replay");
+
+    const replay_step = b.step(
+        "phase1-helper-ports-c-slice-handoff-replay",
+        "Run the Phase 1 helper ports C slice-handoff replay",
+    );
     replay_step.dependOn(&run_tests.step);
 
-    const test_step = b.step("test", "Run Phase 1 helper ports C slice handoff replay");
+    const test_step = b.step("test", "Run the Phase 1 helper ports C slice-handoff replay");
     test_step.dependOn(&run_tests.step);
 }
