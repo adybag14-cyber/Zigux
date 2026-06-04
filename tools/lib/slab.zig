@@ -28,6 +28,10 @@ pub fn kmallocBytes(size: usize, gfp: gfp_t) ?[]u8 {
     return bytes;
 }
 
+pub fn kzallocBytes(size: usize, gfp: gfp_t) ?[]u8 {
+    return kmallocBytes(size, gfp | __GFP_ZERO);
+}
+
 pub fn kfree(bytes: ?[]u8) void {
     if (bytes) |slice| {
         backing_allocator.free(slice);
@@ -47,6 +51,10 @@ pub fn kmallocArray(n: usize, size: usize, gfp: gfp_t) ?[]u8 {
         @memset(bytes, 0);
     }
     return bytes;
+}
+
+pub fn kcallocBytes(n: usize, size: usize, gfp: gfp_t) ?[]u8 {
+    return kmallocArray(n, size, gfp | __GFP_ZERO);
 }
 
 pub fn slabIsAvailable() bool {
@@ -96,4 +104,28 @@ test "kmallocArray fail paths keep allocation counters unchanged" {
 
     try std.testing.expect(kmallocArray(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
     try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
+
+test "zeroing aliases request __GFP_ZERO while preserving allocation accounting" {
+    kmalloc_nr_allocated = 0;
+
+    const single = kzallocBytes(8, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    for (single) |value| {
+        try std.testing.expectEqual(@as(u8, 0), value);
+    }
+
+    kfree(single);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+
+    const array = kcallocBytes(4, 2, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    defer kfree(array);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    for (array) |value| {
+        try std.testing.expectEqual(@as(u8, 0), value);
+    }
+
+    try std.testing.expect(kzallocBytes(8, 0) == null);
+    try std.testing.expect(kcallocBytes(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
 }
