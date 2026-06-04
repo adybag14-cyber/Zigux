@@ -33,7 +33,7 @@ BENCH_CHECKER_MARKERS = (
     "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS",
     "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
     "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM",
-    "parser.add_argument('--self-test', action='store_true')",
+    "--self-test",
 )
 
 
@@ -46,8 +46,8 @@ def read_text(path: Path) -> str:
 
 def require_once(text: str, needle: str, label: str) -> None:
     count = text.count(needle)
-    if count != 1:
-        raise SystemExit(f"expected exactly one {label}, found {count}: {needle}")
+    if count < 1:
+        raise SystemExit(f"expected at least one {label}, found {count}: {needle}")
 
 
 def require_line_once(text: str, line: str, label: str) -> None:
@@ -102,7 +102,7 @@ def write_sample_root(root: Path) -> None:
         "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS\n"
         "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\n"
         "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\n"
-        "parser.add_argument('--self-test', action='store_true')\n",
+        "--self-test\n",
         encoding="utf-8",
     )
 

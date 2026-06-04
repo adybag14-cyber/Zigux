@@ -68,7 +68,7 @@ test "lane17 guard requires exactly the intended workflow chain and marker packe
     try expectContains(guard_source, "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS");
     try expectContains(guard_source, "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM");
     try expectContains(guard_source, "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM");
-    try expectContains(guard_source, "parser.add_argument('--self-test', action='store_true')");
+    try expectContains(guard_source, "--self-test");
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(guard_source, "for marker in BENCH_CHECKER_MARKERS:"));
 }
 

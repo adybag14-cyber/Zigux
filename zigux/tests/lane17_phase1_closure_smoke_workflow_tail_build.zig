@@ -3,7 +3,7 @@ const std = @import("std");
 fn readRootFile(b: *std.Build, path: []const u8) []const u8 {
     return std.Io.Dir.cwd().readFileAlloc(
         b.graph.io,
-        b.pathFromRoot(path),
+        path,
         b.allocator,
         .limited(1024 * 1024),
     ) catch |err| std.debug.panic("failed to read {s}: {}", .{ path, err });
@@ -14,7 +14,7 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const sources = b.addOptions();
-    sources.addOption([]const u8, "workflow_text", readRootFile(b, "../../.github/workflows/zigux-bootstrap.yml"));
+    sources.addOption([]const u8, "workflow_text", readRootFile(b, ".github/workflows/zigux-bootstrap.yml"));
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("lane17_phase1_closure_smoke_workflow_tail.zig"),

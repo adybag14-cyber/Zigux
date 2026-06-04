@@ -85,6 +85,7 @@ test "validator source owns the same files and forbids stale phase1 make routes"
     try expectContains(validator, "\"phase1-bench:\"");
     try expectContains(validator, "phase1:");
 
-    try expectNotContains(validator, "PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master");
+    try expectContains(validator, "FORBIDDEN_CLOSURE_MARKERS");
+    try expectContains(validator, "`PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master`");
     try expectNotContains(validator, "allow_missing_phase1");
 }

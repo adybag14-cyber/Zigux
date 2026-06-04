@@ -9,6 +9,14 @@ const bench_live_check_step =
     "      - name: Check current Phase 1 bench packet\n" ++
     "        run: python3 scripts/zigux/check-phase1-bench.py";
 
+const bench_workflow_guard_self_test_step =
+    "      - name: Self-test current Phase 1 bench live-check workflow guard\n" ++
+    "        run: python3 scripts/zigux/check-phase1-bench-live-check-workflow.py --self-test";
+
+const bench_workflow_guard_live_check_step =
+    "      - name: Check current Phase 1 bench live-check workflow guard packet\n" ++
+    "        run: python3 scripts/zigux/check-phase1-bench-live-check-workflow.py";
+
 const find_bit_bench_self_test_step =
     "      - name: Self-test current Phase 1 find-bit bench anchor checker\n" ++
     "        run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --self-test";
@@ -35,40 +43,30 @@ fn singleMarkerOffset(haystack: []const u8, needle: []const u8) !usize {
     return first;
 }
 
-test "lane17 current workflow keeps the bench live-check gap exact" {
+test "lane17 current workflow keeps the bench live-check guard sequence exact" {
     const workflow = workflow_options.workflow_text;
 
     const bench_self_test = try singleMarkerOffset(workflow, bench_self_test_step);
+    const bench_live_check = try singleMarkerOffset(workflow, bench_live_check_step);
+    const guard_self_test = try singleMarkerOffset(workflow, bench_workflow_guard_self_test_step);
+    const guard_live_check = try singleMarkerOffset(workflow, bench_workflow_guard_live_check_step);
     const find_bit_self_test = try singleMarkerOffset(workflow, find_bit_bench_self_test_step);
     const find_bit_live_check = try singleMarkerOffset(workflow, find_bit_bench_live_check_step);
 
-    try std.testing.expectEqual(@as(usize, 0), countMarkers(workflow, bench_live_check_step));
-    try std.testing.expect(bench_self_test < find_bit_self_test);
+    try std.testing.expect(bench_self_test < bench_live_check);
+    try std.testing.expect(bench_live_check < guard_self_test);
+    try std.testing.expect(guard_self_test < guard_live_check);
+    try std.testing.expect(guard_live_check < find_bit_self_test);
     try std.testing.expect(find_bit_self_test < find_bit_live_check);
 }
 
-test "lane17 patch target inserts one live bench check before find-bit bench anchors" {
+test "lane17 workflow keeps each bench live-check guard marker unique" {
     const workflow = workflow_options.workflow_text;
 
-    const bench_self_test = try singleMarkerOffset(workflow, bench_self_test_step);
-    const find_bit_self_test = try singleMarkerOffset(workflow, find_bit_bench_self_test_step);
-    const insert_at = bench_self_test + bench_self_test_step.len;
-
-    const patched = try std.mem.concat(std.testing.allocator, u8, &.{
-        workflow[0..insert_at],
-        "\n\n",
-        bench_live_check_step,
-        workflow[insert_at..],
-    });
-    defer std.testing.allocator.free(patched);
-
-    const patched_bench_self_test = try singleMarkerOffset(patched, bench_self_test_step);
-    const patched_bench_live_check = try singleMarkerOffset(patched, bench_live_check_step);
-    const patched_find_bit_self_test = try singleMarkerOffset(patched, find_bit_bench_self_test_step);
-    const patched_find_bit_live_check = try singleMarkerOffset(patched, find_bit_bench_live_check_step);
-
-    try std.testing.expect(patched_bench_self_test < patched_bench_live_check);
-    try std.testing.expect(patched_bench_live_check < patched_find_bit_self_test);
-    try std.testing.expect(patched_find_bit_self_test < patched_find_bit_live_check);
-    try std.testing.expect(find_bit_self_test > insert_at);
+    try std.testing.expectEqual(@as(usize, 1), countMarkers(workflow, bench_self_test_step));
+    try std.testing.expectEqual(@as(usize, 1), countMarkers(workflow, bench_live_check_step));
+    try std.testing.expectEqual(@as(usize, 1), countMarkers(workflow, bench_workflow_guard_self_test_step));
+    try std.testing.expectEqual(@as(usize, 1), countMarkers(workflow, bench_workflow_guard_live_check_step));
+    try std.testing.expectEqual(@as(usize, 1), countMarkers(workflow, find_bit_bench_self_test_step));
+    try std.testing.expectEqual(@as(usize, 1), countMarkers(workflow, find_bit_bench_live_check_step));
 }

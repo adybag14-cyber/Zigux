@@ -415,6 +415,12 @@ jobs:
       - name: Check current Phase 1 bench packet
         run: python3 scripts/zigux/check-phase1-bench.py
 
+      - name: Self-test current Phase 1 bench live-check workflow guard
+        run: python3 scripts/zigux/check-phase1-bench-live-check-workflow.py --self-test
+
+      - name: Check current Phase 1 bench live-check workflow guard packet
+        run: python3 scripts/zigux/check-phase1-bench-live-check-workflow.py
+
       - name: Self-test current Phase 1 find-bit bench anchor checker
         run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --self-test
 
