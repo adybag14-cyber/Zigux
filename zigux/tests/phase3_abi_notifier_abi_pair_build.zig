@@ -1,0 +1,139 @@
+const std = @import("std");
+
+pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+
+    const notifier_abi_module = b.createModule(.{
+        .root_source_file = b.path("../bindings/notifier_abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const abi_bindings_module = b.createModule(.{
+        .root_source_file = b.path("../bindings/abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    abi_bindings_module.addImport("notifier_abi", notifier_abi_module);
+
+    const uapi_dev_t_module = b.createModule(.{
+        .root_source_file = b.path("../uapi/dev_t.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const dev_t_binding_module = b.createModule(.{
+        .root_source_file = b.path("../bindings/dev_t.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    dev_t_binding_module.addImport("uapi_dev_t", uapi_dev_t_module);
+
+    const version_binding_module = b.createModule(.{
+        .root_source_file = b.path("../bindings/version.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    version_binding_module.addImport("abi_bindings", abi_bindings_module);
+
+    const uapi_version_module = b.createModule(.{
+        .root_source_file = b.path("../uapi/version.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    uapi_version_module.addImport("abi_bindings", abi_bindings_module);
+    version_binding_module.addImport("uapi_version", uapi_version_module);
+
+    const header_family_binding_module = b.createModule(.{
+        .root_source_file = b.path("../bindings/header_family.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    header_family_binding_module.addImport("abi_bindings", abi_bindings_module);
+    header_family_binding_module.addImport("dev_t_binding", dev_t_binding_module);
+    header_family_binding_module.addImport("version_binding", version_binding_module);
+    header_family_binding_module.addImport("uapi_version", uapi_version_module);
+
+    const layout_assert_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/layout_assert.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    layout_assert_module.addImport("abi_bindings", abi_bindings_module);
+
+    const export_shim_module = b.createModule(.{
+        .root_source_file = b.path("../kernel/export_shim.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    export_shim_module.addImport("abi_bindings", abi_bindings_module);
+    export_shim_module.addImport("dev_t_binding", dev_t_binding_module);
+    export_shim_module.addImport("version_binding", version_binding_module);
+
+    const panic_policy_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/panic_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    panic_policy_module.addImport("abi_bindings", abi_bindings_module);
+
+    const allocator_policy_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/allocator_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    allocator_policy_module.addImport("abi_bindings", abi_bindings_module);
+
+    const narrow_module = b.createModule(.{
+        .root_source_file = b.path("../unsafe/narrow.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    narrow_module.addImport("abi_bindings", abi_bindings_module);
+
+    const unsafe_policy_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/unsafe_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    unsafe_policy_module.addImport("abi_bindings", abi_bindings_module);
+    unsafe_policy_module.addImport("narrow", narrow_module);
+    unsafe_policy_module.addImport("narrow_unsafe", narrow_module);
+
+    const phase3_abi_module = b.createModule(.{
+        .root_source_file = b.path("phase3_abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase3_abi_module.addImport("abi_bindings", abi_bindings_module);
+    phase3_abi_module.addImport("allocator_policy", allocator_policy_module);
+    phase3_abi_module.addImport("export_shim", export_shim_module);
+    phase3_abi_module.addImport("header_family_binding", header_family_binding_module);
+    phase3_abi_module.addImport("layout_assert", layout_assert_module);
+    phase3_abi_module.addImport("panic_policy", panic_policy_module);
+    phase3_abi_module.addImport("unsafe_policy", unsafe_policy_module);
+
+    const phase3_abi_tests = b.addTest(.{
+        .name = "phase3-abi-notifier-abi-pair-abi-tests",
+        .root_module = phase3_abi_module,
+    });
+    const notifier_abi_tests = b.addTest(.{
+        .name = "phase3-abi-notifier-abi-pair-notifier-tests",
+        .root_module = notifier_abi_module,
+    });
+
+    const run_phase3_abi_tests = b.addRunArtifact(phase3_abi_tests);
+    const run_notifier_abi_tests = b.addRunArtifact(notifier_abi_tests);
+
+    const pair_step = b.step(
+        "phase3-abi-notifier-abi-pair-test",
+        "Run the Phase 3 ABI replay beside notifier ABI binding tests",
+    );
+    pair_step.dependOn(&run_phase3_abi_tests.step);
+    pair_step.dependOn(&run_notifier_abi_tests.step);
+
+    const test_step = b.step(
+        "test",
+        "Run the Phase 3 ABI and notifier ABI pair tests",
+    );
+    test_step.dependOn(pair_step);
+}
