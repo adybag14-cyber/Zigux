@@ -36,9 +36,13 @@ test "version evaluation keeps exact present too old and not pinned states" {
         "if parsed_version < min_version:",
         "if expected_channel_raw is not None:",
     );
-    try expectBefore(
-        "if expected_channel_raw is not None:",
-        "return \"present\", None",
+    try expectContains(
+        \\if expected_channel_raw is not None:
+        \\        expected_channel_raw = expected_channel_raw.strip()
+        \\        parse_zig_version(expected_channel_raw)
+        \\        if version.strip() != expected_channel_raw:
+        \\            return "not_pinned", f"expected pinned Zig channel {expected_channel_raw}"
+        \\    return "present", None
     );
 }
 
