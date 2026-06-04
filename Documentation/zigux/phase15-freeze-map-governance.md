@@ -21,6 +21,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
   - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
   - `Documentation/zigux/phase15-shared-summary-gap.md`
   - `Documentation/zigux/phase15-readiness-gate-survey.md`
+  - `Documentation/zigux/phase15-governance-lane-sequencing.md`
   - `zigux/tests/README.md`
   - `scripts/zigux/check-phase15-docs-readme-alignment.py`
   - `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`

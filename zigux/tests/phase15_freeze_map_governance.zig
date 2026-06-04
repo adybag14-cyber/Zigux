@@ -280,20 +280,20 @@ test "phase 15 freeze-map linked blocker evidence stays explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const rcu_note = try loadFile(io_instance.io(), "Documentation/zigux/phase14-rcu-tree-survey.md", 8 * 1024);
+    const rcu_note = try loadFile(io_instance.io(), "Documentation/zigux/phase14-rcu-tree-survey.md", 32 * 1024);
     defer std.testing.allocator.free(rcu_note);
     try expectContains(rcu_note, "PHASE14_LANE_KEY=P14-L16");
     try expectContains(rcu_note, "phase14-rcu-tree-bridge-blocker");
     try expectContains(rcu_note, "That is still a freeze-in-C posture, not a review-ready bridge seam.");
 
-    const skbuff_note = try loadFile(io_instance.io(), "Documentation/zigux/phase14-skbuff-bridge-survey.md", 8 * 1024);
+    const skbuff_note = try loadFile(io_instance.io(), "Documentation/zigux/phase14-skbuff-bridge-survey.md", 32 * 1024);
     defer std.testing.allocator.free(skbuff_note);
     try expectContains(skbuff_note, "PHASE14_LANE_KEY=P14-L11");
     try expectContains(skbuff_note, "PHASE14_BLOCKED_GAP=phase14-skbuff-live-ownership-blocker");
     try expectContains(skbuff_note, "review-only skbuff bridge packet again");
     try expectContains(skbuff_note, "explicit stay-in-C ownership for qdisc-facing publication");
 
-    const skbuff_traceability = try loadFile(io_instance.io(), "Documentation/zigux/phase14-core-boundary-traceability.md", 8 * 1024);
+    const skbuff_traceability = try loadFile(io_instance.io(), "Documentation/zigux/phase14-core-boundary-traceability.md", 32 * 1024);
     defer std.testing.allocator.free(skbuff_traceability);
     try expectContains(skbuff_traceability, "`net/core/skbuff.c`: `Freeze In C Initially`");
     try expectContains(skbuff_traceability, "retained-in-C posture");

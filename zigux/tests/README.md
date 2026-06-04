@@ -423,9 +423,11 @@ Keep the helper-local MMIO replay pair explicit too through `zigux/tests/phase10
   * `zigux/tests/phase14_rcu_tree_survey.zig`
   * `net/core/skbuff_bridge.zig`
 
-## Phase 15 shared governance packet
+## Phase 15 governance packet
 
   * Keep Phase 15 governance wording separate from the Phase 14 shared smoke route until a dedicated Phase 15 checker expands this tests-root section.
+  * Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay in the directly readable governance packet instead of undercounting the Architecture Council review-process evidence.
+  * The returned review-process build replay stays paired with `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process.zig`, and `zigux/tests/phase15_architecture_council_review_process_build.zig`.
 
 ## Phase 4 Exact-Readback Reminder
 

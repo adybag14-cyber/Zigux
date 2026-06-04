@@ -50,16 +50,16 @@ test "phase 15 handoff manifest records the focused replay, readiness matrix, sc
 
     try std.testing.expectEqualStrings("P15-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-27", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-29", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-handoff-next-steps-survey.md", manifest.handoff_note);
     try std.testing.expectEqualStrings("scripts/zigux/check-phase15-handoff-note-alignment.py", manifest.checker);
-    try std.testing.expectEqual(@as(usize, 42), manifest.present_paths.len);
+    try std.testing.expectEqual(@as(usize, 43), manifest.present_paths.len);
     try std.testing.expectEqual(@as(usize, 0), manifest.still_missing_paths.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.required_markers.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.checker_group_markers.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.checker_group_markers.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.handoff_rule_markers.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_alignment_markers.len);
-    try std.testing.expectEqual(@as(usize, 4), manifest.pending_next_step_markers.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.pending_next_step_markers.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.next_bounded_future_target_markers.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.missing_route_markers.len);
 
@@ -109,8 +109,8 @@ test "phase 15 handoff note treats the focused replay, readiness matrix, scripts
     try expectContains(handoff_note, manifest.surveyed_commit);
     try expectContains(handoff_note, "The dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`");
     try expectContains(handoff_note, "The readiness gap matrix `zigux/tests/phase15_readiness_gap_matrix.json` is directly materialized on current `master` and keeps the roadmap-versus-ledger release blockers explicit as data rather than prose-only handoff notes.");
-    try expectContains(handoff_note, "Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_handoff_next_steps.zig`, `zigux/tests/phase15_readiness_gap_matrix.json`, and `zigux/tests/phase15_build.zig` as the handoff-specific source of truth while the blocked route bodies and shared-CI route remain gap-tracked.");
-    try expectContains(handoff_note, "The dedicated validator `scripts/zigux/validate-phase15.py`, the dedicated Architecture Council packet checker `scripts/zigux/check-phase15-architecture-council-packet.py`, the readiness gap matrix `zigux/tests/phase15_readiness_gap_matrix.json`, and shared build companion `zigux/tests/phase15_build.zig` are directly materialized on current `master`, but they do not by themselves land the broader dedicated `phase15*` wrapper routes or shared-CI route.");
+    try expectContains(handoff_note, "Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_handoff_next_steps.zig`, `zigux/tests/phase15_readiness_gap_matrix.json`, `zigux/tests/phase15_build.zig`, and `scripts/zigux/check-phase15-blocked-route-recovery.py` as the handoff-specific source of truth while the blocked route bodies and shared-CI route remain gap-tracked.");
+    try expectContains(handoff_note, "The dedicated validator `scripts/zigux/validate-phase15.py`, the dedicated Architecture Council packet checker `scripts/zigux/check-phase15-architecture-council-packet.py`, the readiness gap matrix `zigux/tests/phase15_readiness_gap_matrix.json`, the shared build companion `zigux/tests/phase15_build.zig`, and the blocked-route recovery checker `scripts/zigux/check-phase15-blocked-route-recovery.py` are directly materialized on current `master`, but they do not by themselves land the broader dedicated `phase15*` wrapper routes or shared-CI route.");
     try expectNotContains(handoff_note, "no dedicated handoff-specific Zig replay is directly materialized on current `master`");
 
     for (manifest.present_paths) |path| {
