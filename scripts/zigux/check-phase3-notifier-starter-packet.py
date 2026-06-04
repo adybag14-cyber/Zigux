@@ -39,9 +39,7 @@ REQUIRED_REPLAY_ROUTES = (
     "zig build phase3-notifier-starter-packet-test --build-file zigux/tests/phase3_notifier_starter_packet_build.zig",
 )
 
-REQUIRED_REPO_REALITY_GAPS = (
-    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-)
+REQUIRED_REPO_REALITY_GAPS = ()
 
 REQUIRED_MARKERS = {
     DOC_PATH: (

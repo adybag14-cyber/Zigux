@@ -18,8 +18,6 @@
     "python3 scripts/zigux/check-phase3-notifier-starter-packet.py --repo-root .",
     "zig build phase3-notifier-starter-packet-test --build-file zigux/tests/phase3_notifier_starter_packet_build.zig"
   ],
-  "repo_reality_gaps": [
-    "Documentation/zigux/phase3-abi-h-boundary-next-step.md"
-  ],
+  "repo_reality_gaps": [],
   "next_safe_step": "keep notifier helper coverage bounded to priority and link-integrity replay before widening into callback ownership or broader runtime chain semantics"
 }
