@@ -220,6 +220,35 @@ pub fn bitmap_weighted_xor(dst: []Word, src1: []const Word, src2: []const Word, 
     return weightedXor(dst, src1, src2, nbits);
 }
 
+pub fn replaceBits(dst: []Word, old: []const Word, new: []const Word, mask: []const Word, nbits: usize) void {
+    if (nbits == 0) {
+        return;
+    }
+
+    const nwords = bitsToWords(nbits);
+    std.debug.assert(dst.len >= nwords);
+    std.debug.assert(old.len >= nwords);
+    std.debug.assert(new.len >= nwords);
+    std.debug.assert(mask.len >= nwords);
+    if (nwords == 0) {
+        return;
+    }
+
+    const lim = nbits / bits_per_long;
+    var idx: usize = 0;
+    while (idx < lim) : (idx += 1) {
+        dst[idx] = (old[idx] & ~mask[idx]) | (new[idx] & mask[idx]);
+    }
+
+    if ((nbits & (bits_per_long - 1)) != 0) {
+        dst[idx] = ((old[idx] & ~mask[idx]) | (new[idx] & mask[idx])) & lastWordMask(nbits);
+    }
+}
+
+pub fn bitmap_replace(dst: []Word, old: []const Word, new: []const Word, mask: []const Word, nbits: usize) void {
+    replaceBits(dst, old, new, mask, nbits);
+}
+
 pub fn complement(dst: []Word, src: []const Word, nbits: usize) void {
     assertBitmapLen(dst, nbits);
     assertBitmapLen(src, nbits);
@@ -1005,6 +1034,11 @@ test "bitmap Linux-style aliases mirror copy logical range and format helpers" {
 
     xorBits(&direct, &lhs, &rhs, nbits);
     bitmap_xor(&alias, &lhs, &rhs, nbits);
+    try std.testing.expectEqualSlices(Word, &direct, &alias);
+
+    const replace_mask = [_]Word{ 0b1100, (@as(Word, 1) << 2) | (@as(Word, 1) << 3) };
+    replaceBits(&direct, &lhs, &rhs, &replace_mask, nbits);
+    bitmap_replace(&alias, &lhs, &rhs, &replace_mask, nbits);
     try std.testing.expectEqualSlices(Word, &direct, &alias);
 
     try std.testing.expectEqual(andBits(&direct, &lhs, &rhs, nbits), bitmap_and(&alias, &lhs, &rhs, nbits));
