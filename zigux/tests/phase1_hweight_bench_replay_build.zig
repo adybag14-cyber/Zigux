@@ -22,9 +22,12 @@ pub fn build(b: *std.Build) void {
     });
     const run_tests = b.addRunArtifact(tests);
 
-    const test_step = b.step(
+    const named = b.step(
         "phase1-hweight-bench-replay",
         "Run the Phase 1 hweight bench replay",
     );
+    named.dependOn(&run_tests.step);
+
+    const test_step = b.step("test", "Run the Phase 1 hweight bench replay tests");
     test_step.dependOn(&run_tests.step);
 }
