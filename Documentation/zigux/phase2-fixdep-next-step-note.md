@@ -21,15 +21,14 @@ Current `master` still carries the bounded `scripts/zigux/fixdep.zig` dual-imple
 ## Survey result
 
 - The older same-lane reminder drift around supposedly missing fixdep governance, wrapper, and fixture coverage is now closed by current repo evidence.
-- The direct Phase 2 gate is mostly truthful again: `scripts/zigux/check-phase2-fixdep-gate.py` now pins twenty-five named helper-local tests, including the CRLF escaped-colon concatenated-target survivor, alongside the live workflow, Makefile, fixture, and closure markers.
-- The latest live helper has advanced one step beyond that gate roster with `test "runFixdep preserves escaped colon dependencies through the public entry path" {`; that is a small same-family hardening follow-up for the fixdep gate, not a reason for this closure-evidence lane to reopen parser behavior or fixture churn.
+- The direct Phase 2 gate is truthful again: `scripts/zigux/check-phase2-fixdep-gate.py` now pins twenty-six named helper-local tests, including the CRLF escaped-colon concatenated-target survivor and `test "runFixdep preserves escaped colon dependencies through the public entry path" {`, alongside the live workflow, Makefile, fixture, and closure markers.
 - The current diff-and-artifact packet is truthful again: `scripts/zigux/check-fixdep-diff.py` now validates the Zig helper path, the thirteen-case fixture roster, the committed expected-output files, and deterministic repeat runs without depending on a readable `scripts/basic/fixdep.c` path.
-- The live helper-local test surface is broad enough that this lane does not currently have an honest parser-side or expected-output-side reopen signal.
+- The live helper-local test surface is broad enough that this lane does not currently have an honest parser-side, gate-roster-side, or expected-output-side reopen signal.
 - Widening this lane into parser behavior, expected-output growth, or shared Phase 2 reminder maintenance would skip over the honest current result, which is to keep the lane parked until a fresh fixdep-local failure appears.
 
 ## Next safe step
 
-1. Keep `P2-L06` parked unless a fresh current-`master` reread finds new drift inside the live fixdep helper, checker, fixture, or route packet.
-2. If the fixdep family reopens, start with one smallest same-family follow-through only: prefer a new direct mismatch in `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/check-phase2-fixdep-gate.py`, `Documentation/zigux/artifact-diff.md`, or `zigux/tests/fixtures/fixdep/cases.json` before reopening parser behavior or adding another expected-output packet.
-3. The narrowest current hardening follow-up is to teach `scripts/zigux/check-phase2-fixdep-gate.py` about the public `runFixdep` escaped-colon entry-path test so the gate roster catches up with the full twenty-six-test helper surface.
+1. Keep `P2-L06` parked unless a fresh current-`master` reread finds new drift inside the live fixdep helper, checker, fixture, route, or reminder packet.
+2. If the fixdep family reopens, start with one smallest same-family follow-through only: prefer a new direct mismatch in `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/check-phase2-fixdep-gate.py`, `Documentation/zigux/artifact-diff.md`, `zigux/tests/fixtures/fixdep/cases.json`, or the direct Phase 2 route surfaces before reopening parser behavior or adding another expected-output packet.
+3. If `scripts/zigux/fixdep.zig` grows another helper-local test, first teach `scripts/zigux/check-phase2-fixdep-gate.py` about that exact new test line so the gate roster stays aligned with the helper surface.
 4. Do not widen from this reminder lane into parser behavior, fixture expected outputs, genksyms, kconfig bridge, or the broader shared Phase 2 route inventory without a new direct fixdep failure signal.
