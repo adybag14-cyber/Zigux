@@ -24,6 +24,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const cmdline_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/cmdline.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const hweight_module = b.createModule(.{
         .root_source_file = b.path("../../tools/lib/hweight.zig"),
         .target = target,
@@ -41,6 +46,7 @@ pub fn build(b: *std.Build) void {
     });
 
     bitmap_module.addImport("find_bit", find_bit_module);
+    string_module.addImport("cmdline", cmdline_module);
     root_module.addImport("bitmap", bitmap_module);
     root_module.addImport("find_bit", find_bit_module);
     root_module.addImport("hweight", hweight_module);

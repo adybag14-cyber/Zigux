@@ -680,7 +680,7 @@ def main() -> int:
 
     zig = find_zig(root, args.zig)
     result = subprocess.run(
-        [zig, "build", "bench", "--build-file", "zigux/tests/build.zig", "-Doptimize=ReleaseSafe"],
+        [zig, "build", "bench", "--build-file", "zigux/tests/phase1_bench_build.zig", "-Doptimize=ReleaseSafe"],
         cwd=str(root),
         capture_output=True,
         text=True,
