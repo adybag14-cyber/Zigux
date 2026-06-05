@@ -31,6 +31,22 @@ test "allow-missing flag is explicit and scoped to missing dependencies" {
     try expectContains(checker, "ZIG_TOOLCHAIN_ARCHIVE_STATUS=missing");
 }
 
+test "invalid checker states still fail independently of allow-missing" {
+    const allocator = std.testing.allocator;
+    const checker = try readRepoFile(allocator, checker_path);
+    defer allocator.free(checker);
+
+    const archive_invalid_status = "print(\"ZIG_TOOLCHAIN_ARCHIVE_STATUS=invalid\")";
+    const toolchain_invalid_status = "print(\"ZIG_TOOLCHAIN_STATUS=invalid\")";
+
+    try expectInOrder(checker, "except ValueError as exc:", archive_invalid_status);
+    try expectInOrder(checker, archive_invalid_status, "print(f\"ZIG_TOOLCHAIN_NOTE={exc}\")");
+    try expectInOrder(checker, archive_invalid_status, "return 1");
+    try expectInOrder(checker, "except ValueError as exc:", toolchain_invalid_status);
+    try expectInOrder(checker, toolchain_invalid_status, "print(f\"ZIG_TOOLCHAIN_NOTE={exc}\")");
+    try expectInOrder(checker, toolchain_invalid_status, "return 1");
+}
+
 test "missing archive reports policy metadata before allow-missing exit" {
     const allocator = std.testing.allocator;
     const checker = try readRepoFile(allocator, checker_path);
