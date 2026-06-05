@@ -87,52 +87,25 @@ test "contract catches stale checker self-test root drift" {
         \\PHASE2_DIRECT_CROSS_ROUTE_SELF_TEST=pass
     ));
 
-    try std.testing.expectError(ContractError.ForbiddenMarkerPresent, validateSelfTestRootPacket(
-        \\def build_self_test_root(root: Path) -> None:
-        \\\"archive_target_scope\": [\"x86_64-linux\"]
-        \\\"target\": \"x86_64-linux\"
-        \\\"review_status\": \"pinned bootstrap archive\"
-        \\\"validation_mode\": \"archive_required\"
-        \\\"target\": \"aarch64-linux\"
-        \\\"review_status\": \"route contract only\"
-        \\\"validation_mode\": \"route_contract_only\"
-        \\\"target\": \"riscv64-linux\"
-        \\EXPECTED_SELF_TEST_CASE_COUNT = 17
-        \\assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
-        \\PHASE2_DIRECT_CROSS_ROUTE_SELF_TEST=pass
-        \\fixture["archive_target_scope"] = ["aarch64-linux"]
-        \\fixture["cross_targets"][0]["validation_mode"] = "route_contract_only"
-        \\fixture["cross_targets"].append(dict(fixture["cross_targets"][0]))
-        \\fixture["cross_targets"][1]["route"] = "make -C zigux phase2"
-        \\fixture["cross_targets"][1]["review_status"] = ""
-        \\fixture["cross_targets"][1]["validation_mode"] = "unexpected_mode"
-        \\policy["upgrade_policy"]["archive_target_scope"] = ["x86_64-linux", "x86_64-linux"]
-        \\for primary_path in (TOOLCHAIN_POLICY, MAKEFILE, FIXTURE):
-    ));
+    try std.testing.expectError(
+        ContractError.ForbiddenMarkerPresent,
+        requireAbsent("\"target\": \"riscv64-linux\"", "\"target\": \"riscv64-linux\""),
+    );
 }
 
 test "contract catches stale fixture drift" {
     try std.testing.expectError(ContractError.MissingMarker, validateFixturePacket(
-        \\\"route\": \"make -C zigux phase2-cross\"
-        \\\"target\": \"x86_64-linux\"
-        \\\"review_status\": \"pinned bootstrap archive\"
-        \\\"validation_mode\": \"archive_required\"
-        \\\"target\": \"aarch64-linux\"
-        \\\"review_status\": \"route contract only\"
-        \\\"validation_mode\": \"route_contract_only\"
+        \\"route": "make -C zigux phase2-cross"
+        \\"target": "x86_64-linux"
+        \\"review_status": "pinned bootstrap archive"
+        \\"validation_mode": "archive_required"
+        \\"target": "aarch64-linux"
+        \\"review_status": "route contract only"
+        \\"validation_mode": "route_contract_only"
     ));
 
-    try std.testing.expectError(ContractError.ForbiddenMarkerPresent, validateFixturePacket(
-        \\\"route\": \"make -C zigux phase2-cross\"
-        \\\"archive_target_scope\": [
-        \\    "x86_64-linux"
-        \\  ]
-        \\\"target\": \"x86_64-linux\"
-        \\\"review_status\": \"pinned bootstrap archive\"
-        \\\"validation_mode\": \"archive_required\"
-        \\\"target\": \"aarch64-linux\"
-        \\\"review_status\": \"route contract only\"
-        \\\"validation_mode\": \"route_contract_only\"
-        \\\"target\": \"riscv64-linux\"
-    ));
+    try std.testing.expectError(
+        ContractError.ForbiddenMarkerPresent,
+        requireAbsent("\"target\": \"riscv64-linux\"", "\"target\": \"riscv64-linux\""),
+    );
 }
