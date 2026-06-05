@@ -19,10 +19,6 @@ fn readTestsBuild(allocator: std.mem.Allocator) ![]u8 {
     );
 }
 
-fn requireContains(haystack: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
-}
-
 fn requireAbsent(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
 }
