@@ -2,10 +2,31 @@ const std = @import("std");
 
 const smoke_source = @embedFile("phase1_host_tools_smoke.zig");
 
+fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
+    var count: usize = 0;
+    var index: usize = 0;
+    while (std.mem.indexOfPos(u8, haystack, index, needle)) |match_index| {
+        count += 1;
+        index = match_index + needle.len;
+    }
+    return count;
+}
+
 fn requireMarker(marker: []const u8) !void {
     if (std.mem.indexOf(u8, smoke_source, marker) == null) {
         std.debug.print("missing Phase 1 host-tools smoke marker: {s}\n", .{marker});
         return error.MissingSmokeMarker;
+    }
+}
+
+fn requireExactlyOnce(marker: []const u8) !void {
+    const count = countOccurrences(smoke_source, marker);
+    if (count != 1) {
+        std.debug.print(
+            "Phase 1 host-tools smoke marker count drifted for {s}: expected 1, got {d}\n",
+            .{ marker, count },
+        );
+        return error.SmokeMarkerCountDrift;
     }
 }
 
@@ -36,23 +57,48 @@ test "bitmap alias smoke contract keeps shared find_bit import public" {
     );
 }
 
-test "bitmap alias smoke contract keeps zero-size alias coverage" {
-    try requireMarker("bitmap.copy(direct_copy[0..0], src[0..0], 0);");
-    try requireMarker("bitmap.bitmap_copy(alias_copy[0..0], src[0..0], 0);");
-    try requireMarker("bitmap.copyClearTail(direct_clear[0..0], src[0..0], 0);");
-    try requireMarker("bitmap.bitmap_copy_clear_tail(alias_clear[0..0], src[0..0], 0);");
-    try requireMarker("bitmap.copyAndExtend(direct_extend[0..0], src[0..0], 0, 0);");
-    try requireMarker("bitmap.bitmap_copy_and_extend(alias_extend[0..0], src[0..0], 0, 0);");
+test "bitmap alias smoke contract keeps zero-size alias coverage exact" {
+    const zero_size_markers = [_][]const u8{
+        "bitmap.copy(direct_copy[0..0], src[0..0], 0);",
+        "bitmap.bitmap_copy(alias_copy[0..0], src[0..0], 0);",
+        "try std.testing.expectEqualSlices(find_bit.Word, &direct_copy, &alias_copy);",
+        "bitmap.copyClearTail(direct_clear[0..0], src[0..0], 0);",
+        "bitmap.bitmap_copy_clear_tail(alias_clear[0..0], src[0..0], 0);",
+        "try std.testing.expectEqualSlices(find_bit.Word, &direct_clear, &alias_clear);",
+        "bitmap.copyAndExtend(direct_extend[0..0], src[0..0], 0, 0);",
+        "bitmap.bitmap_copy_and_extend(alias_extend[0..0], src[0..0], 0, 0);",
+        "try std.testing.expectEqualSlices(find_bit.Word, &direct_extend, &alias_extend);",
+    };
+    for (zero_size_markers) |marker| {
+        try requireExactlyOnce(marker);
+    }
+    try requireOrdered(
+        "bitmap.copy(direct_copy[0..0], src[0..0], 0);",
+        "bitmap.copyClearTail(direct_clear[0..0], src[0..0], 0);",
+    );
+    try requireOrdered(
+        "bitmap.copyClearTail(direct_clear[0..0], src[0..0], 0);",
+        "bitmap.copyAndExtend(direct_extend[0..0], src[0..0], 0, 0);",
+    );
 }
 
-test "bitmap alias smoke contract keeps empty format alias coverage" {
-    try requireMarker("const empty_map = [_]find_bit.Word{0};");
-    try requireMarker("const direct_len = bitmap.scnprintf(&empty_map, 8, &direct_buffer);");
-    try requireMarker("const alias_len = bitmap.bitmap_scnprintf(&empty_map, 8, &alias_buffer);");
-    try requireMarker("try std.testing.expectEqual(direct_len, alias_len);");
-    try requireMarker("try std.testing.expectEqualSlices(u8, &direct_buffer, &alias_buffer);");
+test "bitmap alias smoke contract keeps empty format alias coverage exact" {
+    const empty_format_markers = [_][]const u8{
+        "const empty_map = [_]find_bit.Word{0};",
+        "const direct_len = bitmap.scnprintf(&empty_map, 8, &direct_buffer);",
+        "const alias_len = bitmap.bitmap_scnprintf(&empty_map, 8, &alias_buffer);",
+        "try std.testing.expectEqual(direct_len, alias_len);",
+        "try std.testing.expectEqualSlices(u8, &direct_buffer, &alias_buffer);",
+    };
+    for (empty_format_markers) |marker| {
+        try requireExactlyOnce(marker);
+    }
     try requireOrdered(
         "bitmap.bitmap_copy_and_extend(alias_extend[0..0], src[0..0], 0, 0);",
         "const empty_map = [_]find_bit.Word{0};",
+    );
+    try requireOrdered(
+        "const direct_len = bitmap.scnprintf(&empty_map, 8, &direct_buffer);",
+        "const alias_len = bitmap.bitmap_scnprintf(&empty_map, 8, &alias_buffer);",
     );
 }
