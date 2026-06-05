@@ -37,6 +37,9 @@ const phase2_genksyms_validate_markers = [_][]const u8{
     "      - name: Run current Phase 2 aggregate make route\n        run: make -C zigux phase2",
 };
 
+const phase2_validate_marker =
+    "      - name: Validate current Phase 2 tool packet\n        run: python3 scripts/zigux/validate-phase2.py";
+
 const phase2_closure_marker =
     "      - name: Self-test current Phase 2 closure validator\n        run: python3 scripts/zigux/validate-phase2-closure.py --self-test";
 
@@ -99,7 +102,7 @@ test "required-route checker follows the direct make-route cluster" {
     try std.testing.expect(required_check < shared_reminder);
 }
 
-test "genksyms and aggregate phase2 routes stay ahead of closure validation" {
+test "genksyms aggregate and phase2 validation stay ahead of closure validation" {
     const workflow_source = try readWorkflowSource(std.testing.allocator);
     defer std.testing.allocator.free(workflow_source);
 
@@ -109,9 +112,11 @@ test "genksyms and aggregate phase2 routes stay ahead of closure validation" {
     const manifest_tail = try markerIndex(workflow_source, phase2_manifest_checker_markers[phase2_manifest_checker_markers.len - 1]);
     const genksyms_start = try markerIndex(workflow_source, phase2_genksyms_validate_markers[0]);
     const aggregate_route = try markerIndex(workflow_source, phase2_genksyms_validate_markers[phase2_genksyms_validate_markers.len - 1]);
+    const phase2_validate = try markerIndex(workflow_source, phase2_validate_marker);
     const closure_start = try markerIndex(workflow_source, phase2_closure_marker);
 
     try std.testing.expect(manifest_tail < genksyms_start);
     try std.testing.expect(genksyms_start < aggregate_route);
-    try std.testing.expect(aggregate_route < closure_start);
+    try std.testing.expect(aggregate_route < phase2_validate);
+    try std.testing.expect(phase2_validate < closure_start);
 }
