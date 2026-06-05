@@ -58,8 +58,8 @@ const bench_source_markers = [_][]const u8{
     "fn rbtreeFindAddBench() struct { checksum: u64 } {",
     "fn rbtreeDuplicateBench() struct { checksum: u64 } {",
     "fn rbtreeCachedBench() struct { checksum: u64 } {",
-    "try stdout_writer.interface.print(\"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM={d}\\\\n\", .{find_bit_edge_result.checksum});",
-    "try stdout_writer.interface.print(\"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM={d}\\\\n\", .{rbtree_cached_result.checksum});",
+    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM={d}",
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM={d}",
 };
 
 const build_wrapper_markers = [_][]const u8{
