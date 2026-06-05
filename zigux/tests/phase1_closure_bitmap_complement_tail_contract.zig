@@ -32,6 +32,23 @@ test "closure note keeps bitmap complement-tail review helper-local" {
     try expectContains(closure_note, "partial-tail masking and zero-sized caller-view no-op behavior remain review-visible at the helper surface");
 }
 
+test "bitmap helper still carries the direct complement-tail proof" {
+    const bitmap_helper = try std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        "tools/lib/bitmap.zig",
+        std.testing.allocator,
+        .limited(256 * 1024),
+    );
+    defer std.testing.allocator.free(bitmap_helper);
+
+    try expectContains(bitmap_helper, "pub fn complement(");
+    try expectContains(bitmap_helper, "pub fn bitmap_complement(");
+    try expectContains(bitmap_helper, "test \"bitmap complement");
+    try expectContains(bitmap_helper, "lastWordMask(nbits)");
+    try expectContains(bitmap_helper, "zero_dst[0..0]");
+    try expectContains(bitmap_helper, "try std.testing.expectEqualSlices(Word, &direct, &alias)");
+}
+
 test "manifest names the complement-tail anchor and keeps it out of shared fixture keys" {
     try expectContains(manifest, "\"complement_tail_anchor\": \"test \\\"bitmap complement clamps partial tails and leaves zero-sized caller views untouched\\\"\"");
     try expectContains(manifest, "\"complement_tail_review_summary\": \"helper-local complement-tail masking stays explicit");
