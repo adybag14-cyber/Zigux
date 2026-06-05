@@ -108,3 +108,26 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweight repeated byte lanes count through aliases" {
+    const low_byte: u32 = 0x69;
+    try std.testing.expectEqual(@as(u32, 4), swHweight8(low_byte));
+    try std.testing.expectEqual(swHweight8(low_byte), __sw_hweight8(low_byte));
+
+    const two_lanes: u32 = 0x6969;
+    try std.testing.expectEqual(@as(u32, 8), swHweight16(two_lanes));
+    try std.testing.expectEqual(swHweight16(two_lanes), __sw_hweight16(two_lanes));
+
+    const four_lanes: u32 = 0x6969_6969;
+    try std.testing.expectEqual(@as(u32, 16), swHweight32(four_lanes));
+    try std.testing.expectEqual(swHweight32(four_lanes), __sw_hweight32(four_lanes));
+
+    const eight_lanes: u64 = 0x6969_6969_6969_6969;
+    try std.testing.expectEqual(@as(u64, 32), swHweight64(eight_lanes));
+    try std.testing.expectEqual(swHweight64(eight_lanes), __sw_hweight64(eight_lanes));
+
+    const long_value: usize = if (@sizeOf(usize) == 4) four_lanes else eight_lanes;
+    const expected_long: usize = if (@sizeOf(usize) == 4) 16 else 32;
+    try std.testing.expectEqual(expected_long, hweightLong(long_value));
+    try std.testing.expectEqual(hweightLong(long_value), hweight_long(long_value));
+}
