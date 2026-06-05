@@ -21,10 +21,6 @@ fn nodeEntry(node: *const rbtree.Node) *const Entry {
     return @fieldParentPtr("node", node);
 }
 
-fn keyLess(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
-    return nodeEntry(lhs).key < nodeEntry(rhs).key;
-}
-
 fn keyCmp(lhs: *const rbtree.Node, rhs: *const rbtree.Node) i32 {
     const lhs_key = nodeEntry(lhs).key;
     const rhs_key = nodeEntry(rhs).key;
