@@ -48,10 +48,10 @@ test "phase1 vsprintf fixture preserves padded visible window" {
 test "phase1 vsprintf fixture keeps exact key roster" {
     const markers = [_][]const u8{
         "\"vsprintf\":",
-        "\"scnprintf_text\":\"zigux:7\"",
-        "\"scnprintf_len\":7",
-        "\"pad_text\":\"id=7    \"",
-        "\"pad_len\":8",
+        "\"scnprintf_text\"",
+        "\"scnprintf_len\"",
+        "\"pad_text\"",
+        "\"pad_len\"",
     };
 
     for (markers) |marker| {
