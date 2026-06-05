@@ -108,3 +108,25 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweight byte-swapped lanes preserve population counts" {
+    const word16: u32 = 0x2d81;
+    const swapped16: u32 = @byteSwap(@as(u16, word16));
+    try std.testing.expectEqual(swHweight16(word16), swHweight16(swapped16));
+    try std.testing.expectEqual(__sw_hweight16(word16), __sw_hweight16(swapped16));
+
+    const word32: u32 = 0x8100_f02d;
+    const swapped32 = @byteSwap(word32);
+    try std.testing.expectEqual(swHweight32(word32), swHweight32(swapped32));
+    try std.testing.expectEqual(__sw_hweight32(word32), __sw_hweight32(swapped32));
+
+    const word64: u64 = 0x8100_f02d_4403_1096;
+    const swapped64 = @byteSwap(word64);
+    try std.testing.expectEqual(swHweight64(word64), swHweight64(swapped64));
+    try std.testing.expectEqual(__sw_hweight64(word64), __sw_hweight64(swapped64));
+
+    const long_value: usize = if (@sizeOf(usize) == 4) @as(usize, word32) else @as(usize, word64);
+    const swapped_long = @byteSwap(long_value);
+    try std.testing.expectEqual(hweightLong(long_value), hweightLong(swapped_long));
+    try std.testing.expectEqual(hweight_long(long_value), hweight_long(swapped_long));
+}
