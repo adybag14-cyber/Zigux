@@ -56,7 +56,7 @@ test "artifact diff parser rejects incomplete and extra argv before comparing fi
 
     try expectOrdered(
         source,
-        "if arg == \"--mode\":" ,
+        "if arg == \"--mode\":",
         "expected = positionals[0] if len(positionals) >= 1 else None",
     );
     try expectOrdered(
