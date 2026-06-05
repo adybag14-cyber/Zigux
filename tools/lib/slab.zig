@@ -142,3 +142,25 @@ test "zeroing aliases request __GFP_ZERO while preserving allocation accounting"
     try std.testing.expect(kcallocBytes(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
     try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
 }
+
+test "kmallocArray failure paths preserve live owners and counters" {
+    kmalloc_nr_allocated = 0;
+
+    const first = kmallocArray(2, 4, GFP_KERNEL | __GFP_ZERO) orelse return error.TestUnexpectedResult;
+    const second = kmallocArray(3, 2, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 2), kmalloc_nr_allocated);
+
+    @memset(first, 0x11);
+    @memset(second, 0x22);
+
+    try std.testing.expect(kmallocArray(4, 4, __GFP_ZERO) == null);
+    try std.testing.expect(kmallocArray(std.math.maxInt(usize), 2, GFP_KERNEL | __GFP_ZERO) == null);
+    try std.testing.expectEqual(@as(isize, 2), kmalloc_nr_allocated);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11 }, first);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 }, second);
+
+    kfree(second);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    kfree(first);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
