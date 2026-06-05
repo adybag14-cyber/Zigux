@@ -130,3 +130,22 @@ test "scnprintfPad reports full padded subview length while preserving sentinels
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'i', 'o', ' ', ' ', ' ', 0 }, backing[2..8]);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xc9, 0xca }, backing[8..10]);
 }
+
+test "oversized renders return zero and leave caller buffers unchanged" {
+    const too_wide = "x" ** (max_render_bytes + 1);
+
+    var direct = [_]u8{ 0xa1, 0xa2, 0xa3, 0xa4 };
+    var alias = [_]u8{ 0xb1, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6 };
+    var padded = [_]u8{ 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8 };
+
+    const direct_written = scnprintf(&direct, "{s}", .{too_wide});
+    const alias_written = vscnprintf(alias[1..5], "{s}", .{too_wide});
+    const padded_written = scnprintfPad(padded[2..7], 4, "{s}", .{too_wide});
+
+    try std.testing.expectEqual(@as(usize, 0), direct_written);
+    try std.testing.expectEqual(@as(usize, 0), alias_written);
+    try std.testing.expectEqual(@as(usize, 0), padded_written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xa1, 0xa2, 0xa3, 0xa4 }, &direct);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xb1, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6 }, &alias);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8 }, &padded);
+}
