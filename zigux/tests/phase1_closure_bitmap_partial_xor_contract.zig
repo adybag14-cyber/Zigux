@@ -16,13 +16,21 @@ fn expectAnyContains(haystack: []const u8, needles: []const []const u8) !void {
     try testing.expect(false);
 }
 
-fn readClosureNote() ![]u8 {
+fn readRepoFile(path: []const u8, max_bytes: usize) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(
         testing.io,
-        "Documentation/zigux/phase1-closure.md",
+        path,
         testing.allocator,
-        .limited(128 * 1024),
+        .limited(max_bytes),
     );
+}
+
+fn readClosureNote() ![]u8 {
+    return readRepoFile("Documentation/zigux/phase1-closure.md", 128 * 1024);
+}
+
+fn readBitmapHelper() ![]u8 {
+    return readRepoFile("tools/lib/bitmap.zig", 256 * 1024);
 }
 
 test "phase1 closure note keeps bitmap partial xor review explicit" {
@@ -49,6 +57,21 @@ test "phase1 helper manifest names the bitmap partial xor fixture fields" {
     try expectContains(helper_manifest, "partial_xor_review_fields");
     try expectContains(helper_manifest, "partial_xor_nbits");
     try expectContains(helper_manifest, "partial_xor_masked_values");
+    try expectContains(helper_manifest, "bitmap xor keeps caller-selected bit window");
+}
+
+test "bitmap helper keeps partial xor direct anchors review-visible" {
+    const bitmap_helper = try readBitmapHelper();
+    defer testing.allocator.free(bitmap_helper);
+
+    try expectContains(bitmap_helper, "test \"bitmap xor keeps caller-selected bit window\"");
+    try expectContains(bitmap_helper, "xorBits(&dst, &lhs, &rhs, 4)");
+    try expectContains(bitmap_helper, "dst[0] & lastWordMask(4)");
+
+    if (std.mem.indexOf(u8, bitmap_helper, "test \"bitmap xor across a multiword tail still lets callers clamp the last word\"") != null) {
+        try expectContains(bitmap_helper, "const nbits = bits_per_long + 5");
+        try expectContains(bitmap_helper, "dst[1] & lastWordMask(nbits)");
+    }
 }
 
 test "phase1 helper fixture pins the bounded partial xor witness" {
