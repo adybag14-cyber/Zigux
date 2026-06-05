@@ -73,3 +73,29 @@ test "phase 15 study-only anchors stay accounting context rather than delivery e
     try expectContains(accounting_note, "a direct Zigux bridge for `kernel/trace/ring_buffer.c`");
     try expectContains(accounting_note, "a new implementation roadmap beyond current governance accounting");
 }
+
+test "phase 15 handoff and shared-summary notes keep study-only anchors below route recovery" {
+    const handoff_note = try readRepoFile("Documentation/zigux/phase15-handoff-next-steps-survey.md", 96 * 1024);
+    defer std.testing.allocator.free(handoff_note);
+
+    const shared_summary = try readRepoFile("Documentation/zigux/phase15-shared-summary-gap.md", 64 * 1024);
+    defer std.testing.allocator.free(shared_summary);
+
+    const accounting_note = try readRepoFile("Documentation/zigux/phase15-study-only-anchor-accounting.md", 32 * 1024);
+    defer std.testing.allocator.free(accounting_note);
+
+    try expectContains(handoff_note, "keep the two roadmap study-only anchors parked: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`");
+    try expectContains(handoff_note, "Documentation/zigux/phase15-study-only-anchor-accounting.md");
+    try expectContains(handoff_note, "treat broader docs-root, checklist, scripts-root, tests-root, and dedicated-build Phase 15 wording drift as truthfulness gaps");
+    try expectContains(handoff_note, "do not treat any direct Zig deep-core bridge as a next-phase commitment");
+    try expectContains(handoff_note, "no Architecture Council approval is currently recorded for a freeze-map status change");
+
+    try expectContains(shared_summary, "Documentation/zigux/phase15-study-only-anchor-accounting.md");
+    try expectContains(shared_summary, "do not treat present focused companions as Architecture Council approval or direct deep-core delivery evidence by themselves");
+    try expectContains(shared_summary, "a freeze-map status change for any deep-core anchor");
+    try expectContains(shared_summary, "broader wrapper-route wording around");
+    try expectContains(shared_summary, "shared-CI route vocabulary as shipped evidence");
+
+    try expectContains(accounting_note, "governance-lane sequencing note, handoff-next-steps survey, shared-summary gap note");
+    try expectContains(accounting_note, "the current governance packet is still blocker-accounting and handoff truthfulness, not port-readiness");
+}
