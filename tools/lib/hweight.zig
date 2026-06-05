@@ -108,3 +108,40 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweight helpers partition lane complements to the lane width" {
+    const byte_patterns = [_]u32{ 0x00, 0x01, 0x5a, 0xa5, 0xfe, 0xff };
+    for (byte_patterns) |pattern| {
+        const complement = (~pattern) & 0xff;
+        try std.testing.expectEqual(@as(u32, 8), swHweight8(pattern) + swHweight8(complement));
+        try std.testing.expectEqual(@as(u32, 8), __sw_hweight8(pattern) + __sw_hweight8(complement));
+    }
+
+    const word_patterns = [_]u32{ 0x0000, 0x0001, 0x1357, 0xa5a5, 0xfffe, 0xffff };
+    for (word_patterns) |pattern| {
+        const complement = (~pattern) & 0xffff;
+        try std.testing.expectEqual(@as(u32, 16), swHweight16(pattern) + swHweight16(complement));
+        try std.testing.expectEqual(@as(u32, 16), __sw_hweight16(pattern) + __sw_hweight16(complement));
+    }
+
+    const dword_patterns = [_]u32{ 0x0000_0000, 0x0000_0001, 0x1357_9bdf, 0xa5a5_5a5a, 0xffff_fffe, 0xffff_ffff };
+    for (dword_patterns) |pattern| {
+        const complement = ~pattern;
+        try std.testing.expectEqual(@as(u32, 32), swHweight32(pattern) + swHweight32(complement));
+        try std.testing.expectEqual(@as(u32, 32), __sw_hweight32(pattern) + __sw_hweight32(complement));
+    }
+
+    const qword_patterns = [_]u64{ 0, 1, 0x1357_9bdf_2468_ace0, 0xa5a5_5a5a_ffff_0000, 0xffff_ffff_ffff_fffe, 0xffff_ffff_ffff_ffff };
+    for (qword_patterns) |pattern| {
+        const complement = ~pattern;
+        try std.testing.expectEqual(@as(u64, 64), swHweight64(pattern) + swHweight64(complement));
+        try std.testing.expectEqual(@as(u64, 64), __sw_hweight64(pattern) + __sw_hweight64(complement));
+    }
+
+    const long_patterns = [_]usize{ 0, 1, 0x1357, ~@as(usize, 1), ~@as(usize, 0) };
+    for (long_patterns) |pattern| {
+        const complement = ~pattern;
+        try std.testing.expectEqual(@bitSizeOf(usize), hweightLong(pattern) + hweightLong(complement));
+        try std.testing.expectEqual(@bitSizeOf(usize), hweight_long(pattern) + hweight_long(complement));
+    }
+}
