@@ -56,6 +56,29 @@ test "toolchain CLI reports the final status packet" {
     try requireContains(source, "return exit_code");
 }
 
+test "version probe failures keep invalid status diagnostics" {
+    const source = checker_source;
+
+    try requireContains(source, "def read_zig_version(zig: str, *, runner=subprocess.run) -> str:");
+    try requireContains(source, "completed = runner([zig, \"version\"], capture_output=True, text=True, check=False)");
+    try requireContains(source, "except FileNotFoundError as exc:");
+    try requireContains(source, "raise ValueError(f\"zig executable not found: {zig}\") from exc");
+    try requireContains(source, "except OSError as exc:");
+    try requireContains(source, "raise ValueError(f\"failed to execute zig at {zig}: {exc}\") from exc");
+    try requireContains(source, "if completed.returncode != 0:");
+    try requireContains(source, "detail = completed.stderr.strip() or completed.stdout.strip() or f\"exit code {completed.returncode}\"");
+    try requireContains(source, "raise ValueError(f\"zig version command failed: {detail}\")");
+    try requireContains(source, "if not version:");
+    try requireContains(source, "raise ValueError(\"zig version command returned empty output\")");
+
+    try requireOrdered(source, "version = read_zig_version(zig)", "except ValueError as exc:");
+    try requireOrdered(source, "except ValueError as exc:", "print(\"ZIG_TOOLCHAIN_STATUS=invalid\")");
+    try requireOrdered(source, "print(\"ZIG_TOOLCHAIN_STATUS=invalid\")", "print(f\"ZIG_TOOLCHAIN_PATH={zig}\")");
+    try requireContains(source, "print(f\"ZIG_TOOLCHAIN_MIN_SUPPORTED={min_version_raw or 'unresolved'}\")");
+    try requireContains(source, "print(f\"ZIG_TOOLCHAIN_NOTE={exc}\")");
+    try requireOrdered(source, "print(f\"ZIG_TOOLCHAIN_NOTE={exc}\")", "return 1");
+}
+
 test "checker self-test covers present not-pinned and too-old outcomes" {
     const source = checker_source;
 
