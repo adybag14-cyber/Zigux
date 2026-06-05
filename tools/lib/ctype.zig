@@ -163,3 +163,29 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
         }
     }
 }
+
+test "ctype case transforms leave non alpha bytes unchanged" {
+    const non_alpha = [_]u8{
+        0x00,
+        '\t',
+        ' ',
+        '0',
+        '7',
+        '8',
+        '@',
+        '[',
+        '`',
+        '{',
+        0x7f,
+        0x80,
+        0xa0,
+        0xd7,
+        0xf7,
+    };
+
+    for (non_alpha) |byte| {
+        try std.testing.expect(!isalpha(byte));
+        try std.testing.expectEqual(byte, tolower(byte));
+        try std.testing.expectEqual(byte, toupper(byte));
+    }
+}
