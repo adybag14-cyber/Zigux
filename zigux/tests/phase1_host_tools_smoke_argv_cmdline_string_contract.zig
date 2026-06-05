@@ -24,7 +24,7 @@ const build_imports = [_][]const u8{
 };
 
 const argv_markers = [_][]const u8{
-    "var split = try argv_split.argv_split(std.testing.allocator, \"  zigux   host\\ttools  \ ");",
+    "var split = try argv_split.argv_split(std.testing.allocator, \"  zigux   host\\ttools  \");",
     "defer argv_split.argv_free(&split);",
     "try std.testing.expectEqual(@as(usize, 3), split.argc());",
     "try std.testing.expectEqualStrings(\"zigux\", split.argv[0]);",
