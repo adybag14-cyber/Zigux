@@ -83,3 +83,19 @@ test "strErrorR preserves exact-fit caller terminators and surrounding bytes" {
     try std.testing.expectEqual(@as(u8, 0xbb), fallback[50]);
     try std.testing.expectEqual(@as(u8, 0xbb), fallback[51]);
 }
+
+test "strErrorR writes only terminators for one-byte caller windows" {
+    var known = [_]u8{ 0xa1, 0xa2, 0xa3 };
+    const known_rendered = strErrorR(12, known[1..2]);
+    try std.testing.expectEqual(@as(usize, 0), known_rendered.len);
+    try std.testing.expectEqual(@as(u8, 0xa1), known[0]);
+    try std.testing.expectEqual(@as(u8, 0), known[1]);
+    try std.testing.expectEqual(@as(u8, 0xa3), known[2]);
+
+    var fallback = [_]u8{ 0xb1, 0xb2, 0xb3, 0xb4 };
+    const fallback_rendered = strErrorR(4097, fallback[2..3]);
+    try std.testing.expectEqual(@as(usize, 0), fallback_rendered.len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xb1, 0xb2 }, fallback[0..2]);
+    try std.testing.expectEqual(@as(u8, 0), fallback[2]);
+    try std.testing.expectEqual(@as(u8, 0xb4), fallback[3]);
+}
