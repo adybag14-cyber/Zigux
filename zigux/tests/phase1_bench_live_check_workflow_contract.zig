@@ -40,6 +40,14 @@ const live_guard_contract_markers = [_][]const u8{
     "PHASE1_BENCH_LIVE_CHECK_WORKFLOW_SELF_TEST_CASE_COUNT=6",
 };
 
+const live_guard_self_test_case_markers = [_][]const u8{
+    "missing live bench check",
+    "duplicate live bench check",
+    "reordered live bench check",
+    "miswired live bench check",
+    "missing bench marker",
+};
+
 const bench_checker_markers = [_][]const u8{
     "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS",
     "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
@@ -126,6 +134,10 @@ test "phase1 bench live-check Python guard still pins the same workflow handoff"
     defer allocator.free(live_guard);
 
     for (live_guard_contract_markers) |marker| {
+        try expectContainsAtLeastOnce(live_guard, marker);
+    }
+
+    for (live_guard_self_test_case_markers) |marker| {
         try expectContainsAtLeastOnce(live_guard, marker);
     }
 
