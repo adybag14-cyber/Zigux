@@ -3,10 +3,15 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+    const workflow_path = b.option(
+        []const u8,
+        "workflow-path",
+        "Path to .github/workflows/zigux-bootstrap.yml",
+    ) orelse ".github/workflows/zigux-bootstrap.yml";
 
     const workflow_text = std.Io.Dir.cwd().readFileAlloc(
         b.graph.io,
-        ".github/workflows/zigux-bootstrap.yml",
+        workflow_path,
         b.allocator,
         .limited(1024 * 1024),
     ) catch |err| @panic(@errorName(err));
