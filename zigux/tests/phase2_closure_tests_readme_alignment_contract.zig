@@ -68,6 +68,40 @@ test "phase2 validate route keeps tests-readme alignment ahead of closure valida
     );
 }
 
+test "phase2 bootstrap workflow routes checker stays wired into the closure packet" {
+    const tests_readme = try readRepoFile("zigux/tests/README.md", 256 * 1024);
+    defer std.testing.allocator.free(tests_readme);
+    const manifest = try readRepoFile("zigux/tests/fixtures/phase2_tool_manifest.json", 192 * 1024);
+    defer std.testing.allocator.free(manifest);
+    const makefile = try readRepoFile("zigux/Makefile", 96 * 1024);
+    defer std.testing.allocator.free(makefile);
+    const workflow = try readRepoFile(".github/workflows/zigux-bootstrap.yml", 256 * 1024);
+    defer std.testing.allocator.free(workflow);
+
+    const checker_path = "scripts/zigux/check-phase2-bootstrap-workflow-routes.py";
+    const make_self_test = "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-bootstrap-workflow-routes.py --self-test";
+    const make_live_check = "\n\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-bootstrap-workflow-routes.py\n";
+    const workflow_self_test = "run: python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py --self-test";
+    const workflow_live_check = "\n        run: python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py\n";
+    const phase2_toolchain_route = "make -C zigux phase2-toolchain";
+    const phase2_validator = "python3 scripts/zigux/validate-phase2.py";
+
+    try expectContains(tests_readme, "`scripts/zigux/check-phase2-bootstrap-workflow-routes.py`");
+    try expectContains(tests_readme, "the shipped `zigux/Makefile` wrappers");
+    try expectContains(manifest, checker_path);
+    try expectContains(manifest, "the bootstrap workflow-routes guard");
+    try expectContains(makefile, "phase2-tools:");
+    try expectContains(makefile, make_self_test);
+    try expectContains(makefile, make_live_check);
+    try expectBefore(makefile, make_self_test, make_live_check);
+
+    try expectContains(workflow, workflow_self_test);
+    try expectContains(workflow, workflow_live_check);
+    try expectBefore(workflow, workflow_self_test, workflow_live_check);
+    try expectBefore(workflow, workflow_live_check, phase2_toolchain_route);
+    try expectBefore(workflow, workflow_live_check, phase2_validator);
+}
+
 test "phase2 tests-readme checker keeps its self-test and live pass signals" {
     const checker = try readRepoFile("scripts/zigux/check-phase2-tests-readme-alignment.py", 160 * 1024);
     defer std.testing.allocator.free(checker);
