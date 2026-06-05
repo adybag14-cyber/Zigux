@@ -79,3 +79,42 @@ test "zfree helpers are no-ops for empty owners" {
     zfreeValue(allocator, Value, &value);
     try std.testing.expect(value == null);
 }
+
+test "zallocValue zeroes nested aggregates before optional owner release" {
+    const allocator = std.testing.allocator;
+    const Inner = struct {
+        flags: [3]bool,
+        counter: u32,
+        maybe_byte: ?*u8,
+    };
+    const Value = struct {
+        inner: Inner,
+        slots: [4]usize,
+        maybe_slice: ?[]u8,
+        enabled: bool,
+    };
+
+    var value: ?*Value = try zallocValue(allocator, Value);
+    defer zfreeValue(allocator, Value, &value);
+
+    try std.testing.expect(value != null);
+    for (value.?.inner.flags) |flag| {
+        try std.testing.expectEqual(false, flag);
+    }
+    try std.testing.expectEqual(@as(u32, 0), value.?.inner.counter);
+    try std.testing.expect(value.?.inner.maybe_byte == null);
+    for (value.?.slots) |slot| {
+        try std.testing.expectEqual(@as(usize, 0), slot);
+    }
+    try std.testing.expect(value.?.maybe_slice == null);
+    try std.testing.expectEqual(false, value.?.enabled);
+
+    value.?.inner.counter = 99;
+    value.?.slots[2] = 7;
+    value.?.enabled = true;
+
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+}
