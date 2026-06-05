@@ -8,6 +8,12 @@
     "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, repo-local pinned archive payload, direct cross-route checker, the bootstrap workflow-routes guard, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the dedicated genksyms dual-implementation survey checker, the standalone invalid-long-option, ambiguous-long-option, inline-short-option, repeated-version, and abbreviated-warning terminator proofs, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker plus primary artifact_diff helper explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
     "Keep scripts/zigux/README.md explicit as the shipped scripts-root reminder surface for the same current Phase 2 toolchain, kbuild, installer, cross-route, bootstrap workflow-route, and make-wrapper packet that the docs-root, tests-root, and checklist surfaces summarize."
   ],
+  "checker_ids": [
+    "check-phase2-tool-manifest",
+    "check-phase2-artifact-tools-manifest",
+    "check-phase2-fixdep-gate",
+    "check-fixdep-diff"
+  ],
   "phase": "Phase 2",
   "present_surfaces": {
     "archive_support": [
