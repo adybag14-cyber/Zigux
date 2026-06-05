@@ -289,6 +289,18 @@ test "parseOptionStr matches only exact bare options" {
     try std.testing.expect(parse_option_str("quiet,debug,nohlt", "quiet"));
 }
 
+test "nextArg skips mixed whitespace before the remaining token" {
+    const first = next_arg(" root=/dev/sda1\t \n quiet=1  panic=5") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("root", first.param);
+    try std.testing.expectEqualStrings("/dev/sda1", first.value.?);
+    try std.testing.expectEqualStrings("quiet=1  panic=5", first.remaining);
+
+    const second = nextArg(first.remaining) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("quiet", second.param);
+    try std.testing.expectEqualStrings("1", second.value.?);
+    try std.testing.expectEqualStrings("panic=5", second.remaining);
+}
+
 test "nextArg returns null for blank input" {
     try std.testing.expect(nextArg(" \t \n") == null);
 }
