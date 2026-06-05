@@ -79,3 +79,31 @@ test "zfree helpers are no-ops for empty owners" {
     zfreeValue(allocator, Value, &value);
     try std.testing.expect(value == null);
 }
+
+test "zallocBytes returns fresh zeroed owners after mutation and release" {
+    const allocator = std.testing.allocator;
+
+    var first: ?[]u8 = try zallocBytes(allocator, 16);
+    defer zfreeBytes(allocator, &first);
+    @memset(first.?, 0x5a);
+    zfreeBytes(allocator, &first);
+    try std.testing.expect(first == null);
+
+    var second: ?[]u8 = try zallocBytes(allocator, 16);
+    defer zfreeBytes(allocator, &second);
+    try std.testing.expect(second != null);
+    for (second.?) |item| {
+        try std.testing.expectEqual(@as(u8, 0), item);
+    }
+
+    @memset(second.?, 0xa5);
+    zfreeBytes(allocator, &second);
+    try std.testing.expect(second == null);
+
+    var third: ?[]u8 = try zallocBytes(allocator, 16);
+    defer zfreeBytes(allocator, &third);
+    try std.testing.expect(third != null);
+    for (third.?) |item| {
+        try std.testing.expectEqual(@as(u8, 0), item);
+    }
+}
