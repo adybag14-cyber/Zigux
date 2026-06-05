@@ -34,6 +34,21 @@ fn expectOnce(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expectEqual(@as(usize, 1), countOccurrences(haystack, needle));
 }
 
+fn expectOrderedMarkers(haystack: []const u8, markers: []const []const u8) !void {
+    var previous_end: usize = 0;
+    for (markers) |marker| {
+        const relative_index = std.mem.indexOf(u8, haystack[previous_end..], marker) orelse return error.MissingOrderedMarker;
+        previous_end += relative_index + marker.len;
+    }
+}
+
+fn sliceBetween(haystack: []const u8, start_marker: []const u8, end_marker: []const u8) ![]const u8 {
+    const start = std.mem.indexOf(u8, haystack, start_marker) orelse return error.MissingStartMarker;
+    const body_start = start + start_marker.len;
+    const relative_end = std.mem.indexOf(u8, haystack[body_start..], end_marker) orelse return error.MissingEndMarker;
+    return haystack[body_start .. body_start + relative_end];
+}
+
 test "phase 1 closure validator keeps delegated checker roster explicit" {
     const validator = try readRepoFile("scripts/zigux/validate-phase1-closure.py", 512 * 1024);
     defer std.testing.allocator.free(validator);
@@ -61,6 +76,37 @@ test "phase 1 closure validator keeps delegated checker roster explicit" {
     try expectContains(validator, "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py");
 }
 
+test "phase 1 closure validator delegation tuple is exact and ordered" {
+    const validator = try readRepoFile("scripts/zigux/validate-phase1-closure.py", 512 * 1024);
+    defer std.testing.allocator.free(validator);
+
+    const delegated = try sliceBetween(
+        validator,
+        "DELEGATED_CHECKERS = (\n",
+        ")\n\n\ndef repo_root",
+    );
+
+    const expected = [_][]const u8{
+        "(STRING_REVIEW_CHECKER_REL, \"phase1-string-review-packet\"),",
+        "(FIND_BIT_REVIEW_CHECKER_REL, \"phase1-find-bit-review-packet\"),",
+        "(RBTREE_REVIEW_CHECKER_REL, \"phase1-rbtree-review-packet\"),",
+        "(DIRECT_OWNER_CHECKER_REL, \"phase1-direct-owner-markers\"),",
+        "(DIRECT_ANCHOR_MANIFEST_GATE_REL, \"phase1-direct-anchor-manifest-gate\"),",
+        "(ROUTE_SUMMARY_CHECKER_REL, \"phase1-route-summary-counts\"),",
+        "(FIND_BIT_BENCH_ANCHOR_CHECKER_REL, \"phase1-find-bit-bench-anchors\"),",
+        "(BITMAP_DIRECT_ANCHOR_CHECKER_REL, \"phase1-bitmap-direct-anchors\"),",
+        "(SHARED_REMINDER_CHECKER_REL, \"phase1-shared-reminder-packet\"),",
+    };
+    try expectOrderedMarkers(delegated, &expected);
+    for (expected) |marker| {
+        try expectOnce(delegated, marker);
+    }
+
+    try std.testing.expectEqual(@as(usize, expected.len), countOccurrences(delegated, "phase1-"));
+    try expectAbsent(delegated, "BENCH_CHECKER_REL");
+    try expectAbsent(delegated, "validate-phase1-closure.py");
+}
+
 test "phase 1 closure note stays tied to the narrow validator route" {
     const closure_note = try readRepoFile("Documentation/zigux/phase1-closure.md", 256 * 1024);
     defer std.testing.allocator.free(closure_note);
@@ -82,6 +128,39 @@ test "phase 1 closure note stays tied to the narrow validator route" {
     try expectContains(closure_note, "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py");
     try expectContains(closure_note, "PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig");
     try expectContains(closure_note, "PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig");
+}
+
+test "phase 1 workflow runs delegated checker packets before closure validation" {
+    const workflow = try readRepoFile(".github/workflows/zigux-bootstrap.yml", 1024 * 1024);
+    defer std.testing.allocator.free(workflow);
+
+    const ordered = [_][]const u8{
+        "python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test",
+        "python3 scripts/zigux/check-phase1-direct-owner-markers.py",
+        "python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py --self-test",
+        "python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py",
+        "python3 scripts/zigux/check-phase1-string-review-packet.py --self-test",
+        "python3 scripts/zigux/check-phase1-string-review-packet.py",
+        "python3 scripts/zigux/check-phase1-find-bit-review-packet.py --self-test",
+        "python3 scripts/zigux/check-phase1-find-bit-review-packet.py",
+        "python3 scripts/zigux/check-phase1-bitmap-direct-anchors.py --self-test",
+        "python3 scripts/zigux/check-phase1-bitmap-direct-anchors.py",
+        "python3 scripts/zigux/check-phase1-rbtree-review-packet.py --self-test",
+        "python3 scripts/zigux/check-phase1-rbtree-review-packet.py",
+        "python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
+        "python3 scripts/zigux/check-phase1-route-summary-counts.py",
+        "python3 scripts/zigux/check-phase1-bench.py --self-test",
+        "python3 scripts/zigux/check-phase1-bench.py",
+        "python3 scripts/zigux/check-phase1-bench-live-check-workflow.py --self-test",
+        "python3 scripts/zigux/check-phase1-bench-live-check-workflow.py",
+        "python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --self-test",
+        "python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py",
+        "python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test",
+        "python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
+        "python3 scripts/zigux/validate-phase1-closure.py --self-test",
+        "python3 scripts/zigux/validate-phase1-closure.py",
+    };
+    try expectOrderedMarkers(workflow, &ordered);
 }
 
 test "phase 1 tests root exposes the shared smoke route used by closure validation" {
