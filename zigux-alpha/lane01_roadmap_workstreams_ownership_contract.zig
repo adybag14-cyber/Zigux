@@ -47,6 +47,16 @@ test "workstreams section preserves the fifteen workstream execution model" {
     }
 }
 
+test "workstreams section rejects stale aggregate workstream counts" {
+    const section = workstreamsSection();
+    const core_roster = coreWorkstreamRoster(section);
+
+    try std.testing.expectEqual(@as(usize, workstream_markers.len), countBulletLines(core_roster));
+    try expectContains(section, "The bundle supports a 15-workstream execution model.");
+    try expectNotContains(section, "17-workstream");
+    try expectNotContains(section, "workstreams: `17`");
+}
+
 test "workstreams section preserves active commit series declarations" {
     const section = workstreamsSection();
 
@@ -63,6 +73,27 @@ fn workstreamsSection() []const u8 {
     return roadmap[start..end];
 }
 
+fn coreWorkstreamRoster(section: []const u8) []const u8 {
+    const start_marker = "Core workstreams:\n";
+    const end_marker = "\n\nFor Zigux, that means every active commit series should declare:";
+    const start = (std.mem.indexOf(u8, section, start_marker) orelse
+        @panic("core workstream roster start is missing")) + start_marker.len;
+    const end = std.mem.indexOfPos(u8, section, start, end_marker) orelse
+        @panic("core workstream roster end is missing");
+    return section[start..end];
+}
+
+fn countBulletLines(text: []const u8) usize {
+    var count: usize = 0;
+    var lines = std.mem.splitScalar(u8, text, '\n');
+    while (lines.next()) |line| {
+        if (std.mem.startsWith(u8, line, "- ")) {
+            count += 1;
+        }
+    }
+    return count;
+}
+
 fn requireIndex(needle: []const u8) usize {
     return std.mem.indexOf(u8, roadmap, needle) orelse
         @panic("required roadmap marker is missing");
@@ -70,6 +101,10 @@ fn requireIndex(needle: []const u8) usize {
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
 }
 
 fn expectOrdered(before: []const u8, after: []const u8) !void {
