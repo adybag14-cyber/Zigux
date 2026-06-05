@@ -289,6 +289,16 @@ test "parseOptionStr matches only exact bare options" {
     try std.testing.expect(parse_option_str("quiet,debug,nohlt", "quiet"));
 }
 
+test "parseOptionStr matches empty options only when commas create an entry" {
+    try std.testing.expect(parseOptionStr(",debug", ""));
+    try std.testing.expect(parse_option_str("debug,,quiet", ""));
+    try std.testing.expect(parseOptionStr(",,quiet", ""));
+
+    try std.testing.expect(!parseOptionStr("debug,", ""));
+    try std.testing.expect(!parseOptionStr("debug\x00,", ""));
+    try std.testing.expect(!parseOptionStr("debug,\x00quiet", ""));
+}
+
 test "nextArg returns null for blank input" {
     try std.testing.expect(nextArg(" \t \n") == null);
 }
