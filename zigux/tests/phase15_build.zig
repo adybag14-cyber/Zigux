@@ -77,6 +77,7 @@ pub fn build(b: *std.Build) void {
             .root_module = module,
         });
         const run_unit_tests = b.addRunArtifact(unit_tests);
+        run_unit_tests.setCwd(b.path("../.."));
 
         const step = b.step(entry.step_name, entry.description);
         step.dependOn(&run_unit_tests.step);
