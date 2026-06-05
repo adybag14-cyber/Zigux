@@ -200,3 +200,29 @@ test "slot-level tagged entry query matches raw xarray helper state" {
     try std.testing.expect(err_floor_slot.isTaggedEntry());
     try std.testing.expect(top_err_slot.isTaggedEntry());
 }
+
+test "rejected value aliases keep err_ptr precedence and signed payloads" {
+    const rejected_values = [_]usize{
+        xa_value.safe_inline_limit + 1,
+        xa_value.safe_inline_limit + 2,
+        xa_value.safe_inline_limit + 127,
+        (std.math.maxInt(usize) >> 1),
+    };
+
+    for (rejected_values) |value| {
+        const raw = (value << 1) | xa_value.value_tag_mask;
+        const slot = fromRaw(raw);
+        const expected_code = err_ptr.toErrorCode(raw);
+
+        try std.testing.expect(!xa_value.canRepresent(value));
+        try std.testing.expect((raw & xa_value.value_tag_mask) == xa_value.value_tag_mask);
+        try std.testing.expect(err_ptr.isErrValue(raw));
+        try std.testing.expect(!xa_value.isValue(raw));
+        try std.testing.expectEqual(SlotKind.err, slot.kind());
+        try std.testing.expect(slot.isTaggedEntry());
+        try std.testing.expectEqual(raw, slot.rawValue());
+        try std.testing.expectEqual(@as(?isize, expected_code), slot.errorCode());
+        try std.testing.expectEqual(@as(?usize, null), slot.value());
+        try std.testing.expectEqual(@as(?usize, null), slot.pointerValue());
+    }
+}
