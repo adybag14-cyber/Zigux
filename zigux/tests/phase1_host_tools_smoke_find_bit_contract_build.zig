@@ -1,0 +1,27 @@
+const std = @import("std");
+
+pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+
+    const contract_module = b.createModule(.{
+        .root_source_file = b.path("phase1_host_tools_smoke_find_bit_contract.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const contract_tests = b.addTest(.{
+        .name = "phase1-host-tools-smoke-find-bit-contract",
+        .root_module = contract_module,
+    });
+
+    const run_contract = b.addRunArtifact(contract_tests);
+    const contract_step = b.step(
+        "phase1-host-tools-smoke-find-bit-contract",
+        "Run the Phase 1 host-tools smoke find_bit contract",
+    );
+    contract_step.dependOn(&run_contract.step);
+
+    const test_step = b.step("test", "Run the Phase 1 host-tools smoke find_bit contract");
+    test_step.dependOn(&run_contract.step);
+}
