@@ -29,31 +29,31 @@ test "smoke harness keeps ctype and hweight imported through the shared build ro
     try requireOnce(build_text, ".name = \"phase1-host-tools-smoke\",");
 }
 
-test "smoke harness keeps ctype declaration and behavior anchors" {
-    try requireContains(smoke_text, "try std.testing.expect(@hasDecl(ctype, \"isalpha\"));");
-    try requireContains(smoke_text, "try std.testing.expectEqual(@as(u8, 0x41), ctype.mask('A'));");
-    try requireContains(smoke_text, "try std.testing.expectEqual(@as(u8, 0x42), ctype.mask('a'));");
-    try requireContains(smoke_text, "try std.testing.expectEqual(@as(u8, 0xa0), ctype.mask(' '));");
-    try requireContains(smoke_text, "try std.testing.expect(ctype.isalnum('A'));");
-    try requireContains(smoke_text, "try std.testing.expect(ctype.isalpha('Q'));");
-    try requireContains(smoke_text, "try std.testing.expect(ctype.isdigit('7'));");
-    try requireContains(smoke_text, "try std.testing.expect(ctype.isspace('\\t'));");
-    try requireContains(smoke_text, "try std.testing.expect(ctype.isxdigit('f'));");
-    try requireContains(smoke_text, "try std.testing.expect(ctype.ispunct('!'));");
-    try requireContains(smoke_text, "try std.testing.expectEqual(@as(u8, 'a'), ctype.tolower('A'));");
-    try requireContains(smoke_text, "try std.testing.expectEqual(@as(u8, 'm'), ctype.fastTolower('M'));");
-    try requireContains(smoke_text, "try std.testing.expectEqual(@as(u8, 'Z'), ctype.toupper('z'));");
-    try requireContains(smoke_text, "try std.testing.expect(ctype.isodigit('7'));");
-    try requireContains(smoke_text, "try std.testing.expect(!ctype.isodigit('8'));");
+test "smoke harness keeps ctype declaration and behavior anchors exact" {
+    try requireOnce(smoke_text, "try std.testing.expect(@hasDecl(ctype, \"isalpha\"));");
+    try requireOnce(smoke_text, "try std.testing.expectEqual(@as(u8, 0x41), ctype.mask('A'));");
+    try requireOnce(smoke_text, "try std.testing.expectEqual(@as(u8, 0x42), ctype.mask('a'));");
+    try requireOnce(smoke_text, "try std.testing.expectEqual(@as(u8, 0xa0), ctype.mask(' '));");
+    try requireOnce(smoke_text, "try std.testing.expect(ctype.isalnum('A'));");
+    try requireOnce(smoke_text, "try std.testing.expect(ctype.isalpha('Q'));");
+    try requireOnce(smoke_text, "try std.testing.expect(ctype.isdigit('7'));");
+    try requireOnce(smoke_text, "try std.testing.expect(ctype.isspace('\\t'));");
+    try requireOnce(smoke_text, "try std.testing.expect(ctype.isxdigit('f'));");
+    try requireOnce(smoke_text, "try std.testing.expect(ctype.ispunct('!'));");
+    try requireOnce(smoke_text, "try std.testing.expectEqual(@as(u8, 'a'), ctype.tolower('A'));");
+    try requireOnce(smoke_text, "try std.testing.expectEqual(@as(u8, 'm'), ctype.fastTolower('M'));");
+    try requireOnce(smoke_text, "try std.testing.expectEqual(@as(u8, 'Z'), ctype.toupper('z'));");
+    try requireOnce(smoke_text, "try std.testing.expect(ctype.isodigit('7'));");
+    try requireOnce(smoke_text, "try std.testing.expect(!ctype.isodigit('8'));");
 }
 
-test "smoke harness keeps hweight declaration and width anchors" {
-    try requireContains(smoke_text, "try std.testing.expect(@hasDecl(hweight, \"swHweight64\"));");
-    try requireContains(smoke_text, "try std.testing.expectEqual(@as(u32, 4), hweight.swHweight8(0xf0));");
-    try requireContains(smoke_text, "try std.testing.expectEqual(@as(u32, 8), hweight.swHweight16(0xf0f0));");
-    try requireContains(smoke_text, "try std.testing.expectEqual(@as(u32, 16), hweight.swHweight32(0xf0f0_f0f0));");
-    try requireContains(smoke_text, "try std.testing.expectEqual(@as(u64, 32), hweight.swHweight64(0xf0f0_f0f0_f0f0_f0f0));");
-    try requireContains(smoke_text, "try std.testing.expectEqual(@popCount(@as(usize, 0xf0f0)), hweight.hweightLong(0xf0f0));");
+test "smoke harness keeps hweight declaration and width anchors exact" {
+    try requireOnce(smoke_text, "try std.testing.expect(@hasDecl(hweight, \"swHweight64\"));");
+    try requireOnce(smoke_text, "try std.testing.expectEqual(@as(u32, 4), hweight.swHweight8(0xf0));");
+    try requireOnce(smoke_text, "try std.testing.expectEqual(@as(u32, 8), hweight.swHweight16(0xf0f0));");
+    try requireOnce(smoke_text, "try std.testing.expectEqual(@as(u32, 16), hweight.swHweight32(0xf0f0_f0f0));");
+    try requireOnce(smoke_text, "try std.testing.expectEqual(@as(u64, 32), hweight.swHweight64(0xf0f0_f0f0_f0f0_f0f0));");
+    try requireOnce(smoke_text, "try std.testing.expectEqual(@popCount(@as(usize, 0xf0f0)), hweight.hweightLong(0xf0f0));");
 }
 
 test "smoke harness keeps ctype before hweight and before allocation smoke" {
