@@ -108,3 +108,29 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "wide hweight helpers equal the sum of their byte lanes" {
+    const sample16: u32 = 0xa5c3;
+    const sample32: u32 = 0x8033_a55a;
+    const sample64: u64 = 0xf00d_00ff_8033_a55a;
+
+    try std.testing.expectEqual(
+        swHweight8(sample16) + swHweight8(sample16 >> 8),
+        swHweight16(sample16),
+    );
+    try std.testing.expectEqual(
+        swHweight8(sample32) + swHweight8(sample32 >> 8) +
+            swHweight8(sample32 >> 16) + swHweight8(sample32 >> 24),
+        swHweight32(sample32),
+    );
+
+    var byte_sum: u64 = 0;
+    var idx: u7 = 0;
+    while (idx < 64) : (idx += 8) {
+        const shift: u6 = @intCast(idx);
+        byte_sum += swHweight8(@intCast((sample64 >> shift) & 0xff));
+    }
+
+    try std.testing.expectEqual(byte_sum, swHweight64(sample64));
+    try std.testing.expectEqual(byte_sum, __sw_hweight64(sample64));
+}
