@@ -1,6 +1,7 @@
 const std = @import("std");
+const contract_options = @import("contract_options");
 
-const smoke_source = @embedFile("phase1_host_tools_smoke.zig");
+const smoke_source = contract_options.smoke_source;
 
 fn requireMarker(marker: []const u8) !void {
     if (std.mem.indexOf(u8, smoke_source, marker) == null) {
