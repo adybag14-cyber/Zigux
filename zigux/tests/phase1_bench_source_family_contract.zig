@@ -12,10 +12,10 @@ const bitmap_source_markers = [_][]const u8{
     "checksum +%= @intCast(bitmap.weightedXor(&dst, &lhs, &rhs, nbits));",
     "const bitmap_weight_result = bitmapWeightBench();",
     "const bitmap_window_result = bitmapWindowBench();",
-    "try stdout_writer.interface.print(\"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS={d}\\\\n\", .{iterations_bitmap_weight});",
-    "try stdout_writer.interface.print(\"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS={d}\\\\n\", .{iterations_bitmap_window});",
-    "try stdout_writer.interface.print(\"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM={d}\\\\n\", .{bitmap_weight_result.checksum});",
-    "try stdout_writer.interface.print(\"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM={d}\\\\n\", .{bitmap_window_result.checksum});",
+    "try stdout_writer.interface.print(\"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS={d}\\n\", .{iterations_bitmap_weight});",
+    "try stdout_writer.interface.print(\"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS={d}\\n\", .{iterations_bitmap_window});",
+    "try stdout_writer.interface.print(\"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM={d}\\n\", .{bitmap_weight_result.checksum});",
+    "try stdout_writer.interface.print(\"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM={d}\\n\", .{bitmap_window_result.checksum});",
 };
 
 const string_source_markers = [_][]const u8{
@@ -28,8 +28,8 @@ const string_source_markers = [_][]const u8{
     "string.memchrInv(\"aaaaXaaa\", 'a')",
     "string.memchrInv(\"bbbb\", 'b');",
     "const string_result = try stringBench();",
-    "try stdout_writer.interface.print(\"PHASE1_BENCH_STRING_ITERATIONS={d}\\\\n\", .{iterations_string});",
-    "try stdout_writer.interface.print(\"PHASE1_BENCH_STRING_CHECKSUM={d}\\\\n\", .{string_result.checksum});",
+    "try stdout_writer.interface.print(\"PHASE1_BENCH_STRING_ITERATIONS={d}\\n\", .{iterations_string});",
+    "try stdout_writer.interface.print(\"PHASE1_BENCH_STRING_CHECKSUM={d}\\n\", .{string_result.checksum});",
 };
 
 const hweight_source_markers = [_][]const u8{
@@ -41,8 +41,8 @@ const hweight_source_markers = [_][]const u8{
     "checksum +%= hweight.swHweight64(0xf0f0_f0f0_f0f0_f0f0);",
     "checksum +%= @intCast(hweight.hweightLong(0xf0f0));",
     "const hweight_result = hweightBench();",
-    "try stdout_writer.interface.print(\"PHASE1_BENCH_HWEIGHT_ITERATIONS={d}\\\\n\", .{iterations_hweight});",
-    "try stdout_writer.interface.print(\"PHASE1_BENCH_HWEIGHT_CHECKSUM={d}\\\\n\", .{hweight_result.checksum});",
+    "try stdout_writer.interface.print(\"PHASE1_BENCH_HWEIGHT_ITERATIONS={d}\\n\", .{iterations_hweight});",
+    "try stdout_writer.interface.print(\"PHASE1_BENCH_HWEIGHT_CHECKSUM={d}\\n\", .{hweight_result.checksum});",
 };
 
 const list_sort_source_markers = [_][]const u8{
@@ -54,8 +54,8 @@ const list_sort_source_markers = [_][]const u8{
     "list_sort.listSort(null, &head, cmp);",
     "checksum +%= @intCast(entry.ordinal);",
     "const list_sort_result = listSortBench();",
-    "try stdout_writer.interface.print(\"PHASE1_BENCH_LIST_SORT_ITERATIONS={d}\\\\n\", .{iterations_list_sort});",
-    "try stdout_writer.interface.print(\"PHASE1_BENCH_LIST_SORT_CHECKSUM={d}\\\\n\", .{list_sort_result.checksum});",
+    "try stdout_writer.interface.print(\"PHASE1_BENCH_LIST_SORT_ITERATIONS={d}\\n\", .{iterations_list_sort});",
+    "try stdout_writer.interface.print(\"PHASE1_BENCH_LIST_SORT_CHECKSUM={d}\\n\", .{list_sort_result.checksum});",
 };
 
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
@@ -99,7 +99,7 @@ test "phase1 string bench source keeps parsing and scan operations" {
     try requireMarkerSet(source, &string_source_markers);
     try requireContainsOnce(source, "fn stringBench() !struct { checksum: u64 } {");
     try requireContainsOnce(source, "const string_result = try stringBench();");
-    try requireContainsOnce(source, "PHASE1_BENCH_STRING_CHECKSUM={d}\\\\n");
+    try requireContainsOnce(source, "PHASE1_BENCH_STRING_CHECKSUM={d}\\n");
 }
 
 test "phase1 hweight bench source keeps width coverage and output keys" {
@@ -110,7 +110,7 @@ test "phase1 hweight bench source keeps width coverage and output keys" {
     try requireMarkerSet(source, &hweight_source_markers);
     try requireContainsOnce(source, "fn hweightBench() struct { checksum: u64 } {");
     try requireContainsOnce(source, "const hweight_result = hweightBench();");
-    try requireContainsOnce(source, "PHASE1_BENCH_HWEIGHT_CHECKSUM={d}\\\\n");
+    try requireContainsOnce(source, "PHASE1_BENCH_HWEIGHT_CHECKSUM={d}\\n");
 }
 
 test "phase1 list_sort bench source keeps stable duplicate-order surface" {
@@ -121,5 +121,5 @@ test "phase1 list_sort bench source keeps stable duplicate-order surface" {
     try requireMarkerSet(source, &list_sort_source_markers);
     try requireContainsOnce(source, "fn listSortBench() struct { checksum: u64 } {");
     try requireContainsOnce(source, "const list_sort_result = listSortBench();");
-    try requireContainsOnce(source, "PHASE1_BENCH_LIST_SORT_CHECKSUM={d}\\\\n");
+    try requireContainsOnce(source, "PHASE1_BENCH_LIST_SORT_CHECKSUM={d}\\n");
 }
