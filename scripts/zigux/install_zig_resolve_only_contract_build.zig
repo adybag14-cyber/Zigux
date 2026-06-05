@@ -19,10 +19,10 @@ pub fn build(b: *std.Build) void {
 
     const contract_step = b.step(
         "install-zig-resolve-only-contract",
-        "Validate install-zig resolve-only action-path source markers",
+        "Run the Lane 18 install-zig resolve-only action-path contract.",
     );
     contract_step.dependOn(&run_tests.step);
 
-    const test_step = b.step("test", "Run install-zig resolve-only contract tests");
+    const test_step = b.step("test", "Run the Lane 18 install-zig resolve-only action-path contract tests.");
     test_step.dependOn(&run_tests.step);
 }
