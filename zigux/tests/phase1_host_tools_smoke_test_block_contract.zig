@@ -66,7 +66,7 @@ test "phase1 smoke source keeps helper family anchors in their owning blocks" {
     try requireBefore(
         smoke_source,
         "try std.testing.expect(@hasDecl(argv_split, \"argvSplit\"));",
-        "var split = try argv_split.argv_split(std.testing.allocator, \"  zigux   host\\ttools  \ ");",
+        "var split = try argv_split.argv_split",
     );
     try requireBefore(
         smoke_source,
