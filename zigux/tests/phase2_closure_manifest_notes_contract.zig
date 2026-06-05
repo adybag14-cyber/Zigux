@@ -62,8 +62,10 @@ test "phase 2 closure manifest notes keep genksyms process output and fixdep par
 
     try expectContains(manifest, "manifest-backed genksyms bridge checker plus its expanded expected and process-output fixture packet");
     try expectContains(manifest, "dedicated genksyms dual-implementation survey checker");
-    try expectContains(manifest, "standalone invalid-long-option, ambiguous-long-option, and inline-short-option version-side-effect proofs");
+    try expectContains(manifest, "standalone invalid-long-option, ambiguous-long-option, inline-short-option, repeated-version, and abbreviated-warning terminator proofs");
     try expectContains(manifest, "scripts/zigux/genksyms_inline_short_option_argument_test.zig");
+    try expectContains(manifest, "scripts/zigux/genksyms_repeated_version_before_abbrev_argument_failure_test.zig");
+    try expectContains(manifest, "scripts/zigux/genksyms_abbreviated_warning_quiet_terminator_test.zig");
     try expectContains(manifest, "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json");
     try expectContains(manifest, "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_short_option_arguments_as_data_expected.json");
     try expectContains(manifest, "zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json");
