@@ -108,3 +108,24 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweight64 matches split high and low word counts" {
+    const samples = [_]u64{
+        0x0000_0000_0000_0000,
+        0xffff_ffff_0000_0000,
+        0x0000_0000_ffff_ffff,
+        0x8000_0001_7fff_fffe,
+        0x0123_4567_89ab_cdef,
+        0xfedc_ba98_7654_3210,
+        0xffff_ffff_ffff_ffff,
+    };
+
+    for (samples) |sample| {
+        const high: u32 = @intCast(sample >> 32);
+        const low: u32 = @truncate(sample);
+        const split_count: u64 = swHweight32(high) + swHweight32(low);
+
+        try std.testing.expectEqual(split_count, swHweight64(sample));
+        try std.testing.expectEqual(split_count, __sw_hweight64(sample));
+    }
+}
