@@ -29,6 +29,28 @@ const manifest_byte_copy_packet = .{
     .summary = "helper-local raw-copy and pad anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated memcpyAndPad(), memcpy_and_pad(), strtomem(), or strtomem_pad() fixture keys, so prefix-copy, first-NUL stop, alias parity, and caller-selected pad behavior remain review-visible at the helper surface",
 };
 
+const helper_surface_packet = .{
+    .entrypoints = [_][]const u8{
+        "pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {",
+        "pub fn memcpy_and_pad(dest: []u8, src: []const u8, count: usize, pad: u8) void {",
+        "pub fn strtomem(dest: []u8, src: []const u8) void {",
+        "pub fn strtomem_pad(dest: []u8, src: []const u8, pad: u8) void {",
+        "pub fn memtostr(dest: []u8, src: []const u8) void {",
+        "pub fn memtostrPad(dest: []u8, src: []const u8) void {",
+        "pub fn memtostr_pad(dest: []u8, src: []const u8) void {",
+    },
+    .delegations = [_][]const u8{
+        "memcpyAndPad(dest, src, count, pad);",
+        "memcpyAndPad(dest, src, @min(dest.len, cStringLen(src)), pad);",
+        "memtostrPad(dest, src);",
+    },
+    .boundary_logic = [_][]const u8{
+        "const copy_len = @min(dest.len - 1, strnlen(src, src.len));",
+        "dest[copy_len] = 0;",
+        "@memset(dest[copy_len..], 0);",
+    },
+};
+
 const stale_memtostr_interpretations = [_][]const u8{
     "shared fixture owns memtostr",
     "validator-owned memtostr requirement",
@@ -48,6 +70,14 @@ fn countNeedle(haystack: []const u8, needle: []const u8) usize {
 
 fn expectOnce(haystack: []const u8, needle: []const u8) !void {
     try testing.expectEqual(@as(usize, 1), countNeedle(haystack, needle));
+}
+
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(512 * 1024));
 }
 
 test "string memtostr closure marker stays helper-local" {
@@ -90,6 +120,21 @@ test "manifest-backed memtostr and byte-copy anchors stay paired" {
     try testing.expect(std.mem.indexOf(u8, manifest_byte_copy_packet.anchors[3], "strtomem_pad") != null);
     try testing.expect(std.mem.indexOf(u8, manifest_memtostr_packet.summary, "shared Phase 1 replay still does not carry dedicated memtostr()") != null);
     try testing.expect(std.mem.indexOf(u8, manifest_byte_copy_packet.summary, "shared Phase 1 replay still does not carry dedicated memcpyAndPad()") != null);
+}
+
+test "live string helper exposes the closure byte-copy and memtostr surface" {
+    const string_helper = try readRepoFile(testing.allocator, "tools/lib/string.zig");
+    defer testing.allocator.free(string_helper);
+
+    for (helper_surface_packet.entrypoints) |entrypoint| {
+        try expectOnce(string_helper, entrypoint);
+    }
+    for (helper_surface_packet.delegations) |delegation| {
+        try expectContains(string_helper, delegation);
+    }
+    for (helper_surface_packet.boundary_logic) |marker| {
+        try expectContains(string_helper, marker);
+    }
 }
 
 test "stale shared-fixture or validator ownership stays outside the packet" {
