@@ -148,6 +148,21 @@ test "argvSplit preserves literal shell-like bytes and embedded nul tokens" {
     try std.testing.expectEqualStrings("Key=value", result.argv[0]);
 }
 
+test "argvSplit gives duplicate-looking tokens independent buffers" {
+    var result = try argv_split(std.testing.allocator, "dup dup dup");
+    defer argv_free(&result);
+
+    try std.testing.expectEqual(@as(usize, 3), result.argc());
+    try std.testing.expectEqualStrings("dup", result.argv[0]);
+    try std.testing.expectEqualStrings("dup", result.argv[1]);
+    try std.testing.expectEqualStrings("dup", result.argv[2]);
+
+    result.argv[1][0] = 'D';
+    try std.testing.expectEqualStrings("dup", result.argv[0]);
+    try std.testing.expectEqualStrings("Dup", result.argv[1]);
+    try std.testing.expectEqualStrings("dup", result.argv[2]);
+}
+
 test "argvSplit treats exactly ASCII whitespace bytes as separators" {
     const whitespace = [_]u8{ ' ', '\t', '\n', '\r', 0x0b, 0x0c };
     for (whitespace) |separator| {
