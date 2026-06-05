@@ -79,3 +79,30 @@ test "zfree helpers are no-ops for empty owners" {
     zfreeValue(allocator, Value, &value);
     try std.testing.expect(value == null);
 }
+
+test "zallocValue zeroes nested fields and zfreeValue is idempotent" {
+    const allocator = std.testing.allocator;
+    const Value = struct {
+        counters: [4]u16,
+        next: ?*u8,
+        active: bool,
+        checksum: usize,
+    };
+
+    var value: ?*Value = try zallocValue(allocator, Value);
+    try std.testing.expect(value != null);
+    try std.testing.expectEqualSlices(u16, &[_]u16{ 0, 0, 0, 0 }, &value.?.counters);
+    try std.testing.expect(value.?.next == null);
+    try std.testing.expectEqual(false, value.?.active);
+    try std.testing.expectEqual(@as(usize, 0), value.?.checksum);
+
+    value.?.counters = .{ 1, 2, 3, 4 };
+    value.?.active = true;
+    value.?.checksum = 0x55aa;
+
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+}
