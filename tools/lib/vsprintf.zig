@@ -130,3 +130,18 @@ test "scnprintfPad reports full padded subview length while preserving sentinels
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'i', 'o', ' ', ' ', ' ', 0 }, backing[2..8]);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xc9, 0xca }, backing[8..10]);
 }
+
+test "scnprintfPad pads empty formats inside caller subviews" {
+    var backing = [_]u8{
+        0xd1, 0xd2, 0xd3, 0xd4,
+        0xd5, 0xd6, 0xd7, 0xd8,
+    };
+
+    const window = backing[2..7];
+    const written = scnprintfPad(window, 4, "", .{});
+
+    try std.testing.expectEqual(@as(usize, 4), written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xd1, 0xd2 }, backing[0..2]);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', ' ', ' ', ' ', 0 }, backing[2..7]);
+    try std.testing.expectEqual(@as(u8, 0xd8), backing[7]);
+}
