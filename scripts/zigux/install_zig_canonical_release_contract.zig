@@ -20,6 +20,12 @@ fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
 }
 
+fn expectBefore(haystack: []const u8, earlier: []const u8, later: []const u8) !void {
+    const earlier_index = std.mem.indexOf(u8, haystack, earlier) orelse return error.MissingEarlierMarker;
+    const later_index = std.mem.indexOf(u8, haystack, later) orelse return error.MissingLaterMarker;
+    try std.testing.expect(earlier_index < later_index);
+}
+
 test "canonical release constants stay aligned with the policy channel" {
     try expectContains(install_zig_source, "CANONICAL_RELEASE_CHANNEL = '" ++ canonical_channel ++ "'");
     try expectContains(install_zig_source, "CANONICAL_RELEASE_REPO = os.environ.get('ZIGUX_ZIG_RELEASE_REPO', '" ++ canonical_repo ++ "')");
@@ -40,6 +46,24 @@ test "canonical pinned channel resolves through the trusted GitHub release" {
 
     try expectContains(install_zig_source, canonical_url);
     try expectContains(install_zig_source, canonical_archive);
+}
+
+test "canonical release fallback stays ahead of generic dev-build resolution" {
+    try expectBefore(
+        install_zig_source,
+        "if channel == CANONICAL_RELEASE_CHANNEL:",
+        "if '-dev.' in channel:",
+    );
+    try expectBefore(
+        install_zig_source,
+        "expected_archive_sha256 = load_policy_archive_sha256(TOOLCHAIN_POLICY, target_key)",
+        "if args.resolve_only:",
+    );
+    try expectBefore(
+        install_zig_source,
+        "print(f'ZIG_INSTALL_EXPECTED_ARCHIVE_SHA256={expected_archive_sha256}')",
+        "if args.resolve_only:",
+    );
 }
 
 test "installer self-test pins the canonical release target tuple" {
