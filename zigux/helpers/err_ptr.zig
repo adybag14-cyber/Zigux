@@ -51,3 +51,32 @@ test "non-error values stay outside the err_ptr band" {
     try std.testing.expect(!isErrValue(0));
     try std.testing.expect(!isErrValue(1));
 }
+
+test "adjacent Linux errno encodings keep raw monotonic spacing" {
+    const samples = [_]isize{
+        -1,
+        -2,
+        -12,
+        -13,
+        -22,
+        -23,
+        -4094,
+        -4095,
+    };
+
+    for (samples[0 .. samples.len - 1], samples[1..]) |previous_code, current_code| {
+        const previous_raw = fromErrorCode(previous_code);
+        const current_raw = fromErrorCode(current_code);
+
+        try std.testing.expect(previous_code > current_code);
+        try std.testing.expect(previous_raw > current_raw);
+        try std.testing.expectEqual(previous_code, toErrorCode(previous_raw));
+        try std.testing.expectEqual(current_code, toErrorCode(current_raw));
+        try std.testing.expect(isErrValue(previous_raw));
+        try std.testing.expect(isErrValue(current_raw));
+
+        if (previous_code - current_code == 1) {
+            try std.testing.expectEqual(@as(usize, 1), previous_raw - current_raw);
+        }
+    }
+}
