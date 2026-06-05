@@ -46,6 +46,28 @@ test "phase1 lane note preserves the shared replay versus direct anchor owner ma
     try expectContains(lane_note, shared_reminder_route_split);
 }
 
+test "phase1 closure validator pins the lane sequencing split" {
+    const validator = try readFile("scripts/zigux/validate-phase1-closure.py");
+    defer std.testing.allocator.free(validator);
+
+    try expectContains(validator, "\"tools/lib/argv_split.zig\"");
+    try expectContains(validator, "\"tools/lib/zalloc.zig\"");
+    try expectContains(validator, "\"tools/lib/bitmap.zig\"");
+    try expectContains(validator, "\"tools/lib/string.zig\"");
+    try expectContains(validator, "EXPECTED_SHARED_REPLAY_PARKED_HELPERS = [");
+    try expectContains(validator, "EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [");
+    try expectContains(validator, "EXPECTED_LANE_RULE_SUMMARY = (");
+    try expectContains(validator, "Phase 1 helper follow-up stays parked on shared replay for the nine helpers above, ");
+    try expectContains(validator, "while bitmap, find_bit, rbtree, and string keep the only bounded direct helper-local ");
+    try expectContains(validator, "EXPECTED_ANTI_OVERLAP_RULE = (");
+    try expectContains(validator, "Do not reopen Phase 1 by batching helpers across those two sets in one lane; ");
+    try expectContains(validator, "reopen only for their existing helper-local anchors or already-committed shared fixture keys.");
+    try expectContains(validator, "\"stale_lane_rule_summary\"");
+    try expectContains(validator, "\"stale_anti_overlap_rule\"");
+    try expectContains(validator, "lane_sequencing.shared_replay_parked_helpers");
+    try expectContains(validator, "lane_sequencing.direct_anchor_followup_helpers");
+}
+
 test "phase1 shared reminder surfaces keep lane sequencing routed through closure validation" {
     const docs_root = try readFile("Documentation/zigux/README.md");
     defer std.testing.allocator.free(docs_root);
