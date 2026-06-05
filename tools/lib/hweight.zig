@@ -108,3 +108,16 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweight full lanes count every bit through aliases" {
+    try std.testing.expectEqual(@as(u32, 8), swHweight8(0xff));
+    try std.testing.expectEqual(@as(u32, 8), __sw_hweight8(0xff));
+    try std.testing.expectEqual(@as(u32, 16), swHweight16(0xffff));
+    try std.testing.expectEqual(@as(u32, 16), __sw_hweight16(0xffff));
+    try std.testing.expectEqual(@as(u32, 32), swHweight32(std.math.maxInt(u32)));
+    try std.testing.expectEqual(@as(u32, 32), __sw_hweight32(std.math.maxInt(u32)));
+    try std.testing.expectEqual(@as(u64, 64), swHweight64(std.math.maxInt(u64)));
+    try std.testing.expectEqual(@as(u64, 64), __sw_hweight64(std.math.maxInt(u64)));
+    try std.testing.expectEqual(@bitSizeOf(usize), hweightLong(std.math.maxInt(usize)));
+    try std.testing.expectEqual(@bitSizeOf(usize), hweight_long(std.math.maxInt(usize)));
+}
