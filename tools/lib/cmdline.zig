@@ -237,6 +237,24 @@ test "memparse reports no-conversion via unchanged rest" {
     try std.testing.expectEqualStrings("xyz", invalid.rest);
 }
 
+test "memparse keeps malformed base prefixes as no-conversion inputs" {
+    const unsigned_hex_prefix = memparse("0x");
+    try std.testing.expectEqual(@as(u64, 0), unsigned_hex_prefix.value);
+    try std.testing.expectEqualStrings("0x", unsigned_hex_prefix.rest);
+
+    const uppercase_hex_prefix = memparse("0Xtail");
+    try std.testing.expectEqual(@as(u64, 0), uppercase_hex_prefix.value);
+    try std.testing.expectEqualStrings("0Xtail", uppercase_hex_prefix.rest);
+
+    const signed_hex_prefix = memparse("-0xK");
+    try std.testing.expectEqual(@as(u64, 0), signed_hex_prefix.value);
+    try std.testing.expectEqualStrings("-0xK", signed_hex_prefix.rest);
+
+    const positive_hex_prefix = memparse("+0xG");
+    try std.testing.expectEqual(@as(u64, 0), positive_hex_prefix.value);
+    try std.testing.expectEqualStrings("+0xG", positive_hex_prefix.rest);
+}
+
 test "memparse keeps original rest when sign is not followed by digits" {
     const negative_invalid = memparse("-xyz");
     try std.testing.expectEqual(@as(u64, 0), negative_invalid.value);
