@@ -30,6 +30,15 @@ fn readRepoFile(path: []const u8) ![]u8 {
     );
 }
 
+fn expectAliasDelegates(helper: []const u8, public_alias: []const u8, primary_call: []const u8) !void {
+    const alias_pos = std.mem.indexOf(u8, helper, public_alias) orelse return error.AliasMissing;
+    const after_alias = helper[alias_pos..];
+    const return_pos = std.mem.indexOf(u8, after_alias, primary_call) orelse return error.PrimaryCallMissing;
+    const close_pos = std.mem.indexOf(u8, after_alias, "\n}") orelse return error.AliasBodyMissing;
+
+    try testing.expect(return_pos < close_pos);
+}
+
 test "closure note keeps bitmap Linux alias review helper-local" {
     const closure_note = try readRepoFile("Documentation/zigux/phase1-closure.md");
     defer testing.allocator.free(closure_note);
@@ -77,6 +86,34 @@ test "bitmap helper exposes Linux aliases and direct alias tests" {
         "test \"bitmap Linux-style aliases mirror size state and allocation helpers\"",
         "test \"bitmap Linux-style aliases keep zero-bit windows explicit no-ops\"",
     });
+}
+
+test "bitmap Linux aliases delegate to their primary helper bodies" {
+    const bitmap_helper = try readRepoFile("tools/lib/bitmap.zig");
+    defer testing.allocator.free(bitmap_helper);
+
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_alloc", "return alloc(allocator, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_zalloc", "return zalloc(allocator, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_free", "free(allocator, bitmap);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_zero", "zero(dst, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_fill", "fill(dst, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_empty", "return empty(src, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_full", "return full(src, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_weight", "return weight(src, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_or", "orBits(dst, src1, src2, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_xor", "xorBits(dst, src1, src2, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_and", "return andBits(dst, src1, src2, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_andnot", "return andNotBits(dst, src1, src2, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_complement", "complement(dst, src, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_equal", "return equal(src1, src2, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_intersects", "return intersects(src1, src2, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_subset", "return subset(src1, src2, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_set", "setRange(map, start, len);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_clear", "clearRange(map, start, len);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_copy", "copy(dst, src, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_copy_clear_tail", "copyClearTail(dst, src, nbits);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_copy_and_extend", "copyAndExtend(dst, src, count, size);");
+    try expectAliasDelegates(bitmap_helper, "pub fn bitmap_scnprintf", "return scnprintf(bitmap_words, nbits, buffer);");
 }
 
 test "manifest keeps Linux alias ownership in the bitmap direct-anchor packet" {
