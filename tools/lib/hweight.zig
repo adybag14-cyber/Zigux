@@ -108,3 +108,25 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweight complement masks add up to lane widths" {
+    const mask8: u32 = 0b0101_1010;
+    try std.testing.expectEqual(@as(u32, 8), swHweight8(mask8) + swHweight8(~mask8));
+    try std.testing.expectEqual(@as(u32, 8), __sw_hweight8(mask8) + __sw_hweight8(~mask8));
+
+    const mask16: u32 = 0x5aa5;
+    try std.testing.expectEqual(@as(u32, 16), swHweight16(mask16) + swHweight16(~mask16));
+    try std.testing.expectEqual(@as(u32, 16), __sw_hweight16(mask16) + __sw_hweight16(~mask16));
+
+    const mask32: u32 = 0x5aa5_c33c;
+    try std.testing.expectEqual(@as(u32, 32), swHweight32(mask32) + swHweight32(~mask32));
+    try std.testing.expectEqual(@as(u32, 32), __sw_hweight32(mask32) + __sw_hweight32(~mask32));
+
+    const mask64: u64 = 0x5aa5_c33c_f00f_9669;
+    try std.testing.expectEqual(@as(u64, 64), swHweight64(mask64) + swHweight64(~mask64));
+    try std.testing.expectEqual(@as(u64, 64), __sw_hweight64(mask64) + __sw_hweight64(~mask64));
+
+    const mask_long: usize = if (@sizeOf(usize) == 4) 0x5aa5_c33c else 0x5aa5_c33c_f00f_9669;
+    try std.testing.expectEqual(@as(usize, @bitSizeOf(usize)), hweightLong(mask_long) + hweightLong(~mask_long));
+    try std.testing.expectEqual(@as(usize, @bitSizeOf(usize)), hweight_long(mask_long) + hweight_long(~mask_long));
+}
