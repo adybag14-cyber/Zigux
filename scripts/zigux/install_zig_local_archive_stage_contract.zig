@@ -75,3 +75,33 @@ test "main stages the selected archive name before verification and extraction" 
         "extracted_root = extract_archive(archive_path, tmpdir / 'extract')",
     );
 }
+
+test "installer self-test keeps local and download staging branches covered" {
+    try requireBefore(
+        installer_source,
+        "local_archive.write_bytes(b'local-zig-archive')",
+        "source = stage_archive(local_archive, 'https://example.invalid/archive.tar.xz', staged_archive)",
+    );
+    try requireBefore(
+        installer_source,
+        "source = stage_archive(local_archive, 'https://example.invalid/archive.tar.xz', staged_archive)",
+        "assert source == 'local_archive'",
+    );
+    try requireBefore(
+        installer_source,
+        "assert staged_archive.read_bytes() == b'local-zig-archive'",
+        "stage_archive(tmp_root / 'missing.tar.xz', 'https://example.invalid/archive.tar.xz', staged_archive)",
+    );
+    try requireContains(installer_source, "assert 'local Zig archive not found' in str(exc)");
+    try requireBefore(
+        installer_source,
+        "download_calls: list[tuple[str, Path]] = []",
+        "source = stage_archive(None, 'https://example.invalid/archive.tar.xz', staged_archive)",
+    );
+    try requireBefore(
+        installer_source,
+        "source = stage_archive(None, 'https://example.invalid/archive.tar.xz', staged_archive)",
+        "assert source == 'download'",
+    );
+    try requireContains(installer_source, "assert download_calls == [('https://example.invalid/archive.tar.xz', staged_archive)]");
+}
