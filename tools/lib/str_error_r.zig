@@ -83,3 +83,16 @@ test "strErrorR preserves exact-fit caller terminators and surrounding bytes" {
     try std.testing.expectEqual(@as(u8, 0xbb), fallback[50]);
     try std.testing.expectEqual(@as(u8, 0xbb), fallback[51]);
 }
+
+test "strErrorR rewrites reused caller buffers with a fresh terminator" {
+    var buffer: [48]u8 = @splat(0xcc);
+
+    const fallback_rendered = strErrorR(4096, &buffer);
+    try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(4096, [buf], 48)=22", fallback_rendered);
+    try std.testing.expectEqual(@as(u8, 0), buffer[fallback_rendered.len]);
+
+    const known_rendered = strErrorR(0, &buffer);
+    try std.testing.expectEqualStrings("Success", known_rendered);
+    try std.testing.expectEqual(@as(u8, 0), buffer[known_rendered.len]);
+    try std.testing.expectEqual(@as(u8, ' '), buffer[known_rendered.len + 1]);
+}
