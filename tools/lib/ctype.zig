@@ -163,3 +163,16 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
         }
     }
 }
+
+test "ctype transforms leave non case bytes unchanged" {
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+        if (isupper(byte) or islower(byte)) {
+            continue;
+        }
+
+        try std.testing.expectEqual(byte, tolower(byte));
+        try std.testing.expectEqual(byte, toupper(byte));
+    }
+}
