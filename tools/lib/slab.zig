@@ -119,6 +119,23 @@ test "kmalloc zero-size allocations and null frees keep counters balanced" {
     try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
 }
 
+test "zero-element array allocations keep counters balanced" {
+    kmalloc_nr_allocated = 0;
+
+    const plain = kmallocArray(0, std.math.maxInt(usize), GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), plain.len);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    const zeroed = kcallocBytes(8, 0, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), zeroed.len);
+    try std.testing.expectEqual(@as(isize, 2), kmalloc_nr_allocated);
+
+    kfree(zeroed);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    kfree(plain);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
+
 test "zeroing aliases request __GFP_ZERO while preserving allocation accounting" {
     kmalloc_nr_allocated = 0;
 
