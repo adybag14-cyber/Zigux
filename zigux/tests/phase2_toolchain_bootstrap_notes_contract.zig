@@ -7,6 +7,8 @@ const RootFiles = struct {
     tool_manifest: []const u8,
     third_party_readme: []const u8,
     makefile: []const u8,
+    workflow: []const u8,
+    policy: []const u8,
 };
 
 fn readRootFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
@@ -24,7 +26,18 @@ fn loadRootFiles(allocator: std.mem.Allocator) !RootFiles {
         .tool_manifest = try readRootFile(allocator, "zigux/tests/fixtures/phase2_tool_manifest.json"),
         .third_party_readme = try readRootFile(allocator, "third_party/README.md"),
         .makefile = try readRootFile(allocator, "zigux/Makefile"),
+        .workflow = try readRootFile(allocator, ".github/workflows/zigux-bootstrap.yml"),
+        .policy = try readRootFile(allocator, "scripts/zigux/zig-toolchain-policy.json"),
     };
+}
+
+fn freeRootFiles(allocator: std.mem.Allocator, files: RootFiles) void {
+    allocator.free(files.bootstrap_note);
+    allocator.free(files.tool_manifest);
+    allocator.free(files.third_party_readme);
+    allocator.free(files.makefile);
+    allocator.free(files.workflow);
+    allocator.free(files.policy);
 }
 
 fn contains(haystack: []const u8, needle: []const u8) bool {
@@ -35,12 +48,15 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(contains(haystack, needle));
 }
 
+fn expectOrdered(haystack: []const u8, before: []const u8, after: []const u8) !void {
+    const before_index = std.mem.indexOf(u8, haystack, before) orelse return error.MissingBeforeMarker;
+    const after_index = std.mem.indexOf(u8, haystack, after) orelse return error.MissingAfterMarker;
+    try std.testing.expect(before_index < after_index);
+}
+
 test "toolchain bootstrap note pins the returned Phase 2 packet" {
     const files = try loadRootFiles(std.testing.allocator);
-    defer std.testing.allocator.free(files.bootstrap_note);
-    defer std.testing.allocator.free(files.tool_manifest);
-    defer std.testing.allocator.free(files.third_party_readme);
-    defer std.testing.allocator.free(files.makefile);
+    defer freeRootFiles(std.testing.allocator, files);
 
     try expectContains(files.bootstrap_note, "channel `0.17.0-dev.758+748e7c5e3`");
     try expectContains(files.bootstrap_note, "limits archive digests to `x86_64-linux`");
@@ -56,10 +72,7 @@ test "toolchain bootstrap note pins the returned Phase 2 packet" {
 
 test "bootstrap note reconciles local archive and artifact-support evidence" {
     const files = try loadRootFiles(std.testing.allocator);
-    defer std.testing.allocator.free(files.bootstrap_note);
-    defer std.testing.allocator.free(files.tool_manifest);
-    defer std.testing.allocator.free(files.third_party_readme);
-    defer std.testing.allocator.free(files.makefile);
+    defer freeRootFiles(std.testing.allocator, files);
 
     try expectContains(files.bootstrap_note, "scripts/zigux/check-phase2-artifact-tools-manifest.py");
     try expectContains(files.bootstrap_note, "scripts/zigux/artifact_diff.py");
@@ -75,10 +88,7 @@ test "bootstrap note reconciles local archive and artifact-support evidence" {
 
 test "bootstrap note keeps bridge, fixdep, cross, and no-gap posture explicit" {
     const files = try loadRootFiles(std.testing.allocator);
-    defer std.testing.allocator.free(files.bootstrap_note);
-    defer std.testing.allocator.free(files.tool_manifest);
-    defer std.testing.allocator.free(files.third_party_readme);
-    defer std.testing.allocator.free(files.makefile);
+    defer freeRootFiles(std.testing.allocator, files);
 
     try expectContains(files.bootstrap_note, "scripts/zigux/kconfig/conf_bridge.zig");
     try expectContains(files.bootstrap_note, "scripts/zigux/kconfig/confdata_bridge.zig");
@@ -91,4 +101,30 @@ test "bootstrap note keeps bridge, fixdep, cross, and no-gap posture explicit" {
     try expectContains(files.tool_manifest, "\"repo_reality_gaps\": []");
     try expectContains(files.makefile, "phase2-toolchain:");
     try expectContains(files.makefile, "phase2: phase2-validate");
+}
+
+test "workflow replay stays aligned with bootstrap note and policy" {
+    const files = try loadRootFiles(std.testing.allocator);
+    defer freeRootFiles(std.testing.allocator, files);
+
+    try expectContains(files.policy, "\"channel\": \"0.17.0-dev.758+748e7c5e3\"");
+    try expectContains(files.policy, "\"archive_target_scope\"");
+    try expectContains(files.workflow, "ZIGUX_ZIG_CANONICAL_URL");
+    try expectContains(files.workflow, "try_local_archive");
+    try expectContains(files.workflow, "try_download \"$ZIGUX_ZIG_CANONICAL_URL\"");
+    try expectContains(files.workflow, "community-mirrors.txt");
+    try expectContains(files.workflow, "try_download \"$ZIGUX_ZIG_URL\"");
+    try expectContains(files.workflow, "python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing");
+    try expectContains(files.workflow, "python3 scripts/zigux/check-lane05-install-zig-archive-verification.py");
+    try expectContains(files.workflow, "python3 scripts/zigux/stage-pinned-zig-archive.py --self-test");
+    try expectContains(files.workflow, "python3 scripts/zigux/check-lane05-stage-helper-contract.py");
+    try expectContains(files.workflow, "python3 scripts/zigux/check-lane05-stage-helper-selftest.py");
+
+    try expectOrdered(files.workflow, "try_local_archive", "try_download \"$ZIGUX_ZIG_CANONICAL_URL\"");
+    try expectOrdered(files.workflow, "try_download \"$ZIGUX_ZIG_CANONICAL_URL\"", "community-mirrors.txt");
+    try expectOrdered(files.workflow, "community-mirrors.txt", "try_download \"$ZIGUX_ZIG_URL\"");
+    try expectOrdered(files.workflow, "python3 scripts/zigux/check-lane05-stage-helper-selftest.py", "python3 scripts/zigux/check-phase2-fixdep-gate.py");
+
+    try expectContains(files.bootstrap_note, "tries the canonical release before `community-mirrors.txt` and the direct Zig download URL");
+    try expectContains(files.bootstrap_note, "archive-verification, helper-contract, helper-selftest");
 }
