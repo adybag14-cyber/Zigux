@@ -71,4 +71,5 @@ pub fn build(b: *std.Build) void {
 
     const default_step = b.step("test", "Run the Phase 3 low-level wrapper packet self-check");
     default_step.dependOn(&run_unit_tests.step);
+    b.default_step.dependOn(default_step);
 }
