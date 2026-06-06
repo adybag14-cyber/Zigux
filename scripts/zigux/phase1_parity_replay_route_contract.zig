@@ -12,7 +12,7 @@ const replay_markers = [_][]const u8{
 const replay_build_markers = [_][]const u8{
     "EXPECTED_REPLAY_BUILD_MARKERS = (",
     "'.root_source_file = b.path(\"phase1_helpers.zig\"),',",
-    "'.name = \"phase1-helpers\"',",
+    "'.name = \"phase1-helpers\",',",
     "'\"Run the focused Phase 1 helper replay anchor from zigux/tests\",'",
 };
 
