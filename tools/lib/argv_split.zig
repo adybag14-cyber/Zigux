@@ -170,3 +170,22 @@ test "argvSplit treats exactly ASCII whitespace bytes as separators" {
         try std.testing.expectEqualSlices(u8, text[0..], result.argv[0]);
     }
 }
+
+test "argvSplit byte sweep keeps only ASCII whitespace as separators" {
+    var byte_value: u16 = 0;
+    while (byte_value < 256) : (byte_value += 1) {
+        const byte: u8 = @intCast(byte_value);
+        var text = [_]u8{ 'a', byte, 'b' };
+        var result = try argv_split(std.testing.allocator, text[0..]);
+        defer argv_free(&result);
+
+        if (std.ascii.isWhitespace(byte)) {
+            try std.testing.expectEqual(@as(usize, 2), result.argc());
+            try std.testing.expectEqualStrings("a", result.argv[0]);
+            try std.testing.expectEqualStrings("b", result.argv[1]);
+        } else {
+            try std.testing.expectEqual(@as(usize, 1), result.argc());
+            try std.testing.expectEqualSlices(u8, text[0..], result.argv[0]);
+        }
+    }
+}
