@@ -93,6 +93,24 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
 
+test "swHweight64 matches the sum of its high and low 32 bit halves" {
+    const samples = [_]u64{
+        0x0000_0000_ffff_ffff,
+        0xffff_ffff_0000_0000,
+        0x8000_0001_7fff_fffe,
+        0x0123_4567_89ab_cdef,
+    };
+
+    for (samples) |sample| {
+        const high: u32 = @intCast(sample >> 32);
+        const low: u32 = @truncate(sample);
+        const expected = @as(u64, swHweight32(high)) + @as(u64, swHweight32(low));
+
+        try std.testing.expectEqual(expected, swHweight64(sample));
+        try std.testing.expectEqual(expected, __sw_hweight64(sample));
+    }
+}
+
 test "narrow hweight helpers ignore bits outside their low lane" {
     const high_only: u32 = 0xffff_0000;
     try std.testing.expectEqual(@as(u32, 0), swHweight8(high_only));
