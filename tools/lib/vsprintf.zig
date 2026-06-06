@@ -130,3 +130,20 @@ test "scnprintfPad reports full padded subview length while preserving sentinels
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'i', 'o', ' ', ' ', ' ', 0 }, backing[2..8]);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xc9, 0xca }, backing[8..10]);
 }
+
+test "format render failures leave caller bytes untouched" {
+    var direct: [8]u8 = @splat(0xd1);
+    var padded: [8]u8 = @splat(0xe2);
+    var empty_marker = [_]u8{0xf3};
+
+    const direct_written = scnprintf(&direct, "{s: >1025}", .{""});
+    const padded_written = scnprintfPad(&padded, padded.len - 1, "{s: >1025}", .{""});
+    const empty_written = vscnprintf(empty_marker[0..0], "{s: >1025}", .{""});
+
+    try std.testing.expectEqual(@as(usize, 0), direct_written);
+    try std.testing.expectEqual(@as(usize, 0), padded_written);
+    try std.testing.expectEqual(@as(usize, 0), empty_written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xd1, 0xd1, 0xd1, 0xd1, 0xd1, 0xd1, 0xd1, 0xd1 }, &direct);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xe2, 0xe2, 0xe2, 0xe2, 0xe2, 0xe2, 0xe2, 0xe2 }, &padded);
+    try std.testing.expectEqual(@as(u8, 0xf3), empty_marker[0]);
+}
