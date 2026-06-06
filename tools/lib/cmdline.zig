@@ -331,6 +331,24 @@ test "nextArg keeps empty and unterminated quoted values aligned" {
     try std.testing.expectEqualStrings("", unterminated.remaining);
 }
 
+test "nextArg treats every ASCII whitespace separator consistently" {
+    const separators = [_]u8{ ' ', '\t', '\n', '\r', 0x0b, 0x0c };
+
+    for (separators) |separator| {
+        var bare_text = [_]u8{ separator, 'd', 'e', 'b', 'u', 'g', separator, separator, 'n', 'o', 'h', 'l', 't' };
+        const bare = nextArg(bare_text[0..]) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqualStrings("debug", bare.param);
+        try std.testing.expect(bare.value == null);
+        try std.testing.expectEqualStrings("nohlt", bare.remaining);
+
+        var key_text = [_]u8{ 'r', 'o', 'o', 't', '=', 's', 'd', 'a', '1', separator, 'q', 'u', 'i', 'e', 't' };
+        const key_value = next_arg(key_text[0..]) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqualStrings("root", key_value.param);
+        try std.testing.expectEqualStrings("sda1", key_value.value.?);
+        try std.testing.expectEqualStrings("quiet", key_value.remaining);
+    }
+}
+
 test "cmdline quote cursors and chained suffixes preserve exact rests" {
     const quoted = next_arg("  \"single word arg\" size=1KKtail") orelse return error.TestUnexpectedResult;
     try std.testing.expectEqualStrings("single word arg", quoted.param);
