@@ -17,11 +17,11 @@ pub fn build(b: *std.Build) void {
 
     const contract_step = b.step(
         "install-zig-retry-after-contract",
-        "Run the Lane 03 install-zig retry-after contract.",
+        "Run the Lane 18 install-zig retry-after contract.",
     );
     contract_step.dependOn(&run_contract_tests.step);
 
-    const test_step = b.step("test", "Run the Lane 03 install-zig retry-after contract tests.");
+    const test_step = b.step("test", "Run the Lane 18 install-zig retry-after contract tests.");
     test_step.dependOn(&run_contract_tests.step);
 
     b.default_step.dependOn(test_step);
