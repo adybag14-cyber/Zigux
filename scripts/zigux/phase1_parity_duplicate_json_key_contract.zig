@@ -26,15 +26,15 @@ test "phase1 parity checker tracks duplicate json keys through object pairs" {
     try expectContains("if key in self and key not in self.duplicate_keys:");
     try expectContains("self.duplicate_keys.append(key)");
     try expectContains("json.loads(text, object_pairs_hook=DuplicateTrackingDict)");
-    try expectContains("def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str>:");
+    try expectContains("def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:");
     try expectContains("paths.append(\".\".join(prefix + (key,)))");
 
     try expectBefore(
         "def load_json_with_duplicate_tracking(text: str) -> object:",
-        "def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str>:",
+        "def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:",
     );
     try expectBefore(
-        "def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str>:",
+        "def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:",
         "def read_json(path: Path, label: str, issues: list[str]) -> object | None:",
     );
 }
