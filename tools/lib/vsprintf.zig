@@ -88,6 +88,19 @@ test "scnprintfPad handles zero logical size and zero-length caller views" {
     try std.testing.expectEqual(@as(u8, 0xee), backing[0]);
 }
 
+test "scnprintf and vscnprintf preserve zero-length caller subviews" {
+    var direct = [_]u8{ 0xa1, 0xa2, 0xa3, 0xa4 };
+    var alias = [_]u8{ 0xb1, 0xb2, 0xb3, 0xb4 };
+
+    const direct_written = scnprintf(direct[2..2], "{s}", .{"zigux"});
+    const alias_written = vscnprintf(alias[1..1], "{s}:{d}", .{ "lane", 10 });
+
+    try std.testing.expectEqual(@as(usize, 0), direct_written);
+    try std.testing.expectEqual(@as(usize, 0), alias_written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xa1, 0xa2, 0xa3, 0xa4 }, &direct);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xb1, 0xb2, 0xb3, 0xb4 }, &alias);
+}
+
 test "scnprintf and vscnprintf keep caller subview sentinels outside exact-fit windows" {
     var direct = [_]u8{
         0xa1, 0xa2, 0xa3, 0xa4,
