@@ -124,6 +124,34 @@ test "ctype transforms and ascii helpers behave" {
     try std.testing.expect(!isodigit('8'));
 }
 
+test "ctype high bit spacing and punctuation bytes stay table exact" {
+    const cases = [_]struct {
+        byte: u8,
+        expected_mask: u8,
+        space: bool,
+        print: bool,
+        punct: bool,
+        alpha: bool,
+    }{
+        .{ .byte = 0xA0, .expected_mask = _S | _SP, .space = true, .print = true, .punct = false, .alpha = false },
+        .{ .byte = 0xA1, .expected_mask = _P, .space = false, .print = true, .punct = true, .alpha = false },
+        .{ .byte = 0xB0, .expected_mask = _P, .space = false, .print = true, .punct = true, .alpha = false },
+        .{ .byte = 0xD7, .expected_mask = _P, .space = false, .print = true, .punct = true, .alpha = false },
+        .{ .byte = 0xF7, .expected_mask = _P, .space = false, .print = true, .punct = true, .alpha = false },
+        .{ .byte = 0xC0, .expected_mask = _U, .space = false, .print = true, .punct = false, .alpha = true },
+        .{ .byte = 0xE0, .expected_mask = _L, .space = false, .print = true, .punct = false, .alpha = true },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected_mask, mask(case.byte));
+        try std.testing.expectEqual(case.space, isspace(case.byte));
+        try std.testing.expectEqual(case.print, isprint(case.byte));
+        try std.testing.expectEqual(case.punct, ispunct(case.byte));
+        try std.testing.expectEqual(case.alpha, isalpha(case.byte));
+        try std.testing.expectEqual(!case.space and case.print, isgraph(case.byte));
+    }
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
