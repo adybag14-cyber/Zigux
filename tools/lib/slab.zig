@@ -142,3 +142,22 @@ test "zeroing aliases request __GFP_ZERO while preserving allocation accounting"
     try std.testing.expect(kcallocBytes(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
     try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
 }
+
+test "failed slab allocations preserve live allocation accounting" {
+    kmalloc_nr_allocated = 0;
+
+    const live = kmallocBytes(4, GFP_KERNEL | __GFP_ZERO) orelse return error.TestUnexpectedResult;
+    defer kfree(live);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    try std.testing.expect(kmallocBytes(8, 0) == null);
+    try std.testing.expect(kzallocBytes(8, 0) == null);
+    try std.testing.expect(kmallocArray(2, 4, 0) == null);
+    try std.testing.expect(kmallocArray(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
+    try std.testing.expect(kcallocBytes(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    for (live) |value| {
+        try std.testing.expectEqual(@as(u8, 0), value);
+    }
+}
