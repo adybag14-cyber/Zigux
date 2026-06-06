@@ -163,3 +163,42 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
         }
     }
 }
+
+test "ctype high-bit masks keep space punctuation and case bands distinct" {
+    const neutral = [_]u8{ 0x80, 0x90, 0x9f };
+    for (neutral) |byte| {
+        try std.testing.expectEqual(@as(u8, 0), mask(byte));
+        try std.testing.expect(!isprint(byte));
+        try std.testing.expect(!isgraph(byte));
+        try std.testing.expect(!isspace(byte));
+        try std.testing.expect(!ispunct(byte));
+        try std.testing.expect(!isalpha(byte));
+        try std.testing.expect(!isascii(byte));
+        try std.testing.expectEqual(@as(u8, byte & 0x7f), toascii(byte));
+    }
+
+    try std.testing.expectEqual(_S | _SP, mask(0xa0));
+    try std.testing.expect(isspace(0xa0));
+    try std.testing.expect(isprint(0xa0));
+    try std.testing.expect(!isgraph(0xa0));
+    try std.testing.expect(!ispunct(0xa0));
+
+    const punctuation = [_]u8{ 0xa1, 0xbf, 0xd7, 0xf7 };
+    for (punctuation) |byte| {
+        try std.testing.expectEqual(_P, mask(byte));
+        try std.testing.expect(ispunct(byte));
+        try std.testing.expect(isgraph(byte));
+        try std.testing.expect(isprint(byte));
+        try std.testing.expect(!isspace(byte));
+        try std.testing.expect(!isalpha(byte));
+    }
+
+    try std.testing.expectEqual(_U, mask(0xc0));
+    try std.testing.expectEqual(_L, mask(0xe0));
+    try std.testing.expect(isupper(0xc0));
+    try std.testing.expect(islower(0xe0));
+    try std.testing.expect(isalpha(0xc0));
+    try std.testing.expect(isalpha(0xe0));
+    try std.testing.expectEqual(@as(u8, 0xe0), fastTolower(0xc0));
+    try std.testing.expectEqual(@as(u8, 0xe0), fastTolower(0xe0));
+}
