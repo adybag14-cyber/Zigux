@@ -163,3 +163,22 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
         }
     }
 }
+
+test "ctype digit and ascii byte boundaries stay exact" {
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+        const is_digit = byte >= '0' and byte <= '9';
+        const is_octal = byte >= '0' and byte <= '7';
+        const is_hex =
+            is_digit or
+            (byte >= 'a' and byte <= 'f') or
+            (byte >= 'A' and byte <= 'F');
+
+        try std.testing.expectEqual(is_digit, isdigit(byte));
+        try std.testing.expectEqual(is_octal, isodigit(byte));
+        try std.testing.expectEqual(is_hex, isxdigit(byte));
+        try std.testing.expectEqual(byte <= 0x7f, isascii(byte));
+        try std.testing.expectEqual(@as(u8, byte & 0x7f), toascii(byte));
+    }
+}
