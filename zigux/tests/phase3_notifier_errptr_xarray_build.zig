@@ -72,4 +72,5 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run the Phase 3 notifier plus err_ptr/xarray harness");
     test_step.dependOn(tests);
+    b.default_step.dependOn(tests);
 }
