@@ -237,6 +237,27 @@ test "memparse reports no-conversion via unchanged rest" {
     try std.testing.expectEqualStrings("xyz", invalid.rest);
 }
 
+test "memparse keeps leading whitespace as a no-conversion boundary" {
+    const samples = [_][]const u8{
+        " 64K",
+        "\t0x20M",
+        "\n+3K",
+        "\r-2K",
+    };
+
+    for (samples) |sample| {
+        const parsed = memparse(sample);
+        try std.testing.expectEqual(@as(u64, 0), parsed.value);
+        try std.testing.expectEqualStrings(sample, parsed.rest);
+
+        var digit_start: usize = 0;
+        while (digit_start < sample.len and std.ascii.isWhitespace(sample[digit_start])) : (digit_start += 1) {}
+
+        const reparsed = memparse(sample[digit_start..]);
+        try std.testing.expect(reparsed.value != 0);
+    }
+}
+
 test "memparse keeps original rest when sign is not followed by digits" {
     const negative_invalid = memparse("-xyz");
     try std.testing.expectEqual(@as(u64, 0), negative_invalid.value);
