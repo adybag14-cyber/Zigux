@@ -247,6 +247,15 @@ test "memparse keeps original rest when sign is not followed by digits" {
     try std.testing.expectEqualStrings("+nope", positive_invalid.rest);
 }
 
+test "memparse keeps malformed base prefixes as no-conversion input" {
+    const samples = [_][]const u8{ "0x", "0Xtail", "-0xK", "+0xG" };
+    for (samples) |sample| {
+        const parsed = memparse(sample);
+        try std.testing.expectEqual(@as(u64, 0), parsed.value);
+        try std.testing.expectEqualStrings(sample, parsed.rest);
+    }
+}
+
 test "memparse saturates signed overflow instead of trapping" {
     const positive = memparse("9223372036854775808");
     try std.testing.expectEqual(@as(u64, std.math.maxInt(i64)), positive.value);
