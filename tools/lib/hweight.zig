@@ -66,6 +66,22 @@ test "Linux-style hweight aliases mirror the primary helper surface" {
     try std.testing.expectEqual(hweightLong(0xf0f0), hweight_long(0xf0f0));
 }
 
+test "hweight long aliases count zero edge and full usize lanes" {
+    try std.testing.expectEqual(@as(usize, 0), hweightLong(0));
+    try std.testing.expectEqual(@as(usize, 0), hweight_long(0));
+
+    const full = std.math.maxInt(usize);
+    try std.testing.expectEqual(@as(usize, @bitSizeOf(usize)), hweightLong(full));
+    try std.testing.expectEqual(@as(usize, @bitSizeOf(usize)), hweight_long(full));
+
+    const edge_bits: usize = if (@sizeOf(usize) == 4)
+        0x8000_0001
+    else
+        0x8000_0000_0000_0001;
+    try std.testing.expectEqual(@as(usize, 2), hweightLong(edge_bits));
+    try std.testing.expectEqual(@as(usize, 2), hweight_long(edge_bits));
+}
+
 test "hweight helpers stay additive for disjoint masks" {
     const low8: u32 = 0b0001_0101;
     const high8: u32 = 0b1010_0000;
