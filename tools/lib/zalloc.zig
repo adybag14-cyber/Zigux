@@ -79,3 +79,34 @@ test "zfree helpers are no-ops for empty owners" {
     zfreeValue(allocator, Value, &value);
     try std.testing.expect(value == null);
 }
+
+test "zfree helpers tolerate repeated cleanup after resetting owners" {
+    const allocator = std.testing.allocator;
+    const Value = struct {
+        count: u16,
+        ready: bool,
+    };
+
+    var neighbor: ?[]u8 = try zallocBytes(allocator, 4);
+    defer zfreeBytes(allocator, &neighbor);
+    @memcpy(neighbor.?[0..4], "keep");
+
+    var bytes: ?[]u8 = try zallocBytes(allocator, 6);
+    @memcpy(bytes.?[0..6], "zigux!");
+    zfreeBytes(allocator, &bytes);
+    try std.testing.expect(bytes == null);
+    zfreeBytes(allocator, &bytes);
+    try std.testing.expect(bytes == null);
+    try std.testing.expectEqualStrings("keep", neighbor.?[0..4]);
+
+    var value: ?*Value = try zallocValue(allocator, Value);
+    value.?.* = .{
+        .count = 17,
+        .ready = true,
+    };
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+    try std.testing.expectEqualStrings("keep", neighbor.?[0..4]);
+}
