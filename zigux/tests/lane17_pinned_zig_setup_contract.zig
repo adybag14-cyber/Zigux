@@ -18,13 +18,6 @@ fn readWorkflow() ![]u8 {
     );
 }
 
-fn requireContains(source: []const u8, marker: []const u8) ContractError!void {
-    if (std.mem.indexOf(u8, source, marker) == null) {
-        std.debug.print("missing marker: {s}\n", .{marker});
-        return error.MissingMarker;
-    }
-}
-
 fn requireOrdered(source: []const u8, markers: []const []const u8) ContractError!void {
     var cursor: usize = 0;
     for (markers) |marker| {
