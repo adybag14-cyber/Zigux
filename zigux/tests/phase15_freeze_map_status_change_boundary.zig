@@ -77,6 +77,9 @@ test "freeze-map status changes require a full Architecture Council evidence pac
     try expectContains(freeze_map, "Documentation/zigux/phase15-architecture-council-decision-record-template.md");
     try expectContains(freeze_map, "direct Zig port or bridge claims for a freeze-in-C anchor stay blocked");
     try expectContains(freeze_map, "there is no silent exception path around the stay-in-C policy");
+    try expectContains(freeze_map, "governance lane sequencing link or explicit scope note");
+    try expectContains(freeze_map, "study-only anchor accounting link or explicit freeze-map-anchor confirmation");
+    try expectContains(freeze_map, "retired_from_active_discussion");
 
     for (freeze_in_c_anchors) |anchor| {
         try expectContains(freeze_map, anchor);
