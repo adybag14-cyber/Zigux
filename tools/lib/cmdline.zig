@@ -289,6 +289,16 @@ test "parseOptionStr matches only exact bare options" {
     try std.testing.expect(parse_option_str("quiet,debug,nohlt", "quiet"));
 }
 
+test "parseOptionStr stops scanning option lists at the first nul byte" {
+    try std.testing.expect(parseOptionStr("quiet,debug\x00,nohlt,panic", "debug"));
+    try std.testing.expect(!parseOptionStr("quiet,debug\x00,nohlt,panic", "nohlt"));
+    try std.testing.expect(!parse_option_str("quiet,debug\x00,nohlt,panic", "panic"));
+
+    try std.testing.expect(parseOptionStr(",\x00debug", ""));
+    try std.testing.expect(!parseOptionStr("quiet\x00,debug", "debug"));
+    try std.testing.expect(!parse_option_str("\x00quiet,debug", "quiet"));
+}
+
 test "nextArg returns null for blank input" {
     try std.testing.expect(nextArg(" \t \n") == null);
 }
