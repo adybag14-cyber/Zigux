@@ -70,6 +70,27 @@ test "target key and archive suffix are derived from normalized arch and system"
     try expectContains(install_zig_text, "with tarfile.open(archive_path, 'r:*') as tf:");
 }
 
+test "canonical release and offline explicit versions infer target archives without index entries" {
+    try expectContains(install_zig_text, "CANONICAL_RELEASE_CHANNEL = '0.17.0-dev.758+748e7c5e3'");
+    try expectContains(install_zig_text, "def infer_tarball_url(channel: str, target_key: str, system_key: str) -> str:");
+    try expectContains(install_zig_text, "if channel == CANONICAL_RELEASE_CHANNEL:");
+    try expectContains(install_zig_text, "return target_key, channel, infer_tarball_url(channel, target_key, system_key)");
+    try expectBefore(
+        install_zig_text,
+        "if channel == CANONICAL_RELEASE_CHANNEL:",
+        "entry = index.get(channel)",
+    );
+    try expectContains(install_zig_text, "if entry is None and VERSION_KEY_RE.fullmatch(channel):");
+    try expectContains(install_zig_text, "except (TimeoutError, urllib.error.URLError):");
+    try expectContains(install_zig_text, "if not is_explicit_version(channel):");
+    try expectContains(install_zig_text, "return {}");
+    try expectBefore(
+        install_zig_text,
+        "index = load_index(channel)",
+        "target_key, version, tarball_url = resolve_target",
+    );
+}
+
 test "CLI target overrides feed the same normalized resolution path" {
     try expectContains(install_zig_text, "parser.add_argument('--system', help='Override detected OS key (linux, macos, windows)')");
     try expectContains(install_zig_text, "parser.add_argument('--arch', help='Override detected architecture key (x86_64, aarch64, x86)')");

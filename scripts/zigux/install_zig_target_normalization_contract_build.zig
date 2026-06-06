@@ -16,10 +16,12 @@ pub fn build(b: *std.Build) void {
 
     const contract_step = b.step(
         "install-zig-target-normalization-contract",
-        "Run the install-zig target normalization contract tests",
+        "Run the Lane 18 install-zig target normalization contract tests",
     );
     contract_step.dependOn(&run_tests.step);
 
-    const test_step = b.step("test", "Run the install-zig target normalization contract tests");
+    const test_step = b.step("test", "Run the Lane 18 install-zig target normalization contract tests");
     test_step.dependOn(&run_tests.step);
+
+    b.default_step.dependOn(&run_tests.step);
 }
