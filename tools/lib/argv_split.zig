@@ -170,3 +170,16 @@ test "argvSplit treats exactly ASCII whitespace bytes as separators" {
         try std.testing.expectEqualSlices(u8, text[0..], result.argv[0]);
     }
 }
+
+test "argvSplit preserves high-bit bytes as ordinary token contents" {
+    const high_bytes = [_]u8{ 0x80, 0x9f, 0xa0, 0xc2, 0xff };
+    for (high_bytes) |byte| {
+        var text = [_]u8{ 'a', byte, 'b', ' ', byte, 'c' };
+        var result = try argv_split(std.testing.allocator, text[0..]);
+        defer argv_free(&result);
+
+        try std.testing.expectEqual(@as(usize, 2), result.argc());
+        try std.testing.expectEqualSlices(u8, text[0..3], result.argv[0]);
+        try std.testing.expectEqualSlices(u8, text[4..6], result.argv[1]);
+    }
+}
