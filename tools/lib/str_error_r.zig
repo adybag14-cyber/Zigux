@@ -83,3 +83,27 @@ test "strErrorR preserves exact-fit caller terminators and surrounding bytes" {
     try std.testing.expectEqual(@as(u8, 0xbb), fallback[50]);
     try std.testing.expectEqual(@as(u8, 0xbb), fallback[51]);
 }
+
+test "strErrorR reuses caller windows without clearing stale tail bytes" {
+    var backing: [64]u8 = @splat(0xcc);
+    const window = backing[4..60];
+
+    const expected_fallback = "INTERNAL ERROR: strerror_r(4096, [buf], 56)=22";
+    const fallback = strErrorR(4096, window);
+    try std.testing.expectEqualStrings(expected_fallback, fallback);
+    try std.testing.expectEqual(@as(u8, 0), backing[4 + expected_fallback.len]);
+    try std.testing.expectEqual(@as(u8, 0xcc), backing[3]);
+    try std.testing.expectEqual(@as(u8, 0xcc), backing[60]);
+
+    const expected_known = "Success";
+    const known = strErrorR(0, window);
+    try std.testing.expectEqualStrings(expected_known, known);
+    try std.testing.expectEqual(@as(u8, 0), backing[4 + expected_known.len]);
+    try std.testing.expectEqualSlices(
+        u8,
+        expected_fallback[expected_known.len + 1 ..],
+        backing[4 + expected_known.len + 1 .. 4 + expected_fallback.len],
+    );
+    try std.testing.expectEqual(@as(u8, 0xcc), backing[3]);
+    try std.testing.expectEqual(@as(u8, 0xcc), backing[60]);
+}
