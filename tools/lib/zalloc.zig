@@ -79,3 +79,33 @@ test "zfree helpers are no-ops for empty owners" {
     zfreeValue(allocator, Value, &value);
     try std.testing.expect(value == null);
 }
+
+test "zalloc propagates allocation failures without touching existing owners" {
+    const allocator = std.testing.allocator;
+    const Value = struct {
+        count: u16,
+        ready: bool,
+    };
+
+    var kept_bytes: ?[]u8 = try zallocBytes(allocator, 4);
+    defer zfreeBytes(allocator, &kept_bytes);
+    @memset(kept_bytes.?, 0xa5);
+
+    var kept_value: ?*Value = try zallocValue(allocator, Value);
+    defer zfreeValue(allocator, Value, &kept_value);
+    kept_value.?.* = .{ .count = 42, .ready = true };
+
+    var failing_bytes = std.testing.FailingAllocator.init(allocator, .{ .fail_index = 0 });
+    try std.testing.expectError(error.OutOfMemory, zallocBytes(failing_bytes.allocator(), 8));
+    try std.testing.expect(failing_bytes.has_induced_failure);
+    try std.testing.expectEqual(@as(usize, 0), failing_bytes.allocations);
+
+    var failing_value = std.testing.FailingAllocator.init(allocator, .{ .fail_index = 0 });
+    try std.testing.expectError(error.OutOfMemory, zallocValue(failing_value.allocator(), Value));
+    try std.testing.expect(failing_value.has_induced_failure);
+    try std.testing.expectEqual(@as(usize, 0), failing_value.allocations);
+
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xa5, 0xa5, 0xa5, 0xa5 }, kept_bytes.?);
+    try std.testing.expectEqual(@as(u16, 42), kept_value.?.count);
+    try std.testing.expectEqual(true, kept_value.?.ready);
+}
