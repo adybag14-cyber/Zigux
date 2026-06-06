@@ -257,6 +257,20 @@ test "memparse saturates signed overflow instead of trapping" {
     try std.testing.expectEqualStrings("", negative.rest);
 }
 
+test "memparse saturates suffix overflow and consumes the suffix byte" {
+    const unsigned = memparse("18014398509481984Ktail");
+    try std.testing.expectEqual(@as(u64, std.math.maxInt(u64)), unsigned.value);
+    try std.testing.expectEqualStrings("tail", unsigned.rest);
+
+    const signed_positive = memparse("+18014398509481984Ktail");
+    try std.testing.expectEqual(@as(u64, std.math.maxInt(i64)), signed_positive.value);
+    try std.testing.expectEqualStrings("tail", signed_positive.rest);
+
+    const signed_negative = memparse("-18014398509481984Ktail");
+    try std.testing.expectEqual(@as(u64, 0x8000000000000000), signed_negative.value);
+    try std.testing.expectEqualStrings("tail", signed_negative.rest);
+}
+
 test "memparse applies suffixes before signed clamping" {
     const negative = memparse("-2Ktail");
     try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -2048))), negative.value);
