@@ -48,3 +48,20 @@ test "installer self-test pins the canonical release target tuple" {
     try expectContains(install_zig_source, "'" ++ canonical_channel ++ "',");
     try expectContains(install_zig_source, "'" ++ canonical_url ++ "',");
 }
+
+test "policy archive verification remains mandatory for local archive installs" {
+    try expectContains(install_zig_source, "expected_archive_sha256 = load_policy_archive_sha256(TOOLCHAIN_POLICY, target_key)");
+    try expectContains(install_zig_source, "if args.archive is not None and channel == policy_channel and archive_target_key != target_key:");
+    try expectContains(install_zig_source, "if args.archive is not None and channel == policy_channel and expected_archive_sha256 is None:");
+    try expectContains(install_zig_source, "no pinned archive sha256 for target {archive_target_key}");
+    try expectContains(install_zig_source, "actual_archive_sha256 = verify_archive_sha256(archive_path, expected_archive_sha256)");
+    try expectContains(install_zig_source, "ZIG_INSTALL_ARCHIVE_SHA256_STATUS=verified");
+}
+
+test "installer self-test covers offline canonical fallback and duplicate policy rejection" {
+    try expectContains(install_zig_source, "assert load_index('" ++ canonical_channel ++ "') == {}");
+    try expectContains(install_zig_source, "duplicate toolchain policy keys");
+    try expectContains(install_zig_source, "duplicate archive_sha256 targets");
+    try expectContains(install_zig_source, "ZIG_INSTALL_SELF_TEST=pass");
+    try expectContains(install_zig_source, "ZIG_INSTALL_SELF_TEST_CASE_COUNT=46");
+}
