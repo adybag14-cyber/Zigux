@@ -63,5 +63,5 @@ test "checker rejects drift that would silently weaken the fixture contract" {
     try std.testing.expect(std.mem.indexOf(u8, checker, "SELF_TEST_CASE_COUNT = 4") == null);
     try std.testing.expect(std.mem.indexOf(u8, checker, "EXPECTED_CASE_ORDER = sorted(EXPECTED_CASES)") == null);
     try std.testing.expect(std.mem.indexOf(u8, checker, "subprocess.run(cmd, check=False") == null);
-    try std.testing.expect(std.mem.indexOf(u8, checker, "return 0\n\n\nif __name__ == \"__main__\"") != null);
+    try expectOrdered(checker, "return 0", "if __name__ == \"__main__\"");
 }
