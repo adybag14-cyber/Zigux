@@ -108,3 +108,21 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweight alternating bit patterns count exactly half their lanes" {
+    try std.testing.expectEqual(@as(u32, 4), swHweight8(0x55));
+    try std.testing.expectEqual(@as(u32, 4), __sw_hweight8(0xaa));
+
+    try std.testing.expectEqual(@as(u32, 8), swHweight16(0x5555));
+    try std.testing.expectEqual(@as(u32, 8), __sw_hweight16(0xaaaa));
+
+    try std.testing.expectEqual(@as(u32, 16), swHweight32(0x5555_5555));
+    try std.testing.expectEqual(@as(u32, 16), __sw_hweight32(0xaaaa_aaaa));
+
+    try std.testing.expectEqual(@as(u64, 32), swHweight64(0x5555_5555_5555_5555));
+    try std.testing.expectEqual(@as(u64, 32), __sw_hweight64(0xaaaa_aaaa_aaaa_aaaa));
+
+    const alternating_long: usize = if (@sizeOf(usize) == 4) 0x5555_5555 else 0x5555_5555_5555_5555;
+    try std.testing.expectEqual(@as(usize, @bitSizeOf(usize) / 2), hweightLong(alternating_long));
+    try std.testing.expectEqual(@as(usize, @bitSizeOf(usize) / 2), hweight_long(~alternating_long));
+}
