@@ -163,3 +163,40 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
         }
     }
 }
+
+test "ctype print graph and space boundaries stay table-driven" {
+    const cases = [_]struct {
+        byte: u8,
+        print: bool,
+        graph: bool,
+        space: bool,
+        punct: bool,
+        cntrl: bool,
+    }{
+        .{ .byte = 0x00, .print = false, .graph = false, .space = false, .punct = false, .cntrl = true },
+        .{ .byte = ' ', .print = true, .graph = false, .space = true, .punct = false, .cntrl = false },
+        .{ .byte = '!', .print = true, .graph = true, .space = false, .punct = true, .cntrl = false },
+        .{ .byte = 'A', .print = true, .graph = true, .space = false, .punct = false, .cntrl = false },
+        .{ .byte = 0x7f, .print = false, .graph = false, .space = false, .punct = false, .cntrl = true },
+        .{ .byte = 0x80, .print = false, .graph = false, .space = false, .punct = false, .cntrl = false },
+        .{ .byte = 0xa0, .print = true, .graph = false, .space = true, .punct = false, .cntrl = false },
+        .{ .byte = 0xa1, .print = true, .graph = true, .space = false, .punct = true, .cntrl = false },
+        .{ .byte = 0xc0, .print = true, .graph = true, .space = false, .punct = false, .cntrl = false },
+    };
+
+    for (cases) |case| {
+        const byte_mask = mask(case.byte);
+
+        try std.testing.expectEqual((byte_mask & (_P | _U | _L | _D | _SP)) != 0, isprint(case.byte));
+        try std.testing.expectEqual((byte_mask & (_P | _U | _L | _D)) != 0, isgraph(case.byte));
+        try std.testing.expectEqual((byte_mask & _S) != 0, isspace(case.byte));
+        try std.testing.expectEqual((byte_mask & _P) != 0, ispunct(case.byte));
+        try std.testing.expectEqual((byte_mask & _C) != 0, iscntrl(case.byte));
+
+        try std.testing.expectEqual(case.print, isprint(case.byte));
+        try std.testing.expectEqual(case.graph, isgraph(case.byte));
+        try std.testing.expectEqual(case.space, isspace(case.byte));
+        try std.testing.expectEqual(case.punct, ispunct(case.byte));
+        try std.testing.expectEqual(case.cntrl, iscntrl(case.byte));
+    }
+}
