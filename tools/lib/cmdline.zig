@@ -277,6 +277,27 @@ test "memparse keeps signed non-decimal prefixes aligned with suffix handling" {
     try std.testing.expectEqualStrings("more", positive_octal.rest);
 }
 
+test "memparse accepts lowercase power-of-two suffixes" {
+    const cases = [_]struct {
+        text: []const u8,
+        expected: u64,
+        rest: []const u8,
+    }{
+        .{ .text = "1ktail", .expected = 1 << 10, .rest = "tail" },
+        .{ .text = "2m:", .expected = 2 << 20, .rest = ":" },
+        .{ .text = "3g!", .expected = 3 << 30, .rest = "!" },
+        .{ .text = "4t/", .expected = 4 << 40, .rest = "/" },
+        .{ .text = "5p.", .expected = 5 << 50, .rest = "." },
+        .{ .text = "6e;", .expected = 6 << 60, .rest = ";" },
+    };
+
+    for (cases) |case| {
+        const parsed = memparse(case.text);
+        try std.testing.expectEqual(case.expected, parsed.value);
+        try std.testing.expectEqualStrings(case.rest, parsed.rest);
+    }
+}
+
 test "parseOptionStr matches only exact bare options" {
     try std.testing.expect(parseOptionStr("quiet,debug,nohlt", "debug"));
     try std.testing.expect(parseOptionStr("quiet,debug\x00,nohlt", "debug"));
