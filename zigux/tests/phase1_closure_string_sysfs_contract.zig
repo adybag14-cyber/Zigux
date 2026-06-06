@@ -19,6 +19,34 @@ const lane_sysfs_markers = .{
     .next_safe_step = "`PHASE1_STRING_NEXT_SAFE_STEP=string reopens only for direct-anchor drift inside strscpy()/strscpyPad() copy-and-pad semantics, memparse, matched-prefix-length or suffix boundary, sysfs newline-aware equality or lookup order, matchString()/match_string() C-string list lookup, counted-search and search-length anchors through strpbrk(), strspn(), strcspn(), strnchr(), strnchrNul() or strnchrnul(), strchr(), strrchr(), strlen(), and strnlen(), embedded-NUL trim, or moving-earliest-dirty-byte memchrInv coverage, or for committed replaceChar or current string fixture drift; keep the helper-local sysfs review anchors aligned across the string review packet and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing closure-side validator names by default`",
 };
 
+const checker_sysfs_markers = .{
+    .source_symbols = [_][]const u8{
+        "\"pub fn sysfsStreq(lhs: []const u8, rhs: []const u8) bool {\"",
+        "\"pub fn sysfs_streq(lhs: []const u8, rhs: []const u8) bool {\"",
+        "\"pub fn __sysfs_match_string(haystack: []const []const u8, count: usize, needle: []const u8) ?usize {\"",
+        "\"pub fn sysfsMatchString(haystack: []const []const u8, needle: []const u8) ?usize {\"",
+        "\"pub fn sysfs_match_string(haystack: []const []const u8, needle: []const u8) ?usize {\"",
+    },
+    .packet_key = "\"sysfs_review_anchors\": [",
+    .summary_key = "\"sysfs_review_summary\":",
+    .fixture_gap = "shared Phase 1 replay still carries no dedicated sysfs fixture keys",
+};
+
+const helper_sysfs_symbols = [_][]const u8{
+    "pub fn sysfsStreq(lhs: []const u8, rhs: []const u8) bool {",
+    "pub fn sysfs_streq(lhs: []const u8, rhs: []const u8) bool {",
+    "pub fn __sysfs_match_string(haystack: []const []const u8, count: usize, needle: []const u8) ?usize {",
+    "pub fn sysfsMatchString(haystack: []const []const u8, needle: []const u8) ?usize {",
+    "pub fn sysfs_match_string(haystack: []const []const u8, needle: []const u8) ?usize {",
+};
+
+const helper_sysfs_test_anchors = [_][]const u8{
+    "test \"sysfsStreq treats trailing newline and NUL as equivalent\"",
+    "test \"sysfs_streq mirrors sysfsStreq newline and NUL equivalence\"",
+    "test \"sysfsMatchString finds newline-aware matches and preserves first-match order\"",
+    "test \"sysfs_match_string mirrors sysfsMatchString for empty and matched lists\"",
+};
+
 const stale_sysfs_interpretations = [_][]const u8{
     "shared fixture owns sysfs",
     "validator-owned sysfs requirement",
@@ -84,6 +112,42 @@ test "helper manifest carries the exact sysfs anchor packet" {
     try expectOnce(manifest_sysfs_packet.summary, "sysfs_streq");
     try expectOnce(manifest_sysfs_packet.summary, "sysfsMatchString");
     try expectOnce(manifest_sysfs_packet.summary, "sysfs_match_string");
+}
+
+test "string review checker owns the sysfs marker packet" {
+    const checker = try readRepoFile(
+        testing.allocator,
+        "scripts/zigux/check-phase1-string-review-packet.py",
+    );
+    defer testing.allocator.free(checker);
+
+    try expectOnce(checker, checker_sysfs_markers.packet_key);
+    try expectOnce(checker, checker_sysfs_markers.summary_key);
+    try expectOnce(checker, manifest_sysfs_packet.summary);
+    try expectOnce(checker, checker_sysfs_markers.fixture_gap);
+    for (checker_sysfs_markers.source_symbols) |symbol| {
+        try expectOnce(checker, symbol);
+    }
+    for (helper_sysfs_test_anchors) |anchor| {
+        try expectContains(checker, anchor);
+    }
+}
+
+test "string helper exposes the sysfs functions guarded by the packet" {
+    const string_helper = try readRepoFile(
+        testing.allocator,
+        "tools/lib/string.zig",
+    );
+    defer testing.allocator.free(string_helper);
+
+    for (helper_sysfs_symbols) |symbol| {
+        try expectOnce(string_helper, symbol);
+    }
+    for (helper_sysfs_test_anchors) |anchor| {
+        try expectContains(string_helper, anchor);
+    }
+    try expectOnce(string_helper, "return __sysfs_match_string(haystack, haystack.len, needle);");
+    try expectOnce(string_helper, "return sysfsMatchString(haystack, needle);");
 }
 
 test "lane sequencing keeps sysfs inside the string-only owner map" {
