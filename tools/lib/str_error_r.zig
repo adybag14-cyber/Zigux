@@ -83,3 +83,21 @@ test "strErrorR preserves exact-fit caller terminators and surrounding bytes" {
     try std.testing.expectEqual(@as(u8, 0xbb), fallback[50]);
     try std.testing.expectEqual(@as(u8, 0xbb), fallback[51]);
 }
+
+test "strErrorR synthesized messages report caller subview lengths" {
+    var backing: [80]u8 = @splat(0xcc);
+
+    const first_window = backing[4..32];
+    const first_rendered = strErrorR(2048, first_window);
+    try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(", first_rendered);
+    try std.testing.expectEqual(@as(u8, 0xcc), backing[3]);
+    try std.testing.expectEqual(@as(u8, 0), backing[31]);
+    try std.testing.expectEqual(@as(u8, 0xcc), backing[32]);
+
+    const second_window = backing[36..79];
+    const second_rendered = strErrorR(2048, second_window);
+    try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(2048, [buf], 43", second_rendered);
+    try std.testing.expectEqual(@as(u8, 0xcc), backing[35]);
+    try std.testing.expectEqual(@as(u8, 0), backing[78]);
+    try std.testing.expectEqual(@as(u8, 0xcc), backing[79]);
+}
