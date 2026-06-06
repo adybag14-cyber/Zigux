@@ -108,3 +108,32 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "narrow hweight helpers match popcount of truncated lanes" {
+    const samples = [_]u32{
+        0x0000_0000,
+        0x0000_0001,
+        0x0000_00ff,
+        0x0000_0100,
+        0xffff_ffff,
+        0xaaaa_5555,
+        0x8000_00f1,
+        0x7f00_8001,
+    };
+
+    for (samples) |sample| {
+        const low8: u8 = @truncate(sample);
+        const low16: u16 = @truncate(sample);
+
+        const expected8: u32 = @intCast(@popCount(low8));
+        const expected16: u32 = @intCast(@popCount(low16));
+        const expected32: u32 = @intCast(@popCount(sample));
+
+        try std.testing.expectEqual(expected8, swHweight8(sample));
+        try std.testing.expectEqual(expected8, __sw_hweight8(sample));
+        try std.testing.expectEqual(expected16, swHweight16(sample));
+        try std.testing.expectEqual(expected16, __sw_hweight16(sample));
+        try std.testing.expectEqual(expected32, swHweight32(sample));
+        try std.testing.expectEqual(expected32, __sw_hweight32(sample));
+    }
+}
