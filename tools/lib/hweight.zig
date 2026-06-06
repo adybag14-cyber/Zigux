@@ -108,3 +108,18 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweightLong follows the active usize width" {
+    const all_bits = std.math.maxInt(usize);
+    try std.testing.expectEqual(@bitSizeOf(usize), hweightLong(all_bits));
+    try std.testing.expectEqual(@bitSizeOf(usize), hweight_long(all_bits));
+
+    const width_marker: usize = if (@sizeOf(usize) == 4)
+        0x8000_0001
+    else
+        0x8000_0000_0000_0001;
+
+    try std.testing.expectEqual(@as(usize, 2), hweightLong(width_marker));
+    try std.testing.expectEqual(@as(usize, 2), hweight_long(width_marker));
+    try std.testing.expectEqual(@popCount(width_marker), hweightLong(width_marker));
+}
