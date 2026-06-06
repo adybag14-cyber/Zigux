@@ -12,10 +12,25 @@ pub fn zallocValue(allocator: std.mem.Allocator, comptime T: type) !*T {
     return value;
 }
 
+pub fn zallocSlice(allocator: std.mem.Allocator, comptime T: type, len: usize) ![]T {
+    const items = try allocator.alloc(T, len);
+    for (items) |*item| {
+        item.* = std.mem.zeroes(T);
+    }
+    return items;
+}
+
 pub fn zfreeBytes(allocator: std.mem.Allocator, bytes: *?[]u8) void {
     if (bytes.*) |slice| {
         allocator.free(slice);
         bytes.* = null;
+    }
+}
+
+pub fn zfreeSlice(allocator: std.mem.Allocator, comptime T: type, items: *?[]T) void {
+    if (items.*) |slice| {
+        allocator.free(slice);
+        items.* = null;
     }
 }
 
@@ -78,4 +93,45 @@ test "zfree helpers are no-ops for empty owners" {
     var value: ?*Value = null;
     zfreeValue(allocator, Value, &value);
     try std.testing.expect(value == null);
+}
+
+test "zallocSlice zeroes aggregate elements and zfreeSlice resets owners" {
+    const allocator = std.testing.allocator;
+    const Entry = struct {
+        count: u32,
+        enabled: bool,
+        link: ?*u8,
+        payload: [3]u16,
+    };
+
+    var entries: ?[]Entry = try zallocSlice(allocator, Entry, 3);
+    defer zfreeSlice(allocator, Entry, &entries);
+    try std.testing.expect(entries != null);
+    try std.testing.expectEqual(@as(usize, 3), entries.?.len);
+    for (entries.?) |entry| {
+        try std.testing.expectEqual(@as(u32, 0), entry.count);
+        try std.testing.expectEqual(false, entry.enabled);
+        try std.testing.expect(entry.link == null);
+        try std.testing.expectEqualSlices(u16, &[_]u16{ 0, 0, 0 }, &entry.payload);
+    }
+
+    entries.?[1].count = 7;
+    entries.?[1].enabled = true;
+    entries.?[1].payload = .{ 1, 2, 3 };
+    zfreeSlice(allocator, Entry, &entries);
+    try std.testing.expect(entries == null);
+
+    zfreeSlice(allocator, Entry, &entries);
+    try std.testing.expect(entries == null);
+}
+
+test "zallocSlice handles zero-length typed slices" {
+    const allocator = std.testing.allocator;
+
+    var empty: ?[]u64 = try zallocSlice(allocator, u64, 0);
+    try std.testing.expect(empty != null);
+    try std.testing.expectEqual(@as(usize, 0), empty.?.len);
+
+    zfreeSlice(allocator, u64, &empty);
+    try std.testing.expect(empty == null);
 }
