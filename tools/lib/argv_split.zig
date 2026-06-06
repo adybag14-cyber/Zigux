@@ -133,6 +133,22 @@ test "argvSplit releases partial allocations when duplication fails" {
     );
 }
 
+test "argvSplit deinit resets result to the zero argument state" {
+    var result = try argv_split(std.testing.allocator, "alpha beta");
+    try std.testing.expectEqual(@as(usize, 2), result.argc());
+    try std.testing.expectEqualStrings("alpha", result.argv[0]);
+    try std.testing.expectEqualStrings("beta", result.argv[1]);
+
+    argv_free(&result);
+    try std.testing.expectEqual(@as(usize, 0), result.argc());
+    try std.testing.expectEqual(@as(usize, 0), result.argv.len);
+
+    var blank = try argvSplit(std.testing.allocator, " \t\n ");
+    argvFree(&blank);
+    try std.testing.expectEqual(@as(usize, 0), blank.argc());
+    try std.testing.expectEqual(@as(usize, 0), blank.argv.len);
+}
+
 test "argvSplit preserves literal shell-like bytes and embedded nul tokens" {
     var result = try argv_split(std.testing.allocator, "  key=value  \"quoted\"  path\\name\x00tail  ");
     defer argv_free(&result);
