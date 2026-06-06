@@ -163,3 +163,17 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
         }
     }
 }
+
+test "ctype digit helpers expose exact decimal octal and hex boundaries" {
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+        const decimal = byte >= '0' and byte <= '9';
+        const octal = byte >= '0' and byte <= '7';
+        const hex = decimal or (byte >= 'A' and byte <= 'F') or (byte >= 'a' and byte <= 'f');
+
+        try std.testing.expectEqual(decimal, isdigit(byte));
+        try std.testing.expectEqual(octal, isodigit(byte));
+        try std.testing.expectEqual(hex, isxdigit(byte));
+    }
+}
