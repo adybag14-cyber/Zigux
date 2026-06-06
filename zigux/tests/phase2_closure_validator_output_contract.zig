@@ -1,80 +1,72 @@
 const std = @import("std");
-const testing = std.testing;
 
-const validator_pass_output =
-    \\print("PHASE2_CLOSURE_VALIDATION=pass")
-    \\print("PHASE2_CLOSURE_STATUS=parked")
-    \\print("PHASE2_CLOSURE_PACKET=toolchain_cross_kconfig_genksyms_fixdep_closure")
-    \\print("PHASE2_CLOSURE_REMAINING_GAPS=")
-;
+const validator_path = "scripts/zigux/validate-phase2-closure.py";
 
-const validator_fail_output =
-    \\print("PHASE2_CLOSURE_VALIDATION=fail")
-    \\print(f"{code}_START")
-    \\print(value)
-    \\print(f"{code}_END")
-;
-
-const validator_self_test_output =
-    \\print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
-    \\print(f"PHASE2_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT={checks_run}")
-;
-
-const validator_issue_codes =
-    \\MISSING_REQUIRED_FILE
-    \\INVALID_MANIFEST_SHAPE
-    \\INVALID_GENKSYMS_MANIFEST_SHAPE
-    \\UNEXPECTED_MANIFEST_GAPS
-    \\MISSING_MANIFEST_SURFACE
-    \\MISSING_CLOSURE_LINE
-    \\MISSING_CLOSURE_MARKER
-    \\MISSING_WORKFLOW_LINE
-    \\DUPLICATE_WORKFLOW_LINE
-    \\MISSING_MAKEFILE_LINE
-    \\DUPLICATE_MAKEFILE_LINE
-;
-
-const validator_required_surfaces =
-    \\WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
-    \\MAKEFILE_REL = Path("zigux/Makefile")
-    \\PHASE2_CLOSURE_REL = Path("Documentation/zigux/phase2-closure.md")
-    \\PHASE2_VALIDATE_REL = Path("scripts/zigux/validate-phase2.py")
-    \\PHASE2_CLOSURE_VALIDATE_REL = Path("scripts/zigux/validate-phase2-closure.py")
-    \\PHASE2_TOOL_MANIFEST_REL = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
-    \\GENKSYMS_MANIFEST_REL = Path("zigux/tests/fixtures/genksyms_bridge/manifest.json")
-    \\GENKSYMS_CASES_REL = Path("zigux/tests/fixtures/genksyms_bridge/cases.json")
-;
+fn readValidator() ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        validator_path,
+        std.testing.allocator,
+        .limited(256 * 1024),
+    );
+}
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
-    try testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-fn expectInOrder(haystack: []const u8, needles: []const []const u8) !void {
-    var cursor: usize = 0;
-    for (needles) |needle| {
-        const found = std.mem.indexOf(u8, haystack[cursor..], needle) orelse return error.MissingExpectedMarker;
-        cursor += found + needle.len;
+fn expectOrdered(haystack: []const u8, before: []const u8, after: []const u8) !void {
+    const before_index = std.mem.indexOf(u8, haystack, before) orelse return error.MissingBeforeMarker;
+    const after_index = std.mem.indexOf(u8, haystack, after) orelse return error.MissingAfterMarker;
+    try std.testing.expect(before_index < after_index);
+}
+
+fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
+    var count: usize = 0;
+    var offset: usize = 0;
+    while (std.mem.indexOf(u8, haystack[offset..], needle)) |index| {
+        count += 1;
+        offset += index + needle.len;
     }
+    return count;
 }
 
-test "phase2 closure validator keeps stable success summary markers" {
-    try expectInOrder(validator_pass_output, &.{
+test "phase2 closure validator publishes stable success envelope" {
+    const validator = try readValidator();
+    defer std.testing.allocator.free(validator);
+
+    try expectContains(validator, "PHASE2_CLOSURE_VALIDATION=pass");
+    try expectContains(validator, "PHASE2_CLOSURE_STATUS=parked");
+    try expectContains(validator, "PHASE2_CLOSURE_PACKET=toolchain_cross_kconfig_genksyms_fixdep_closure");
+    try expectContains(validator, "PHASE2_CLOSURE_REMAINING_GAPS=");
+    try expectOrdered(
+        validator,
         "PHASE2_CLOSURE_VALIDATION=pass",
-        "PHASE2_CLOSURE_STATUS=parked",
-        "PHASE2_CLOSURE_PACKET=toolchain_cross_kconfig_genksyms_fixdep_closure",
         "PHASE2_CLOSURE_REMAINING_GAPS=",
-    });
-    try expectContains(validator_pass_output, "parked");
-    try expectContains(validator_pass_output, "toolchain_cross_kconfig_genksyms_fixdep_closure");
+    );
 }
 
-test "phase2 closure validator failure output remains grouped by issue code" {
-    try expectInOrder(validator_fail_output, &.{
-        "PHASE2_CLOSURE_VALIDATION=fail",
-        "{code}_START",
-        "value",
-        "{code}_END",
-    });
+test "phase2 closure validator self-test envelope stays explicit" {
+    const validator = try readValidator();
+    defer std.testing.allocator.free(validator);
+
+    try expectContains(validator, "def run_self_test() -> int:");
+    try expectContains(validator, "checks_run = 0");
+    try expectContains(validator, "PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass");
+    try expectContains(validator, "PHASE2_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT={checks_run}");
+    try expectContains(validator, "parser.add_argument(\"--self-test\"");
+    try expectContains(validator, "if args.self_test:");
+    try std.testing.expect(countOccurrences(validator, "checks_run += 1") == 8);
+    try expectOrdered(
+        validator,
+        "if args.self_test:",
+        "issues = collect_issues(args.root.resolve())",
+    );
+}
+
+test "phase2 closure validator fail-closed issue vocabulary is public" {
+    const validator = try readValidator();
+    defer std.testing.allocator.free(validator);
 
     const issue_codes = [_][]const u8{
         "MISSING_REQUIRED_FILE",
@@ -89,28 +81,14 @@ test "phase2 closure validator failure output remains grouped by issue code" {
         "MISSING_MAKEFILE_LINE",
         "DUPLICATE_MAKEFILE_LINE",
     };
-    for (&issue_codes) |issue_code| {
-        try expectContains(validator_issue_codes, issue_code);
-    }
-}
 
-test "phase2 closure validator self-test and required file surface stay explicit" {
-    try expectInOrder(validator_self_test_output, &.{
-        "PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass",
-        "PHASE2_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=",
-    });
-
-    const required_surfaces = [_][]const u8{
-        ".github/workflows/zigux-bootstrap.yml",
-        "zigux/Makefile",
-        "Documentation/zigux/phase2-closure.md",
-        "scripts/zigux/validate-phase2.py",
-        "scripts/zigux/validate-phase2-closure.py",
-        "zigux/tests/fixtures/phase2_tool_manifest.json",
-        "zigux/tests/fixtures/genksyms_bridge/manifest.json",
-        "zigux/tests/fixtures/genksyms_bridge/cases.json",
-    };
-    for (&required_surfaces) |surface| {
-        try expectContains(validator_required_surfaces, surface);
+    for (issue_codes) |code| {
+        try expectContains(validator, code);
     }
+
+    try expectContains(validator, "PHASE2_CLOSURE_VALIDATION=fail");
+    try expectContains(validator, "print(f\"{code}_START\")");
+    try expectContains(validator, "print(f\"{code}_END\")");
+    try expectOrdered(validator, "def collect_issues(root: Path)", "def emit_issues");
+    try expectOrdered(validator, "def emit_issues", "def build_self_test_root");
 }
