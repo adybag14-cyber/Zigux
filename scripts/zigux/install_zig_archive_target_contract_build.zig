@@ -19,10 +19,11 @@ pub fn build(b: *std.Build) void {
 
     const contract_step = b.step(
         "install-zig-archive-target-contract",
-        "Run the install-zig archive target contract.",
+        "Run the Lane 18 install-zig archive target contract.",
     );
     contract_step.dependOn(&run_contract_tests.step);
 
-    const test_step = b.step("test", "Run the install-zig archive target contract.");
+    const test_step = b.step("test", "Run the Lane 18 install-zig archive target contract tests.");
     test_step.dependOn(&run_contract_tests.step);
+    b.default_step.dependOn(&run_contract_tests.step);
 }
