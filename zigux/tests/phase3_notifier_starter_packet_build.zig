@@ -34,4 +34,6 @@ pub fn build(b: *std.Build) void {
         "Run the Phase 3 notifier starter-packet self-check",
     );
     test_step.dependOn(&run_unit_tests.step);
+    b.step("test", "Run the Phase 3 notifier starter-packet self-check").dependOn(&run_unit_tests.step);
+    b.default_step.dependOn(&run_unit_tests.step);
 }
