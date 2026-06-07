@@ -18,11 +18,11 @@ pub fn build(b: *std.Build) void {
 
     const contract_step = b.step(
         "install-zig-extract-path-contract",
-        "Run the install-zig extract and path handoff contract",
+        "Run the Lane 18 install-zig extract and path handoff contract.",
     );
     contract_step.dependOn(&run_contract.step);
 
-    const test_step = b.step("test", "Run install-zig extract and path handoff contract tests");
+    const test_step = b.step("test", "Run the Lane 18 install-zig extract and path handoff contract tests.");
     test_step.dependOn(&run_contract.step);
 
     b.default_step.dependOn(&run_contract.step);
