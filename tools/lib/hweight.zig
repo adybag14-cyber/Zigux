@@ -108,3 +108,19 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweight low lane sweeps match popcount exactly" {
+    var byte: u32 = 0;
+    while (byte <= std.math.maxInt(u8)) : (byte += 1) {
+        const expected: u32 = @popCount(@as(u8, @intCast(byte)));
+        try std.testing.expectEqual(expected, swHweight8(byte));
+        try std.testing.expectEqual(expected, __sw_hweight8(byte));
+    }
+
+    var word: u32 = 0;
+    while (word <= std.math.maxInt(u16)) : (word += 1) {
+        const expected: u32 = @popCount(@as(u16, @intCast(word)));
+        try std.testing.expectEqual(expected, swHweight16(word));
+        try std.testing.expectEqual(expected, __sw_hweight16(word));
+    }
+}
