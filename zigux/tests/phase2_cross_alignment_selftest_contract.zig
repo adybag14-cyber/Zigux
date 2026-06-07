@@ -54,6 +54,32 @@ test "alignment self-test accounting stays explicit" {
     try expectOrdered(text, "assert checks_run == expected_case_count", "PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass");
 }
 
+test "alignment self-test case count formula covers every marker family" {
+    const text = try readFirstExisting(std.testing.allocator, &alignment_checker_paths);
+    defer std.testing.allocator.free(text);
+
+    const formula_terms = [_][]const u8{
+        "len(DOCS_ROOT_README_MARKERS)",
+        "len(PHASE2_NOTES_MARKERS)",
+        "len(REVIEW_CHECKLIST_MARKERS)",
+        "len(TESTS_README_MARKERS)",
+        "len(SCRIPTS_README_MARKERS)",
+        "len(MAKEFILE_LINES)",
+        "len(TOOLCHAIN_PINNING_MARKERS)",
+        "len(TESTS_ALIGNMENT_MARKERS)",
+        "+ 19",
+        "+ 10",
+    };
+
+    try expectContains(text, "expected_case_count = (");
+    for (formula_terms) |term| {
+        try expectContains(text, term);
+    }
+    try expectOrdered(text, "expected_case_count = (", "+ 19");
+    try expectOrdered(text, "+ 19", "+ 10");
+    try expectOrdered(text, "+ 10", "with tempfile.TemporaryDirectory");
+}
+
 test "alignment pass and failure marker envelope remains machine-readable" {
     const text = try readFirstExisting(std.testing.allocator, &alignment_checker_paths);
     defer std.testing.allocator.free(text);
