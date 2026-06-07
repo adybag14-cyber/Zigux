@@ -247,6 +247,20 @@ test "memparse keeps original rest when sign is not followed by digits" {
     try std.testing.expectEqualStrings("+nope", positive_invalid.rest);
 }
 
+test "memparse keeps base-prefix rest cursors aligned" {
+    const uppercase_hex = memparse("0X2A.tail");
+    try std.testing.expectEqual(@as(u64, 0x2a), uppercase_hex.value);
+    try std.testing.expectEqualStrings(".tail", uppercase_hex.rest);
+
+    const invalid_octal_digit = memparse("09tail");
+    try std.testing.expectEqual(@as(u64, 0), invalid_octal_digit.value);
+    try std.testing.expectEqualStrings("9tail", invalid_octal_digit.rest);
+
+    const empty_hex_prefix = memparse("0x tail");
+    try std.testing.expectEqual(@as(u64, 0), empty_hex_prefix.value);
+    try std.testing.expectEqualStrings("0x tail", empty_hex_prefix.rest);
+}
+
 test "memparse saturates signed overflow instead of trapping" {
     const positive = memparse("9223372036854775808");
     try std.testing.expectEqual(@as(u64, std.math.maxInt(i64)), positive.value);
