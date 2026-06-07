@@ -100,6 +100,18 @@ test "argvSplit matches the phase 1 committed fixture shape" {
     try std.testing.expectEqualStrings("gamma", result.argv[2]);
 }
 
+test "argvSplit keeps a single no-separator token whole" {
+    var plain = try argvSplit(std.testing.allocator, "single-token");
+    defer plain.deinit();
+    try std.testing.expectEqual(@as(usize, 1), plain.argc());
+    try std.testing.expectEqualStrings("single-token", plain.argv[0]);
+
+    var alias = try argv_split(std.testing.allocator, "root=/dev/sda1");
+    defer argv_free(&alias);
+    try std.testing.expectEqual(@as(usize, 1), alias.argc());
+    try std.testing.expectEqualStrings("root=/dev/sda1", alias.argv[0]);
+}
+
 test "argvSplit collapses repeated whitespace and blank inputs to zero arguments" {
     var blank = try argvSplit(std.testing.allocator, "");
     defer blank.deinit();
