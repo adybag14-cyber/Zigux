@@ -108,3 +108,35 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweight helpers count xor distance masks" {
+    const left8: u32 = 0b1010_1100;
+    const right8: u32 = 0b0011_1001;
+    const xor8 = left8 ^ right8;
+    try std.testing.expectEqual(@as(u32, @popCount(@as(u8, @truncate(xor8)))), swHweight8(xor8));
+    try std.testing.expectEqual(swHweight8(xor8), __sw_hweight8(xor8));
+
+    const left16: u32 = 0xa5c3;
+    const right16: u32 = 0x3c5a;
+    const xor16 = left16 ^ right16;
+    try std.testing.expectEqual(@as(u32, @popCount(@as(u16, @truncate(xor16)))), swHweight16(xor16));
+    try std.testing.expectEqual(swHweight16(xor16), __sw_hweight16(xor16));
+
+    const left32: u32 = 0xa5c3_0f96;
+    const right32: u32 = 0x3c5a_f069;
+    const xor32 = left32 ^ right32;
+    try std.testing.expectEqual(@as(u32, @popCount(xor32)), swHweight32(xor32));
+    try std.testing.expectEqual(swHweight32(xor32), __sw_hweight32(xor32));
+
+    const left64: u64 = 0xa5c3_0f96_1234_fedc;
+    const right64: u64 = 0x3c5a_f069_edcb_0123;
+    const xor64 = left64 ^ right64;
+    try std.testing.expectEqual(@as(u64, @popCount(xor64)), swHweight64(xor64));
+    try std.testing.expectEqual(swHweight64(xor64), __sw_hweight64(xor64));
+
+    const left_long: usize = if (@sizeOf(usize) == 4) 0xa5c3_0f96 else 0xa5c3_0f96_1234_fedc;
+    const right_long: usize = if (@sizeOf(usize) == 4) 0x3c5a_f069 else 0x3c5a_f069_edcb_0123;
+    const xor_long = left_long ^ right_long;
+    try std.testing.expectEqual(@popCount(xor_long), hweightLong(xor_long));
+    try std.testing.expectEqual(hweightLong(xor_long), hweight_long(xor_long));
+}
