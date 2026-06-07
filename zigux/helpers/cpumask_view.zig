@@ -14,6 +14,14 @@ pub const CpuMaskView = struct {
         return self.bitmap.isSet(cpu);
     }
 
+    pub fn hasNoCpus(self: CpuMaskView) bool {
+        return self.bitmap.isEmpty();
+    }
+
+    pub fn hasAllCpus(self: CpuMaskView) bool {
+        return self.bitmap.isFull();
+    }
+
     pub fn countPresentCpus(self: CpuMaskView) usize {
         return self.bitmap.countSetBits();
     }
@@ -74,9 +82,39 @@ test "cpumask view keeps cpu presence and gaps explicit" {
     try std.testing.expect(view.hasCpu(0));
     try std.testing.expect(!view.hasCpu(1));
     try std.testing.expect(view.hasCpu(5));
+    try std.testing.expect(!view.hasNoCpus());
+    try std.testing.expect(!view.hasAllCpus());
     try std.testing.expectEqual(@as(usize, 3), view.countPresentCpus());
     try std.testing.expectEqual(@as(?usize, 0), view.firstCpu());
     try std.testing.expectEqual(@as(?usize, 1), view.firstMissingCpu());
+}
+
+test "cpumask view reports empty and full capacity with tail masking" {
+    const empty_words = [_]usize{
+        0,
+        std.math.maxInt(usize) & ~((@as(usize, 1) << 5) - 1),
+    };
+    const full_words = [_]usize{
+        std.math.maxInt(usize),
+        std.math.maxInt(usize),
+    };
+    const partial_words = [_]usize{
+        std.math.maxInt(usize),
+        (@as(usize, 1) << 1) | (@as(usize, 1) << 3),
+    };
+    const capacity = bitmap_view.word_bits + 5;
+
+    const empty = CpuMaskView.init(empty_words[0..], capacity);
+    const full = CpuMaskView.init(full_words[0..], capacity);
+    const partial = CpuMaskView.init(partial_words[0..], capacity);
+
+    try std.testing.expect(empty.hasNoCpus());
+    try std.testing.expect(!empty.hasAllCpus());
+    try std.testing.expect(!full.hasNoCpus());
+    try std.testing.expect(full.hasAllCpus());
+    try std.testing.expect(!partial.hasNoCpus());
+    try std.testing.expect(!partial.hasAllCpus());
+    try std.testing.expectEqual(capacity, full.countPresentCpus());
 }
 
 test "cpumask view keeps subset and overlap checks bounded to the declared capacity" {
