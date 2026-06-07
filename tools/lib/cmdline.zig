@@ -231,6 +231,37 @@ test "memparse handles decimal hexadecimal octal and suffixes" {
     try std.testing.expectEqualStrings("", octal.rest);
 }
 
+test "memparse recognizes each binary suffix case and preserves trailing rest" {
+    const cases = [_]struct {
+        text: []const u8,
+        expected: u64,
+        rest: []const u8,
+    }{
+        .{ .text = "2Ktail", .expected = 2 << 10, .rest = "tail" },
+        .{ .text = "3ktail", .expected = 3 << 10, .rest = "tail" },
+        .{ .text = "4Mtail", .expected = 4 << 20, .rest = "tail" },
+        .{ .text = "5mtail", .expected = 5 << 20, .rest = "tail" },
+        .{ .text = "6Gtail", .expected = 6 << 30, .rest = "tail" },
+        .{ .text = "7gtail", .expected = 7 << 30, .rest = "tail" },
+        .{ .text = "8Ttail", .expected = 8 << 40, .rest = "tail" },
+        .{ .text = "9ttail", .expected = 9 << 40, .rest = "tail" },
+        .{ .text = "10Ptail", .expected = 10 << 50, .rest = "tail" },
+        .{ .text = "11ptail", .expected = 11 << 50, .rest = "tail" },
+        .{ .text = "12Etail", .expected = 12 << 60, .rest = "tail" },
+        .{ .text = "13etail", .expected = 13 << 60, .rest = "tail" },
+    };
+
+    for (cases) |case| {
+        const parsed = memparse(case.text);
+        try std.testing.expectEqual(case.expected, parsed.value);
+        try std.testing.expectEqualStrings(case.rest, parsed.rest);
+    }
+
+    const ignored = memparse("14Ztail");
+    try std.testing.expectEqual(@as(u64, 14), ignored.value);
+    try std.testing.expectEqualStrings("Ztail", ignored.rest);
+}
+
 test "memparse reports no-conversion via unchanged rest" {
     const invalid = memparse("xyz");
     try std.testing.expectEqual(@as(u64, 0), invalid.value);
