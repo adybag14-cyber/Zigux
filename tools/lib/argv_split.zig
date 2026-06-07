@@ -170,3 +170,20 @@ test "argvSplit treats exactly ASCII whitespace bytes as separators" {
         try std.testing.expectEqualSlices(u8, text[0..], result.argv[0]);
     }
 }
+
+test "argvSplit gives duplicate-looking tokens independent mutable storage" {
+    var result = try argv_split(std.testing.allocator, "same same same");
+    defer argv_free(&result);
+
+    try std.testing.expectEqual(@as(usize, 3), result.argc());
+    try std.testing.expectEqualStrings("same", result.argv[0]);
+    try std.testing.expectEqualStrings("same", result.argv[1]);
+    try std.testing.expectEqualStrings("same", result.argv[2]);
+
+    result.argv[1][0] = 'S';
+    result.argv[1][3] = 'E';
+
+    try std.testing.expectEqualStrings("same", result.argv[0]);
+    try std.testing.expectEqualStrings("SamE", result.argv[1]);
+    try std.testing.expectEqualStrings("same", result.argv[2]);
+}
