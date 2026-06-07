@@ -1,5 +1,7 @@
 const std = @import("std");
 
+pub const max_traversal_nodes: usize = 4096;
+
 fn nodeFromRaw(raw: usize) ?*const HListNode {
     if (raw == 0) return null;
     const node: *const HListNode = @ptrFromInt(raw);
@@ -15,18 +17,28 @@ pub const HListNode = extern struct {
     pprev: usize,
 };
 
+pub const PrevLinkBreakReason = enum {
+    pprev_mismatch,
+    traversal_limit,
+};
+
 pub const PrevLinkBreak = struct {
     current_index: usize,
     expected_pprev: usize,
     actual_pprev: usize,
+    reason: PrevLinkBreakReason = .pprev_mismatch,
 };
 
 pub const Iterator = struct {
     current: ?*const HListNode = null,
+    visited: usize = 0,
 
     pub fn next(self: *Iterator) ?*const HListNode {
+        if (self.visited >= max_traversal_nodes) return null;
+
         const node = self.current orelse return null;
         self.current = nodeFromRaw(node.next);
+        self.visited += 1;
         return node;
     }
 };
@@ -96,6 +108,15 @@ pub const HListView = struct {
         var cursor = self.first();
 
         while (cursor) |node| {
+            if (current_index >= max_traversal_nodes) {
+                return .{
+                    .current_index = current_index,
+                    .expected_pprev = expected_pprev,
+                    .actual_pprev = @intFromPtr(node),
+                    .reason = .traversal_limit,
+                };
+            }
+
             if (node.pprev != expected_pprev) {
                 return .{
                     .current_index = current_index,
@@ -214,5 +235,34 @@ test "hlist view reports the first broken prev-link witness" {
     try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&first.next)), breakage.expected_pprev);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.actual_pprev);
+    try std.testing.expectEqual(PrevLinkBreakReason.pprev_mismatch, breakage.reason);
     try std.testing.expect(!HListView.init(&head).hasConsistentPrevLinks());
+}
+
+test "hlist view bounds malformed walks that never reach a null tail" {
+    var head = HListHead{ .first = 0 };
+    var nodes: [max_traversal_nodes + 1]HListNode = undefined;
+    for (&nodes) |*node| {
+        node.* = .{ .next = 0, .pprev = 0 };
+    }
+
+    head.first = @intFromPtr(&nodes[0]);
+    nodes[0].pprev = @intFromPtr(&head.first);
+    for (nodes[0..max_traversal_nodes], 0..) |*node, index| {
+        node.next = @intFromPtr(&nodes[index + 1]);
+        nodes[index + 1].pprev = @intFromPtr(&node.next);
+    }
+    nodes[max_traversal_nodes].next = @intFromPtr(&nodes[max_traversal_nodes]);
+
+    const view = HListView.init(&head);
+    try std.testing.expectEqual(max_traversal_nodes, view.len());
+    try std.testing.expect(view.contains(&nodes[0]));
+    try std.testing.expect(view.contains(&nodes[max_traversal_nodes - 1]));
+    try std.testing.expect(!view.contains(&nodes[max_traversal_nodes]));
+    try std.testing.expect(!view.tailNextIsNull());
+
+    const breakage = view.firstBrokenPrevLink().?;
+    try std.testing.expectEqual(max_traversal_nodes, breakage.current_index);
+    try std.testing.expectEqual(PrevLinkBreakReason.traversal_limit, breakage.reason);
+    try std.testing.expect(!view.hasConsistentPrevLinks());
 }
