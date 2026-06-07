@@ -16,10 +16,12 @@ pub fn build(b: *std.Build) void {
 
     const contract_step = b.step(
         "check-zig-toolchain-version-status-contract",
-        "Run the Zig toolchain version status contract",
+        "Run the Lane 18 Zig toolchain version status contract.",
     );
     contract_step.dependOn(&run_tests.step);
 
-    const test_step = b.step("test", "Run tests");
+    const test_step = b.step("test", "Run the Lane 18 Zig toolchain version status contract tests.");
     test_step.dependOn(&run_tests.step);
+
+    b.default_step.dependOn(&run_tests.step);
 }
