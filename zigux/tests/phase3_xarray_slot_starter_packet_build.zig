@@ -43,4 +43,8 @@ pub fn build(b: *std.Build) void {
         "Run the Phase 3 xarray slot starter-packet self-check",
     );
     test_step.dependOn(&run_unit_tests.step);
+
+    const default_step = b.step("test", "Run the Phase 3 xarray slot starter-packet self-check");
+    default_step.dependOn(&run_unit_tests.step);
+    b.default_step.dependOn(&run_unit_tests.step);
 }
