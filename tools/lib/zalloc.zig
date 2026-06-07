@@ -79,3 +79,39 @@ test "zfree helpers are no-ops for empty owners" {
     zfreeValue(allocator, Value, &value);
     try std.testing.expect(value == null);
 }
+
+test "zfree releases byte and value owners independently" {
+    const allocator = std.testing.allocator;
+    const Value = struct {
+        tag: u16,
+        ready: bool,
+    };
+
+    var bytes: ?[]u8 = try zallocBytes(allocator, 4);
+    defer zfreeBytes(allocator, &bytes);
+    var value: ?*Value = try zallocValue(allocator, Value);
+    defer zfreeValue(allocator, Value, &value);
+
+    @memcpy(bytes.?, "live");
+    value.?.* = .{ .tag = 0x515a, .ready = true };
+
+    zfreeBytes(allocator, &bytes);
+    try std.testing.expect(bytes == null);
+    try std.testing.expect(value != null);
+    try std.testing.expectEqual(@as(u16, 0x515a), value.?.tag);
+    try std.testing.expectEqual(true, value.?.ready);
+
+    bytes = try zallocBytes(allocator, 4);
+    for (bytes.?) |item| {
+        try std.testing.expectEqual(@as(u8, 0), item);
+    }
+
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+    try std.testing.expect(bytes != null);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, 0, 0, 0 }, bytes.?);
+
+    value = try zallocValue(allocator, Value);
+    try std.testing.expectEqual(@as(u16, 0), value.?.tag);
+    try std.testing.expectEqual(false, value.?.ready);
+}
