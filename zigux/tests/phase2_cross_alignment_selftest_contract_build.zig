@@ -14,6 +14,7 @@ pub fn build(b: *std.Build) void {
         .root_module = root_module,
     });
     const run_tests = b.addRunArtifact(tests);
+    run_tests.setCwd(b.path("../.."));
 
     const contract_step = b.step(
         "phase2-cross-alignment-selftest-contract",
