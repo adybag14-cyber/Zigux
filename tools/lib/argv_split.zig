@@ -170,3 +170,21 @@ test "argvSplit treats exactly ASCII whitespace bytes as separators" {
         try std.testing.expectEqualSlices(u8, text[0..], result.argv[0]);
     }
 }
+
+test "argvSplit aliases return independently mutable duplicated arguments" {
+    var result = try argv_split(std.testing.allocator, "repeat repeat tail");
+    defer argv_free(&result);
+
+    try std.testing.expectEqual(@as(usize, 3), result.argc());
+    try std.testing.expectEqualStrings("repeat", result.argv[0]);
+    try std.testing.expectEqualStrings("repeat", result.argv[1]);
+    try std.testing.expectEqualStrings("tail", result.argv[2]);
+
+    try std.testing.expect(result.argv[0].ptr != result.argv[1].ptr);
+    result.argv[0][0] = 'R';
+    result.argv[1][1] = 'E';
+
+    try std.testing.expectEqualStrings("Repeat", result.argv[0]);
+    try std.testing.expectEqualStrings("rEpeat", result.argv[1]);
+    try std.testing.expectEqualStrings("tail", result.argv[2]);
+}
