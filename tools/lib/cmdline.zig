@@ -289,6 +289,15 @@ test "parseOptionStr matches only exact bare options" {
     try std.testing.expect(parse_option_str("quiet,debug,nohlt", "quiet"));
 }
 
+test "parseOptionStr does not trim spaces around entries" {
+    try std.testing.expect(parseOptionStr("quiet, debug,nohlt", "quiet"));
+    try std.testing.expect(!parseOptionStr("quiet, debug,nohlt", "debug"));
+    try std.testing.expect(parseOptionStr("quiet, debug,nohlt", " debug"));
+
+    try std.testing.expect(!parse_option_str("quiet,debug ,nohlt", "debug"));
+    try std.testing.expect(parse_option_str("quiet,debug ,nohlt", "debug "));
+}
+
 test "nextArg returns null for blank input" {
     try std.testing.expect(nextArg(" \t \n") == null);
 }
