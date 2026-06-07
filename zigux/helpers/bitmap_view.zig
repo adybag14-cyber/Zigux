@@ -108,6 +108,15 @@ pub const BitmapView = struct {
         return null;
     }
 
+    pub fn eql(self: BitmapView, other: BitmapView) bool {
+        std.debug.assert(self.bit_len == other.bit_len);
+
+        for (0..self.activeWordLen()) |index| {
+            if (self.maskedWord(index) != other.maskedWord(index)) return false;
+        }
+        return true;
+    }
+
     pub fn isSubsetOf(self: BitmapView, other: BitmapView) bool {
         std.debug.assert(self.bit_len == other.bit_len);
 
@@ -170,6 +179,29 @@ test "bitmap view finds the first clear bit across word boundaries" {
     const view = BitmapView.init(words[0..], bit_len);
 
     try std.testing.expectEqual(@as(usize, word_bits + 2), view.firstClearBit().?);
+}
+
+test "bitmap view keeps equality bounded to declared active bits" {
+    const bit_len = word_bits + 3;
+    const first_words = [_]Word{
+        bitMask(1) | bitMask(word_bits - 1),
+        (@as(Word, 1) << 0) | (@as(Word, 1) << 2) | (@as(Word, 1) << 6),
+    };
+    const same_active_words = [_]Word{
+        bitMask(1) | bitMask(word_bits - 1),
+        (@as(Word, 1) << 0) | (@as(Word, 1) << 2) | (@as(Word, 1) << 9),
+    };
+    const changed_active_words = [_]Word{
+        bitMask(1) | bitMask(word_bits - 2),
+        (@as(Word, 1) << 0) | (@as(Word, 1) << 2),
+    };
+
+    const first = BitmapView.init(first_words[0..], bit_len);
+    const same_active = BitmapView.init(same_active_words[0..], bit_len);
+    const changed_active = BitmapView.init(changed_active_words[0..], bit_len);
+
+    try std.testing.expect(first.eql(same_active));
+    try std.testing.expect(!first.eql(changed_active));
 }
 
 test "bitmap view keeps subset and overlap checks bounded to active bits" {
