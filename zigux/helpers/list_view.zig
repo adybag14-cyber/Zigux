@@ -1,5 +1,7 @@
 const std = @import("std");
 
+pub const max_traversal_nodes: usize = 4096;
+
 fn ptrFromRaw(raw: usize) ?*const ListHead {
     if (raw == 0) return null;
     const node: *const ListHead = @ptrFromInt(raw);
@@ -11,18 +13,28 @@ pub const ListHead = extern struct {
     prev: usize,
 };
 
+pub const BackLinkBreakReason = enum {
+    prev_mismatch,
+    null_next,
+    traversal_limit,
+};
+
 pub const BackLinkBreak = struct {
     current_index: usize,
     expected_prev: usize,
     actual_prev: usize,
+    reason: BackLinkBreakReason = .prev_mismatch,
 };
 
 pub const Iterator = struct {
     head: *const ListHead,
     current: ?*const ListHead = null,
     started: bool = false,
+    visited: usize = 0,
 
     pub fn next(self: *Iterator) ?*const ListHead {
+        if (self.visited >= max_traversal_nodes) return null;
+
         const candidate = if (!self.started) blk: {
             self.started = true;
             break :blk ptrFromRaw(self.head.next) orelse return null;
@@ -37,6 +49,7 @@ pub const Iterator = struct {
         }
 
         self.current = candidate;
+        self.visited += 1;
         return candidate;
     }
 };
@@ -100,10 +113,20 @@ pub const ListView = struct {
                 .current_index = 0,
                 .expected_prev = expected_prev,
                 .actual_prev = 0,
+                .reason = .null_next,
             };
         };
 
         while (cursor != self.head) {
+            if (current_index >= max_traversal_nodes) {
+                return .{
+                    .current_index = current_index,
+                    .expected_prev = expected_prev,
+                    .actual_prev = @intFromPtr(cursor),
+                    .reason = .traversal_limit,
+                };
+            }
+
             if (cursor.prev != expected_prev) {
                 return .{
                     .current_index = current_index,
@@ -119,6 +142,7 @@ pub const ListView = struct {
                     .current_index = current_index,
                     .expected_prev = expected_prev,
                     .actual_prev = 0,
+                    .reason = .null_next,
                 };
             };
         }
@@ -163,6 +187,7 @@ test "list view does not treat a broken sentinel backlink as empty" {
     try std.testing.expectEqual(@as(usize, 0), breakage.current_index);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head)), breakage.expected_prev);
     try std.testing.expectEqual(@as(usize, 0), breakage.actual_prev);
+    try std.testing.expectEqual(BackLinkBreakReason.prev_mismatch, breakage.reason);
     try std.testing.expect(!view.hasConsistentBacklinks());
 }
 
@@ -248,5 +273,34 @@ test "list view reports the first broken backlink witness" {
     try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&first)), breakage.expected_prev);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head)), breakage.actual_prev);
+    try std.testing.expectEqual(BackLinkBreakReason.prev_mismatch, breakage.reason);
     try std.testing.expect(!ListView.init(&head).hasConsistentBacklinks());
+}
+
+test "list view bounds malformed walks that never return to the sentinel" {
+    var head = ListHead{ .next = 0, .prev = 0 };
+    var nodes: [max_traversal_nodes + 1]ListHead = undefined;
+    for (&nodes) |*node| {
+        node.* = .{ .next = 0, .prev = 0 };
+    }
+
+    head.next = @intFromPtr(&nodes[0]);
+    head.prev = @intFromPtr(&nodes[max_traversal_nodes]);
+    nodes[0].prev = @intFromPtr(&head);
+    for (nodes[0..max_traversal_nodes], 0..) |*node, index| {
+        node.next = @intFromPtr(&nodes[index + 1]);
+        nodes[index + 1].prev = @intFromPtr(node);
+    }
+    nodes[max_traversal_nodes].next = @intFromPtr(&nodes[max_traversal_nodes]);
+
+    const view = ListView.init(&head);
+    try std.testing.expectEqual(max_traversal_nodes, view.len());
+    try std.testing.expect(view.contains(&nodes[0]));
+    try std.testing.expect(view.contains(&nodes[max_traversal_nodes - 1]));
+    try std.testing.expect(!view.contains(&nodes[max_traversal_nodes]));
+
+    const breakage = view.firstBrokenBacklink().?;
+    try std.testing.expectEqual(max_traversal_nodes, breakage.current_index);
+    try std.testing.expectEqual(BackLinkBreakReason.traversal_limit, breakage.reason);
+    try std.testing.expect(!view.hasConsistentBacklinks());
 }
