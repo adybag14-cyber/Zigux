@@ -34,6 +34,10 @@ pub const CpuMaskView = struct {
         return self.bitmap.nextClearBit(start_cpu);
     }
 
+    pub fn eql(self: CpuMaskView, other: CpuMaskView) bool {
+        return self.bitmap.eql(other.bitmap);
+    }
+
     pub fn isSubsetOf(self: CpuMaskView, other: CpuMaskView) bool {
         return self.bitmap.isSubsetOf(other.bitmap);
     }
@@ -77,6 +81,36 @@ test "cpumask view keeps cpu presence and gaps explicit" {
     try std.testing.expectEqual(@as(usize, 3), view.countPresentCpus());
     try std.testing.expectEqual(@as(?usize, 0), view.firstCpu());
     try std.testing.expectEqual(@as(?usize, 1), view.firstMissingCpu());
+}
+
+test "cpumask view equality ignores tail noise but catches active cpu drift" {
+    const cpu_capacity = bitmap_view.word_bits + 4;
+    const first_words = [_]usize{
+        (@as(usize, 1) << 2) |
+            (@as(usize, 1) << 6),
+        (@as(usize, 1) << 1) |
+            (@as(usize, 1) << 3) |
+            (@as(usize, 1) << 8),
+    };
+    const same_active_words = [_]usize{
+        (@as(usize, 1) << 2) |
+            (@as(usize, 1) << 6),
+        (@as(usize, 1) << 1) |
+            (@as(usize, 1) << 3) |
+            (@as(usize, 1) << 11),
+    };
+    const missing_active_words = [_]usize{
+        (@as(usize, 1) << 2) |
+            (@as(usize, 1) << 6),
+        @as(usize, 1) << 1,
+    };
+
+    const first = CpuMaskView.init(first_words[0..], cpu_capacity);
+    const same_active = CpuMaskView.init(same_active_words[0..], cpu_capacity);
+    const missing_active = CpuMaskView.init(missing_active_words[0..], cpu_capacity);
+
+    try std.testing.expect(first.eql(same_active));
+    try std.testing.expect(!first.eql(missing_active));
 }
 
 test "cpumask view keeps subset and overlap checks bounded to the declared capacity" {
