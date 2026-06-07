@@ -108,3 +108,41 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweight helpers count singleton bits in every lane" {
+    var bit8: u5 = 0;
+    while (bit8 < 8) : (bit8 += 1) {
+        const value = @as(u32, 1) << bit8;
+        try std.testing.expectEqual(@as(u32, 1), swHweight8(value));
+        try std.testing.expectEqual(@as(u32, 1), __sw_hweight8(value));
+    }
+
+    var bit16: u5 = 0;
+    while (bit16 < 16) : (bit16 += 1) {
+        const value = @as(u32, 1) << bit16;
+        try std.testing.expectEqual(@as(u32, 1), swHweight16(value));
+        try std.testing.expectEqual(@as(u32, 1), __sw_hweight16(value));
+    }
+
+    var bit32: u6 = 0;
+    while (bit32 < 32) : (bit32 += 1) {
+        const value = @as(u32, 1) << @as(u5, @intCast(bit32));
+        try std.testing.expectEqual(@as(u32, 1), swHweight32(value));
+        try std.testing.expectEqual(@as(u32, 1), __sw_hweight32(value));
+    }
+
+    var bit64: u7 = 0;
+    while (bit64 < 64) : (bit64 += 1) {
+        const value = @as(u64, 1) << @as(u6, @intCast(bit64));
+        try std.testing.expectEqual(@as(u64, 1), swHweight64(value));
+        try std.testing.expectEqual(@as(u64, 1), __sw_hweight64(value));
+    }
+
+    var bit_long: u7 = 0;
+    while (bit_long < @bitSizeOf(usize)) : (bit_long += 1) {
+        const shift: std.math.Log2Int(usize) = @intCast(bit_long);
+        const value = @as(usize, 1) << shift;
+        try std.testing.expectEqual(@as(usize, 1), hweightLong(value));
+        try std.testing.expectEqual(@as(usize, 1), hweight_long(value));
+    }
+}
