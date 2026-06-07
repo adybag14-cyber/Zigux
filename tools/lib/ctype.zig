@@ -124,6 +124,32 @@ test "ctype transforms and ascii helpers behave" {
     try std.testing.expect(!isodigit('8'));
 }
 
+test "ctype digit helpers preserve decimal and octal boundaries" {
+    const decimal_edges = [_]u8{ '/', '0', '7', '8', '9', ':' };
+    const expected_decimal = [_]bool{ false, true, true, true, true, false };
+    const expected_octal = [_]bool{ false, true, true, false, false, false };
+
+    for (decimal_edges, expected_decimal, expected_octal) |ch, want_digit, want_octal| {
+        try std.testing.expectEqual(want_digit, isdigit(ch));
+        try std.testing.expectEqual(want_octal, isodigit(ch));
+        try std.testing.expectEqual(want_digit, (mask(ch) & _D) != 0);
+    }
+
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+        const digit = byte >= '0' and byte <= '9';
+        const octal = byte >= '0' and byte <= '7';
+
+        try std.testing.expectEqual(digit, isdigit(byte));
+        try std.testing.expectEqual(octal, isodigit(byte));
+        if (isodigit(byte)) {
+            try std.testing.expect(isdigit(byte));
+            try std.testing.expect(isxdigit(byte));
+        }
+    }
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
