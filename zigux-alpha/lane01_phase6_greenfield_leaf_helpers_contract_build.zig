@@ -24,4 +24,6 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run the Lane 01 Phase 6 greenfield leaf helpers contract tests");
     test_step.dependOn(&run_contract_tests.step);
+
+    b.default_step.dependOn(&run_contract_tests.step);
 }
