@@ -55,6 +55,24 @@ pub const BitmapView = struct {
         return (self.words[wordIndex(bit_index)] & bitMask(bit_index)) != 0;
     }
 
+    pub fn isEmpty(self: BitmapView) bool {
+        for (0..self.activeWordLen()) |index| {
+            if (self.maskedWord(index) != 0) return false;
+        }
+        return true;
+    }
+
+    pub fn isFull(self: BitmapView) bool {
+        for (0..self.activeWordLen()) |index| {
+            const expected = if (index == self.activeWordLen() - 1)
+                tailMask(self.bit_len)
+            else
+                std.math.maxInt(Word);
+            if (self.maskedWord(index) != expected) return false;
+        }
+        return true;
+    }
+
     pub fn countSetBits(self: BitmapView) usize {
         if (self.bit_len == 0) return 0;
 
@@ -132,6 +150,8 @@ test "bitmap view keeps an empty range trivial" {
     const view = BitmapView.init(words[0..], 0);
 
     try std.testing.expectEqual(@as(usize, 0), view.countSetBits());
+    try std.testing.expect(view.isEmpty());
+    try std.testing.expect(view.isFull());
     try std.testing.expectEqual(@as(?usize, null), view.firstSetBit());
     try std.testing.expectEqual(@as(?usize, null), view.firstClearBit());
 }
@@ -143,6 +163,8 @@ test "bitmap view reports set bits inside one word" {
     try std.testing.expect(view.isSet(1));
     try std.testing.expect(view.isSet(5));
     try std.testing.expect(!view.isSet(7));
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expect(!view.isFull());
     try std.testing.expectEqual(@as(usize, 3), view.countSetBits());
     try std.testing.expectEqual(@as(?usize, 1), view.firstSetBit());
     try std.testing.expectEqual(@as(?usize, 0), view.firstClearBit());
@@ -156,9 +178,25 @@ test "bitmap view ignores padding bits past the declared range" {
     const bit_len = word_bits + 5;
     const view = BitmapView.init(words[0..], bit_len);
 
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expect(view.isFull());
     try std.testing.expectEqual(bit_len, view.countSetBits());
     try std.testing.expectEqual(@as(?usize, 0), view.firstSetBit());
     try std.testing.expectEqual(@as(?usize, null), view.firstClearBit());
+}
+
+test "bitmap view treats tail-only noise as empty but not full" {
+    const words = [_]Word{
+        0,
+        ~tailMask(word_bits + 5),
+    };
+    const view = BitmapView.init(words[0..], word_bits + 5);
+
+    try std.testing.expect(view.isEmpty());
+    try std.testing.expect(!view.isFull());
+    try std.testing.expectEqual(@as(usize, 0), view.countSetBits());
+    try std.testing.expectEqual(@as(?usize, null), view.firstSetBit());
+    try std.testing.expectEqual(@as(?usize, 0), view.firstClearBit());
 }
 
 test "bitmap view finds the first clear bit across word boundaries" {
