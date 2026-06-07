@@ -109,4 +109,5 @@ pub fn build(b: *std.Build) void {
 
     const default_test_step = b.step("test", "Run the Phase 3 IDA range and xarray-slot starter packets");
     default_test_step.dependOn(test_step);
+    b.default_step.dependOn(test_step);
 }
