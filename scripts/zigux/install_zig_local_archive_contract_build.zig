@@ -19,10 +19,12 @@ pub fn build(b: *std.Build) void {
 
     const contract_step = b.step(
         "install-zig-local-archive-contract",
-        "Validate install-zig local archive install action-path source markers",
+        "Run the Lane 18 install-zig local archive contract.",
     );
     contract_step.dependOn(&run_tests.step);
 
-    const test_step = b.step("test", "Run install-zig local archive contract tests");
+    const test_step = b.step("test", "Run the Lane 18 install-zig local archive contract tests.");
     test_step.dependOn(&run_tests.step);
+
+    b.default_step.dependOn(test_step);
 }
