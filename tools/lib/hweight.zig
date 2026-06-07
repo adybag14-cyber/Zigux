@@ -108,3 +108,41 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweight complements add up to their lane widths" {
+    const samples8 = [_]u32{ 0x00, 0x01, 0x55, 0xa6, 0xff };
+    for (samples8) |sample| {
+        const complement = (~sample) & 0xff;
+        try std.testing.expectEqual(@as(u32, 8), swHweight8(sample) + swHweight8(complement));
+        try std.testing.expectEqual(@as(u32, 8), __sw_hweight8(sample) + __sw_hweight8(complement));
+    }
+
+    const samples16 = [_]u32{ 0x0000, 0x0001, 0x55aa, 0xa600, 0xffff };
+    for (samples16) |sample| {
+        const complement = (~sample) & 0xffff;
+        try std.testing.expectEqual(@as(u32, 16), swHweight16(sample) + swHweight16(complement));
+        try std.testing.expectEqual(@as(u32, 16), __sw_hweight16(sample) + __sw_hweight16(complement));
+    }
+
+    const samples32 = [_]u32{ 0x0000_0000, 0x0000_0001, 0x55aa_33cc, 0xa600_0000, 0xffff_ffff };
+    for (samples32) |sample| {
+        const complement = ~sample;
+        try std.testing.expectEqual(@as(u32, 32), swHweight32(sample) + swHweight32(complement));
+        try std.testing.expectEqual(@as(u32, 32), __sw_hweight32(sample) + __sw_hweight32(complement));
+    }
+
+    const samples64 = [_]u64{ 0, 1, 0x55aa_33cc_0f0f_f0f0, 0xa600_0000_0000_0000, std.math.maxInt(u64) };
+    for (samples64) |sample| {
+        const complement = ~sample;
+        try std.testing.expectEqual(@as(u64, 64), swHweight64(sample) + swHweight64(complement));
+        try std.testing.expectEqual(@as(u64, 64), __sw_hweight64(sample) + __sw_hweight64(complement));
+    }
+
+    const long_samples = [_]usize{ 0, 1, 0x55aa, std.math.maxInt(usize) };
+    const long_width: usize = @bitSizeOf(usize);
+    for (long_samples) |sample| {
+        const complement = ~sample;
+        try std.testing.expectEqual(long_width, hweightLong(sample) + hweightLong(complement));
+        try std.testing.expectEqual(long_width, hweight_long(sample) + hweight_long(complement));
+    }
+}
