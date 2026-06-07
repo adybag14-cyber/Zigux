@@ -74,3 +74,16 @@ test "survey parks the current standalone proof roster as aligned evidence" {
         try requireContains(survey, label);
     }
 }
+
+test "alignment checker exposes standalone proof count and drift failures" {
+    try requireContains(checker, "PHASE2_GENKSYMS_ALIGNMENT_STANDALONE_PROOF_COUNT");
+    try requireContains(checker, "len(STANDALONE_PROOF_PATHS)");
+    try requireContains(checker, "MISSING_REQUIRED_PATHS");
+    try requireContains(checker, "MANIFEST_FIELD_MISMATCH");
+    try requireContains(checker, "standalone_proof_packet");
+    try requireInOrder(
+        checker,
+        "STANDALONE_PROOF_PATHS = (",
+        "PHASE2_GENKSYMS_ALIGNMENT_STANDALONE_PROOF_COUNT",
+    );
+}
