@@ -22,4 +22,6 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run the Phase 1 closure bitmap complement-tail contract tests");
     test_step.dependOn(&run_tests.step);
+
+    b.default_step.dependOn(&run_tests.step);
 }
