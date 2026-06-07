@@ -312,6 +312,18 @@ test "nextArg parses key value pairs and quoted values" {
     try std.testing.expectEqualStrings("panic=-1", second.remaining);
 }
 
+test "nextArg keeps later equals signs inside the value" {
+    const parsed = next_arg("boot=UUID=1234=abcd rootwait") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("boot", parsed.param);
+    try std.testing.expectEqualStrings("UUID=1234=abcd", parsed.value.?);
+    try std.testing.expectEqualStrings("rootwait", parsed.remaining);
+
+    const quoted = nextArg("mode=\"fast=1 debug=0\" next=token") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("mode", quoted.param);
+    try std.testing.expectEqualStrings("fast=1 debug=0", quoted.value.?);
+    try std.testing.expectEqualStrings("next=token", quoted.remaining);
+}
+
 test "nextArg handles a quoted full token that contains a key value pair" {
     const parsed = next_arg("\"mode=fast path\" tail") orelse return error.TestUnexpectedResult;
     try std.testing.expectEqualStrings("mode", parsed.param);
