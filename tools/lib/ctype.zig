@@ -163,3 +163,50 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
         }
     }
 }
+
+test "ctype ASCII case bands keep masks and classifications distinct" {
+    const upper = [_]u8{ 'A', 'F', 'Z' };
+    for (upper) |ch| {
+        try std.testing.expectEqual(@as(u8, _U), mask(ch) & _U);
+        try std.testing.expectEqual(@as(u8, 0), mask(ch) & _L);
+        try std.testing.expect(isalpha(ch));
+        try std.testing.expect(isalnum(ch));
+        try std.testing.expect(isgraph(ch));
+        try std.testing.expect(isprint(ch));
+        try std.testing.expect(!isdigit(ch));
+        try std.testing.expect(!isspace(ch));
+        try std.testing.expect(!ispunct(ch));
+        try std.testing.expectEqual(ch + ('a' - 'A'), tolower(ch));
+        try std.testing.expectEqual(ch + ('a' - 'A'), fastTolower(ch));
+        try std.testing.expectEqual(ch, toupper(ch));
+    }
+
+    const lower = [_]u8{ 'a', 'f', 'z' };
+    for (lower) |ch| {
+        try std.testing.expectEqual(@as(u8, _L), mask(ch) & _L);
+        try std.testing.expectEqual(@as(u8, 0), mask(ch) & _U);
+        try std.testing.expect(isalpha(ch));
+        try std.testing.expect(isalnum(ch));
+        try std.testing.expect(isgraph(ch));
+        try std.testing.expect(isprint(ch));
+        try std.testing.expect(!isdigit(ch));
+        try std.testing.expect(!isspace(ch));
+        try std.testing.expect(!ispunct(ch));
+        try std.testing.expectEqual(ch, tolower(ch));
+        try std.testing.expectEqual(ch, fastTolower(ch));
+        try std.testing.expectEqual(ch - ('a' - 'A'), toupper(ch));
+    }
+
+    const hex_letters = [_]u8{ 'A', 'F', 'a', 'f' };
+    for (hex_letters) |ch| {
+        try std.testing.expect(isxdigit(ch));
+        try std.testing.expectEqual(@as(u8, _X), mask(ch) & _X);
+        try std.testing.expectEqual(@as(u8, 0), mask(ch) & _D);
+    }
+
+    const non_hex_letters = [_]u8{ 'G', 'Z', 'g', 'z' };
+    for (non_hex_letters) |ch| {
+        try std.testing.expect(!isxdigit(ch));
+        try std.testing.expectEqual(@as(u8, 0), mask(ch) & (_D | _X));
+    }
+}
