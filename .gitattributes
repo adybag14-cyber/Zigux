@@ -1,0 +1,4 @@
+# Lane 05 pinned Zig bootstrap archive payloads.
+third_party/*.tar.xz binary
+third_party/*.tar.xz.parts/manifest.json text eol=lf
+third_party/*.tar.xz.parts/part-*.b64 text eol=lf
