@@ -35,4 +35,11 @@ pub fn build(b: *std.Build) void {
         "Run the shared Phase 3 bitmap/cpumask starter packet",
     );
     step.dependOn(&run.step);
+
+    const test_step = b.step(
+        "test",
+        "Run the shared Phase 3 bitmap/cpumask starter packet",
+    );
+    test_step.dependOn(&run.step);
+    b.default_step.dependOn(test_step);
 }
