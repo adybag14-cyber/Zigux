@@ -63,4 +63,5 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run the Phase 2 genksyms standalone proof roster contract");
     test_step.dependOn(&run_tests.step);
+    b.default_step.dependOn(test_step);
 }
