@@ -56,7 +56,8 @@ fn parseSignedPrefix(text: []const u8) struct {
 
     return switch (text[0]) {
         '-' => .{ .negative = true, .start = 1 },
-        else => if (text[0] == '+') .{ .negative = false, .start = 1 } else .{ .negative = false, .start = 0 },
+        '+' => .{ .negative = false, .start = 1 },
+        else => .{ .negative = false, .start = 0 },
     };
 }
 
