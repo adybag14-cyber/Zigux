@@ -31,4 +31,6 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run the Phase 3 ABI rbtree root view contract");
     test_step.dependOn(contract_step);
+
+    b.default_step.dependOn(&run_contract_tests.step);
 }
