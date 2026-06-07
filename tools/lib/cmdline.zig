@@ -56,8 +56,7 @@ fn parseSignedPrefix(text: []const u8) struct {
 
     return switch (text[0]) {
         '-' => .{ .negative = true, .start = 1 },
-        '+' => .{ .negative = false, .start = 1 },
-        else => .{ .negative = false, .start = 0 },
+        else => if (text[0] == '+') .{ .negative = false, .start = 1 } else .{ .negative = false, .start = 0 },
     };
 }
 
@@ -275,6 +274,16 @@ test "memparse keeps signed non-decimal prefixes aligned with suffix handling" {
     const positive_octal = memparse("+010Mmore");
     try std.testing.expectEqual(@as(u64, 8 << 20), positive_octal.value);
     try std.testing.expectEqualStrings("more", positive_octal.rest);
+}
+
+test "memparse keeps signed unknown suffixes in rest" {
+    const negative = memparse("-42Ztail");
+    try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -42))), negative.value);
+    try std.testing.expectEqualStrings("Ztail", negative.rest);
+
+    const positive = memparse("+77_q");
+    try std.testing.expectEqual(@as(u64, 77), positive.value);
+    try std.testing.expectEqualStrings("_q", positive.rest);
 }
 
 test "parseOptionStr matches only exact bare options" {
