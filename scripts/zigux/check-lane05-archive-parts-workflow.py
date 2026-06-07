@@ -10,6 +10,7 @@ WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap-archive-parts-packet.yml
 
 WORKFLOW_NAME = "name: zigux-bootstrap-archive-parts-packet"
 PUSH_BRANCH = "branches: [ master ]"
+GITATTRIBUTES_PATH = "- '.gitattributes'"
 CHECKER_PATH = "- 'scripts/zigux/check-lane05-archive-parts-workflow.py'"
 PACKET_CHECKER_PATH = "- 'scripts/zigux/check-lane05-archive-parts-packet.py'"
 POLICY_PATH = "- 'scripts/zigux/zig-toolchain-policy.json'"
@@ -69,6 +70,7 @@ def check_workflow(text: str) -> None:
     for marker, label in (
         (WORKFLOW_NAME, "workflow name"),
         (PUSH_BRANCH, "master push trigger"),
+        (GITATTRIBUTES_PATH, "gitattributes path filter"),
         (CHECKER_PATH, "workflow checker path filter"),
         (PACKET_CHECKER_PATH, "packet checker path filter"),
         (POLICY_PATH, "policy path filter"),
@@ -92,6 +94,7 @@ def check_workflow(text: str) -> None:
 
     for line, label in (
         (PUSH_BRANCH, "master push trigger"),
+        (GITATTRIBUTES_PATH, "gitattributes path filter"),
         (CHECKER_PATH, "workflow checker path filter"),
         (PACKET_CHECKER_PATH, "packet checker path filter"),
         (POLICY_PATH, "policy path filter"),
@@ -115,6 +118,7 @@ def check_workflow(text: str) -> None:
     ):
         require_exact_line(text, line, label)
 
+    require_order(text, GITATTRIBUTES_PATH, CHECKER_PATH, "pull_request path order")
     require_order(text, CHECKER_PATH, PACKET_CHECKER_PATH, "pull_request path order")
     require_order(text, PACKET_CHECKER_PATH, POLICY_PATH, "pull_request path order")
     require_order(text, POLICY_PATH, THIRD_PARTY_PATH, "pull_request path order")
@@ -135,6 +139,7 @@ on:
     branches: [ master ]
   pull_request:
     paths:
+      - '.gitattributes'
       - 'scripts/zigux/check-lane05-archive-parts-workflow.py'
       - 'scripts/zigux/check-lane05-archive-parts-packet.py'
       - 'scripts/zigux/zig-toolchain-policy.json'
@@ -185,6 +190,10 @@ jobs:
     case_count = 1
 
     for broken_text, expected in (
+        (
+            good_workflow.replace("      - '.gitattributes'\n", "", 1),
+            GITATTRIBUTES_PATH,
+        ),
         (
             good_workflow.replace(
                 "      - name: Compile current Lane 05 archive-parts workflow scripts\n"
