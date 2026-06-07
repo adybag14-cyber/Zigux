@@ -8,6 +8,7 @@ pub fn build(b: *std.Build) void {
     const notifier_abi_path = b.option([]const u8, "notifier-abi-path", "../bindings/notifier_abi.zig") orelse "../bindings/notifier_abi.zig";
     const export_shim_path = b.option([]const u8, "export-shim-path", "../kernel/export_shim.zig") orelse "../kernel/export_shim.zig";
     const dev_t_binding_path = b.option([]const u8, "dev-t-binding-path", "../bindings/dev_t.zig") orelse "../bindings/dev_t.zig";
+    const uapi_dev_t_path = b.option([]const u8, "uapi-dev-t-path", "../uapi/dev_t.zig") orelse "../uapi/dev_t.zig";
     const version_binding_path = b.option([]const u8, "version-binding-path", "../uapi/version.zig") orelse "../uapi/version.zig";
 
     const notifier_abi_module = b.createModule(.{
@@ -29,11 +30,19 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const uapi_dev_t_module = b.createModule(.{
+        .root_source_file = b.path(uapi_dev_t_path),
+        .target = target,
+        .optimize = optimize,
+    });
+    dev_t_binding_module.addImport("uapi_dev_t", uapi_dev_t_module);
+
     const version_binding_module = b.createModule(.{
         .root_source_file = b.path(version_binding_path),
         .target = target,
         .optimize = optimize,
     });
+    version_binding_module.addImport("abi_bindings", abi_bindings_module);
 
     const export_shim_module = b.createModule(.{
         .root_source_file = b.path(export_shim_path),
