@@ -331,6 +331,18 @@ test "nextArg keeps empty and unterminated quoted values aligned" {
     try std.testing.expectEqualStrings("", unterminated.remaining);
 }
 
+test "nextArg keeps adjacent quote suffixes inside the current token" {
+    const bare = nextArg("\"mode\"suffix next=1") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("mode\"suffix", bare.param);
+    try std.testing.expect(bare.value == null);
+    try std.testing.expectEqualStrings("next=1", bare.remaining);
+
+    const keyed = next_arg("root=\"/dev/sda1\"ro quiet") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("root", keyed.param);
+    try std.testing.expectEqualStrings("/dev/sda1\"ro", keyed.value.?);
+    try std.testing.expectEqualStrings("quiet", keyed.remaining);
+}
+
 test "cmdline quote cursors and chained suffixes preserve exact rests" {
     const quoted = next_arg("  \"single word arg\" size=1KKtail") orelse return error.TestUnexpectedResult;
     try std.testing.expectEqualStrings("single word arg", quoted.param);
