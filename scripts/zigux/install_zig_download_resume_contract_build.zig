@@ -28,4 +28,6 @@ pub fn build(b: *std.Build) void {
         "Run install-zig resumable download contract tests",
     );
     test_step.dependOn(&run_tests.step);
+
+    b.default_step.dependOn(&run_tests.step);
 }
