@@ -319,6 +319,18 @@ test "nextArg handles a quoted full token that contains a key value pair" {
     try std.testing.expectEqualStrings("tail", parsed.remaining);
 }
 
+test "nextArg keeps empty quoted bare parameters visible" {
+    const empty = next_arg("\"\" quiet=1") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("", empty.param);
+    try std.testing.expect(empty.value == null);
+    try std.testing.expectEqualStrings("quiet=1", empty.remaining);
+
+    const second = nextArg(empty.remaining) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("quiet", second.param);
+    try std.testing.expectEqualStrings("1", second.value.?);
+    try std.testing.expectEqualStrings("", second.remaining);
+}
+
 test "nextArg keeps empty and unterminated quoted values aligned" {
     const empty = nextArg("root=\"\" quiet") orelse return error.TestUnexpectedResult;
     try std.testing.expectEqualStrings("root", empty.param);
