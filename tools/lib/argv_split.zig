@@ -170,3 +170,19 @@ test "argvSplit treats exactly ASCII whitespace bytes as separators" {
         try std.testing.expectEqualSlices(u8, text[0..], result.argv[0]);
     }
 }
+
+test "argvSplit mixed separator runs skip empty arguments and keep controls literal" {
+    const text =
+        "\t \n" ++
+        "alpha\x1fbeta" ++
+        "\r\x0b\x0c  " ++
+        "gamma\x7fdelta" ++
+        "\n\t ";
+
+    var result = try argv_split(std.testing.allocator, text);
+    defer argv_free(&result);
+
+    try std.testing.expectEqual(@as(usize, 2), result.argc());
+    try std.testing.expectEqualStrings("alpha\x1fbeta", result.argv[0]);
+    try std.testing.expectEqualStrings("gamma\x7fdelta", result.argv[1]);
+}
