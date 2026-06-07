@@ -125,6 +125,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_bitmap_diff_tests.step);
     test_step.dependOn(&run_bitmap_diff_survey_tests.step);
     test_step.dependOn(&run_bitmap_live_helper_replay_tests.step);
+    b.default_step.dependOn(test_step);
 
     const runtime_atomic64_diff_step = b.step(
         "phase4-runtime-atomic64-diff",
