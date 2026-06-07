@@ -60,4 +60,8 @@ pub fn build(b: *std.Build) void {
         "Run the Phase 3 dev_t starter-packet ABI self-check",
     );
     test_step.dependOn(&run_unit_tests.step);
+
+    const default_test_step = b.step("test", "Run the Phase 3 dev_t starter-packet ABI self-check");
+    default_test_step.dependOn(&run_unit_tests.step);
+    b.default_step.dependOn(default_test_step);
 }
