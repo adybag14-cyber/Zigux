@@ -13,6 +13,8 @@ pub fn build(b: *std.Build) void {
     });
 
     const run_contract_tests = b.addRunArtifact(contract_tests);
+    run_contract_tests.setCwd(b.path("../.."));
+
     const contract_step = b.step(
         "validate-bootstrap-duplicate-workflow-line-contract",
         "Run the validate-bootstrap duplicate workflow-line contract",
@@ -21,4 +23,6 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run all validate-bootstrap duplicate workflow-line contract checks");
     test_step.dependOn(&run_contract_tests.step);
+
+    b.default_step.dependOn(&run_contract_tests.step);
 }
