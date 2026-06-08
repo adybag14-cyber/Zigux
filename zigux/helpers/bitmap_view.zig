@@ -117,6 +117,10 @@ pub const BitmapView = struct {
         return true;
     }
 
+    pub fn isSupersetOf(self: BitmapView, other: BitmapView) bool {
+        return other.isSubsetOf(self);
+    }
+
     pub fn intersects(self: BitmapView, other: BitmapView) bool {
         std.debug.assert(self.bit_len == other.bit_len);
 
@@ -194,6 +198,30 @@ test "bitmap view keeps subset and overlap checks bounded to active bits" {
     try std.testing.expect(base.isSubsetOf(superset));
     try std.testing.expect(!superset.isSubsetOf(base));
     try std.testing.expect(!base.intersects(disjoint));
+}
+
+test "bitmap view keeps superset checks bounded to active bits" {
+    const bit_len = word_bits + 2;
+    const contained_words = [_]Word{
+        bitMask(4),
+        @as(Word, 1) << 1,
+    };
+    const superset_words = [_]Word{
+        bitMask(4) | bitMask(9),
+        std.math.maxInt(Word),
+    };
+    const missing_words = [_]Word{
+        bitMask(4) | bitMask(9),
+        std.math.maxInt(Word) & ~(@as(Word, 1) << 1),
+    };
+
+    const contained = BitmapView.init(contained_words[0..], bit_len);
+    const superset = BitmapView.init(superset_words[0..], bit_len);
+    const missing = BitmapView.init(missing_words[0..], bit_len);
+
+    try std.testing.expect(superset.isSupersetOf(contained));
+    try std.testing.expect(!contained.isSupersetOf(superset));
+    try std.testing.expect(!missing.isSupersetOf(contained));
 }
 
 test "bitmap view can walk set and clear bits from a bounded start point" {
