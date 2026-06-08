@@ -83,3 +83,19 @@ test "strErrorR preserves exact-fit caller terminators and surrounding bytes" {
     try std.testing.expectEqual(@as(u8, 0xbb), fallback[50]);
     try std.testing.expectEqual(@as(u8, 0xbb), fallback[51]);
 }
+
+test "strErrorR shorter known message preserves stale tail after terminator" {
+    var buffer: [64]u8 = @splat(0xcc);
+    const fallback = strErrorR(4096, &buffer);
+    try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(4096, [buf], 64)=22", fallback);
+    try std.testing.expectEqual(@as(u8, 0), buffer[fallback.len]);
+
+    const known = strErrorR(0, &buffer);
+    try std.testing.expectEqualStrings("Success", known);
+    try std.testing.expectEqual(@as(u8, 0), buffer[known.len]);
+    try std.testing.expectEqual(@as(u8, ' '), buffer[known.len + 1]);
+    try std.testing.expectEqual(@as(u8, 'E'), buffer[known.len + 2]);
+    try std.testing.expectEqual(@as(u8, 'R'), buffer[known.len + 3]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[fallback.len]);
+    try std.testing.expectEqual(@as(u8, 0xcc), buffer[fallback.len + 1]);
+}
