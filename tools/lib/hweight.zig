@@ -108,3 +108,38 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweight64 matches recomposed 32-bit halves" {
+    const cases = [_]u64{
+        0,
+        1,
+        0xffff_0000,
+        0x0000_0001_0000_0000,
+        0x0123_4567_89ab_cdef,
+        0xffff_ffff_ffff_ffff,
+    };
+
+    for (cases) |value| {
+        const low32: u32 = @intCast(value & 0xffff_ffff);
+        const high32: u32 = @intCast(value >> 32);
+        const recomposed = @as(u64, swHweight32(low32)) + @as(u64, swHweight32(high32));
+
+        try std.testing.expectEqual(recomposed, swHweight64(value));
+        try std.testing.expectEqual(recomposed, __sw_hweight64(value));
+    }
+
+    const long_value: usize = if (@sizeOf(usize) == 4)
+        0xa5a5_00ff
+    else
+        0x0123_4567_89ab_cdef;
+    if (@sizeOf(usize) == 4) {
+        try std.testing.expectEqual(@as(usize, @intCast(swHweight32(@intCast(long_value)))), hweightLong(long_value));
+    } else {
+        const low32: u32 = @intCast(long_value & 0xffff_ffff);
+        const high32: u32 = @intCast(long_value >> 32);
+        const recomposed = @as(usize, @intCast(swHweight32(low32))) + @as(usize, @intCast(swHweight32(high32)));
+
+        try std.testing.expectEqual(recomposed, hweightLong(long_value));
+        try std.testing.expectEqual(recomposed, hweight_long(long_value));
+    }
+}
