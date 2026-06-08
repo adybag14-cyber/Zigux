@@ -25,6 +25,12 @@ const phase9_entry_markers = [_][]const u8{
     "      - name: Check current Phase 9 review-checklist boundaries packet\n        run: python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py",
 };
 
+const later_phase_family_markers = [_][]const u8{
+    "      - name: Self-test current Phase 9 review-checklist boundaries checker\n        run: python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test",
+    "      - name: Self-test current Phase 7 shared-control gap checker\n        run: python3 scripts/zigux/check-phase7-shared-control-gap.py --self-test",
+    "      - name: Self-test current Phase 10 bootstrap route checker\n        run: python3 scripts/zigux/check-phase10-bootstrap-route.py --self-test",
+};
+
 fn markerIndex(source: []const u8, marker: []const u8) !usize {
     return std.mem.indexOf(u8, source, marker) orelse error.MissingWorkflowMarker;
 }
@@ -76,6 +82,20 @@ test "phase6 helper packet keeps validate, tests, and perf in order" {
 
     try std.testing.expect(validate < tests);
     try std.testing.expect(tests < perf);
+}
+
+test "phase8 tooling starts before later phase families" {
+    const workflow_source = try readWorkflowSource(std.testing.allocator);
+    defer std.testing.allocator.free(workflow_source);
+
+    const phase6_perf = try markerIndex(workflow_source, phase6_markers[phase6_markers.len - 1]);
+    const phase8_validate = try markerIndex(workflow_source, phase8_markers[0]);
+
+    try std.testing.expect(phase6_perf < phase8_validate);
+    for (later_phase_family_markers) |marker| {
+        const later_family_start = try markerIndex(workflow_source, marker);
+        try std.testing.expect(phase8_validate < later_family_start);
+    }
 }
 
 test "phase8 tooling routes stay complete and ahead of phase9 entry checks" {
