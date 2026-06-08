@@ -317,6 +317,17 @@ pub fn build(b: *std.Build) void {
         "helper-mmio",
         mmio_module,
     );
+    const mmio_range_access = addModuleTest(
+        b,
+        "helper-mmio-range-access",
+        addMmioWidthHelperModule(
+            b,
+            "mmio_range_access.zig",
+            target,
+            optimize,
+            mmio_module,
+        ),
+    );
     const mmio_width = addModuleTest(
         b,
         "helper-mmio-width",
@@ -344,6 +355,7 @@ pub fn build(b: *std.Build) void {
     low_level_helpers.dependOn(&atomic.step);
     low_level_helpers.dependOn(&barrier.step);
     low_level_helpers.dependOn(&mmio.step);
+    low_level_helpers.dependOn(&mmio_range_access.step);
     low_level_helpers.dependOn(&mmio_width.step);
 
     const mmio_width_step = b.step(
@@ -401,6 +413,7 @@ pub fn build(b: *std.Build) void {
     all.dependOn(&xa_value.step);
     all.dependOn(&xarray_slot_view.step);
     all.dependOn(&mmio.step);
+    all.dependOn(&mmio_range_access.step);
     all.dependOn(&mmio_width.step);
     b.default_step = all;
 }
