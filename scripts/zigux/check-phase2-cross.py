@@ -25,7 +25,7 @@ EXPECTED_FIXTURE_PHASE = "Phase 2"
 EXPECTED_FIXTURE_STATUS = "active"
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 21
 
 
 def read_text(path: Path) -> str:
@@ -58,32 +58,48 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
+def is_sha256_hex(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(char in "0123456789abcdefABCDEF" for char in value)
+    )
+
+
 def load_archive_target_scope(root: Path) -> list[str]:
-    payload = read_json(resolve_path(root, TOOLCHAIN_POLICY))
+    policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+    payload = read_json(policy_path)
     if not isinstance(payload, dict):
-        raise SystemExit(f"invalid json shape in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
+        raise SystemExit(f"invalid json shape in required file: {policy_path}")
     upgrade_policy = payload.get("upgrade_policy")
     if not isinstance(upgrade_policy, dict):
-        raise SystemExit(f"invalid upgrade_policy in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
+        raise SystemExit(f"invalid upgrade_policy in required file: {policy_path}")
     archive_target_scope = upgrade_policy.get("archive_target_scope")
     if not isinstance(archive_target_scope, list) or not archive_target_scope:
-        raise SystemExit(
-            f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
-        )
+        raise SystemExit(f"invalid archive_target_scope in required file: {policy_path}")
+    archive_sha256 = payload.get("archive_sha256")
+    if not isinstance(archive_sha256, dict):
+        raise SystemExit(f"invalid archive_sha256 in required file: {policy_path}")
+
     normalized: list[str] = []
     seen_targets: set[str] = set()
     for value in archive_target_scope:
         if not isinstance(value, str) or not value.strip():
-            raise SystemExit(
-                f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
-            )
+            raise SystemExit(f"invalid archive_target_scope in required file: {policy_path}")
         target = value.strip()
         if target in seen_targets:
-            raise SystemExit(
-                f"duplicate archive_target_scope entry in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
-            )
+            raise SystemExit(f"duplicate archive_target_scope entry in required file: {policy_path}")
+        if not is_sha256_hex(archive_sha256.get(target)):
+            raise SystemExit(f"invalid archive_sha256 for {target} in required file: {policy_path}")
         normalized.append(target)
         seen_targets.add(target)
+
+    extra_hash_targets = sorted(str(target) for target in archive_sha256.keys() if target not in seen_targets)
+    if extra_hash_targets:
+        raise SystemExit(
+            "archive_sha256 targets outside archive_target_scope in required file: "
+            f"{policy_path}: {', '.join(extra_hash_targets)}"
+        )
     return normalized
 
 
@@ -320,6 +336,59 @@ def run_self_test() -> int:
             checks_run += 1
         else:
             raise AssertionError("duplicate archive_target_scope did not abort")
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["archive_sha256"] = {}
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid archive_sha256 for x86_64-linux" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("missing archive_sha256 target did not abort")
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["archive_sha256"]["x86_64-linux"] = "3" * 63
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid archive_sha256 for x86_64-linux" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("short archive_sha256 did not abort")
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["archive_sha256"]["x86_64-linux"] = "g" * 64
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid archive_sha256 for x86_64-linux" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("non-hex archive_sha256 did not abort")
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["archive_sha256"]["aarch64-linux"] = "4" * 64
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "archive_sha256 targets outside archive_target_scope" in str(exc)
+            assert "aarch64-linux" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("extra archive_sha256 target did not abort")
 
         for primary_path in (TOOLCHAIN_POLICY, MAKEFILE, FIXTURE):
             build_self_test_root(root)
