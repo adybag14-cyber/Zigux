@@ -23,6 +23,12 @@ fn startMask(bit_index: usize) Word {
     return (~@as(Word, 0)) << @as(std.math.Log2Int(Word), @intCast(offset));
 }
 
+fn lastBitInWord(masked: Word) usize {
+    std.debug.assert(masked != 0);
+    const leading_zeroes: usize = @intCast(@clz(masked));
+    return word_bits - 1 - leading_zeroes;
+}
+
 pub const BitmapView = struct {
     words: []const Word,
     bit_len: usize,
@@ -86,6 +92,21 @@ pub const BitmapView = struct {
         return null;
     }
 
+    pub fn lastSetBit(self: BitmapView) ?usize {
+        if (self.bit_len == 0) return null;
+
+        var index = self.activeWordLen();
+        while (index > 0) {
+            index -= 1;
+
+            const masked = self.maskedWord(index);
+            if (masked == 0) continue;
+
+            return index * word_bits + lastBitInWord(masked);
+        }
+        return null;
+    }
+
     pub fn firstClearBit(self: BitmapView) ?usize {
         return self.nextClearBit(0);
     }
@@ -104,6 +125,24 @@ pub const BitmapView = struct {
             const base = index * word_bits;
             const bit = base + @ctz(masked);
             if (bit < self.bit_len) return bit;
+        }
+        return null;
+    }
+
+    pub fn lastClearBit(self: BitmapView) ?usize {
+        if (self.bit_len == 0) return null;
+
+        var index = self.activeWordLen();
+        while (index > 0) {
+            index -= 1;
+
+            var masked = ~self.maskedWord(index);
+            if (index == self.activeWordLen() - 1) {
+                masked &= tailMask(self.bit_len);
+            }
+            if (masked == 0) continue;
+
+            return index * word_bits + lastBitInWord(masked);
         }
         return null;
     }
@@ -133,7 +172,9 @@ test "bitmap view keeps an empty range trivial" {
 
     try std.testing.expectEqual(@as(usize, 0), view.countSetBits());
     try std.testing.expectEqual(@as(?usize, null), view.firstSetBit());
+    try std.testing.expectEqual(@as(?usize, null), view.lastSetBit());
     try std.testing.expectEqual(@as(?usize, null), view.firstClearBit());
+    try std.testing.expectEqual(@as(?usize, null), view.lastClearBit());
 }
 
 test "bitmap view reports set bits inside one word" {
@@ -145,7 +186,9 @@ test "bitmap view reports set bits inside one word" {
     try std.testing.expect(!view.isSet(7));
     try std.testing.expectEqual(@as(usize, 3), view.countSetBits());
     try std.testing.expectEqual(@as(?usize, 1), view.firstSetBit());
+    try std.testing.expectEqual(@as(?usize, 12), view.lastSetBit());
     try std.testing.expectEqual(@as(?usize, 0), view.firstClearBit());
+    try std.testing.expectEqual(@as(?usize, 15), view.lastClearBit());
 }
 
 test "bitmap view ignores padding bits past the declared range" {
@@ -158,7 +201,9 @@ test "bitmap view ignores padding bits past the declared range" {
 
     try std.testing.expectEqual(bit_len, view.countSetBits());
     try std.testing.expectEqual(@as(?usize, 0), view.firstSetBit());
+    try std.testing.expectEqual(@as(?usize, bit_len - 1), view.lastSetBit());
     try std.testing.expectEqual(@as(?usize, null), view.firstClearBit());
+    try std.testing.expectEqual(@as(?usize, null), view.lastClearBit());
 }
 
 test "bitmap view finds the first clear bit across word boundaries" {
@@ -170,6 +215,18 @@ test "bitmap view finds the first clear bit across word boundaries" {
     const view = BitmapView.init(words[0..], bit_len);
 
     try std.testing.expectEqual(@as(usize, word_bits + 2), view.firstClearBit().?);
+}
+
+test "bitmap view finds reverse cursors across word boundaries" {
+    const words = [_]Word{
+        bitMask(0) | bitMask(word_bits - 1),
+        bitMask(word_bits + 2) | bitMask(word_bits + 7) | bitMask(word_bits + 12),
+    };
+    const bit_len = word_bits + 9;
+    const view = BitmapView.init(words[0..], bit_len);
+
+    try std.testing.expectEqual(@as(?usize, word_bits + 7), view.lastSetBit());
+    try std.testing.expectEqual(@as(?usize, word_bits + 8), view.lastClearBit());
 }
 
 test "bitmap view keeps subset and overlap checks bounded to active bits" {
