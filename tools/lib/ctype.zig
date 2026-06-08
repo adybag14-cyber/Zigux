@@ -163,3 +163,20 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
         }
     }
 }
+
+test "ctype ascii helpers fold high-bit bytes to low seven-bit values" {
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+        const folded = toascii(byte);
+
+        try std.testing.expectEqual(@as(u8, byte & 0x7f), folded);
+        try std.testing.expectEqual(ch < 128, isascii(byte));
+        try std.testing.expect(isascii(folded));
+
+        if (ch >= 128) {
+            try std.testing.expect(!isascii(byte));
+            try std.testing.expectEqual(byte - 128, folded);
+        }
+    }
+}
