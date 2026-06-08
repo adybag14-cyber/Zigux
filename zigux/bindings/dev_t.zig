@@ -45,6 +45,10 @@ pub fn validateRange(start: Fields, end: Fields) bool {
     return uapi.validateRange(start, end);
 }
 
+pub fn rangeSpan(start: Fields, end: Fields) ?u64 {
+    return uapi.rangeSpan(start, end);
+}
+
 comptime {
     std.debug.assert(abi_version == 1);
     std.debug.assert(fields_size == 8);
@@ -96,4 +100,17 @@ test "dev_t binding keeps validation and range edges aligned with the UAPI packe
     try std.testing.expect(!validateRange(valid, invalid_minor));
 
     try std.testing.expect(eql(valid, decoded));
+}
+
+test "dev_t binding forwards inclusive range span semantics" {
+    const start = init(3, max_minor - 2);
+    const end = init(4, 1);
+    const reversed = init(2, 0);
+    const invalid = init(max_major + 1, 0);
+
+    try std.testing.expectEqual(uapi.rangeSpan(start, end), rangeSpan(start, end));
+    try std.testing.expectEqual(@as(?u64, 5), rangeSpan(start, end));
+    try std.testing.expectEqual(@as(?u64, 4_294_967_296), rangeSpan(init(0, 0), init(max_major, max_minor)));
+    try std.testing.expectEqual(@as(?u64, null), rangeSpan(start, reversed));
+    try std.testing.expectEqual(@as(?u64, null), rangeSpan(start, invalid));
 }

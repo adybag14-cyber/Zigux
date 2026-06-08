@@ -52,6 +52,13 @@ pub fn validateRange(start: Fields, end: Fields) bool {
         (start.major == end.major and start.minor <= end.minor);
 }
 
+pub fn rangeSpan(start: Fields, end: Fields) ?u64 {
+    if (!validateRange(start, end)) return null;
+    const first = @as(u64, makeDeviceNumber(start.major, start.minor));
+    const last = @as(u64, makeDeviceNumber(end.major, end.minor));
+    return last - first + 1;
+}
+
 comptime {
     std.debug.assert(fields_size == 8);
     std.debug.assert(fields_align == 4);
@@ -87,4 +94,19 @@ test "dev_t packing stays aligned with the starter boundary" {
     try std.testing.expectEqual(fields.minor, roundtrip.minor);
     try std.testing.expectEqual(max_major, majorFromDeviceNumber(max_encoded));
     try std.testing.expectEqual(max_minor, minorFromDeviceNumber(max_encoded));
+}
+
+test "dev_t range span stays inclusive and rejects invalid ranges" {
+    const same = init(1, 7);
+    const nearby = init(1, 10);
+    const next_major = init(2, 0);
+    const max_end = init(max_major, max_minor);
+    const invalid = init(max_major + 1, 0);
+
+    try std.testing.expectEqual(@as(?u64, 1), rangeSpan(same, same));
+    try std.testing.expectEqual(@as(?u64, 4), rangeSpan(same, nearby));
+    try std.testing.expectEqual(@as(?u64, max_minor - 7 + 2), rangeSpan(same, next_major));
+    try std.testing.expectEqual(@as(?u64, 4_294_967_296), rangeSpan(init(0, 0), max_end));
+    try std.testing.expectEqual(@as(?u64, null), rangeSpan(nearby, same));
+    try std.testing.expectEqual(@as(?u64, null), rangeSpan(same, invalid));
 }
