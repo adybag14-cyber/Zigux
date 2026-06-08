@@ -45,6 +45,8 @@ LOCAL_PARTS_GUARD = 'if [ ! -d "$repo_archive_parts_dir" ]; then'
 STAGE_HELPER_CMD = "python3 scripts/zigux/stage-pinned-zig-archive.py"
 STAGE_HELPER_ROOT_ARG = '--root "$GITHUB_WORKSPACE"'
 STAGE_HELPER_PARTS_ARG = '--parts-dir "$repo_archive_parts_dir"'
+MIRROR_ROSTER_FETCH_START = "elif curl --fail \\\"
+MIRROR_ROSTER_URL = "https://ziglang.org/download/community-mirrors.txt \\\"
 
 POLICY_MARKERS = (
     'policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
@@ -77,7 +79,8 @@ LOCAL_ARCHIVE_MARKERS = (
     'tar -xJf "$repo_archive_path" -C .zig-toolchain',
     "if try_local_archive; then",
     'elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then',
-    'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
+    MIRROR_ROSTER_FETCH_START,
+    MIRROR_ROSTER_URL,
     'if try_download "$ZIGUX_ZIG_URL"; then',
     "failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org",
 )
@@ -341,12 +344,12 @@ def check_workflow(text: str) -> None:
     require_order(
         text,
         'elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then',
-        'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
+        MIRROR_ROSTER_FETCH_START,
         "workflow canonical release before mirrors order",
     )
     require_order(
         text,
-        'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
+        MIRROR_ROSTER_URL,
         'if try_download "$ZIGUX_ZIG_URL"; then',
         "workflow mirrors before direct download order",
     )
@@ -401,7 +404,16 @@ jobs:
             download_success=1
           elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then
             download_success=1
-          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then
+          elif curl --fail \
+            --location \
+            --retry 5 \
+            --retry-all-errors \
+            --retry-delay 3 \
+            --connect-timeout 20 \
+            --speed-limit 1024 \
+            --speed-time 30 \
+            https://ziglang.org/download/community-mirrors.txt \
+            -o "$mirror_file"; then
             download_success=0
           fi
           if try_download "$ZIGUX_ZIG_URL"; then
@@ -697,10 +709,28 @@ jobs:
         "            download_success=1\n"
         '          elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then\n'
         "            download_success=1\n"
-        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
+        '          elif curl --fail \\\n'
+        '            --location \\\n'
+        '            --retry 5 \\\n'
+        '            --retry-all-errors \\\n'
+        '            --retry-delay 3 \\\n'
+        '            --connect-timeout 20 \\\n'
+        '            --speed-limit 1024 \\\n'
+        '            --speed-time 30 \\\n'
+        '            https://ziglang.org/download/community-mirrors.txt \\\n'
+        '            -o "$mirror_file"; then\n'
         "            download_success=0\n"
         "          fi\n",
-        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
+        '          elif curl --fail \\\n'
+        '            --location \\\n'
+        '            --retry 5 \\\n'
+        '            --retry-all-errors \\\n'
+        '            --retry-delay 3 \\\n'
+        '            --connect-timeout 20 \\\n'
+        '            --speed-limit 1024 \\\n'
+        '            --speed-time 30 \\\n'
+        '            https://ziglang.org/download/community-mirrors.txt \\\n'
+        '            -o "$mirror_file"; then\n'
         "            download_success=0\n"
         "          fi\n"
         "          if try_local_archive; then\n"
