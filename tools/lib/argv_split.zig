@@ -170,3 +170,14 @@ test "argvSplit treats exactly ASCII whitespace bytes as separators" {
         try std.testing.expectEqualSlices(u8, text[0..], result.argv[0]);
     }
 }
+
+test "argvFree clears result state after releasing duplicated arguments" {
+    var result = try argv_split(std.testing.allocator, "alpha beta");
+    try std.testing.expectEqual(@as(usize, 2), result.argc());
+
+    argv_free(&result);
+
+    try std.testing.expectEqual(@as(usize, 0), result.argc());
+    try std.testing.expectEqual(@as(usize, 0), result.argv.len);
+    try std.testing.expectEqualSlices([]u8, &.{}, result.argv);
+}
