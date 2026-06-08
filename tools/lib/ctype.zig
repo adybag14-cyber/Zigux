@@ -124,6 +124,32 @@ test "ctype transforms and ascii helpers behave" {
     try std.testing.expect(!isodigit('8'));
 }
 
+test "ctype whitespace boundaries preserve control and print distinctions" {
+    const whitespace = [_]u8{ '\t', '\n', 0x0b, 0x0c, '\r', ' ' };
+    for (whitespace) |byte| {
+        try std.testing.expect(isspace(byte));
+        try std.testing.expect((mask(byte) & _S) != 0);
+        try std.testing.expect(!isalnum(byte));
+        try std.testing.expect(!isgraph(byte));
+        try std.testing.expect(!ispunct(byte));
+
+        if (byte == ' ') {
+            try std.testing.expectEqual(@as(u8, _S | _SP), mask(byte));
+            try std.testing.expect(isprint(byte));
+            try std.testing.expect(!iscntrl(byte));
+        } else {
+            try std.testing.expectEqual(@as(u8, _C | _S), mask(byte));
+            try std.testing.expect(!isprint(byte));
+            try std.testing.expect(iscntrl(byte));
+        }
+    }
+
+    const neighbors = [_]u8{ 0x08, 0x0e, 0x1f, '!', 0x7f };
+    for (neighbors) |byte| {
+        try std.testing.expect(!isspace(byte));
+    }
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
