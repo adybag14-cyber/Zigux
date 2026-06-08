@@ -32,6 +32,8 @@ pub fn mask(ch: u8) u8 {
     return table[ch];
 }
 
+pub const __ismask = mask;
+
 pub fn isalnum(ch: u8) bool {
     return (mask(ch) & (_U | _L | _D)) != 0;
 }
@@ -91,6 +93,9 @@ pub fn tolower(ch: u8) u8 {
 pub fn toupper(ch: u8) u8 {
     return if (islower(ch)) ch - ('a' - 'A') else ch;
 }
+
+pub const __tolower = tolower;
+pub const __toupper = toupper;
 
 pub fn fastTolower(ch: u8) u8 {
     return if (isupper(ch)) (ch | 0x20) else ch;
@@ -161,5 +166,16 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
         } else {
             try std.testing.expectEqual(byte, fastTolower(byte));
         }
+    }
+}
+
+test "Linux-style ctype internal aliases mirror public helpers" {
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+
+        try std.testing.expectEqual(mask(byte), __ismask(byte));
+        try std.testing.expectEqual(tolower(byte), __tolower(byte));
+        try std.testing.expectEqual(toupper(byte), __toupper(byte));
     }
 }
