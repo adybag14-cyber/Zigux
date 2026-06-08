@@ -79,3 +79,30 @@ test "zfree helpers are no-ops for empty owners" {
     zfreeValue(allocator, Value, &value);
     try std.testing.expect(value == null);
 }
+
+test "zallocValue zeroes aggregate fields and resets the owner" {
+    const allocator = std.testing.allocator;
+    const Tag = enum { cold, warm };
+    const Value = struct {
+        bytes: [4]u8,
+        maybe_len: ?usize,
+        next: ?*u8,
+        state: Tag,
+        mask: u16,
+    };
+
+    var value: ?*Value = try zallocValue(allocator, Value);
+    defer zfreeValue(allocator, Value, &value);
+
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, 0, 0, 0 }, &value.?.bytes);
+    try std.testing.expect(value.?.maybe_len == null);
+    try std.testing.expect(value.?.next == null);
+    try std.testing.expectEqual(Tag.cold, value.?.state);
+    try std.testing.expectEqual(@as(u16, 0), value.?.mask);
+
+    value.?.bytes = .{ 1, 2, 3, 4 };
+    value.?.maybe_len = 4;
+    value.?.mask = 0xffff;
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+}
