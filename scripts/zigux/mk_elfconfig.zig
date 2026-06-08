@@ -137,6 +137,32 @@ test "classifies unsupported ELF class silently" {
     try std.testing.expectEqual(Outcome.invalid_class, classify(&header));
 }
 
+test "classifies only the first fixed ELF ident" {
+    const elf64_tail = [_]u8{
+        0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
+        0,    0,   0,   0,   0,          0, 0, 0,
+    };
+    const success_then_invalid = [_]u8{
+        0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0,
+        0,    0,   0,   0,   0,          0, 0, 0,
+    } ++ [_]u8{
+        0x7f, 'E', 'L', 'F', 0xff, 1, 1, 0,
+        0,    0,   0,   0,   0,    0, 0, 0,
+    };
+    const invalid_then_success = [_]u8{
+        0x7f, 'E', 'L', 'F', 0, 1, 1, 0,
+        0,    0,   0,   0,   0, 0, 0, 0,
+    } ++ elf64_tail;
+    const not_elf_then_success = [_]u8{
+        0, 'E', 'L', 'F', elfclass32, 1, 1, 0,
+        0, 0,   0,   0,   0,          0, 0, 0,
+    } ++ elf64_tail;
+
+    try std.testing.expectEqual(Outcome.elf32, classify(&success_then_invalid));
+    try std.testing.expectEqual(Outcome.invalid_class, classify(&invalid_then_success));
+    try std.testing.expectEqual(Outcome.not_elf, classify(&not_elf_then_success));
+}
+
 test "fd-backed exact 64-bit ELF header exits with stdout at EOF" {
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
