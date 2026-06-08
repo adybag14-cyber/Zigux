@@ -114,7 +114,17 @@ jobs:
           }
           try_download() {
             local url="$1"
-            if curl -L --fail "$url" -o "$archive_path"; then
+            if curl \
+              --fail \
+              --location \
+              --retry 5 \
+              --retry-all-errors \
+              --retry-delay 3 \
+              --connect-timeout 20 \
+              --speed-limit 1 \
+              --speed-time 60 \
+              "$url" \
+              -o "$archive_path"; then
               if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
                 tar -xJf "$archive_path" -C .zig-toolchain
                 zig_path="$extract_root/zig"
