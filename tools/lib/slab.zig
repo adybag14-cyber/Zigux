@@ -32,6 +32,12 @@ pub fn kzallocBytes(size: usize, gfp: gfp_t) ?[]u8 {
     return kmallocBytes(size, gfp | __GFP_ZERO);
 }
 
+pub fn kmemdupBytes(source: []const u8, gfp: gfp_t) ?[]u8 {
+    const duplicate = kmallocBytes(source.len, gfp) orelse return null;
+    @memcpy(duplicate, source);
+    return duplicate;
+}
+
 pub fn kfree(bytes: ?[]u8) void {
     if (bytes) |slice| {
         backing_allocator.free(slice);
@@ -141,4 +147,32 @@ test "zeroing aliases request __GFP_ZERO while preserving allocation accounting"
     try std.testing.expect(kzallocBytes(8, 0) == null);
     try std.testing.expect(kcallocBytes(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
     try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+}
+
+test "kmemdupBytes copies caller bytes into independent slab ownership" {
+    kmalloc_nr_allocated = 0;
+
+    const source = [_]u8{ 0x10, 0x20, 0x30, 0x40 };
+    const duplicate = kmemdupBytes(source[0..], GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    defer kfree(duplicate);
+
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    try std.testing.expectEqualSlices(u8, source[0..], duplicate);
+
+    duplicate[1] = 0xee;
+    try std.testing.expectEqual(@as(u8, 0x20), source[1]);
+    try std.testing.expectEqual(@as(u8, 0xee), duplicate[1]);
+}
+
+test "kmemdupBytes preserves failure accounting and duplicates empty slices" {
+    kmalloc_nr_allocated = 0;
+
+    try std.testing.expect(kmemdupBytes("blocked", 0) == null);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+
+    const empty = kmemdupBytes(""[0..], GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), empty.len);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    kfree(empty);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
 }
