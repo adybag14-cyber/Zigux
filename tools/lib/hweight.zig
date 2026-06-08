@@ -108,3 +108,41 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "wide hweight helpers match byte-lane recomposition" {
+    const values32 = [_]u32{
+        0x0000_0000,
+        0x0102_0408,
+        0x8040_2010,
+        0xa5c3_5a3c,
+        0xffff_ffff,
+    };
+    for (values32) |value| {
+        const expected =
+            swHweight8(value) +
+            swHweight8(value >> 8) +
+            swHweight8(value >> 16) +
+            swHweight8(value >> 24);
+
+        try std.testing.expectEqual(expected, swHweight32(value));
+        try std.testing.expectEqual(expected, __sw_hweight32(value));
+    }
+
+    const values64 = [_]u64{
+        0x0000_0000_0000_0000,
+        0x0102_0408_1020_4080,
+        0xa5c3_5a3c_9669_6996,
+        0xffff_ffff_ffff_ffff,
+    };
+    for (values64) |value| {
+        var expected: u64 = 0;
+        var byte_index: u6 = 0;
+        while (byte_index < 8) : (byte_index += 1) {
+            const shift: u6 = byte_index * 8;
+            expected += swHweight8(@intCast((value >> shift) & 0xff));
+        }
+
+        try std.testing.expectEqual(expected, swHweight64(value));
+        try std.testing.expectEqual(expected, __sw_hweight64(value));
+    }
+}
