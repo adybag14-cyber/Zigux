@@ -65,6 +65,10 @@ pub const BitmapView = struct {
         return total;
     }
 
+    pub fn countClearBits(self: BitmapView) usize {
+        return self.bit_len - self.countSetBits();
+    }
+
     pub fn firstSetBit(self: BitmapView) ?usize {
         return self.nextSetBit(0);
     }
@@ -132,11 +136,12 @@ test "bitmap view keeps an empty range trivial" {
     const view = BitmapView.init(words[0..], 0);
 
     try std.testing.expectEqual(@as(usize, 0), view.countSetBits());
+    try std.testing.expectEqual(@as(usize, 0), view.countClearBits());
     try std.testing.expectEqual(@as(?usize, null), view.firstSetBit());
     try std.testing.expectEqual(@as(?usize, null), view.firstClearBit());
 }
 
-test "bitmap view reports set bits inside one word" {
+test "bitmap view reports set and clear bits inside one word" {
     const words = [_]Word{bitMask(1) | bitMask(5) | bitMask(12)};
     const view = BitmapView.init(words[0..], 16);
 
@@ -144,6 +149,7 @@ test "bitmap view reports set bits inside one word" {
     try std.testing.expect(view.isSet(5));
     try std.testing.expect(!view.isSet(7));
     try std.testing.expectEqual(@as(usize, 3), view.countSetBits());
+    try std.testing.expectEqual(@as(usize, 13), view.countClearBits());
     try std.testing.expectEqual(@as(?usize, 1), view.firstSetBit());
     try std.testing.expectEqual(@as(?usize, 0), view.firstClearBit());
 }
@@ -157,8 +163,23 @@ test "bitmap view ignores padding bits past the declared range" {
     const view = BitmapView.init(words[0..], bit_len);
 
     try std.testing.expectEqual(bit_len, view.countSetBits());
+    try std.testing.expectEqual(@as(usize, 0), view.countClearBits());
     try std.testing.expectEqual(@as(?usize, 0), view.firstSetBit());
     try std.testing.expectEqual(@as(?usize, null), view.firstClearBit());
+}
+
+test "bitmap view counts clear bits only inside the declared tail" {
+    const bit_len = word_bits + 5;
+    const words = [_]Word{
+        bitMask(0) | bitMask(3),
+        (@as(Word, 1) << 0) | (@as(Word, 1) << 4) | (@as(Word, 1) << 7),
+    };
+    const view = BitmapView.init(words[0..], bit_len);
+
+    try std.testing.expectEqual(@as(usize, 4), view.countSetBits());
+    try std.testing.expectEqual(bit_len - 4, view.countClearBits());
+    try std.testing.expectEqual(@as(?usize, 1), view.firstClearBit());
+    try std.testing.expectEqual(@as(?usize, word_bits + 1), view.nextClearBit(word_bits));
 }
 
 test "bitmap view finds the first clear bit across word boundaries" {
