@@ -71,6 +71,18 @@ pub const BitmapView = struct {
         return total;
     }
 
+    pub fn hasSingleBit(self: BitmapView) bool {
+        var found = false;
+        for (0..self.activeWordLen()) |index| {
+            const masked = self.maskedWord(index);
+            if (masked == 0) continue;
+            if ((masked & (masked - 1)) != 0) return false;
+            if (found) return false;
+            found = true;
+        }
+        return found;
+    }
+
     pub fn firstSetBit(self: BitmapView) ?usize {
         return self.nextSetBit(0);
     }
@@ -171,6 +183,7 @@ test "bitmap view keeps an empty range trivial" {
     const view = BitmapView.init(words[0..], 0);
 
     try std.testing.expectEqual(@as(usize, 0), view.countSetBits());
+    try std.testing.expect(!view.hasSingleBit());
     try std.testing.expectEqual(@as(?usize, null), view.firstSetBit());
     try std.testing.expectEqual(@as(?usize, null), view.lastSetBit());
     try std.testing.expectEqual(@as(?usize, null), view.firstClearBit());
@@ -189,6 +202,31 @@ test "bitmap view reports set bits inside one word" {
     try std.testing.expectEqual(@as(?usize, 12), view.lastSetBit());
     try std.testing.expectEqual(@as(?usize, 0), view.firstClearBit());
     try std.testing.expectEqual(@as(?usize, 15), view.lastClearBit());
+}
+
+test "bitmap view reports exactly one active bit with tail masking" {
+    const bit_len = word_bits + 5;
+    const tail_noise = ~tailMask(bit_len);
+    const singleton_words = [_]Word{
+        0,
+        bitMask(word_bits + 2) | tail_noise,
+    };
+    const padding_only_words = [_]Word{
+        0,
+        tail_noise,
+    };
+    const plural_words = [_]Word{
+        bitMask(3),
+        bitMask(word_bits + 2) | tail_noise,
+    };
+
+    const singleton = BitmapView.init(singleton_words[0..], bit_len);
+    const padding_only = BitmapView.init(padding_only_words[0..], bit_len);
+    const plural = BitmapView.init(plural_words[0..], bit_len);
+
+    try std.testing.expect(singleton.hasSingleBit());
+    try std.testing.expect(!padding_only.hasSingleBit());
+    try std.testing.expect(!plural.hasSingleBit());
 }
 
 test "bitmap view ignores padding bits past the declared range" {
