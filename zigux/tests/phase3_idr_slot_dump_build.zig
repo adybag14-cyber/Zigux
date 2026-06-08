@@ -52,4 +52,8 @@ pub fn build(b: *std.Build) void {
         "Run the focused Phase 3 idr-slot dump parity packet",
     );
     dump_step.dependOn(&run_dump.step);
+
+    const test_step = b.step("test", "Run the Phase 3 idr-slot dump parity packet");
+    test_step.dependOn(&run_dump.step);
+    b.default_step.dependOn(test_step);
 }
