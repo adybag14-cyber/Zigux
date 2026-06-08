@@ -108,3 +108,33 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweight helpers preserve counts across bit reversal" {
+    const sample8: u32 = 0b1001_0110;
+    const reverse8: u32 = @bitReverse(@as(u8, @intCast(sample8)));
+    try std.testing.expectEqual(swHweight8(sample8), swHweight8(reverse8));
+    try std.testing.expectEqual(__sw_hweight8(sample8), __sw_hweight8(reverse8));
+
+    const sample16: u32 = 0x812d;
+    const reverse16: u32 = @bitReverse(@as(u16, @intCast(sample16)));
+    try std.testing.expectEqual(swHweight16(sample16), swHweight16(reverse16));
+    try std.testing.expectEqual(__sw_hweight16(sample16), __sw_hweight16(reverse16));
+
+    const sample32: u32 = 0x8102_55a6;
+    const reverse32: u32 = @bitReverse(sample32);
+    try std.testing.expectEqual(swHweight32(sample32), swHweight32(reverse32));
+    try std.testing.expectEqual(__sw_hweight32(sample32), __sw_hweight32(reverse32));
+
+    const sample64: u64 = 0x8102_55a6_c33c_0f70;
+    const reverse64: u64 = @bitReverse(sample64);
+    try std.testing.expectEqual(swHweight64(sample64), swHweight64(reverse64));
+    try std.testing.expectEqual(__sw_hweight64(sample64), __sw_hweight64(reverse64));
+
+    const sample_long: usize = if (@sizeOf(usize) == 4)
+        0x8102_55a6
+    else
+        0x8102_55a6_c33c_0f70;
+    const reverse_long: usize = @bitReverse(sample_long);
+    try std.testing.expectEqual(hweightLong(sample_long), hweightLong(reverse_long));
+    try std.testing.expectEqual(hweight_long(sample_long), hweight_long(reverse_long));
+}
