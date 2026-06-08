@@ -1,6 +1,26 @@
 const std = @import("std");
 
 pub const Ordering = std.builtin.AtomicOrder;
+
+pub const RmwOperation = enum(u8) {
+    exchange,
+    add,
+    sub,
+    nand,
+    @"or",
+    @"and",
+    xor,
+    min,
+    max,
+};
+
+pub const RmwOperationFamily = enum(u8) {
+    exchange,
+    arithmetic,
+    bitwise,
+    extrema,
+};
+
 pub const CompareExchangeError = error{
     InvalidFailureOrdering,
 };
@@ -108,6 +128,27 @@ pub fn validateRmwOrder(comptime order: Ordering) RmwError!void {
     if (comptime !rmwOrderAllowed(order)) {
         return error.InvalidRmwOrdering;
     }
+}
+
+pub fn rmwOperationFamily(operation: RmwOperation) RmwOperationFamily {
+    return switch (operation) {
+        .exchange => .exchange,
+        .add, .sub => .arithmetic,
+        .nand, .@"or", .@"and", .xor => .bitwise,
+        .min, .max => .extrema,
+    };
+}
+
+pub fn rmwOperationIsArithmetic(operation: RmwOperation) bool {
+    return rmwOperationFamily(operation) == .arithmetic;
+}
+
+pub fn rmwOperationIsBitwise(operation: RmwOperation) bool {
+    return rmwOperationFamily(operation) == .bitwise;
+}
+
+pub fn rmwOperationIsExtrema(operation: RmwOperation) bool {
+    return rmwOperationFamily(operation) == .extrema;
 }
 
 pub fn load(comptime T: type, ptr: *const T, comptime order: Ordering) LoadError!T {
@@ -420,6 +461,25 @@ test "phase3 atomic helper exposes reusable RMW order validation" {
     try validateRmwOrder(.seq_cst);
 
     try std.testing.expectError(error.InvalidRmwOrdering, validateRmwOrder(.unordered));
+}
+
+test "phase3 atomic helper classifies RMW operation families" {
+    try std.testing.expectEqual(RmwOperationFamily.exchange, rmwOperationFamily(.exchange));
+    try std.testing.expectEqual(RmwOperationFamily.arithmetic, rmwOperationFamily(.add));
+    try std.testing.expectEqual(RmwOperationFamily.arithmetic, rmwOperationFamily(.sub));
+    try std.testing.expectEqual(RmwOperationFamily.bitwise, rmwOperationFamily(.nand));
+    try std.testing.expectEqual(RmwOperationFamily.bitwise, rmwOperationFamily(.@"or"));
+    try std.testing.expectEqual(RmwOperationFamily.bitwise, rmwOperationFamily(.@"and"));
+    try std.testing.expectEqual(RmwOperationFamily.bitwise, rmwOperationFamily(.xor));
+    try std.testing.expectEqual(RmwOperationFamily.extrema, rmwOperationFamily(.min));
+    try std.testing.expectEqual(RmwOperationFamily.extrema, rmwOperationFamily(.max));
+
+    try std.testing.expect(rmwOperationIsArithmetic(.add));
+    try std.testing.expect(!rmwOperationIsArithmetic(.exchange));
+    try std.testing.expect(rmwOperationIsBitwise(.xor));
+    try std.testing.expect(!rmwOperationIsBitwise(.max));
+    try std.testing.expect(rmwOperationIsExtrema(.min));
+    try std.testing.expect(!rmwOperationIsExtrema(.nand));
 }
 
 test "phase3 atomic helper wraps atomic loads without widening ordering semantics" {
