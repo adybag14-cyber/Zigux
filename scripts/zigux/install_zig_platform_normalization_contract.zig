@@ -58,6 +58,19 @@ test "install-zig keeps architecture aliases narrow and explicit" {
     );
 }
 
+test "install-zig case-folds platform names before alias checks" {
+    try requireOrder(
+        install_zig_source,
+        "def normalize_os(name: str) -> str:\n    lowered = name.lower()",
+        "if lowered.startswith('linux'):\n        return 'linux'",
+    );
+    try requireOrder(
+        install_zig_source,
+        "def normalize_arch(name: str) -> str:\n    lowered = name.lower()",
+        "if lowered in {'amd64', 'x86_64', 'x64'}:\n        return 'x86_64'",
+    );
+}
+
 test "self-test covers representative platform aliases and rejects unknowns" {
     try requireContains(install_zig_source, "assert normalize_os('Linux') == 'linux'");
     try requireContains(install_zig_source, "assert normalize_os('Darwin') == 'macos'");
