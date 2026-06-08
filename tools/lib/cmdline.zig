@@ -140,6 +140,9 @@ pub fn nextArg(args: []const u8) ?NextArgResult {
 
     while (idx < args.len) : (idx += 1) {
         const ch = args[idx];
+        if (ch == 0) {
+            break;
+        }
         if (std.ascii.isWhitespace(ch) and !in_quote) {
             break;
         }
@@ -151,7 +154,8 @@ pub fn nextArg(args: []const u8) ?NextArgResult {
         }
     }
 
-    const remaining_start = skipLeadingSpaces(args, idx);
+    const terminated_by_nul = idx < args.len and args[idx] == 0;
+    const remaining_start = if (terminated_by_nul) args.len else skipLeadingSpaces(args, idx);
     const token_end = if (quoted_prefix and idx > token_start and args[idx - 1] == '"') idx - 1 else idx;
 
     if (equals_idx) |eq| {
@@ -329,6 +333,19 @@ test "nextArg keeps empty and unterminated quoted values aligned" {
     try std.testing.expectEqualStrings("mode", unterminated.param);
     try std.testing.expectEqualStrings("fast boot", unterminated.value.?);
     try std.testing.expectEqualStrings("", unterminated.remaining);
+}
+
+test "nextArg treats embedded nul as the terminal command-line boundary" {
+    const bare = nextArg("debug\x00 nohlt") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("debug", bare.param);
+    try std.testing.expect(bare.value == null);
+    try std.testing.expectEqualStrings("", bare.remaining);
+
+    const key_value = next_arg("root=/dev/sda1\x00 quiet") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("root", key_value.param);
+    try std.testing.expectEqualStrings("/dev/sda1", key_value.value.?);
+    try std.testing.expectEqualStrings("", key_value.remaining);
+    try std.testing.expect(nextArg(key_value.remaining) == null);
 }
 
 test "cmdline quote cursors and chained suffixes preserve exact rests" {
