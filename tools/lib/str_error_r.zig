@@ -83,3 +83,14 @@ test "strErrorR preserves exact-fit caller terminators and surrounding bytes" {
     try std.testing.expectEqual(@as(u8, 0xbb), fallback[50]);
     try std.testing.expectEqual(@as(u8, 0xbb), fallback[51]);
 }
+
+test "strErrorR renders negative fallback errno with signed value and sentinels" {
+    var fallback: [56]u8 = @splat(0xcc);
+    const window = fallback[4..55];
+    const rendered = strErrorR(-5, window);
+
+    try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(-5, [buf], 51)=22", rendered);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xcc, 0xcc, 0xcc, 0xcc }, fallback[0..4]);
+    try std.testing.expectEqual(@as(u8, 0), fallback[4 + rendered.len]);
+    try std.testing.expectEqual(@as(u8, 0xcc), fallback[55]);
+}
