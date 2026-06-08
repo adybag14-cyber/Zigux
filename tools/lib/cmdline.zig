@@ -350,3 +350,19 @@ test "cmdline quote cursors and chained suffixes preserve exact rests" {
     try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -(2 << 20)))), signed.value);
     try std.testing.expectEqualStrings("Mtail", signed.rest);
 }
+
+test "parseOptionStr treats embedded nul as the terminal option boundary" {
+    const options = "root=UUID,quiet\x00debug,panic=1,,";
+    try std.testing.expect(parseOptionStr(options, "quiet"));
+    try std.testing.expect(!parseOptionStr(options, "debug"));
+    try std.testing.expect(!parse_option_str(options, "panic=1"));
+    try std.testing.expect(!parseOptionStr(options, ""));
+
+    const nul_first = "\x00quiet";
+    try std.testing.expect(!parseOptionStr(nul_first, "quiet"));
+    try std.testing.expect(!parseOptionStr(nul_first, ""));
+
+    const empty_before_nul = ",\x00quiet";
+    try std.testing.expect(parseOptionStr(empty_before_nul, ""));
+    try std.testing.expect(!parseOptionStr(empty_before_nul, "quiet"));
+}
