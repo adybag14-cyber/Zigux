@@ -163,3 +163,25 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
         }
     }
 }
+
+test "ctype case transforms only change table-marked letters" {
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+        const lowered = tolower(byte);
+        const uppered = toupper(byte);
+
+        if (isupper(byte)) {
+            try std.testing.expect(islower(lowered));
+            try std.testing.expectEqual(@as(u8, byte | 0x20), lowered);
+        } else {
+            try std.testing.expectEqual(byte, lowered);
+        }
+
+        if (islower(byte)) {
+            try std.testing.expectEqual(@as(u8, byte - ('a' - 'A')), uppered);
+        } else {
+            try std.testing.expectEqual(byte, uppered);
+        }
+    }
+}
