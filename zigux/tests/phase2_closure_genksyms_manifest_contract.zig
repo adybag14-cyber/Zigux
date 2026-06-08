@@ -47,7 +47,7 @@ fn expectJsonArrayContainsString(object: std.json.ObjectMap, key: []const u8, ex
             .string => |actual| {
                 if (std.mem.eql(u8, actual, expected)) return;
             },
-            else => {},
+            else => return error.UnexpectedJsonValue,
         }
     }
     return error.MissingJsonArrayValue;
