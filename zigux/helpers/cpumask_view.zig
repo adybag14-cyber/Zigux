@@ -26,12 +26,20 @@ pub const CpuMaskView = struct {
         return self.bitmap.nextSetBit(start_cpu);
     }
 
+    pub fn lastCpu(self: CpuMaskView) ?usize {
+        return self.bitmap.lastSetBit();
+    }
+
     pub fn firstMissingCpu(self: CpuMaskView) ?usize {
         return self.bitmap.firstClearBit();
     }
 
     pub fn nextMissingCpu(self: CpuMaskView, start_cpu: usize) ?usize {
         return self.bitmap.nextClearBit(start_cpu);
+    }
+
+    pub fn lastMissingCpu(self: CpuMaskView) ?usize {
+        return self.bitmap.lastClearBit();
     }
 
     pub fn isSubsetOf(self: CpuMaskView, other: CpuMaskView) bool {
@@ -56,11 +64,13 @@ test "cpumask view can walk present and missing cpus from a bounded start point"
     try std.testing.expectEqual(@as(?usize, 4), view.nextCpu(2));
     try std.testing.expectEqual(@as(?usize, 7), view.nextCpu(7));
     try std.testing.expectEqual(@as(?usize, null), view.nextCpu(8));
+    try std.testing.expectEqual(@as(?usize, 7), view.lastCpu());
 
     try std.testing.expectEqual(@as(?usize, 0), view.nextMissingCpu(0));
     try std.testing.expectEqual(@as(?usize, 2), view.nextMissingCpu(2));
     try std.testing.expectEqual(@as(?usize, 5), view.nextMissingCpu(5));
     try std.testing.expectEqual(@as(?usize, null), view.nextMissingCpu(8));
+    try std.testing.expectEqual(@as(?usize, 6), view.lastMissingCpu());
 }
 
 test "cpumask view keeps cpu presence and gaps explicit" {
@@ -76,7 +86,23 @@ test "cpumask view keeps cpu presence and gaps explicit" {
     try std.testing.expect(view.hasCpu(5));
     try std.testing.expectEqual(@as(usize, 3), view.countPresentCpus());
     try std.testing.expectEqual(@as(?usize, 0), view.firstCpu());
+    try std.testing.expectEqual(@as(?usize, 5), view.lastCpu());
     try std.testing.expectEqual(@as(?usize, 1), view.firstMissingCpu());
+    try std.testing.expectEqual(@as(?usize, 7), view.lastMissingCpu());
+}
+
+test "cpumask view keeps reverse cursors bounded to declared capacity" {
+    const words = [_]usize{
+        std.math.maxInt(usize),
+        (@as(usize, 1) << 1) |
+            (@as(usize, 1) << 4) |
+            (@as(usize, 1) << 10),
+    };
+    const cpu_capacity = bitmap_view.word_bits + 5;
+    const view = CpuMaskView.init(words[0..], cpu_capacity);
+
+    try std.testing.expectEqual(@as(?usize, bitmap_view.word_bits + 4), view.lastCpu());
+    try std.testing.expectEqual(@as(?usize, bitmap_view.word_bits + 3), view.lastMissingCpu());
 }
 
 test "cpumask view keeps subset and overlap checks bounded to the declared capacity" {
