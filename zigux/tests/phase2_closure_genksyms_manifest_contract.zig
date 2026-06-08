@@ -20,6 +20,52 @@ fn expectBefore(haystack: []const u8, first: []const u8, second: []const u8) !vo
     try std.testing.expect(first_index < second_index);
 }
 
+fn expectJsonString(object: std.json.ObjectMap, key: []const u8, expected: []const u8) !void {
+    const value = object.get(key) orelse return error.MissingJsonKey;
+    switch (value) {
+        .string => |actual| try std.testing.expectEqualStrings(expected, actual),
+        else => return error.UnexpectedJsonValue,
+    }
+}
+
+fn expectJsonArrayLength(object: std.json.ObjectMap, key: []const u8, expected: usize) !void {
+    const value = object.get(key) orelse return error.MissingJsonKey;
+    switch (value) {
+        .array => |array| try std.testing.expectEqual(expected, array.items.len),
+        else => return error.UnexpectedJsonValue,
+    }
+}
+
+fn expectJsonArrayContainsString(object: std.json.ObjectMap, key: []const u8, expected: []const u8) !void {
+    const value = object.get(key) orelse return error.MissingJsonKey;
+    const array = switch (value) {
+        .array => |items| items,
+        else => return error.UnexpectedJsonValue,
+    };
+    for (array.items) |item| {
+        switch (item) {
+            .string => |actual| {
+                if (std.mem.eql(u8, actual, expected)) return;
+            },
+            else => {},
+        }
+    }
+    return error.MissingJsonArrayValue;
+}
+
+fn expectSurfaceContainsString(
+    object: std.json.ObjectMap,
+    surface: []const u8,
+    expected: []const u8,
+) !void {
+    const present_surfaces = object.get("present_surfaces") orelse return error.MissingJsonKey;
+    const surfaces = switch (present_surfaces) {
+        .object => |value| value,
+        else => return error.UnexpectedJsonValue,
+    };
+    try expectJsonArrayContainsString(surfaces, surface, expected);
+}
+
 const bridge_expected_packet_line =
     "PHASE2_CURRENT_GENKSYMS_BRIDGE_PACKET=" ++
     "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json," ++
@@ -96,4 +142,83 @@ test "phase 2 closure note keeps genksyms proofs closed out of kconfig gap owner
     try expectContains(closure_note, "PHASE2_CURRENT_GAP_PACKET=Documentation/zigux/phase2-kconfig-bridge-gap-survey.md");
     try expectAbsent(closure_note, "PHASE2_CURRENT_GAP_PACKET=Documentation/zigux/phase2-genksyms-dual-implementation-survey.md");
     try expectAbsent(closure_note, "genksyms_bridge/help_expected.json,zigux/tests/fixtures/genksyms_bridge/minimal_expected.json");
+}
+
+test "closure validator derives genksyms manifest packets from fixture root" {
+    const validator = try readRepoFile("scripts/zigux/validate-phase2-closure.py", 192 * 1024);
+    defer std.testing.allocator.free(validator);
+
+    const manifest = try readRepoFile("zigux/tests/fixtures/genksyms_bridge/manifest.json", 64 * 1024);
+    defer std.testing.allocator.free(manifest);
+
+    const tool_manifest = try readRepoFile("zigux/tests/fixtures/phase2_tool_manifest.json", 256 * 1024);
+    defer std.testing.allocator.free(tool_manifest);
+
+    try expectContains(validator, "def expected_genksyms_fixture_paths(genksyms_manifest: dict[str, object]) -> list[str]:");
+    try expectContains(validator, "fixture_root = genksyms_manifest.get(\"fixture_root\")");
+    try expectContains(validator, "\"bridge_expected_packet\",");
+    try expectContains(validator, "\"help_packet\",");
+    try expectContains(validator, "\"process_output_packet\",");
+    try expectContains(validator, "GENKSYMS_CASES_REL.as_posix()");
+    try expectContains(validator, "GENKSYMS_MANIFEST_REL.as_posix()");
+    try expectContains(validator, "paths.append(f\"{fixture_root}/{value}\")");
+    try expectContains(validator, "def expected_genksyms_proof_paths(genksyms_manifest: dict[str, object]) -> list[str]:");
+    try expectContains(validator, "proofs = genksyms_manifest.get(\"standalone_proof_packet\")");
+    try expectContains(validator, "for path in expected_genksyms_fixture_paths(genksyms_manifest):");
+    try expectContains(validator, "if path not in fixture_roster:");
+    try expectContains(validator, "for path in expected_genksyms_proof_paths(genksyms_manifest):");
+    try expectContains(validator, "if path not in bridge_helpers:");
+
+    const parsed_manifest = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, manifest, .{});
+    defer parsed_manifest.deinit();
+    const manifest_object = switch (parsed_manifest.value) {
+        .object => |object| object,
+        else => return error.UnexpectedJsonValue,
+    };
+    try expectJsonString(manifest_object, "fixture_root", "zigux/tests/fixtures/genksyms_bridge");
+    try expectJsonArrayLength(manifest_object, "help_packet", 1);
+    try expectJsonArrayContainsString(manifest_object, "help_packet", "help_expected.json");
+    try expectJsonArrayLength(manifest_object, "standalone_proof_packet", 5);
+    try expectJsonArrayContainsString(
+        manifest_object,
+        "standalone_proof_packet",
+        "scripts/zigux/genksyms_repeated_version_before_abbrev_argument_failure_test.zig",
+    );
+    try expectJsonArrayContainsString(
+        manifest_object,
+        "standalone_proof_packet",
+        "scripts/zigux/genksyms_abbreviated_warning_quiet_terminator_test.zig",
+    );
+
+    const parsed_tool_manifest = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, tool_manifest, .{});
+    defer parsed_tool_manifest.deinit();
+    const tool_manifest_object = switch (parsed_tool_manifest.value) {
+        .object => |object| object,
+        else => return error.UnexpectedJsonValue,
+    };
+    try expectSurfaceContainsString(
+        tool_manifest_object,
+        "fixture_roster",
+        "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
+    );
+    try expectSurfaceContainsString(
+        tool_manifest_object,
+        "fixture_roster",
+        "zigux/tests/fixtures/genksyms_bridge/cases.json",
+    );
+    try expectSurfaceContainsString(
+        tool_manifest_object,
+        "fixture_roster",
+        "zigux/tests/fixtures/genksyms_bridge/manifest.json",
+    );
+    try expectSurfaceContainsString(
+        tool_manifest_object,
+        "bridge_helpers",
+        "scripts/zigux/genksyms_repeated_version_before_abbrev_argument_failure_test.zig",
+    );
+    try expectSurfaceContainsString(
+        tool_manifest_object,
+        "bridge_helpers",
+        "scripts/zigux/genksyms_abbreviated_warning_quiet_terminator_test.zig",
+    );
 }
