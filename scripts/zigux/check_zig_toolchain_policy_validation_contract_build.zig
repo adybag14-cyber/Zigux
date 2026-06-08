@@ -19,10 +19,12 @@ pub fn build(b: *std.Build) void {
 
     const contract_step = b.step(
         "check-zig-toolchain-policy-validation-contract",
-        "Run the check-zig-toolchain policy validation contract",
+        "Run the Lane 18 check-zig-toolchain policy validation contract.",
     );
     contract_step.dependOn(&run_tests.step);
 
-    const test_step = b.step("test", "Run the check-zig-toolchain policy validation contract");
+    const test_step = b.step("test", "Run the Lane 18 check-zig-toolchain policy validation contract tests.");
     test_step.dependOn(&run_tests.step);
+
+    b.default_step.dependOn(&run_tests.step);
 }
