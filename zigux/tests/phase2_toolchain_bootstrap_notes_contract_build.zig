@@ -23,4 +23,6 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run Phase 2 toolchain bootstrap notes documentation contract tests");
     test_step.dependOn(&run_unit_tests.step);
+
+    b.default_step.dependOn(&run_unit_tests.step);
 }
