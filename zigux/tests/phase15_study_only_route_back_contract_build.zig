@@ -25,4 +25,6 @@ pub fn build(b: *std.Build) void {
 
     const aggregate = b.step("test", "Run the Phase 15 study-only route-back contract");
     aggregate.dependOn(&run_unit_tests.step);
+
+    b.default_step.dependOn(&run_unit_tests.step);
 }
