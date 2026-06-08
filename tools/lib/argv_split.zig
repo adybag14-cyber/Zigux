@@ -170,3 +170,20 @@ test "argvSplit treats exactly ASCII whitespace bytes as separators" {
         try std.testing.expectEqualSlices(u8, text[0..], result.argv[0]);
     }
 }
+
+test "argvSplit result slice can be reordered before cleanup" {
+    var result = try argvSplit(std.testing.allocator, "first second third");
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 3), result.argc());
+    std.mem.swap([]u8, &result.argv[0], &result.argv[2]);
+
+    try std.testing.expectEqualStrings("third", result.argv[0]);
+    try std.testing.expectEqualStrings("second", result.argv[1]);
+    try std.testing.expectEqualStrings("first", result.argv[2]);
+
+    result.argv[0][0] = 'T';
+    try std.testing.expectEqualStrings("Third", result.argv[0]);
+    try std.testing.expectEqualStrings("first", result.argv[2]);
+    try std.testing.expectEqual(@as(usize, 3), result.argc());
+}
