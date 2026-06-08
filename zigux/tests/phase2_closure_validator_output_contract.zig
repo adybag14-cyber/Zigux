@@ -92,3 +92,38 @@ test "phase2 closure validator fail-closed issue vocabulary is public" {
     try expectOrdered(validator, "def collect_issues(root: Path)", "def emit_issues");
     try expectOrdered(validator, "def emit_issues", "def build_self_test_root");
 }
+
+test "phase2 closure validator keeps manifest surfaces and optional archive paths explicit" {
+    const validator = try readValidator();
+    defer std.testing.allocator.free(validator);
+
+    const surface_keys = [_][]const u8{
+        "\"review_surfaces\"",
+        "\"closure_notes\"",
+        "\"validators\"",
+        "\"checkers\"",
+        "\"bootstrap_helpers\"",
+        "\"archive_support\"",
+        "\"artifact_support\"",
+        "\"bridge_helpers\"",
+        "\"cross_route_support\"",
+        "\"fixdep_support\"",
+        "\"fixture_roster\"",
+        "\"make_wrappers\"",
+        "\"policy\"",
+    };
+
+    try expectContains(validator, "MANIFEST_SURFACE_KEYS = (");
+    for (surface_keys) |key| {
+        try expectContains(validator, key);
+    }
+
+    try expectContains(validator, "present_surfaces = manifest.get(\"present_surfaces\")");
+    try expectContains(validator, "manifest_surface_values[key] = require_string_list(issues, manifest, key)");
+    try expectContains(validator, "MISSING_MANIFEST_SURFACE");
+    try expectContains(validator, "OPTIONAL_MANIFEST_SURFACE_PATHS = {");
+    try expectOrdered(validator, "MANIFEST_SURFACE_KEYS = (", "for key in MANIFEST_SURFACE_KEYS:");
+    try expectOrdered(validator, "OPTIONAL_MANIFEST_SURFACE_PATHS = {", "if value in OPTIONAL_MANIFEST_SURFACE_PATHS");
+    try expectContains(validator, "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz");
+    try expectContains(validator, "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts/manifest.json");
+}
