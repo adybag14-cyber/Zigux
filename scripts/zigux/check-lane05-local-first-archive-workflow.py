@@ -255,7 +255,7 @@ jobs:
 
     failures = (
         ("missing policy", good_workflow.replace(POLICY_MARKERS[0] + "\n", "", 1), "zig-toolchain-policy"),
-        ("missing parts dir", good_workflow.replace('          repo_archive_parts_dir="${repo_archive_path}.parts"\n', "", 1), "parts-dir"),
+        ("missing parts dir", good_workflow.replace('          repo_archive_parts_dir="${repo_archive_path}.parts"\n', "", 1), "local-first"),
         ("missing mirror retry", good_workflow.replace("--retry-all-errors ", "", 1), "retry"),
         ("missing third-party path", good_workflow.replace("      - 'third_party/**'\n", "", 1), "third_party"),
         ("reordered fallback", good_workflow.replace("if try_local_archive; then", "if try_download \"$ZIGUX_ZIG_URL\"; then", 1), "local-first"),
