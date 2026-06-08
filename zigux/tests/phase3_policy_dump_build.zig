@@ -57,4 +57,11 @@ pub fn build(b: *std.Build) void {
         "Dump the focused Phase 3 policy and unsafe substrate replay surface",
     );
     step.dependOn(&run.step);
+
+    const test_step = b.step(
+        "test",
+        "Run the focused Phase 3 policy dump replay",
+    );
+    test_step.dependOn(step);
+    b.default_step.dependOn(test_step);
 }
