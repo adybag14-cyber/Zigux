@@ -31,11 +31,15 @@ pub const CpuMaskView = struct {
     }
 
     pub fn nextMissingCpu(self: CpuMaskView, start_cpu: usize) ?usize {
-        return self.bitmap.nextClearBit(start_cpu);
+        return self.bitmap.nextClearBit();
     }
 
     pub fn isSubsetOf(self: CpuMaskView, other: CpuMaskView) bool {
         return self.bitmap.isSubsetOf(other.bitmap);
+    }
+
+    pub fn containsAllCpus(self: CpuMaskView, other: CpuMaskView) bool {
+        return self.bitmap.isSupersetOf(other.bitmap);
     }
 
     pub fn intersects(self: CpuMaskView, other: CpuMaskView) bool {
@@ -107,4 +111,31 @@ test "cpumask view keeps subset and overlap checks bounded to the declared capac
     try std.testing.expect(!superset.isSubsetOf(base));
     try std.testing.expect(base.intersects(superset));
     try std.testing.expect(!base.intersects(disjoint));
+}
+
+test "cpumask view exposes capacity-bounded containment" {
+    const base_words = [_]usize{
+        (@as(usize, 1) << 0) |
+            (@as(usize, 1) << 5),
+        (@as(usize, 1) << 1),
+    };
+    const containing_words = [_]usize{
+        (@as(usize, 1) << 0) |
+            (@as(usize, 1) << 2) |
+            (@as(usize, 1) << 5),
+        std.math.maxInt(usize),
+    };
+    const missing_words = [_]usize{
+        (@as(usize, 1) << 0) |
+            (@as(usize, 1) << 2),
+        std.math.maxInt(usize),
+    };
+
+    const base = CpuMaskView.init(base_words[0..], bitmap_view.word_bits + 2);
+    const containing = CpuMaskView.init(containing_words[0..], bitmap_view.word_bits + 2);
+    const missing = CpuMaskView.init(missing_words[0..], bitmap_view.word_bits + 2);
+
+    try std.testing.expect(containing.containsAllCpus(base));
+    try std.testing.expect(!base.containsAllCpus(containing));
+    try std.testing.expect(!missing.containsAllCpus(base));
 }
