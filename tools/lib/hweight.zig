@@ -93,6 +93,33 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
 
+test "hweight helpers stay anchored at zero full masks and complements" {
+    const samples32 = [_]u32{ 0x0000_0000, 0x0000_00ff, 0x0000_f0f0, 0x1357_9bdf, 0xffff_ffff };
+    for (samples32) |sample| {
+        const complement = ~sample;
+
+        try std.testing.expectEqual(@as(u32, 8), swHweight8(sample) + swHweight8(complement));
+        try std.testing.expectEqual(@as(u32, 8), __sw_hweight8(sample) + __sw_hweight8(complement));
+        try std.testing.expectEqual(@as(u32, 16), swHweight16(sample) + swHweight16(complement));
+        try std.testing.expectEqual(@as(u32, 16), __sw_hweight16(sample) + __sw_hweight16(complement));
+        try std.testing.expectEqual(@as(u32, 32), swHweight32(sample) + swHweight32(complement));
+        try std.testing.expectEqual(@as(u32, 32), __sw_hweight32(sample) + __sw_hweight32(complement));
+    }
+
+    const samples64 = [_]u64{ 0, 0xff, 0xf0f0_f0f0, 0x0123_4567_89ab_cdef, 0xffff_ffff_ffff_ffff };
+    for (samples64) |sample| {
+        const complement = ~sample;
+        try std.testing.expectEqual(@as(u64, 64), swHweight64(sample) + swHweight64(complement));
+        try std.testing.expectEqual(@as(u64, 64), __sw_hweight64(sample) + __sw_hweight64(complement));
+    }
+
+    const long_full: usize = std.math.maxInt(usize);
+    try std.testing.expectEqual(@as(usize, 0), hweightLong(0));
+    try std.testing.expectEqual(@as(usize, @bitSizeOf(usize)), hweightLong(long_full));
+    try std.testing.expectEqual(@as(usize, @bitSizeOf(usize)), hweightLong(0x1555) + hweightLong(~@as(usize, 0x1555)));
+    try std.testing.expectEqual(hweightLong(long_full), hweight_long(long_full));
+}
+
 test "narrow hweight helpers ignore bits outside their low lane" {
     const high_only: u32 = 0xffff_0000;
     try std.testing.expectEqual(@as(u32, 0), swHweight8(high_only));
