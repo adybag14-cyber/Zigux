@@ -19,4 +19,6 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run the Lane 05 Phase 6 and Phase 8 workflow contract");
     test_step.dependOn(&run_tests.step);
+
+    b.default_step.dependOn(&run_tests.step);
 }
