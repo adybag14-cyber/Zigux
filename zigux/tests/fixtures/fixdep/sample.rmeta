@@ -1,2 +1,3 @@
 placeholder rmeta fixture for fixdep sample coverage
 contains CONFIG_ZIGUX_RMETA_NO_PARSE_SENTINEL but must not emit it
+contains UML_CONFIG_ZIGUX_RMETA_LATE_SHOULD_NOT_PARSE but must not emit it
