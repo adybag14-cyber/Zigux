@@ -142,3 +142,18 @@ test "zeroing aliases request __GFP_ZERO while preserving allocation accounting"
     try std.testing.expect(kcallocBytes(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
     try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
 }
+
+test "kcalloc failure paths leave allocation accounting unchanged" {
+    kmalloc_nr_allocated = 0;
+
+    try std.testing.expect(kcallocBytes(4, 2, 0) == null);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+
+    const marker = kzallocBytes(3, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    defer kfree(marker);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, 0, 0 }, marker);
+
+    try std.testing.expect(kcallocBytes(std.math.maxInt(usize), 4, GFP_KERNEL) == null);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+}
