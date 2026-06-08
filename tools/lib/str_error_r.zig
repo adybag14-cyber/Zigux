@@ -44,6 +44,31 @@ test "strErrorR returns deterministic Linux-style messages" {
     try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(4096, [buf], 64)=22", strErrorR(4096, &buffer));
 }
 
+test "strErrorR returns all known messages with caller-owned terminators" {
+    const Case = struct {
+        errnum: i32,
+        message: []const u8,
+    };
+    const cases = [_]Case{
+        .{ .errnum = 0, .message = "Success" },
+        .{ .errnum = 2, .message = "No such file or directory" },
+        .{ .errnum = 12, .message = "Cannot allocate memory" },
+        .{ .errnum = 13, .message = "Permission denied" },
+        .{ .errnum = 22, .message = "Invalid argument" },
+    };
+
+    for (cases) |case| {
+        var backing: [40]u8 = @splat(0xcc);
+        const window = backing[1 .. case.message.len + 2];
+        const rendered = strErrorR(case.errnum, window);
+
+        try std.testing.expectEqualStrings(case.message, rendered);
+        try std.testing.expectEqual(@as(u8, 0xcc), backing[0]);
+        try std.testing.expectEqual(@as(u8, 0), backing[case.message.len + 1]);
+        try std.testing.expectEqual(@as(u8, 0xcc), backing[case.message.len + 2]);
+    }
+}
+
 test "strErrorR accepts zero-length caller buffers for known and fallback messages" {
     var empty = [_]u8{};
     try std.testing.expectEqual(@as(usize, 0), strErrorR(13, empty[0..]).len);
