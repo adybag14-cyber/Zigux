@@ -3,10 +3,15 @@ const mmio = @import("mmio");
 
 pub const MmioRange = mmio.MmioRange;
 
-pub fn rangeContainsAccessBytes(range: MmioRange, byte_offset: usize, byte_len: usize) bool {
+pub fn rangeAccessEndOffset(range: MmioRange, byte_offset: usize, byte_len: usize) ?usize {
     const range_len: usize = @intCast(range.length);
-    const access_end = std.math.add(usize, byte_offset, byte_len) catch return false;
-    return access_end <= range_len;
+    const access_end = std.math.add(usize, byte_offset, byte_len) catch return null;
+    if (access_end > range_len) return null;
+    return access_end;
+}
+
+pub fn rangeContainsAccessBytes(range: MmioRange, byte_offset: usize, byte_len: usize) bool {
+    return rangeAccessEndOffset(range, byte_offset, byte_len) != null;
 }
 
 pub fn rangeStrideAllowsOffset(range: MmioRange, byte_offset: usize) bool {
@@ -15,10 +20,14 @@ pub fn rangeStrideAllowsOffset(range: MmioRange, byte_offset: usize) bool {
     return (byte_offset % stride) == 0;
 }
 
+pub fn rangeTypedAccessEndOffset(comptime T: type, range: MmioRange, byte_offset: usize) ?usize {
+    if ((byte_offset % @alignOf(T)) != 0) return null;
+    if (!rangeStrideAllowsOffset(range, byte_offset)) return null;
+    return rangeAccessEndOffset(range, byte_offset, @sizeOf(T));
+}
+
 pub fn rangeAllowsTypedAccess(comptime T: type, range: MmioRange, byte_offset: usize) bool {
-    if ((byte_offset % @alignOf(T)) != 0) return false;
-    if (!rangeStrideAllowsOffset(range, byte_offset)) return false;
-    return rangeContainsAccessBytes(range, byte_offset, @sizeOf(T));
+    return rangeTypedAccessEndOffset(T, range, byte_offset) != null;
 }
 
 pub fn validateRangeTypedAccess(comptime T: type, range: MmioRange, byte_offset: usize) mmio.PolicyError!void {
@@ -36,6 +45,12 @@ test "phase3 mmio range access helper exposes byte and stride predicates" {
         .length = 12,
         .stride = 0,
     };
+
+    try std.testing.expectEqual(@as(?usize, 16), rangeAccessEndOffset(strided, 12, @sizeOf(u32)));
+    try std.testing.expectEqual(@as(?usize, 16), rangeAccessEndOffset(strided, 16, 0));
+    try std.testing.expectEqual(@as(?usize, null), rangeAccessEndOffset(strided, 13, @sizeOf(u32)));
+    try std.testing.expectEqual(@as(?usize, null), rangeAccessEndOffset(strided, 17, 0));
+    try std.testing.expectEqual(@as(?usize, null), rangeAccessEndOffset(strided, std.math.maxInt(usize), 4));
 
     try std.testing.expect(rangeContainsAccessBytes(strided, 12, @sizeOf(u32)));
     try std.testing.expect(!rangeContainsAccessBytes(strided, 13, @sizeOf(u32)));
@@ -58,6 +73,15 @@ test "phase3 mmio range access helper mirrors typed accessor admission" {
         .length = 12,
         .stride = 0,
     };
+
+    try std.testing.expectEqual(@as(?usize, 1), rangeTypedAccessEndOffset(u8, strided, 0));
+    try std.testing.expectEqual(@as(?usize, 6), rangeTypedAccessEndOffset(u16, strided, 4));
+    try std.testing.expectEqual(@as(?usize, 12), rangeTypedAccessEndOffset(u32, strided, 8));
+    try std.testing.expectEqual(@as(?usize, 8), rangeTypedAccessEndOffset(u16, tightly_spaced, 6));
+    try std.testing.expectEqual(@as(?usize, null), rangeTypedAccessEndOffset(u16, strided, 2));
+    try std.testing.expectEqual(@as(?usize, null), rangeTypedAccessEndOffset(u32, strided, 6));
+    try std.testing.expectEqual(@as(?usize, null), rangeTypedAccessEndOffset(u32, strided, 13));
+    try std.testing.expectEqual(@as(?usize, null), rangeTypedAccessEndOffset(u64, tightly_spaced, 8));
 
     try std.testing.expect(rangeAllowsTypedAccess(u8, strided, 0));
     try std.testing.expect(rangeAllowsTypedAccess(u16, strided, 4));
