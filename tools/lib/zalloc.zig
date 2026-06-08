@@ -79,3 +79,32 @@ test "zfree helpers are no-ops for empty owners" {
     zfreeValue(allocator, Value, &value);
     try std.testing.expect(value == null);
 }
+
+test "zallocValue zeroes nested optionals and pointer fields before reset" {
+    const allocator = std.testing.allocator;
+    const Payload = struct {
+        count: usize,
+        maybe_child: ?*u8,
+        tags: [3]u16,
+        enabled: bool,
+    };
+
+    var payload: ?*Payload = try zallocValue(allocator, Payload);
+    defer zfreeValue(allocator, Payload, &payload);
+
+    try std.testing.expect(payload != null);
+    try std.testing.expectEqual(@as(usize, 0), payload.?.count);
+    try std.testing.expect(payload.?.maybe_child == null);
+    try std.testing.expectEqualSlices(u16, &[_]u16{ 0, 0, 0 }, &payload.?.tags);
+    try std.testing.expectEqual(false, payload.?.enabled);
+
+    payload.?.count = 7;
+    payload.?.tags[1] = 0x55aa;
+    payload.?.enabled = true;
+
+    zfreeValue(allocator, Payload, &payload);
+    try std.testing.expect(payload == null);
+
+    zfreeValue(allocator, Payload, &payload);
+    try std.testing.expect(payload == null);
+}
