@@ -21,7 +21,7 @@ TOOL_MANIFEST = "zigux/tests/fixtures/phase2_tool_manifest.json"
 ARCHIVE_TARGET = "x86_64-linux"
 ARCHIVE_CHANNEL = "0.17.0-dev.758+748e7c5e3"
 ARCHIVE_SIZE = 59_410_844
-EXPECTED_SELF_TEST_CASE_COUNT = 52
+EXPECTED_SELF_TEST_CASE_COUNT = 55
 
 GENKSYMS_EXPECTED = (
     "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
@@ -107,10 +107,13 @@ WORKFLOW_SETUP = (
     "- name: Setup pinned Zig toolchain",
     'policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
     'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"',
+    'repo_archive_parts_dir="${repo_archive_path}.parts"',
     'mirror_file=".zig-toolchain/community-mirrors.txt"',
+    "try_download() {",
+    "elif curl --fail " + chr(92),
     "if try_local_archive; then",
     'elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then',
-    'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
+    'https://ziglang.org/download/community-mirrors.txt',
     "echo 'failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org' >&2",
 )
 

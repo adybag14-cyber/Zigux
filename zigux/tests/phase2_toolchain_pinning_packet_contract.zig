@@ -68,7 +68,7 @@ test "pinning checker records the current archive and workflow guard packet" {
     try expectContains(files.pinning_checker, "ARCHIVE_TARGET = \"x86_64-linux\"");
     try expectContains(files.pinning_checker, "ARCHIVE_CHANNEL = \"0.17.0-dev.758+748e7c5e3\"");
     try expectContains(files.pinning_checker, "ARCHIVE_SIZE = 59_410_844");
-    try expectContains(files.pinning_checker, "EXPECTED_SELF_TEST_CASE_COUNT = 52");
+    try expectContains(files.pinning_checker, "EXPECTED_SELF_TEST_CASE_COUNT = 55");
     try expectContains(files.pinning_checker, "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only");
     try expectContains(files.pinning_checker, "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing");
     try expectContains(files.pinning_checker, "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test");

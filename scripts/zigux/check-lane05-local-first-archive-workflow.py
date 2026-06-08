@@ -46,6 +46,20 @@ STAGE_HELPER_CMD = "python3 scripts/zigux/stage-pinned-zig-archive.py"
 STAGE_HELPER_ROOT_ARG = '--root "$GITHUB_WORKSPACE"'
 STAGE_HELPER_PARTS_ARG = '--parts-dir "$repo_archive_parts_dir"'
 
+RETRY_REQUIRED_MARKERS = (
+    "--fail",
+)
+
+RETRY_EXACT_OPTIONS = (
+    "--location",
+    "--retry 5",
+    "--retry-all-errors",
+    "--retry-delay 3",
+    "--connect-timeout 20",
+    "--speed-limit 1024",
+    "--speed-time 30",
+)
+
 POLICY_MARKERS = (
     'policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
     'targets = policy["upgrade_policy"]["archive_target_scope"]',
@@ -77,7 +91,7 @@ LOCAL_ARCHIVE_MARKERS = (
     'tar -xJf "$repo_archive_path" -C .zig-toolchain',
     "if try_local_archive; then",
     'elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then',
-    'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
+    'https://ziglang.org/download/community-mirrors.txt',
     'if try_download "$ZIGUX_ZIG_URL"; then',
     "failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org",
 )
@@ -139,6 +153,10 @@ def check_workflow(text: str) -> None:
         require_marker(text, marker, "workflow policy marker")
     for marker in LOCAL_ARCHIVE_MARKERS:
         require_marker(text, marker, "workflow local-first marker")
+    for marker in RETRY_REQUIRED_MARKERS:
+        require_marker(text, marker, "workflow retry marker")
+    for marker in RETRY_EXACT_OPTIONS:
+        require_exact_count(text, marker, 2, "workflow retry option")
 
     require_marker(text, CHECKOUT_STEP, "workflow checkout step name")
     require_marker(text, SETUP_STEP, "workflow setup step name")
@@ -341,12 +359,12 @@ def check_workflow(text: str) -> None:
     require_order(
         text,
         'elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then',
-        'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
+        'https://ziglang.org/download/community-mirrors.txt',
         "workflow canonical release before mirrors order",
     )
     require_order(
         text,
-        'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
+        'https://ziglang.org/download/community-mirrors.txt',
         'if try_download "$ZIGUX_ZIG_URL"; then',
         "workflow mirrors before direct download order",
     )
@@ -394,14 +412,35 @@ jobs:
             fi
           }
           try_download() {
-            return 0
+            local url="$1"
+            if curl --fail \
+              --location \
+              --retry 5 \
+              --retry-all-errors \
+              --retry-delay 3 \
+              --connect-timeout 20 \
+              --speed-limit 1024 \
+              --speed-time 30 \
+              "$url" \
+              -o "$archive_path"; then
+              return 0
+            fi
           }
           download_success=0
           if try_local_archive; then
             download_success=1
           elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then
             download_success=1
-          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then
+          elif curl --fail \
+            --location \
+            --retry 5 \
+            --retry-all-errors \
+            --retry-delay 3 \
+            --connect-timeout 20 \
+            --speed-limit 1024 \
+            --speed-time 30 \
+            https://ziglang.org/download/community-mirrors.txt \
+            -o "$mirror_file"; then
             download_success=0
           fi
           if try_download "$ZIGUX_ZIG_URL"; then
@@ -453,6 +492,19 @@ jobs:
 """
     check_workflow(good_workflow)
     case_count = 1
+
+    missing_retry_option = good_workflow.replace(
+        "--retry 5",
+        "--retry-five",
+        1,
+    )
+    try:
+        check_workflow(missing_retry_option)
+    except SystemExit as exc:
+        assert "--retry 5" in str(exc) or "workflow retry option" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing retry option failure")
 
     missing_policy_load = good_workflow.replace(
         '          policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))\n',
@@ -693,23 +745,18 @@ jobs:
         raise AssertionError("expected reordered stage helper failure")
 
     reordered_fallback = good_workflow.replace(
-        "          if try_local_archive; then\n"
-        "            download_success=1\n"
-        '          elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then\n'
-        "            download_success=1\n"
-        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
-        "            download_success=0\n"
-        "          fi\n",
-        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
-        "            download_success=0\n"
-        "          fi\n"
-        "          if try_local_archive; then\n"
-        "            download_success=1\n"
-        '          elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then\n'
-        "            download_success=1\n"
-        '          if try_download "$ZIGUX_ZIG_URL"; then\n'
-        "            download_success=1\n"
-        "          fi\n",
+        "          if try_local_archive; then",
+        "          @@LOCAL_ARCHIVE_ATTEMPT@@",
+        1,
+    )
+    reordered_fallback = reordered_fallback.replace(
+        '          elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then',
+        "          if try_local_archive; then",
+        1,
+    )
+    reordered_fallback = reordered_fallback.replace(
+        "          @@LOCAL_ARCHIVE_ATTEMPT@@",
+        '          elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then',
         1,
     )
     try:
