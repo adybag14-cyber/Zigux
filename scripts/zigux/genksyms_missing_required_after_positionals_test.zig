@@ -33,6 +33,29 @@ test "genksyms missing long required argument still fires after delayed position
     try expectMissingArgumentFailure(&args, "--reference", 1);
 }
 
+test "genksyms missing long dump-types argument preserves version after delayed positionals" {
+    const args = [_][]const u8{
+        "prelude.c",
+        "--ver",
+        "middle.o",
+        "--dump-types",
+    };
+
+    try expectMissingArgumentFailure(&args, "--dump-types", 1);
+}
+
+test "genksyms missing short reference argument preserves clustered versions after positionals" {
+    const args = [_][]const u8{
+        "-VV",
+        "input.c",
+        "--warnings",
+        "tail.sym",
+        "-r",
+    };
+
+    try expectMissingArgumentFailure(&args, "r", 2);
+}
+
 test "genksyms missing short required argument preserves clustered versions after positionals" {
     const args = [_][]const u8{
         "-VV",
