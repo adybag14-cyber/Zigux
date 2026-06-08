@@ -18,6 +18,10 @@ pub const CpuMaskView = struct {
         return self.bitmap.countSetBits();
     }
 
+    pub fn countMissingCpus(self: CpuMaskView) usize {
+        return self.bitmap.countClearBits();
+    }
+
     pub fn firstCpu(self: CpuMaskView) ?usize {
         return self.bitmap.firstSetBit();
     }
@@ -75,8 +79,22 @@ test "cpumask view keeps cpu presence and gaps explicit" {
     try std.testing.expect(!view.hasCpu(1));
     try std.testing.expect(view.hasCpu(5));
     try std.testing.expectEqual(@as(usize, 3), view.countPresentCpus());
+    try std.testing.expectEqual(@as(usize, 5), view.countMissingCpus());
     try std.testing.expectEqual(@as(?usize, 0), view.firstCpu());
     try std.testing.expectEqual(@as(?usize, 1), view.firstMissingCpu());
+}
+
+test "cpumask view counts only declared-capacity missing cpus" {
+    const bit_len = bitmap_view.word_bits + 3;
+    const words = [_]usize{
+        std.math.maxInt(usize),
+        (@as(usize, 1) << 0) | (@as(usize, 1) << 4),
+    };
+    const view = CpuMaskView.init(words[0..], bit_len);
+
+    try std.testing.expectEqual(bitmap_view.word_bits + 1, view.countPresentCpus());
+    try std.testing.expectEqual(@as(usize, 2), view.countMissingCpus());
+    try std.testing.expectEqual(@as(?usize, bitmap_view.word_bits + 1), view.firstMissingCpu());
 }
 
 test "cpumask view keeps subset and overlap checks bounded to the declared capacity" {
