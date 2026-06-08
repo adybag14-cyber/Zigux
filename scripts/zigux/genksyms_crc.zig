@@ -36,8 +36,8 @@ const crctab32 = [_]u32{
     0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d,
 };
 
-const c_line_buffer_len = 4096;
-const c_line_payload_len = c_line_buffer_len - 1;
+pub const c_line_buffer_len = 4096;
+pub const c_line_payload_len = c_line_buffer_len - 1;
 
 pub fn partialCrc32One(c: u8, crc: u32) u32 {
     return crctab32[(crc ^ c) & 0xff] ^ (crc >> 8);
