@@ -99,6 +99,13 @@ pub fn build(b: *std.Build) void {
     hexdump_root_module.addImport("hexdump", hexdump_module);
     hexdump_root_module.addImport("phase6_hexdump_vectors", hexdump_vectors_module);
 
+    const hexdump_c_parity_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_hexdump_c_parity.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    hexdump_c_parity_root_module.addImport("hexdump", hexdump_module);
+
     const hexdump_perf_root_module = b.createModule(.{
         .root_source_file = b.path("phase6_hexdump_perf.zig"),
         .target = target,
@@ -203,6 +210,13 @@ pub fn build(b: *std.Build) void {
     const run_hexdump_perf = b.addRunArtifact(hexdump_perf);
     run_hexdump_perf.skip_foreign_checks = true;
 
+    const hexdump_c_parity = b.addExecutable(.{
+        .name = "phase6-hexdump-c-parity",
+        .root_module = hexdump_c_parity_root_module,
+    });
+    const run_hexdump_c_parity = b.addRunArtifact(hexdump_c_parity);
+    run_hexdump_c_parity.skip_foreign_checks = true;
+
     const base64_test_step = b.step("phase6-base64-test", "Run Phase 6 base64 helper tests");
     base64_test_step.dependOn(&run_base64_tests.step);
     const base64_review_step = b.step("phase6-base64-review", "Run Phase 6 base64 helper review preflight");
@@ -234,6 +248,8 @@ pub fn build(b: *std.Build) void {
         "Run Phase 6 hexdump perf matrix preflight",
     );
     hexdump_perf_matrix_test_step.dependOn(&run_hexdump_perf_matrix_tests.step);
+    const hexdump_c_parity_step = b.step("phase6-hexdump-c-parity", "Run Phase 6 hexdump C parity Zig replay");
+    hexdump_c_parity_step.dependOn(&run_hexdump_c_parity.step);
 
     const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 helper perf gate");
     base64_perf_step.dependOn(&run_base64_perf.step);

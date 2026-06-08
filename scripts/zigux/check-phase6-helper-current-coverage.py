@@ -107,6 +107,9 @@ EXPECTED_HELPERS = [
         "exact_companions": [
             "zigux/tests/phase6_hexdump_perf.zig",
             "zigux/tests/phase6_hexdump_perf_matrix.zig",
+            "zigux/tests/phase6_hexdump_c_parity.zig",
+            "zigux/tests/fixtures/phase6_hexdump_c_harness.c",
+            "scripts/zigux/check-phase6-hexdump-c-parity.py",
             "scripts/zigux/check-phase6-hexdump-packet.py",
             "scripts/zigux/check-phase6-hexdump-route.py",
         ],
@@ -141,6 +144,8 @@ def validate_doc(content: str) -> None:
         "| `bsearch` | `lib/bsearch.c` | `lib/bsearch.zig` `916a87eb91c0c3e620cf6e85c018180cdf772e58` | 11 | `zigux/tests/phase6_bsearch.zig` |",
         "| `checksum` | `lib/checksum.c` | `lib/checksum.zig` `1cda59b1bd4e5d4e9989d2b9f4e84be62b8ccb7e` | 12 | `zigux/tests/phase6_checksum.zig` |",
         "| `hexdump` | `lib/hexdump.c` | `lib/hexdump.zig` `0fc9534ddf7e020ab00f981d5762b1703430170c` | 17 | `zigux/tests/phase6_hexdump.zig` |",
+        "zigux/tests/phase6_hexdump_c_parity.zig",
+        "scripts/zigux/check-phase6-hexdump-c-parity.py",
         "Reopen this exact-current-coverage note only when one of the four roadmap-backed helper blobs changes",
     ]
     for snippet in required_snippets:
