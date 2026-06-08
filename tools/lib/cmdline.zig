@@ -331,6 +331,18 @@ test "nextArg keeps empty and unterminated quoted values aligned" {
     try std.testing.expectEqualStrings("", unterminated.remaining);
 }
 
+test "nextArg preserves ASCII separator bytes inside quoted values" {
+    const parsed = nextArg("log=\"line1\tline2\nline3\rline4\x0bline5\x0cend\" quiet") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("log", parsed.param);
+    try std.testing.expectEqualStrings("line1\tline2\nline3\rline4\x0bline5\x0cend", parsed.value.?);
+    try std.testing.expectEqualStrings("quiet", parsed.remaining);
+
+    const trailing = next_arg(parsed.remaining) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("quiet", trailing.param);
+    try std.testing.expect(trailing.value == null);
+    try std.testing.expectEqualStrings("", trailing.remaining);
+}
+
 test "cmdline quote cursors and chained suffixes preserve exact rests" {
     const quoted = next_arg("  \"single word arg\" size=1KKtail") orelse return error.TestUnexpectedResult;
     try std.testing.expectEqualStrings("single word arg", quoted.param);
