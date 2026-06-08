@@ -130,6 +130,9 @@ pub fn nextArg(args: []const u8) ?NextArgResult {
     if (start >= args.len) {
         return null;
     }
+    if (args[start] == 0) {
+        return null;
+    }
 
     const quoted_prefix = args[start] == '"';
     const token_start = if (quoted_prefix) start + 1 else start;
@@ -295,6 +298,11 @@ test "parseOptionStr matches only exact bare options" {
 
 test "nextArg returns null for blank input" {
     try std.testing.expect(nextArg(" \t \n") == null);
+}
+
+test "nextArg returns null when the first non-space byte is nul" {
+    try std.testing.expect(nextArg("\x00 debug") == null);
+    try std.testing.expect(next_arg(" \t\x00 quiet") == null);
 }
 
 test "nextArg parses bare parameters and keeps the remaining text" {
