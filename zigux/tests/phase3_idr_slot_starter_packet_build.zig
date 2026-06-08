@@ -47,9 +47,14 @@ pub fn build(b: *std.Build) void {
     });
     const run_unit_tests = b.addRunArtifact(unit_tests);
 
-    const test_step = b.step(
+    const named_step = b.step(
         "phase3-idr-slot-starter-packet-test",
         "Run the Phase 3 idr slot starter-packet self-check",
     );
+    named_step.dependOn(&run_unit_tests.step);
+
+    const test_step = b.step("test", "Run the Phase 3 idr slot starter-packet tests");
     test_step.dependOn(&run_unit_tests.step);
+
+    b.default_step.dependOn(test_step);
 }
