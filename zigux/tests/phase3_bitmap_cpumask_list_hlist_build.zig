@@ -76,4 +76,12 @@ pub fn build(b: *std.Build) void {
     );
     step.dependOn(&bitmap_cpumask.step);
     step.dependOn(&list_hlist.step);
+
+    const test_step = b.step(
+        "test",
+        "Run the shared Phase 3 bitmap/cpumask and list/hlist starter packet bundle",
+    );
+    test_step.dependOn(step);
+
+    b.default_step.dependOn(test_step);
 }
