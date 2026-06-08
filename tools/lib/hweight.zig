@@ -108,3 +108,33 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweight helpers preserve counts across lane rotations" {
+    const value8: u8 = 0b1011_0100;
+    const rotated8: u8 = std.math.rotl(u8, value8, 3);
+    try std.testing.expectEqual(swHweight8(value8), swHweight8(rotated8));
+    try std.testing.expectEqual(__sw_hweight8(value8), __sw_hweight8(rotated8));
+
+    const value16: u16 = 0x81c3;
+    const rotated16: u16 = std.math.rotl(u16, value16, 5);
+    try std.testing.expectEqual(swHweight16(value16), swHweight16(rotated16));
+    try std.testing.expectEqual(__sw_hweight16(value16), __sw_hweight16(rotated16));
+
+    const value32: u32 = 0x8040_c31d;
+    const rotated32: u32 = std.math.rotl(u32, value32, 13);
+    try std.testing.expectEqual(swHweight32(value32), swHweight32(rotated32));
+    try std.testing.expectEqual(__sw_hweight32(value32), __sw_hweight32(rotated32));
+
+    const value64: u64 = 0x8000_4000_c300_1d55;
+    const rotated64: u64 = std.math.rotl(u64, value64, 29);
+    try std.testing.expectEqual(swHweight64(value64), swHweight64(rotated64));
+    try std.testing.expectEqual(__sw_hweight64(value64), __sw_hweight64(rotated64));
+
+    const value_long: usize = if (@sizeOf(usize) == 4) value32 else @intCast(value64);
+    const rotated_long: usize = if (@sizeOf(usize) == 4)
+        @intCast(std.math.rotl(u32, @intCast(value_long), 11))
+    else
+        @intCast(std.math.rotl(u64, @intCast(value_long), 17));
+    try std.testing.expectEqual(hweightLong(value_long), hweightLong(rotated_long));
+    try std.testing.expectEqual(hweight_long(value_long), hweight_long(rotated_long));
+}
