@@ -28,6 +28,14 @@ fn expectJsonString(object: std.json.ObjectMap, key: []const u8, expected: []con
     }
 }
 
+fn expectJsonInteger(object: std.json.ObjectMap, key: []const u8, expected: i64) !void {
+    const value = object.get(key) orelse return error.MissingJsonKey;
+    switch (value) {
+        .integer => |actual| try std.testing.expectEqual(expected, actual),
+        else => return error.UnexpectedJsonValue,
+    }
+}
+
 fn expectJsonArrayLength(object: std.json.ObjectMap, key: []const u8, expected: usize) !void {
     const value = object.get(key) orelse return error.MissingJsonKey;
     switch (value) {
@@ -51,6 +59,32 @@ fn expectJsonArrayContainsString(object: std.json.ObjectMap, key: []const u8, ex
         }
     }
     return error.MissingJsonArrayValue;
+}
+
+fn expectJsonArrayValueBeforeString(
+    object: std.json.ObjectMap,
+    key: []const u8,
+    first: []const u8,
+    second: []const u8,
+) !void {
+    const value = object.get(key) orelse return error.MissingJsonKey;
+    const array = switch (value) {
+        .array => |items| items,
+        else => return error.UnexpectedJsonValue,
+    };
+    var first_index: ?usize = null;
+    var second_index: ?usize = null;
+    for (array.items, 0..) |item, index| {
+        const actual = switch (item) {
+            .string => |string| string,
+            else => return error.UnexpectedJsonValue,
+        };
+        if (std.mem.eql(u8, actual, first)) first_index = index;
+        if (std.mem.eql(u8, actual, second)) second_index = index;
+    }
+    const actual_first = first_index orelse return error.MissingFirstMarker;
+    const actual_second = second_index orelse return error.MissingSecondMarker;
+    try std.testing.expect(actual_first < actual_second);
 }
 
 fn expectSurfaceContainsString(
@@ -93,6 +127,10 @@ const process_output_packet_line =
     "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json," ++
     "zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json";
 
+fn parseManifestObject(manifest: []const u8) !std.json.Parsed(std.json.Value) {
+    return std.json.parseFromSlice(std.json.Value, std.testing.allocator, manifest, .{});
+}
+
 test "phase 2 closure note preserves manifest-backed genksyms bridge roster" {
     const closure_note = try readRepoFile("Documentation/zigux/phase2-closure.md", 128 * 1024);
     defer std.testing.allocator.free(closure_note);
@@ -102,10 +140,25 @@ test "phase 2 closure note preserves manifest-backed genksyms bridge roster" {
 
     try expectContains(closure_note, "eleven committed replay cases");
     try expectContains(closure_note, bridge_expected_packet_line);
-    try expectContains(manifest, "\"case_count\": 11");
-    try expectContains(manifest, "\"bridge_expected_packet\": [");
-    try expectContains(manifest, "\"dash_prefixed_long_option_arguments_as_data_expected.json\"");
-    try expectContains(manifest, "\"dash_prefixed_short_option_arguments_as_data_expected.json\"");
+
+    var parsed_manifest = try parseManifestObject(manifest);
+    defer parsed_manifest.deinit();
+    const manifest_object = switch (parsed_manifest.value) {
+        .object => |object| object,
+        else => return error.UnexpectedJsonValue,
+    };
+    try expectJsonInteger(manifest_object, "case_count", 11);
+    try expectJsonArrayLength(manifest_object, "bridge_expected_packet", 11);
+    try expectJsonArrayContainsString(
+        manifest_object,
+        "bridge_expected_packet",
+        "dash_prefixed_long_option_arguments_as_data_expected.json",
+    );
+    try expectJsonArrayContainsString(
+        manifest_object,
+        "bridge_expected_packet",
+        "dash_prefixed_short_option_arguments_as_data_expected.json",
+    );
 }
 
 test "phase 2 closure note follows genksyms process-output manifest order" {
@@ -116,11 +169,19 @@ test "phase 2 closure note follows genksyms process-output manifest order" {
     defer std.testing.allocator.free(manifest);
 
     try expectContains(closure_note, process_output_packet_line);
-    try expectContains(manifest, "\"process_output_packet\": [");
-    try expectBefore(
-        manifest,
-        "\"unexpected_long_help_argument_expected.json\"",
-        "\"abbreviated_unexpected_long_help_argument_expected.json\"",
+
+    var parsed_manifest = try parseManifestObject(manifest);
+    defer parsed_manifest.deinit();
+    const manifest_object = switch (parsed_manifest.value) {
+        .object => |object| object,
+        else => return error.UnexpectedJsonValue,
+    };
+    try expectJsonArrayLength(manifest_object, "process_output_packet", 10);
+    try expectJsonArrayValueBeforeString(
+        manifest_object,
+        "process_output_packet",
+        "unexpected_long_help_argument_expected.json",
+        "abbreviated_unexpected_long_help_argument_expected.json",
     );
     try expectBefore(
         closure_note,
@@ -136,9 +197,19 @@ test "phase 2 closure note keeps genksyms proofs closed out of kconfig gap owner
     const manifest = try readRepoFile("zigux/tests/fixtures/genksyms_bridge/manifest.json", 64 * 1024);
     defer std.testing.allocator.free(manifest);
 
-    try expectContains(manifest, "\"status\": \"closed\"");
-    try expectContains(manifest, "\"standalone_proof_packet\": [");
-    try expectContains(manifest, "\"scripts/zigux/genksyms_abbreviated_warning_quiet_terminator_test.zig\"");
+    var parsed_manifest = try parseManifestObject(manifest);
+    defer parsed_manifest.deinit();
+    const manifest_object = switch (parsed_manifest.value) {
+        .object => |object| object,
+        else => return error.UnexpectedJsonValue,
+    };
+    try expectJsonString(manifest_object, "status", "closed");
+    try expectJsonArrayLength(manifest_object, "standalone_proof_packet", 5);
+    try expectJsonArrayContainsString(
+        manifest_object,
+        "standalone_proof_packet",
+        "scripts/zigux/genksyms_abbreviated_warning_quiet_terminator_test.zig",
+    );
     try expectContains(closure_note, "PHASE2_CURRENT_GAP_PACKET=Documentation/zigux/phase2-kconfig-bridge-gap-survey.md");
     try expectAbsent(closure_note, "PHASE2_CURRENT_GAP_PACKET=Documentation/zigux/phase2-genksyms-dual-implementation-survey.md");
     try expectAbsent(closure_note, "genksyms_bridge/help_expected.json,zigux/tests/fixtures/genksyms_bridge/minimal_expected.json");
@@ -169,7 +240,7 @@ test "closure validator derives genksyms manifest packets from fixture root" {
     try expectContains(validator, "for path in expected_genksyms_proof_paths(genksyms_manifest):");
     try expectContains(validator, "if path not in bridge_helpers:");
 
-    const parsed_manifest = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, manifest, .{});
+    var parsed_manifest = try parseManifestObject(manifest);
     defer parsed_manifest.deinit();
     const manifest_object = switch (parsed_manifest.value) {
         .object => |object| object,
