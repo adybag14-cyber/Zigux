@@ -50,7 +50,7 @@ test "phase1 helper ports A braid bitmap cursors strings and cached rbtree" {
     bitmap.setRange(&new, bits_per_long + 2, 5);
     bitmap.setRange(&mask, 3, 4);
     bitmap.setRange(&mask, bits_per_long + 2, 5);
-    bitmap.replace(&braided, &old, &new, &mask, nbits);
+    bitmap.bitmap_replace(&braided, &old, &new, &mask, nbits);
 
     try std.testing.expectEqual(@as(usize, 11), bitmap.weight(&braided, nbits));
     try std.testing.expect(bitmap.intersects(&braided, &new, nbits));
