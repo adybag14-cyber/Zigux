@@ -108,3 +108,35 @@ test "narrow hweight helpers ignore bits outside their low lane" {
     try std.testing.expectEqual(@as(u32, 2), swHweight16(mixed16));
     try std.testing.expectEqual(@as(u32, 2), __sw_hweight16(mixed16));
 }
+
+test "hweight helper results stay bounded by their lane widths" {
+    const samples32 = [_]u32{
+        0x0000_0000,
+        0xffff_ffff,
+        0xaaaa_aaaa,
+        0x5555_5555,
+        0x8000_0001,
+        0x7fff_fffe,
+    };
+    for (samples32) |sample| {
+        try std.testing.expect(swHweight8(sample) <= 8);
+        try std.testing.expect(__sw_hweight8(sample) <= 8);
+        try std.testing.expect(swHweight16(sample) <= 16);
+        try std.testing.expect(__sw_hweight16(sample) <= 16);
+        try std.testing.expect(swHweight32(sample) <= 32);
+        try std.testing.expect(__sw_hweight32(sample) <= 32);
+    }
+
+    const samples64 = [_]u64{
+        0x0000_0000_0000_0000,
+        0xffff_ffff_ffff_ffff,
+        0xaaaa_aaaa_aaaa_aaaa,
+        0x5555_5555_5555_5555,
+        0x8000_0000_0000_0001,
+        0x7fff_ffff_ffff_fffe,
+    };
+    for (samples64) |sample| {
+        try std.testing.expect(swHweight64(sample) <= 64);
+        try std.testing.expect(__sw_hweight64(sample) <= 64);
+    }
+}
