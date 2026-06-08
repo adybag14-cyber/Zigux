@@ -130,3 +130,17 @@ test "scnprintfPad reports full padded subview length while preserving sentinels
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'i', 'o', ' ', ' ', ' ', 0 }, backing[2..8]);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xc9, 0xca }, backing[8..10]);
 }
+
+test "formatting failures return zero without touching caller buffers" {
+    const oversized = "x" ** (max_render_bytes + 8);
+    var direct = [_]u8{ 0xda, 0xdb, 0xdc, 0xdd };
+    var padded = [_]u8{ 0xea, 0xeb, 0xec, 0xed, 0xee };
+
+    const direct_written = scnprintf(&direct, "{s}", .{oversized});
+    const padded_written = scnprintfPad(&padded, padded.len - 1, "{s}", .{oversized});
+
+    try std.testing.expectEqual(@as(usize, 0), direct_written);
+    try std.testing.expectEqual(@as(usize, 0), padded_written);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xda, 0xdb, 0xdc, 0xdd }, &direct);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xea, 0xeb, 0xec, 0xed, 0xee }, &padded);
+}
