@@ -3,6 +3,10 @@ const std = @import("std");
 pub const max_errno: usize = 4095;
 pub const err_floor: usize = @bitCast(-@as(isize, @intCast(max_errno)));
 
+pub const ToErrorCodeError = error{
+    NotErrPtr,
+};
+
 pub fn fromErrorCode(code: isize) usize {
     std.debug.assert(code <= -1);
     std.debug.assert(code >= -@as(isize, @intCast(max_errno)));
@@ -11,6 +15,13 @@ pub fn fromErrorCode(code: isize) usize {
 
 pub fn isErrValue(raw: usize) bool {
     return raw >= err_floor;
+}
+
+pub fn tryToErrorCode(raw: usize) ToErrorCodeError!isize {
+    if (!isErrValue(raw)) {
+        return error.NotErrPtr;
+    }
+    return @bitCast(raw);
 }
 
 pub fn toErrorCode(raw: usize) isize {
@@ -50,4 +61,27 @@ test "non-error values stay outside the err_ptr band" {
     try std.testing.expect(isOkValue(1));
     try std.testing.expect(!isErrValue(0));
     try std.testing.expect(!isErrValue(1));
+}
+
+test "checked error-code decoder rejects non-error values without decoding" {
+    try std.testing.expectError(error.NotErrPtr, tryToErrorCode(0));
+    try std.testing.expectError(error.NotErrPtr, tryToErrorCode(1));
+    try std.testing.expectError(error.NotErrPtr, tryToErrorCode(err_floor - 1));
+}
+
+test "checked error-code decoder matches assert-backed decoder for err_ptr values" {
+    const cases = [_]isize{
+        -@as(isize, @intCast(max_errno)),
+        -4094,
+        -512,
+        -22,
+        -1,
+    };
+
+    for (cases) |code| {
+        const raw = fromErrorCode(code);
+
+        try std.testing.expectEqual(toErrorCode(raw), try tryToErrorCode(raw));
+        try std.testing.expectEqual(code, try tryToErrorCode(raw));
+    }
 }
