@@ -69,3 +69,21 @@ test "explicit zig success and executable failures use the resolved executable p
         "print(f\"ZIG_TOOLCHAIN_VERSION={version}\")",
     );
 }
+
+test "explicit zig self-test keeps missing path coverage anchored" {
+    try requireContains(
+        checker_source,
+        "expect_raises(lambda: normalize_explicit_zig_path(\"/tmp/zigux-toolchain-self-test-missing-zig\"), \"explicit zig path does not exist\")",
+    );
+    try requireContains(
+        checker_source,
+        "expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: \"/usr/bin/zig\"), \"/usr/bin/zig\")",
+    );
+    try requireContains(checker_source, "print(\"ZIG_TOOLCHAIN_SELF_TEST=pass\")");
+    try requireContains(checker_source, "print(f\"ZIG_TOOLCHAIN_SELF_TEST_CASE_COUNT={case_count}\")");
+    try requireBefore(
+        checker_source,
+        "expect_raises(lambda: normalize_explicit_zig_path(\"/tmp/zigux-toolchain-self-test-missing-zig\"), \"explicit zig path does not exist\")",
+        "print(\"ZIG_TOOLCHAIN_SELF_TEST=pass\")",
+    );
+}
