@@ -12,8 +12,13 @@ fn expectOrdered(haystack: []const u8, earlier: []const u8, later: []const u8) !
     try std.testing.expect(earlier_index < later_index);
 }
 
+fn expectCount(haystack: []const u8, needle: []const u8, expected: usize) !void {
+    try std.testing.expectEqual(expected, std.mem.count(u8, haystack, needle));
+}
+
 test "explicit archive directory and non-regular paths are invalid before missing handling" {
     try expectContains(checker_source, "def describe_invalid_explicit_archive_path(archive_path: Path) -> str | None:");
+    try expectContains(checker_source, "if not archive_path.exists():\n        return None");
     try expectContains(checker_source, "if archive_path.is_dir():");
     try expectContains(checker_source, "explicit archive path is a directory, expected a regular file");
     try expectContains(checker_source, "if not archive_path.is_file():");
@@ -34,23 +39,37 @@ test "invalid explicit archive path emits archive status and expected metadata" 
     try expectContains(checker_source, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_FILENAME={expected_filename}\")");
     try expectContains(checker_source, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_SHA256={expected_sha}\")");
     try expectContains(checker_source, "print(f\"ZIG_TOOLCHAIN_NOTE={invalid_archive_note}\")");
+    try expectOrdered(
+        checker_source,
+        "print(f\"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target or 'unresolved'}\")",
+        "print(f\"ZIG_TOOLCHAIN_NOTE={invalid_archive_note}\")",
+    );
 }
 
 test "missing explicit archive keeps separate missing diagnostic" {
     try expectContains(checker_source, "def describe_missing_archive(");
-    try expectContains(checker_source, "explicit archive path does not exist: {resolved}");
-    try expectContains(checker_source, "pinned Zig archive not found in archive search roots");
+    try expectContains(checker_source, "explicit_archive: str | None,");
+    try expectContains(checker_source, "resolved = archive_path or Path(explicit_archive)");
+    try expectContains(checker_source, "return f\"explicit archive path does not exist: {resolved}\", None");
+    try expectContains(checker_source, "return \"pinned Zig archive not found in archive search roots\", format_search_roots(search_roots)");
     try expectContains(checker_source, "message, search_roots_summary = describe_missing_archive(");
     try expectContains(checker_source, "explicit_archive=args.archive");
     try expectContains(checker_source, "print(\"ZIG_TOOLCHAIN_ARCHIVE_STATUS=missing\")");
+    try expectContains(checker_source, "if search_roots_summary is not None:");
     try expectContains(checker_source, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_SEARCH_ROOTS={search_roots_summary}\")");
+    try expectCount(checker_source, "ZIG_TOOLCHAIN_ARCHIVE_STATUS=missing", 1);
+    try expectOrdered(
+        checker_source,
+        "return f\"explicit archive path does not exist: {resolved}\", None",
+        "return \"pinned Zig archive not found in archive search roots\", format_search_roots(search_roots)",
+    );
 }
 
 test "self-test keeps coverage for explicit archive diagnostics" {
+    try expectContains(checker_source, "missing_explicit_path = root / \"missing.tar.xz\"");
+    try expectContains(checker_source, "describe_missing_archive(");
     try expectContains(checker_source, "explicit_archive_dir = root / \"archive-dir\"");
     try expectContains(checker_source, "explicit_archive_dir.mkdir()");
     try expectContains(checker_source, "describe_invalid_explicit_archive_path(explicit_archive_dir)");
-    try expectContains(checker_source, "missing_explicit_path = root / \"missing.tar.xz\"");
-    try expectContains(checker_source, "describe_missing_archive(");
     try expectContains(checker_source, "ZIG_TOOLCHAIN_SELF_TEST=pass");
 }
