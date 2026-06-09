@@ -90,7 +90,7 @@ const self_test_markers = [_][]const u8{
     "cases.append((f\"duplicate_line:{marker}\", (\"duplicate_line\", CLOSURE_NOTE_REL, marker)))",
     "cases.append((f\"missing_fragment:{fragment}\", (\"remove_fragment\", CLOSURE_NOTE_REL, fragment)))",
     "cases.append((\"missing_route_summary\", (\"remove_line\", MAKEFILE_REL, \"phase1-route-summary:\")))",
-    "cases.append((f\"forbidden_makefile:{marker}\", (\"add_line\", marker)))",
+    "cases.append((f\"forbidden_makefile:{marker}\", (\"add_line\", MAKEFILE_REL, marker)))",
     "PHASE1_CLOSURE_PACKET_SELF_TEST=pass",
     "PHASE1_CLOSURE_PACKET_SELF_TEST_CASE_COUNT={len(cases)}",
 };
