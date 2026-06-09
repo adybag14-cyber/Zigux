@@ -57,6 +57,21 @@ pub fn kcallocBytes(n: usize, size: usize, gfp: gfp_t) ?[]u8 {
     return kmallocArray(n, size, gfp | __GFP_ZERO);
 }
 
+pub fn kstrdupBytes(source: []const u8, gfp: gfp_t) ?[]u8 {
+    if ((gfp & __GFP_DIRECT_RECLAIM) == 0) {
+        return null;
+    }
+
+    const total = std.math.add(usize, source.len, 1) catch return null;
+    const bytes = backing_allocator.alloc(u8, total) catch return null;
+    kmalloc_nr_allocated += 1;
+    if (source.len != 0) {
+        @memcpy(bytes[0..source.len], source);
+    }
+    bytes[source.len] = 0;
+    return bytes;
+}
+
 pub fn slabIsAvailable() bool {
     return true;
 }
@@ -141,4 +156,37 @@ test "zeroing aliases request __GFP_ZERO while preserving allocation accounting"
     try std.testing.expect(kzallocBytes(8, 0) == null);
     try std.testing.expect(kcallocBytes(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
     try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+}
+
+test "kstrdupBytes returns independent NUL-terminated ownership" {
+    kmalloc_nr_allocated = 0;
+
+    var source = [_]u8{ 'l', 'a', 'n', 'e', '1', '0' };
+    const duplicate = kstrdupBytes(&source, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    defer kfree(duplicate);
+
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    try std.testing.expectEqual(@as(usize, source.len + 1), duplicate.len);
+    try std.testing.expectEqualStrings("lane10", duplicate[0..source.len]);
+    try std.testing.expectEqual(@as(u8, 0), duplicate[source.len]);
+
+    source[0] = 'L';
+    duplicate[1] = 'A';
+    try std.testing.expectEqual(@as(u8, 'l'), duplicate[0]);
+    try std.testing.expectEqual(@as(u8, 'a'), source[1]);
+}
+
+test "kstrdupBytes handles no-reclaim failure and empty strings" {
+    kmalloc_nr_allocated = 0;
+
+    try std.testing.expect(kstrdupBytes("blocked", 0) == null);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+
+    const empty = kstrdupBytes("", GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 1), empty.len);
+    try std.testing.expectEqual(@as(u8, 0), empty[0]);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    kfree(empty);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
 }
