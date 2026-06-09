@@ -29,21 +29,25 @@ test "phase 6 roadmap packet keeps low-risk helper goal" {
 }
 
 test "phase 6 roadmap packet keeps greenfield helper anchors and required features" {
-    try expectContains("Primary Linux anchors:");
+    const phase6 = try phase6Section();
+
+    try expectSliceContains(phase6, "Primary Linux anchors:");
     for (linux_anchor_markers) |marker| {
-        try expectContains(marker);
+        try expectSliceContains(phase6, marker);
     }
 
-    try expectContains("Required Zigux features:");
+    try expectSliceContains(phase6, "Required Zigux features:");
     for (required_feature_markers) |marker| {
-        try expectContains(marker);
+        try expectSliceContains(phase6, marker);
     }
 }
 
 test "phase 6 roadmap packet keeps lib helper destinations" {
-    try expectContains("Recommended Zigux destinations:");
+    const phase6 = try phase6Section();
+
+    try expectSliceContains(phase6, "Recommended Zigux destinations:");
     for (destination_markers) |marker| {
-        try expectContains(marker);
+        try expectSliceContains(phase6, marker);
     }
 }
 
@@ -54,8 +58,33 @@ test "phase 6 roadmap packet stays after samples and before in-kernel leaf libra
     try expectOrder("- `lib/hexdump.zig`", "## Phase 7: In-Kernel Leaf Libraries");
 }
 
+test "phase 6 section does not borrow phase 7 runtime-library markers" {
+    const phase6 = try phase6Section();
+
+    try expectSliceExcludes(phase6, "runtime-safe leaf helpers");
+    try expectSliceExcludes(phase6, "- `lib/string_helpers.c`");
+    try expectSliceExcludes(phase6, "- `lib/string_helpers.zig`");
+}
+
+fn phase6Section() ![]const u8 {
+    const start_marker = "## Phase 6: Greenfield Leaf Helpers";
+    const end_marker = "## Phase 7: In-Kernel Leaf Libraries";
+    const start = std.mem.indexOf(u8, roadmap, start_marker) orelse return error.MissingPhase6Marker;
+    const after_start = roadmap[start..];
+    const end = std.mem.indexOf(u8, after_start, end_marker) orelse return error.MissingPhase7Marker;
+    return after_start[0..end];
+}
+
 fn expectContains(needle: []const u8) !void {
     try std.testing.expect(std.mem.containsAtLeast(u8, roadmap, 1, needle));
+}
+
+fn expectSliceContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.containsAtLeast(u8, haystack, 1, needle));
+}
+
+fn expectSliceExcludes(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(!std.mem.containsAtLeast(u8, haystack, 1, needle));
 }
 
 fn expectOrder(before: []const u8, after: []const u8) !void {
