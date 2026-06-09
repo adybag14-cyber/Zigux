@@ -16,6 +16,21 @@ fn kindFor(raw: usize) []const u8 {
     return "pointer_like";
 }
 
+test "dump kind classification keeps err_ptr precedence for rejected inline raws" {
+    const inline_limit_raw = try xa_value.makeValue(xa_value.safe_inline_limit);
+    const first_rejected_inline = xa_value.safe_inline_limit + 1;
+    const overlapping_raw = (first_rejected_inline << 1) | xa_value.value_tag_mask;
+
+    try std.testing.expectEqual(err_ptr.err_floor - 2, inline_limit_raw);
+    try std.testing.expectEqual(err_ptr.err_floor - 1, inline_limit_raw + 1);
+    try std.testing.expectEqual(err_ptr.err_floor, overlapping_raw);
+
+    try std.testing.expectEqualStrings("xa_value", kindFor(inline_limit_raw));
+    try std.testing.expectEqualStrings("pointer_like", kindFor(inline_limit_raw + 1));
+    try std.testing.expectEqualStrings("err_ptr", kindFor(overlapping_raw));
+    try std.testing.expectEqualStrings("err_ptr", kindFor(err_ptr.fromErrorCode(-1)));
+}
+
 fn writeOptionalSigned(writer: anytype, value: ?isize) !void {
     if (value) |signed| {
         try writer.print("{}", .{signed});
