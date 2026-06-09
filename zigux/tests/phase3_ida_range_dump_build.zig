@@ -44,4 +44,8 @@ pub fn build(b: *std.Build) void {
         "Run the Phase 3 ida range interop dump",
     );
     dump_step.dependOn(&run_dump.step);
+
+    const test_step = b.step("test", "Run the Phase 3 ida range interop dump");
+    test_step.dependOn(&run_dump.step);
+    b.default_step.dependOn(test_step);
 }
