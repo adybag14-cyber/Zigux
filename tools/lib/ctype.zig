@@ -64,6 +64,10 @@ pub fn isspace(ch: u8) bool {
     return (mask(ch) & _S) != 0;
 }
 
+pub fn isblank(ch: u8) bool {
+    return ch == ' ' or ch == '\t';
+}
+
 pub fn isupper(ch: u8) bool {
     return (mask(ch) & _U) != 0;
 }
@@ -106,6 +110,9 @@ test "ctype classification follows Linux table expectations" {
     try std.testing.expect(isdigit('7'));
     try std.testing.expect(isspace(' '));
     try std.testing.expect(isspace('\t'));
+    try std.testing.expect(isblank(' '));
+    try std.testing.expect(isblank('\t'));
+    try std.testing.expect(!isblank('\n'));
     try std.testing.expect(isxdigit('f'));
     try std.testing.expect(ispunct('!'));
     try std.testing.expect(iscntrl(0));
@@ -145,6 +152,7 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
         try std.testing.expectEqual((byte_mask & (_P | _U | _L | _D | _SP)) != 0, isprint(byte));
         try std.testing.expectEqual((byte_mask & _P) != 0, ispunct(byte));
         try std.testing.expectEqual((byte_mask & _S) != 0, isspace(byte));
+        try std.testing.expectEqual(byte == ' ' or byte == '\t', isblank(byte));
         try std.testing.expectEqual((byte_mask & _U) != 0, isupper(byte));
         try std.testing.expectEqual((byte_mask & (_D | _X)) != 0, isxdigit(byte));
         try std.testing.expectEqual(byte <= 0x7f, isascii(byte));
@@ -160,6 +168,21 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
             try std.testing.expectEqual(byte, fastTolower(byte));
         } else {
             try std.testing.expectEqual(byte, fastTolower(byte));
+        }
+    }
+}
+
+test "isblank accepts only space and horizontal tab" {
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+        const expected = byte == ' ' or byte == '\t';
+
+        try std.testing.expectEqual(expected, isblank(byte));
+        if (expected) {
+            try std.testing.expect(isspace(byte));
+        } else if (isspace(byte)) {
+            try std.testing.expect(byte != ' ' and byte != '\t');
         }
     }
 }
