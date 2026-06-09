@@ -39,6 +39,21 @@ pub fn kfree(bytes: ?[]u8) void {
     }
 }
 
+fn scrubSensitiveBytes(bytes: []u8) void {
+    @memset(bytes, 0);
+}
+
+pub fn kfreeSensitive(bytes: ?[]u8) void {
+    if (bytes) |slice| {
+        scrubSensitiveBytes(slice);
+    }
+    kfree(bytes);
+}
+
+pub fn kfree_sensitive(bytes: ?[]u8) void {
+    kfreeSensitive(bytes);
+}
+
 pub fn kmallocArray(n: usize, size: usize, gfp: gfp_t) ?[]u8 {
     if ((gfp & __GFP_DIRECT_RECLAIM) == 0) {
         return null;
@@ -141,4 +156,38 @@ test "zeroing aliases request __GFP_ZERO while preserving allocation accounting"
     try std.testing.expect(kzallocBytes(8, 0) == null);
     try std.testing.expect(kcallocBytes(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
     try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+}
+
+test "kfreeSensitive scrubs bytes before releasing allocation accounting" {
+    kmalloc_nr_allocated = 0;
+
+    var stack_secret = [_]u8{ 's', 'e', 'c', 'r', 'e', 't' };
+    scrubSensitiveBytes(&stack_secret);
+    for (stack_secret) |value| {
+        try std.testing.expectEqual(@as(u8, 0), value);
+    }
+
+    const bytes = kmallocBytes(6, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    @memcpy(bytes, "secret");
+
+    kfreeSensitive(bytes);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+
+    kfreeSensitive(null);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
+
+test "kfree_sensitive mirrors kfreeSensitive alias behavior" {
+    kmalloc_nr_allocated = 0;
+
+    const bytes = kzallocBytes(4, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    @memset(bytes, 0xa5);
+
+    kfree_sensitive(bytes);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+
+    kfree_sensitive(null);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
 }
