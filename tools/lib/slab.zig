@@ -97,6 +97,21 @@ test "kmallocArray only zeroes when __GFP_ZERO is requested" {
     try std.testing.expect(slabIsAvailable());
 }
 
+test "kmallocArray reports nonzero array sizes and preserves accounting" {
+    kmalloc_nr_allocated = 0;
+
+    const bytes = kmallocArray(3, 5, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 15), bytes.len);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    @memset(bytes, 0x5a);
+    try std.testing.expectEqual(@as(u8, 0x5a), bytes[0]);
+    try std.testing.expectEqual(@as(u8, 0x5a), bytes[14]);
+
+    kfree(bytes);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
+
 test "kmalloc zero-size allocations and null frees keep counters balanced" {
     kmalloc_nr_allocated = 0;
 
