@@ -58,9 +58,17 @@ pub fn build(b: *std.Build) void {
     });
     const run_unit_tests = b.addRunArtifact(unit_tests);
 
-    const test_step = b.step(
+    const policy_step = b.step(
         "phase3-policy-starter-packet-test",
         "Run the Phase 3 policy starter-packet ABI self-check",
     );
+    policy_step.dependOn(&run_unit_tests.step);
+
+    const test_step = b.step(
+        "test",
+        "Run the Phase 3 policy starter-packet ABI self-check",
+    );
     test_step.dependOn(&run_unit_tests.step);
+
+    b.default_step.dependOn(test_step);
 }
