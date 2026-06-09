@@ -8,7 +8,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_LAYOUT_ASSERT_BLOB_SHA=2b17f9d48cfe4f3a6b22bd0aafed4fb614c3b20e`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-plus-escalation-and-byte-decoders`
-- `PHASE3_PANIC_POLICY_BLOB_SHA=f4f3377fd3a467113cf06db6758535f62e91b8e5`
+- `PHASE3_PANIC_POLICY_BLOB_SHA=dbe222d4db21cd6f78b3ecb6616998c00687f180`
 - `PHASE3_ALLOCATOR_POLICY_PATH=zigux/helpers/allocator_policy.zig`
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-plus-init-flow-owned-state-and-reset-gates`
 - `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=852cd5edc75a4b83cc7f9cbda70136c37e96c909`
