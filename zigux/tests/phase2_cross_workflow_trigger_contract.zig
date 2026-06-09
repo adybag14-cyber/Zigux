@@ -76,7 +76,7 @@ test "workflow still runs direct and alignment cross checks before downstream Ph
     try expectBefore(workflow, "run: python3 scripts/zigux/check-phase2-cross.py --self-test", "run: python3 scripts/zigux/check-phase2-cross.py\n");
     try expectBefore(workflow, "run: python3 scripts/zigux/check-phase2-cross.py\n", "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test");
     try expectBefore(workflow, "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py\n", "run: make -C zigux phase2-cross");
-    try expectBefore(workflow, "run: make -C zigux phase2-cross", "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test");
+    try expectBefore(workflow, "run: make -C zigux phase2-cross\n", "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test");
     try expectBefore(workflow, "run: python3 scripts/zigux/check-phase2-required-make-routes.py\n", "run: make -C zigux phase2-validate");
     try expectBefore(workflow, "run: make -C zigux phase2-validate", "run: make -C zigux phase2\n");
 }
