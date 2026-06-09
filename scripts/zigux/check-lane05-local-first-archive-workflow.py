@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 WORKFLOW_PATH = ROOT / ".github/workflows/zigux-bootstrap.yml"
 
 CHECKOUT_STEP = "- name: Checkout"
+CHECKOUT_CODELOAD_URL = "https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${GITHUB_SHA}"
+CHECKOUT_ARCHIVE_PATH = 'archive="$tmpdir/source.tar.gz"'
 SETUP_STEP = "- name: Setup pinned Zig toolchain"
 TOOLCHAIN_SELF_TEST_STEP = "- name: Self-test current Zig toolchain checker"
 POLICY_STEP = "- name: Check current Zig toolchain policy packet"
@@ -59,6 +61,7 @@ RETRY_EXACT_OPTIONS = (
     "--speed-limit 1024",
     "--speed-time 30",
 )
+RETRY_EXACT_OPTION_COUNT = 3
 
 POLICY_MARKERS = (
     'policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
@@ -156,9 +159,11 @@ def check_workflow(text: str) -> None:
     for marker in RETRY_REQUIRED_MARKERS:
         require_marker(text, marker, "workflow retry marker")
     for marker in RETRY_EXACT_OPTIONS:
-        require_exact_count(text, marker, 2, "workflow retry option")
+        require_exact_count(text, marker, RETRY_EXACT_OPTION_COUNT, "workflow retry option")
 
     require_marker(text, CHECKOUT_STEP, "workflow checkout step name")
+    require_marker(text, CHECKOUT_CODELOAD_URL, "workflow checkout codeload URL")
+    require_marker(text, CHECKOUT_ARCHIVE_PATH, "workflow checkout archive path")
     require_marker(text, SETUP_STEP, "workflow setup step name")
     require_marker(text, TOOLCHAIN_SELF_TEST_STEP, "workflow toolchain self-test step name")
     require_marker(text, POLICY_STEP, "workflow toolchain policy step name")
@@ -214,6 +219,8 @@ def check_workflow(text: str) -> None:
         require_exact_count(text, check_step, 1, "retained bootstrap step")
 
     require_order(text, CHECKOUT_STEP, SETUP_STEP, "workflow step order")
+    require_order(text, CHECKOUT_ARCHIVE_PATH, CHECKOUT_CODELOAD_URL, "workflow checkout archive fetch order")
+    require_order(text, CHECKOUT_CODELOAD_URL, SETUP_STEP, "workflow checkout before setup order")
     require_order(text, SETUP_STEP, TOOLCHAIN_SELF_TEST_STEP, "workflow step order")
     require_order(text, TOOLCHAIN_SELF_TEST_STEP, POLICY_STEP, "workflow step order")
     require_order(text, POLICY_STEP, ARCHIVE_CHECK_STEP, "workflow step order")
@@ -376,7 +383,14 @@ jobs:
   bootstrap:
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        run: |
+          set -euxo pipefail
+          tmpdir="$(mktemp -d)"
+          archive="$tmpdir/source.tar.gz"
+          curl --location --fail --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 20 --speed-limit 1024 --speed-time 30 \
+            "https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${GITHUB_SHA}" \
+            -o "$archive"
+          tar -xzf "$archive" -C "$tmpdir"
       - name: Setup pinned Zig toolchain
         run: |
           paths:

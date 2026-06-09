@@ -50,7 +50,9 @@ jobs:
           set -euxo pipefail
           tmpdir="$(mktemp -d)"
           archive="$tmpdir/source.tar.gz"
-          curl -L --fail "https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${GITHUB_SHA}" -o "$archive"
+          curl --location --fail --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 20 --speed-limit 1024 --speed-time 30 \
+            "https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${GITHUB_SHA}" \
+            -o "$archive"
           tar -xzf "$archive" -C "$tmpdir"
           src_dir="$(find "$tmpdir" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
           find "$GITHUB_WORKSPACE" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
