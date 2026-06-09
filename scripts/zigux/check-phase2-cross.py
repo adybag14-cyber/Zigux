@@ -14,6 +14,7 @@ TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 ROUTE = "make -C zigux phase2-cross"
+REQUIRED_MAKE_ROUTE = "phase2-cross"
 
 MAKEFILE_LINES = (
     "phase2-cross:",
@@ -25,7 +26,7 @@ EXPECTED_FIXTURE_PHASE = "Phase 2"
 EXPECTED_FIXTURE_STATUS = "active"
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 
 def read_text(path: Path) -> str:
@@ -58,33 +59,41 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
-def load_archive_target_scope(root: Path) -> list[str]:
+def load_upgrade_policy(root: Path) -> dict[str, object]:
     payload = read_json(resolve_path(root, TOOLCHAIN_POLICY))
     if not isinstance(payload, dict):
         raise SystemExit(f"invalid json shape in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
     upgrade_policy = payload.get("upgrade_policy")
     if not isinstance(upgrade_policy, dict):
         raise SystemExit(f"invalid upgrade_policy in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
-    archive_target_scope = upgrade_policy.get("archive_target_scope")
-    if not isinstance(archive_target_scope, list) or not archive_target_scope:
-        raise SystemExit(
-            f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
-        )
+    return upgrade_policy
+
+
+def load_string_list(root: Path, field: str) -> list[str]:
+    value = load_upgrade_policy(root).get(field)
+    if not isinstance(value, list) or not value:
+        raise SystemExit(f"invalid {field} in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
     normalized: list[str] = []
-    seen_targets: set[str] = set()
-    for value in archive_target_scope:
-        if not isinstance(value, str) or not value.strip():
+    seen_values: set[str] = set()
+    for entry in value:
+        if not isinstance(entry, str) or not entry.strip():
+            raise SystemExit(f"invalid {field} in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
+        normalized_entry = entry.strip()
+        if normalized_entry in seen_values:
             raise SystemExit(
-                f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
+                f"duplicate {field} entry in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
             )
-        target = value.strip()
-        if target in seen_targets:
-            raise SystemExit(
-                f"duplicate archive_target_scope entry in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
-            )
-        normalized.append(target)
-        seen_targets.add(target)
+        normalized.append(normalized_entry)
+        seen_values.add(normalized_entry)
     return normalized
+
+
+def load_archive_target_scope(root: Path) -> list[str]:
+    return load_string_list(root, "archive_target_scope")
+
+
+def load_required_make_routes(root: Path) -> list[str]:
+    return load_string_list(root, "required_make_routes")
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -93,6 +102,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     makefile_text = read_text(resolve_path(root, MAKEFILE))
     fixture = read_json(resolve_path(root, FIXTURE))
     archive_target_scope = load_archive_target_scope(root)
+    required_make_routes = load_required_make_routes(root)
+
+    if REQUIRED_MAKE_ROUTE not in required_make_routes:
+        issues.append(("MISSING_REQUIRED_MAKE_ROUTE", REQUIRED_MAKE_ROUTE))
 
     for marker in MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
@@ -182,7 +195,7 @@ def build_self_test_root(root: Path) -> None:
                 "upgrade_policy": {
                     "channel_minimum_lockstep": True,
                     "archive_target_scope": ["x86_64-linux"],
-                    "required_make_routes": ["phase2-toolchain", "phase2-validate"],
+                    "required_make_routes": ["phase2-toolchain", REQUIRED_MAKE_ROUTE, "phase2-validate"],
                 },
             },
             indent=2,
@@ -320,6 +333,40 @@ def run_self_test() -> int:
             checks_run += 1
         else:
             raise AssertionError("duplicate archive_target_scope did not abort")
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        del policy["upgrade_policy"]["required_make_routes"]
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid required_make_routes" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("missing required_make_routes did not abort")
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", "phase2-toolchain"]
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "duplicate required_make_routes entry" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("duplicate required_make_routes did not abort")
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy = json.loads(path.read_text(encoding="utf-8"))
+        policy["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", "phase2-validate"]
+        path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        assert ("MISSING_REQUIRED_MAKE_ROUTE", REQUIRED_MAKE_ROUTE) in collect_issues(root)
+        checks_run += 1
 
         for primary_path in (TOOLCHAIN_POLICY, MAKEFILE, FIXTURE):
             build_self_test_root(root)
