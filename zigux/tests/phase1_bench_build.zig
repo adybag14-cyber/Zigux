@@ -60,6 +60,12 @@ pub fn build(b: *std.Build) void {
     });
     const run_bench = b.addRunArtifact(exe);
 
+    const phase1_bench_step = b.step(
+        "phase1-bench",
+        "Run the focused Phase 1 helper benchmark packet from zigux/tests",
+    );
+    phase1_bench_step.dependOn(&run_bench.step);
+
     const bench_step = b.step(
         "bench",
         "Run the focused Phase 1 helper benchmark packet from zigux/tests",
