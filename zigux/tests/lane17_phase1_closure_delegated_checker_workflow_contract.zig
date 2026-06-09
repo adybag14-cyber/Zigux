@@ -245,5 +245,6 @@ test "contract rejects missing duplicate and swapped delegated-checker workflow 
     try std.testing.expectError(error.TestExpectedEqual, assertWorkflow(duplicate));
 
     const swapped = try makeWorkflowFixture(std.testing.allocator, null, null, true);
-    defer std.testing.expectError(error.TestUnexpectedResult, assertWorkflow(swapped));
+    defer std.testing.allocator.free(swapped);
+    try std.testing.expectError(error.TestUnexpectedResult, assertWorkflow(swapped));
 }
