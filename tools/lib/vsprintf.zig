@@ -2,13 +2,30 @@ const std = @import("std");
 
 pub const max_render_bytes: usize = 1024;
 
-fn render(buffer: []u8, logical_size: usize, pad: bool, comptime fmt: []const u8, args: anytype) usize {
-    if (buffer.len == 0) {
+const RenderReturn = enum {
+    copied,
+    padded,
+    would_have,
+};
+
+fn render(
+    buffer: []u8,
+    logical_size: usize,
+    pad: bool,
+    return_mode: RenderReturn,
+    comptime fmt: []const u8,
+    args: anytype,
+) usize {
+    if (buffer.len == 0 and return_mode != .would_have) {
         return 0;
     }
 
     var scratch: [max_render_bytes]u8 = undefined;
     const rendered = std.fmt.bufPrint(&scratch, fmt, args) catch return 0;
+    if (buffer.len == 0) {
+        return rendered.len;
+    }
+
     const bounded_size = @min(logical_size, buffer.len - 1);
     const limit = bounded_size;
     const copied = @min(rendered.len, limit);
@@ -20,23 +37,39 @@ fn render(buffer: []u8, logical_size: usize, pad: bool, comptime fmt: []const u8
     if (pad and copied < limit) {
         @memset(buffer[copied..limit], ' ');
         buffer[limit] = 0;
-        return limit;
+        return switch (return_mode) {
+            .copied => copied,
+            .padded => limit,
+            .would_have => rendered.len,
+        };
     }
 
     buffer[copied] = 0;
-    return copied;
+    return switch (return_mode) {
+        .copied => copied,
+        .padded => copied,
+        .would_have => rendered.len,
+    };
+}
+
+pub fn vsnprintf(buffer: []u8, comptime fmt: []const u8, args: anytype) usize {
+    return render(buffer, buffer.len -| 1, false, .would_have, fmt, args);
+}
+
+pub fn snprintf(buffer: []u8, comptime fmt: []const u8, args: anytype) usize {
+    return vsnprintf(buffer, fmt, args);
 }
 
 pub fn vscnprintf(buffer: []u8, comptime fmt: []const u8, args: anytype) usize {
-    return render(buffer, buffer.len -| 1, false, fmt, args);
+    return render(buffer, buffer.len -| 1, false, .copied, fmt, args);
 }
 
 pub fn scnprintf(buffer: []u8, comptime fmt: []const u8, args: anytype) usize {
-    return render(buffer, buffer.len -| 1, false, fmt, args);
+    return render(buffer, buffer.len -| 1, false, .copied, fmt, args);
 }
 
 pub fn scnprintfPad(buffer: []u8, logical_size: usize, comptime fmt: []const u8, args: anytype) usize {
-    return render(buffer, logical_size, true, fmt, args);
+    return render(buffer, logical_size, true, .padded, fmt, args);
 }
 
 test "scnprintf truncates to buffer minus terminator" {
@@ -51,6 +84,40 @@ test "scnprintfPad pads the remaining bytes with spaces" {
     const written = scnprintfPad(&buffer, buffer.len - 1, "id={d}", .{7});
     try std.testing.expectEqual(@as(usize, 8), written);
     try std.testing.expectEqualStrings("id=7    ", buffer[0 .. buffer.len - 1]);
+}
+
+test "snprintf reports would-be render length while truncating caller buffers" {
+    var direct = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa };
+    var alias = [_]u8{ 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb };
+
+    const direct_needed = snprintf(&direct, "{s}:{d}", .{ "zigux", 77 });
+    const alias_needed = vsnprintf(alias[1..6], "{s}:{d}", .{ "core", 123 });
+
+    try std.testing.expectEqual(@as(usize, 8), direct_needed);
+    try std.testing.expectEqual(@as(usize, 8), alias_needed);
+    try std.testing.expectEqualStrings("zigux", direct[0..5]);
+    try std.testing.expectEqual(@as(u8, 0), direct[5]);
+    try std.testing.expectEqual(@as(u8, 0xbb), alias[0]);
+    try std.testing.expectEqualStrings("core", alias[1..5]);
+    try std.testing.expectEqual(@as(u8, 0), alias[5]);
+    try std.testing.expectEqual(@as(u8, 0xbb), alias[6]);
+}
+
+test "snprintf keeps would-be length for empty caller buffers" {
+    var backing = [_]u8{0xcc};
+    const empty_needed = snprintf(backing[0..0], "{s}:{d}", .{ "lane", 10 });
+
+    try std.testing.expectEqual(@as(usize, 7), empty_needed);
+    try std.testing.expectEqual(@as(u8, 0xcc), backing[0]);
+
+    var clamped: [4]u8 = @splat(0xdd);
+    const copied = scnprintf(&clamped, "{s}", .{"zigux"});
+    const needed = snprintf(&clamped, "{s}", .{"zigux"});
+
+    try std.testing.expectEqual(@as(usize, 3), copied);
+    try std.testing.expectEqual(@as(usize, 5), needed);
+    try std.testing.expectEqualStrings("zig", clamped[0..3]);
+    try std.testing.expectEqual(@as(u8, 0), clamped[3]);
 }
 
 test "vscnprintf mirrors scnprintf across truncated caller buffers" {
