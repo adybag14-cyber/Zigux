@@ -57,6 +57,19 @@ pub fn kcallocBytes(n: usize, size: usize, gfp: gfp_t) ?[]u8 {
     return kmallocArray(n, size, gfp | __GFP_ZERO);
 }
 
+pub fn kreallocBytes(bytes: ?[]u8, new_size: usize, gfp: gfp_t) ?[]u8 {
+    const old = bytes orelse return kmallocBytes(new_size, gfp);
+    const resized = kmallocBytes(new_size, gfp) orelse return null;
+    const copied = @min(old.len, resized.len);
+
+    if (copied != 0) {
+        @memcpy(resized[0..copied], old[0..copied]);
+    }
+
+    kfree(old);
+    return resized;
+}
+
 pub fn slabIsAvailable() bool {
     return true;
 }
@@ -141,4 +154,36 @@ test "zeroing aliases request __GFP_ZERO while preserving allocation accounting"
     try std.testing.expect(kzallocBytes(8, 0) == null);
     try std.testing.expect(kcallocBytes(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
     try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+}
+
+test "kreallocBytes preserves ownership on success and failure" {
+    kmalloc_nr_allocated = 0;
+
+    var resized = kreallocBytes(null, 3, GFP_KERNEL | __GFP_ZERO) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, 0, 0 }, resized);
+
+    resized[0] = 'a';
+    resized[1] = 'b';
+    resized[2] = 'c';
+
+    resized = kreallocBytes(resized, 6, GFP_KERNEL | __GFP_ZERO) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    try std.testing.expectEqualSlices(u8, "abc", resized[0..3]);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, 0, 0 }, resized[3..6]);
+
+    resized = kreallocBytes(resized, 2, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    try std.testing.expectEqualSlices(u8, "ab", resized);
+
+    try std.testing.expect(kreallocBytes(resized, 8, 0) == null);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    try std.testing.expectEqualSlices(u8, "ab", resized);
+
+    resized = kreallocBytes(resized, 0, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), resized.len);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    kfree(resized);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
 }
