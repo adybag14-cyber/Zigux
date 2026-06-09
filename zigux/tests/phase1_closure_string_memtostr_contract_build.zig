@@ -31,4 +31,6 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run the Phase 1 closure string memtostr marker contract");
     test_step.dependOn(&contract_tests.step);
+
+    b.default_step.dependOn(&contract_tests.step);
 }
