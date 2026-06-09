@@ -22,6 +22,7 @@ pub fn build(b: *std.Build) void {
         "Run the Lane 01 Phase 10 virtio lab drivers roadmap contract",
     );
     contract_step.dependOn(&run_unit_tests.step);
+    b.default_step.dependOn(contract_step);
 
     const test_step = b.step("test", "Run the Lane 01 Phase 10 virtio lab drivers roadmap contract");
     test_step.dependOn(&run_unit_tests.step);
