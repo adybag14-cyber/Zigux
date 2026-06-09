@@ -23,6 +23,11 @@ pub const ActionError = error{
     UnexpectedAction,
 };
 
+pub const ReturnBoundaryError = error{
+    InvalidInteropPolicy,
+    ReturnBoundaryDenied,
+};
+
 pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.PanicMode {
     if (reserved != 0) return null;
     return switch (mode) {
@@ -213,6 +218,25 @@ pub fn canReturnByte(mode: u8) bool {
     return canReturnInteropPolicyBytes(mode, 0);
 }
 
+pub fn requireCanReturn(mode: abi.PanicMode) ReturnBoundaryError!void {
+    if (!canReturn(mode)) {
+        return error.ReturnBoundaryDenied;
+    }
+}
+
+pub fn requireCanReturnPolicyBytes(mode: u8, reserved: u8) ReturnBoundaryError!void {
+    const actual = modeFromInteropPolicyBytes(mode, reserved) orelse return error.InvalidInteropPolicy;
+    try requireCanReturn(actual);
+}
+
+pub fn requireCanReturnInteropPolicy(policy: abi.InteropPolicy) ReturnBoundaryError!void {
+    try requireCanReturnPolicyBytes(policy.panic_mode, policy.reserved);
+}
+
+pub fn requireCanReturnByte(mode: u8) ReturnBoundaryError!void {
+    try requireCanReturnPolicyBytes(mode, 0);
+}
+
 test "phase3 panic policy keeps escalation explicit" {
     try std.testing.expectEqual(Escalation.immediate_abort, escalationFor(.abort));
     try std.testing.expectEqual(Escalation.kernel_bug, escalationFor(.bug));
@@ -302,6 +326,24 @@ test "phase3 panic policy keeps require helpers explicit" {
     try requireActionInteropPolicy(bug_policy, .bug_check);
     try requireActionInteropPolicy(warn_policy, .warn_and_return);
     try std.testing.expectError(error.UnexpectedAction, requireActionInteropPolicy(warn_policy, .bug_check));
+
+    try requireCanReturn(.warn);
+    try std.testing.expectError(error.ReturnBoundaryDenied, requireCanReturn(.abort));
+    try std.testing.expectError(error.ReturnBoundaryDenied, requireCanReturn(.bug));
+
+    try requireCanReturnByte(2);
+    try std.testing.expectError(error.ReturnBoundaryDenied, requireCanReturnByte(0));
+    try std.testing.expectError(error.ReturnBoundaryDenied, requireCanReturnByte(1));
+    try std.testing.expectError(error.InvalidInteropPolicy, requireCanReturnByte(9));
+
+    try requireCanReturnPolicyBytes(2, 0);
+    try std.testing.expectError(error.ReturnBoundaryDenied, requireCanReturnPolicyBytes(0, 0));
+    try std.testing.expectError(error.ReturnBoundaryDenied, requireCanReturnPolicyBytes(1, 0));
+    try std.testing.expectError(error.InvalidInteropPolicy, requireCanReturnPolicyBytes(2, 1));
+
+    try requireCanReturnInteropPolicy(warn_policy);
+    try std.testing.expectError(error.ReturnBoundaryDenied, requireCanReturnInteropPolicy(abort_policy));
+    try std.testing.expectError(error.ReturnBoundaryDenied, requireCanReturnInteropPolicy(bug_policy));
 }
 
 test "phase3 panic policy stays explicit" {
