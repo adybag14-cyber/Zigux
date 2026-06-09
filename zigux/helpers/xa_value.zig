@@ -8,6 +8,10 @@ pub const MakeValueError = error{
     ValueWouldOverlapErrPtr,
 };
 
+pub const ToValueError = error{
+    NotXaValue,
+};
+
 pub fn canRepresent(value: usize) bool {
     return value <= safe_inline_limit;
 }
@@ -28,6 +32,13 @@ pub fn toValue(raw: usize) usize {
     return raw >> 1;
 }
 
+pub fn tryToValue(raw: usize) ToValueError!usize {
+    if (!isValue(raw)) {
+        return error.NotXaValue;
+    }
+    return raw >> 1;
+}
+
 comptime {
     std.debug.assert(isValue(1));
     std.debug.assert(!isValue(err_ptr.err_floor));
@@ -41,6 +52,7 @@ test "inline zero is representable and round-trips as an xa_value" {
     try std.testing.expectEqual(value_tag_mask, raw);
     try std.testing.expect(isValue(raw));
     try std.testing.expectEqual(@as(usize, 0), toValue(raw));
+    try std.testing.expectEqual(@as(usize, 0), try tryToValue(raw));
 }
 
 test "err_ptr encodings with the low tag bit set never classify as xa_values" {
@@ -49,6 +61,7 @@ test "err_ptr encodings with the low tag bit set never classify as xa_values" {
     try std.testing.expect((raw & value_tag_mask) == value_tag_mask);
     try std.testing.expect(err_ptr.isErrValue(raw));
     try std.testing.expect(!isValue(raw));
+    try std.testing.expectError(error.NotXaValue, tryToValue(raw));
 }
 
 test "highest representable inline value stays below the err_ptr floor" {
@@ -57,6 +70,7 @@ test "highest representable inline value stays below the err_ptr floor" {
     try std.testing.expect(canRepresent(safe_inline_limit));
     try std.testing.expect(isValue(raw));
     try std.testing.expectEqual(safe_inline_limit, toValue(raw));
+    try std.testing.expectEqual(safe_inline_limit, try tryToValue(raw));
     try std.testing.expect(raw < err_ptr.err_floor);
     try std.testing.expectEqual(err_ptr.err_floor - 2, raw);
 }
@@ -70,4 +84,16 @@ test "first rejected inline value aliases the err_ptr floor" {
     try std.testing.expectEqual(err_ptr.err_floor, raw);
     try std.testing.expect(err_ptr.isErrValue(raw));
     try std.testing.expect(!isValue(raw));
+    try std.testing.expectError(error.NotXaValue, tryToValue(raw));
+}
+
+test "checked xa_value decoder rejects null, pointer, and err_ptr lanes" {
+    try std.testing.expectError(error.NotXaValue, tryToValue(0));
+    try std.testing.expectError(error.NotXaValue, tryToValue(2));
+    try std.testing.expectError(error.NotXaValue, tryToValue(err_ptr.err_floor - 1));
+    try std.testing.expectError(error.NotXaValue, tryToValue(err_ptr.err_floor));
+    try std.testing.expectError(error.NotXaValue, tryToValue(err_ptr.fromErrorCode(-1)));
+
+    try std.testing.expectEqual(@as(usize, 1), try tryToValue(try makeValue(1)));
+    try std.testing.expectEqual(@as(usize, 37), try tryToValue(try makeValue(37)));
 }
