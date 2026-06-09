@@ -48,7 +48,6 @@ const pinned_channel = "0.17.0-dev.758+748e7c5e3";
 const pinned_target = "x86_64-linux";
 const pinned_filename = "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz";
 const pinned_digest = "0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6";
-const pinned_size_json = "\"size\": 59_410_844";
 const pinned_size_readme = "59410844";
 const pinned_parts_dir = "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts";
 
