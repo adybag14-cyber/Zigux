@@ -18,6 +18,11 @@ pub const InitFlowError = error{
     UnexpectedInitFlow,
 };
 
+pub const OwnershipError = error{
+    InvalidInteropPolicy,
+    UnexpectedOwnership,
+};
+
 pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.AllocatorMode {
     if (reserved != 0) return null;
     return switch (mode) {
@@ -107,6 +112,27 @@ pub fn requireInitFlowInteropPolicy(policy: abi.InteropPolicy, expected: InitFlo
 
 pub fn requireInitFlowByte(mode: u8, expected: InitFlow) InitFlowError!void {
     try requireInitFlowPolicyBytes(mode, 0, expected);
+}
+
+pub fn requireOwnership(mode: abi.AllocatorMode, expected: Ownership) OwnershipError!void {
+    if (ownershipFor(mode) != expected) {
+        return error.UnexpectedOwnership;
+    }
+}
+
+pub fn requireOwnershipPolicyBytes(mode: u8, reserved: u8, expected: Ownership) OwnershipError!void {
+    const actual = ownershipFromInteropPolicyBytes(mode, reserved) orelse return error.InvalidInteropPolicy;
+    if (actual != expected) {
+        return error.UnexpectedOwnership;
+    }
+}
+
+pub fn requireOwnershipInteropPolicy(policy: abi.InteropPolicy, expected: Ownership) OwnershipError!void {
+    try requireOwnershipPolicyBytes(policy.allocator_mode, policy.reserved, expected);
+}
+
+pub fn requireOwnershipByte(mode: u8, expected: Ownership) OwnershipError!void {
+    try requireOwnershipPolicyBytes(mode, 0, expected);
 }
 
 pub fn requiresExplicitCaller(mode: abi.AllocatorMode) bool {
@@ -304,6 +330,49 @@ test "phase3 allocator policy keeps init-flow require helpers explicit" {
     try requireInitFlowInteropPolicy(heap_policy, .helper_owned);
     try requireInitFlowInteropPolicy(arena_policy, .helper_owned_with_reset);
     try std.testing.expectError(error.UnexpectedInitFlow, requireInitFlowInteropPolicy(heap_policy, .helper_owned_with_reset));
+}
+
+test "phase3 allocator policy keeps ownership require helpers explicit" {
+    const caller_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = 2,
+        .reserved = 0,
+    };
+    const heap_policy = abi.InteropPolicy{
+        .panic_mode = 1,
+        .allocator_mode = 1,
+        .unsafe_scope = 1,
+        .reserved = 0,
+    };
+    const arena_policy = abi.InteropPolicy{
+        .panic_mode = 2,
+        .allocator_mode = 2,
+        .unsafe_scope = 0,
+        .reserved = 0,
+    };
+
+    try requireOwnership(.caller_provided, .caller_managed);
+    try requireOwnership(.kernel_heap, .helper_managed);
+    try requireOwnership(.arena, .helper_managed_resettable);
+    try std.testing.expectError(error.UnexpectedOwnership, requireOwnership(.kernel_heap, .caller_managed));
+
+    try requireOwnershipByte(0, .caller_managed);
+    try requireOwnershipByte(1, .helper_managed);
+    try requireOwnershipByte(2, .helper_managed_resettable);
+    try std.testing.expectError(error.UnexpectedOwnership, requireOwnershipByte(2, .helper_managed));
+    try std.testing.expectError(error.InvalidInteropPolicy, requireOwnershipByte(9, .helper_managed));
+
+    try requireOwnershipPolicyBytes(0, 0, .caller_managed);
+    try requireOwnershipPolicyBytes(1, 0, .helper_managed);
+    try requireOwnershipPolicyBytes(2, 0, .helper_managed_resettable);
+    try std.testing.expectError(error.UnexpectedOwnership, requireOwnershipPolicyBytes(0, 0, .helper_managed));
+    try std.testing.expectError(error.InvalidInteropPolicy, requireOwnershipPolicyBytes(1, 1, .helper_managed));
+
+    try requireOwnershipInteropPolicy(caller_policy, .caller_managed);
+    try requireOwnershipInteropPolicy(heap_policy, .helper_managed);
+    try requireOwnershipInteropPolicy(arena_policy, .helper_managed_resettable);
+    try std.testing.expectError(error.UnexpectedOwnership, requireOwnershipInteropPolicy(arena_policy, .helper_managed));
 }
 
 test "phase3 allocator policy stays explicit" {
