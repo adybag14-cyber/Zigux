@@ -76,6 +76,12 @@ fn expectFileContains(file: GateFile, needle: []const u8) !void {
     try expectContains(file.contents, needle);
 }
 
+fn expectOrdered(haystack: []const u8, before: []const u8, after: []const u8) !void {
+    const before_index = std.mem.indexOf(u8, haystack, before) orelse return error.MissingBeforeMarker;
+    const after_index = std.mem.indexOf(u8, haystack, after) orelse return error.MissingAfterMarker;
+    try std.testing.expect(before_index < after_index);
+}
+
 fn optionalIndex(haystack: []const u8, needle: []const u8) ?usize {
     return std.mem.indexOf(u8, haystack, needle);
 }
@@ -162,4 +168,12 @@ test "phase1 hardening gate packet remains wired through closure validator and w
         const bench_check = search_start + bench_check_after_selftest.?;
         try std.testing.expect(bench_check > bench_selftest);
     }
+
+    const bench_check_step =
+        "      - name: Check current Phase 1 bench packet\n" ++
+        "        run: python3 scripts/zigux/check-phase1-bench.py";
+    const closure_check_step =
+        "      - name: Check current Phase 1 closure packet\n" ++
+        "        run: python3 scripts/zigux/validate-phase1-closure.py";
+    try expectOrdered(workflow.contents, bench_check_step, closure_check_step);
 }
