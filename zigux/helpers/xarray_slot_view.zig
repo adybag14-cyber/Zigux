@@ -9,6 +9,11 @@ pub const SlotKind = enum {
     pointer,
 };
 
+pub const PointerError = error{
+    NullPointer,
+    TaggedInternalEntry,
+};
+
 pub const SlotView = struct {
     raw: usize,
 
@@ -85,6 +90,16 @@ pub fn fromValue(value: usize) xa_value.MakeValueError!SlotView {
 
 pub fn fromErrorCode(code: isize) SlotView {
     return .{ .raw = err_ptr.fromErrorCode(code) };
+}
+
+pub fn tryFromPointer(pointer: usize) PointerError!SlotView {
+    if (pointer == 0) {
+        return error.NullPointer;
+    }
+    if (isTaggedInternalEntry(pointer)) {
+        return error.TaggedInternalEntry;
+    }
+    return .{ .raw = pointer };
 }
 
 pub fn fromPointer(pointer: usize) SlotView {
@@ -199,4 +214,50 @@ test "slot-level tagged entry query matches raw xarray helper state" {
     try std.testing.expect(!pointer_slot.isTaggedEntry());
     try std.testing.expect(err_floor_slot.isTaggedEntry());
     try std.testing.expect(top_err_slot.isTaggedEntry());
+}
+
+test "fallible pointer constructor rejects null and tagged internal entries" {
+    try std.testing.expectError(error.NullPointer, tryFromPointer(0));
+    try std.testing.expectError(error.TaggedInternalEntry, tryFromPointer(try xa_value.makeValue(0)));
+    try std.testing.expectError(error.TaggedInternalEntry, tryFromPointer(err_ptr.err_floor));
+    try std.testing.expectError(error.TaggedInternalEntry, tryFromPointer(err_ptr.fromErrorCode(-1)));
+}
+
+test "fallible pointer constructor accepts pointer raws without decoder drift" {
+    const samples = [_]usize{
+        0x1000,
+        0x2000,
+        err_ptr.err_floor - 1,
+        err_ptr.err_floor - 0x1001,
+    };
+
+    for (samples) |raw| {
+        const slot = try tryFromPointer(raw);
+
+        try std.testing.expectEqual(SlotKind.pointer, slot.kind());
+        try std.testing.expectEqual(raw, slot.rawValue());
+        try std.testing.expectEqual(@as(?usize, raw), slot.pointerValue());
+        try std.testing.expectEqual(@as(?usize, null), slot.value());
+        try std.testing.expectEqual(@as(?isize, null), slot.errorCode());
+        try std.testing.expect(!slot.isTaggedEntry());
+    }
+}
+
+test "fallible pointer constructor matches infallible constructor for valid raws" {
+    const samples = [_]usize{
+        0x1000,
+        0x2000,
+        err_ptr.err_floor - 1,
+        err_ptr.err_floor - 0x1001,
+    };
+
+    for (samples) |raw| {
+        const fallible_slot = try tryFromPointer(raw);
+        const infallible_slot = fromPointer(raw);
+
+        try std.testing.expectEqual(infallible_slot.rawValue(), fallible_slot.rawValue());
+        try std.testing.expectEqual(infallible_slot.kind(), fallible_slot.kind());
+        try std.testing.expectEqual(infallible_slot.pointerValue(), fallible_slot.pointerValue());
+        try std.testing.expectEqual(infallible_slot.isTaggedEntry(), fallible_slot.isTaggedEntry());
+    }
 }
