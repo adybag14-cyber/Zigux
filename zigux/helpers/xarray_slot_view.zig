@@ -9,6 +9,17 @@ pub const SlotKind = enum {
     pointer,
 };
 
+pub const SlotAccessError = error{
+    NotValue,
+    NotError,
+    NotPointer,
+};
+
+pub const PointerError = error{
+    NullPointer,
+    TaggedInternalEntry,
+};
+
 pub const SlotView = struct {
     raw: usize,
 
@@ -56,6 +67,10 @@ pub const SlotView = struct {
         return xa_value.toValue(self.raw);
     }
 
+    pub fn requireValue(self: SlotView) SlotAccessError!usize {
+        return self.value() orelse error.NotValue;
+    }
+
     pub fn errorCode(self: SlotView) ?isize {
         if (!self.isErr()) {
             return null;
@@ -63,11 +78,19 @@ pub const SlotView = struct {
         return err_ptr.toErrorCode(self.raw);
     }
 
+    pub fn requireErrorCode(self: SlotView) SlotAccessError!isize {
+        return self.errorCode() orelse error.NotError;
+    }
+
     pub fn pointerValue(self: SlotView) ?usize {
         if (!self.isPointer()) {
             return null;
         }
         return self.raw;
+    }
+
+    pub fn requirePointerValue(self: SlotView) SlotAccessError!usize {
+        return self.pointerValue() orelse error.NotPointer;
     }
 };
 
@@ -85,6 +108,16 @@ pub fn fromValue(value: usize) xa_value.MakeValueError!SlotView {
 
 pub fn fromErrorCode(code: isize) SlotView {
     return .{ .raw = err_ptr.fromErrorCode(code) };
+}
+
+pub fn tryFromPointer(pointer: usize) PointerError!SlotView {
+    if (pointer == 0) {
+        return error.NullPointer;
+    }
+    if (isTaggedInternalEntry(pointer)) {
+        return error.TaggedInternalEntry;
+    }
+    return .{ .raw = pointer };
 }
 
 pub fn fromPointer(pointer: usize) SlotView {
@@ -199,4 +232,27 @@ test "slot-level tagged entry query matches raw xarray helper state" {
     try std.testing.expect(!pointer_slot.isTaggedEntry());
     try std.testing.expect(err_floor_slot.isTaggedEntry());
     try std.testing.expect(top_err_slot.isTaggedEntry());
+}
+
+test "required accessors return lane values or explicit lane errors" {
+    const null_slot = nullSlot();
+    const value_slot = try fromValue(7);
+    const err_slot = fromErrorCode(-12);
+    const pointer_slot = fromPointer(0x2000);
+
+    try std.testing.expectEqual(@as(usize, 7), try value_slot.requireValue());
+    try std.testing.expectEqual(@as(isize, -12), try err_slot.requireErrorCode());
+    try std.testing.expectEqual(@as(usize, 0x2000), try pointer_slot.requirePointerValue());
+
+    try std.testing.expectError(error.NotValue, null_slot.requireValue());
+    try std.testing.expectError(error.NotValue, err_slot.requireValue());
+    try std.testing.expectError(error.NotValue, pointer_slot.requireValue());
+
+    try std.testing.expectError(error.NotError, null_slot.requireErrorCode());
+    try std.testing.expectError(error.NotError, value_slot.requireErrorCode());
+    try std.testing.expectError(error.NotError, pointer_slot.requireErrorCode());
+
+    try std.testing.expectError(error.NotPointer, null_slot.requirePointerValue());
+    try std.testing.expectError(error.NotPointer, value_slot.requirePointerValue());
+    try std.testing.expectError(error.NotPointer, err_slot.requirePointerValue());
 }

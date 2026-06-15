@@ -45,6 +45,10 @@ pub const __sw_hweight8 = swHweight8;
 pub const __sw_hweight16 = swHweight16;
 pub const __sw_hweight32 = swHweight32;
 pub const __sw_hweight64 = swHweight64;
+pub const hweight8 = swHweight8;
+pub const hweight16 = swHweight16;
+pub const hweight32 = swHweight32;
+pub const hweight64 = swHweight64;
 pub const hweight_long = hweightLong;
 
 test "software hweight helpers match popcount" {
@@ -64,6 +68,38 @@ test "Linux-style hweight aliases mirror the primary helper surface" {
         __sw_hweight64(0xf0f0_f0f0_f0f0_f0f0),
     );
     try std.testing.expectEqual(hweightLong(0xf0f0), hweight_long(0xf0f0));
+}
+
+test "public hweight aliases mirror software helper surface" {
+    const samples8 = [_]u32{ 0, 1, 0x55, 0xaa, 0xff, 0xffff_ff80 };
+    for (samples8) |sample| {
+        try std.testing.expectEqual(swHweight8(sample), hweight8(sample));
+        try std.testing.expectEqual(__sw_hweight8(sample), hweight8(sample));
+    }
+
+    const samples16 = [_]u32{ 0, 1, 0x5555, 0xaaaa, 0xffff, 0xffff_8001 };
+    for (samples16) |sample| {
+        try std.testing.expectEqual(swHweight16(sample), hweight16(sample));
+        try std.testing.expectEqual(__sw_hweight16(sample), hweight16(sample));
+    }
+
+    const samples32 = [_]u32{ 0, 1, 0x5555_5555, 0xaaaa_aaaa, 0xffff_ffff };
+    for (samples32) |sample| {
+        try std.testing.expectEqual(swHweight32(sample), hweight32(sample));
+        try std.testing.expectEqual(__sw_hweight32(sample), hweight32(sample));
+    }
+
+    const samples64 = [_]u64{
+        0,
+        1,
+        0x5555_5555_5555_5555,
+        0xaaaa_aaaa_aaaa_aaaa,
+        0xffff_ffff_ffff_ffff,
+    };
+    for (samples64) |sample| {
+        try std.testing.expectEqual(swHweight64(sample), hweight64(sample));
+        try std.testing.expectEqual(__sw_hweight64(sample), hweight64(sample));
+    }
 }
 
 test "hweight helpers stay additive for disjoint masks" {

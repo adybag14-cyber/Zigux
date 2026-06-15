@@ -18,6 +18,10 @@ pub const CpuMaskView = struct {
         return self.bitmap.countSetBits();
     }
 
+    pub fn hasSingleCpu(self: CpuMaskView) bool {
+        return self.bitmap.hasSingleBit();
+    }
+
     pub fn firstCpu(self: CpuMaskView) ?usize {
         return self.bitmap.firstSetBit();
     }
@@ -89,6 +93,31 @@ test "cpumask view keeps cpu presence and gaps explicit" {
     try std.testing.expectEqual(@as(?usize, 5), view.lastCpu());
     try std.testing.expectEqual(@as(?usize, 1), view.firstMissingCpu());
     try std.testing.expectEqual(@as(?usize, 7), view.lastMissingCpu());
+}
+
+test "cpumask view reports exactly one present cpu inside declared capacity" {
+    const cpu_capacity = bitmap_view.word_bits + 5;
+    const tail_noise = ~((@as(usize, 1) << 5) - 1);
+    const singleton_words = [_]usize{
+        0,
+        (@as(usize, 1) << 3) | tail_noise,
+    };
+    const empty_words = [_]usize{
+        0,
+        tail_noise,
+    };
+    const plural_words = [_]usize{
+        (@as(usize, 1) << 1),
+        (@as(usize, 1) << 3) | tail_noise,
+    };
+
+    const singleton = CpuMaskView.init(singleton_words[0..], cpu_capacity);
+    const empty = CpuMaskView.init(empty_words[0..], cpu_capacity);
+    const plural = CpuMaskView.init(plural_words[0..], cpu_capacity);
+
+    try std.testing.expect(singleton.hasSingleCpu());
+    try std.testing.expect(!empty.hasSingleCpu());
+    try std.testing.expect(!plural.hasSingleCpu());
 }
 
 test "cpumask view keeps reverse cursors bounded to declared capacity" {

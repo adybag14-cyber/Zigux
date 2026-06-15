@@ -3,11 +3,16 @@ const mmio = @import("mmio");
 
 pub const MmioRange = mmio.MmioRange;
 
-pub fn rangeAccessEndOffset(range: MmioRange, byte_offset: usize, byte_len: usize) ?usize {
+pub fn rangeRemainingBytes(range: MmioRange, byte_offset: usize) ?usize {
     const range_len: usize = @intCast(range.length);
-    const access_end = std.math.add(usize, byte_offset, byte_len) catch return null;
-    if (access_end > range_len) return null;
-    return access_end;
+    if (byte_offset > range_len) return null;
+    return range_len - byte_offset;
+}
+
+pub fn rangeAccessEndOffset(range: MmioRange, byte_offset: usize, byte_len: usize) ?usize {
+    const remaining = rangeRemainingBytes(range, byte_offset) orelse return null;
+    if (byte_len > remaining) return null;
+    return byte_offset + byte_len;
 }
 
 pub fn rangeContainsAccessBytes(range: MmioRange, byte_offset: usize, byte_len: usize) bool {
@@ -45,6 +50,19 @@ test "phase3 mmio range access helper exposes byte and stride predicates" {
         .length = 12,
         .stride = 0,
     };
+    const empty = MmioRange{
+        .base_addr = 0x3000,
+        .length = 0,
+        .stride = 0,
+    };
+
+    try std.testing.expectEqual(@as(?usize, 16), rangeRemainingBytes(strided, 0));
+    try std.testing.expectEqual(@as(?usize, 4), rangeRemainingBytes(strided, 12));
+    try std.testing.expectEqual(@as(?usize, 0), rangeRemainingBytes(strided, 16));
+    try std.testing.expectEqual(@as(?usize, null), rangeRemainingBytes(strided, 17));
+    try std.testing.expectEqual(@as(?usize, null), rangeRemainingBytes(strided, std.math.maxInt(usize)));
+    try std.testing.expectEqual(@as(?usize, 0), rangeRemainingBytes(empty, 0));
+    try std.testing.expectEqual(@as(?usize, null), rangeRemainingBytes(empty, 1));
 
     try std.testing.expectEqual(@as(?usize, 16), rangeAccessEndOffset(strided, 12, @sizeOf(u32)));
     try std.testing.expectEqual(@as(?usize, 16), rangeAccessEndOffset(strided, 16, 0));
