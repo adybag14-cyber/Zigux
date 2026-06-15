@@ -1,0 +1,9 @@
+# Zig / Python build artifacts (local only)
+.zig-toolchain/
+**/.zig-cache/
+**/__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
