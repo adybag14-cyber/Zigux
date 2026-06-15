@@ -32,12 +32,29 @@ pub fn kzallocBytes(size: usize, gfp: gfp_t) ?[]u8 {
     return kmallocBytes(size, gfp | __GFP_ZERO);
 }
 
+fn scrubSensitiveBytes(bytes: []u8) void {
+    @memset(bytes, 0);
+}
+
 pub fn kfree(bytes: ?[]u8) void {
     if (bytes) |slice| {
         backing_allocator.free(slice);
         kmalloc_nr_allocated -= 1;
     }
 }
+
+pub fn kfreeSensitive(bytes: ?[]u8) void {
+    if (bytes) |slice| {
+        scrubSensitiveBytes(slice);
+    }
+    kfree(bytes);
+}
+
+
+pub fn kfree_sensitive(bytes: ?[]u8) void {
+    kfreeSensitive(bytes);
+}
+
 
 pub fn kmallocArray(n: usize, size: usize, gfp: gfp_t) ?[]u8 {
     if ((gfp & __GFP_DIRECT_RECLAIM) == 0) {
@@ -56,6 +73,35 @@ pub fn kmallocArray(n: usize, size: usize, gfp: gfp_t) ?[]u8 {
 pub fn kcallocBytes(n: usize, size: usize, gfp: gfp_t) ?[]u8 {
     return kmallocArray(n, size, gfp | __GFP_ZERO);
 }
+
+pub fn kstrdupBytes(source: []const u8, gfp: gfp_t) ?[]u8 {
+    if ((gfp & __GFP_DIRECT_RECLAIM) == 0) {
+        return null;
+    }
+
+    const total = std.math.add(usize, source.len, 1) catch return null;
+    const bytes = backing_allocator.alloc(u8, total) catch return null;
+    kmalloc_nr_allocated += 1;
+    if (source.len != 0) {
+        @memcpy(bytes[0..source.len], source);
+    }
+    bytes[source.len] = 0;
+    return bytes;
+}
+
+pub fn kreallocBytes(bytes: ?[]u8, new_size: usize, gfp: gfp_t) ?[]u8 {
+    const old = bytes orelse return kmallocBytes(new_size, gfp);
+    const resized = kmallocBytes(new_size, gfp) orelse return null;
+    const copied = @min(old.len, resized.len);
+
+    if (copied != 0) {
+        @memcpy(resized[0..copied], old[0..copied]);
+    }
+
+    kfree(old);
+    return resized;
+}
+
 
 pub fn slabIsAvailable() bool {
     return true;
@@ -141,4 +187,89 @@ test "zeroing aliases request __GFP_ZERO while preserving allocation accounting"
     try std.testing.expect(kzallocBytes(8, 0) == null);
     try std.testing.expect(kcallocBytes(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
     try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+}
+
+test "kstrdupBytes returns independent NUL-terminated ownership" {
+    kmalloc_nr_allocated = 0;
+
+    var source = [_]u8{ 'l', 'a', 'n', 'e', '1', '0' };
+    const duplicate = kstrdupBytes(&source, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    defer kfree(duplicate);
+
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    try std.testing.expectEqual(@as(usize, source.len + 1), duplicate.len);
+    try std.testing.expectEqualStrings("lane10", duplicate[0..source.len]);
+    try std.testing.expectEqual(@as(u8, 0), duplicate[source.len]);
+
+    source[0] = 'L';
+    duplicate[1] = 'A';
+    try std.testing.expectEqual(@as(u8, 'l'), duplicate[0]);
+    try std.testing.expectEqual(@as(u8, 'a'), source[1]);
+}
+
+test "kstrdupBytes handles no-reclaim failure and empty strings" {
+    kmalloc_nr_allocated = 0;
+
+    try std.testing.expect(kstrdupBytes("blocked", 0) == null);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+
+    const empty = kstrdupBytes("", GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 1), empty.len);
+    try std.testing.expectEqual(@as(u8, 0), empty[0]);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    kfree(empty);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
+
+test "kreallocBytes preserves ownership on success and failure" {
+    kmalloc_nr_allocated = 0;
+
+    var resized = kreallocBytes(null, 3, GFP_KERNEL | __GFP_ZERO) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, 0, 0 }, resized);
+
+    resized[0] = 'a';
+    resized[1] = 'b';
+    resized[2] = 'c';
+
+    resized = kreallocBytes(resized, 6, GFP_KERNEL | __GFP_ZERO) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    try std.testing.expectEqualSlices(u8, "abc", resized[0..3]);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, 0, 0 }, resized[3..6]);
+
+    resized = kreallocBytes(resized, 2, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    try std.testing.expectEqualSlices(u8, "ab", resized);
+
+    try std.testing.expect(kreallocBytes(resized, 8, 0) == null);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    try std.testing.expectEqualSlices(u8, "ab", resized);
+
+    resized = kreallocBytes(resized, 0, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), resized.len);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    kfree(resized);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
+
+test "kfreeSensitive scrubs bytes before releasing allocation accounting" {
+    kmalloc_nr_allocated = 0;
+
+    var stack_secret = [_]u8{ 's', 'e', 'c', 'r', 'e', 't' };
+    scrubSensitiveBytes(&stack_secret);
+    for (stack_secret) |value| {
+        try std.testing.expectEqual(@as(u8, 0), value);
+    }
+
+    const bytes = kmallocBytes(6, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    @memcpy(bytes, "secret");
+
+    kfreeSensitive(bytes);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+
+    kfreeSensitive(null);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
 }
