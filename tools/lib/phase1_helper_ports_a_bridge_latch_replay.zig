@@ -31,13 +31,13 @@ fn less(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
 test "phase1 helper ports A bridge latch replay" {
     const nbits = find_bit.bits_per_long * 2 + 11;
 
-    var old = [_]Word{0} ** 3;
-    var new = [_]Word{0} ** 3;
-    var mask = [_]Word{0} ** 3;
-    var merged = [_]Word{0} ** 3;
-    var latch = [_]Word{0} ** 3;
-    var bridge = [_]Word{0} ** 3;
-    var gaps = [_]Word{0} ** 3;
+    var old = [_]Word{0}**3;
+    var new = [_]Word{0}**3;
+    var mask = [_]Word{0}**3;
+    var merged = [_]Word{0}**3;
+    var latch = [_]Word{0}**3;
+    var bridge = [_]Word{0}**3;
+    var gaps = [_]Word{0}**3;
 
     inline for (.{ 4, 9, find_bit.bits_per_long + 2, find_bit.bits_per_long + 14, find_bit.bits_per_long * 2 - 2 }) |bit| {
         setBit(&old, bit);
@@ -74,13 +74,13 @@ test "phase1 helper ports A bridge latch replay" {
     try std.testing.expectEqual(@as(usize, find_bit.bits_per_long + 24), find_bit.find_next_clump8(&clump, &merged, nbits, find_bit.bits_per_long + 7));
     try std.testing.expectEqual(@as(u8, 0x02), clump);
 
-    var range_buffer = [_]u8{0} ** 48;
+    var range_buffer = [_]u8{0}**48;
     const rendered_len = bitmap.bitmap_scnprintf(&merged, nbits, &range_buffer);
     try std.testing.expectEqualSlices(u8, "1,9,70,89,126", range_buffer[0..rendered_len]);
 
-    var label_storage = [_]u8{0} ** 64;
+    var label_storage = [_]u8{0}**64;
     const raw_label = try std.fmt.bufPrint(&label_storage, "  bridge:{s}\n", .{range_buffer[0..rendered_len]});
-    var label = [_]u8{0} ** 64;
+    var label = [_]u8{0}**64;
     @memcpy(label[0..raw_label.len], raw_label);
     const trimmed = string.strim(&label);
     try std.testing.expectEqualSlices(u8, "bridge:1,9,70,89,126", trimmed);
@@ -99,7 +99,7 @@ test "phase1 helper ports A bridge latch replay" {
     try std.testing.expectEqual(@as(?usize, 0), string.match_string(&exact_matches, trimmed));
     try std.testing.expectEqual(@as(?usize, 1), string.sysfs_match_string(&newline_matches, trimmed));
 
-    var padded = [_]u8{0xaa} ** 24;
+    var padded = [_]u8{0xaa}**24;
     try std.testing.expectEqual(@as(isize, 6), string.strscpy_pad(&padded, "bridge"));
     try std.testing.expectEqual(@as(?usize, null), string.memchr_inv(padded[7..], 0));
     try std.testing.expectEqual(@as(?usize, 0), string.memchr_inv(padded[0..7], 0));

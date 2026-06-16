@@ -30,11 +30,11 @@ fn keyCompare(comptime Entry: type, key: *const anyopaque, node: *const rbtree.N
 
 test "Lane 06 folded span keeps bitmap find string and cached rbtree aligned" {
     const nbits = 128;
-    var span = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var gate = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var folded = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var overlap = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var retained = [_]Word{0} ** bitmap.bitsToWords(nbits);
+    var span = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var gate = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var folded = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var overlap = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var retained = [_]Word{0}**bitmap.bitsToWords(nbits);
 
     setRange(&span, 4, 5);
     setRange(&span, 18, 6);

@@ -56,14 +56,14 @@ fn collectKeys(comptime Entry: type, root: *const rbtree.Root, out: []usize) usi
 
 test "Lane 06 pivot echo keeps helper ports aligned" {
     const nbits = 96;
-    var old = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var new = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var mask = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var pivot = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var guard = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var overlap = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var retained = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var echo = [_]Word{0} ** bitmap.bitsToWords(nbits);
+    var old = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var new = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var mask = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var pivot = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var guard = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var overlap = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var retained = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var echo = [_]Word{0}**bitmap.bitsToWords(nbits);
 
     setRange(&old, 3, 4);
     setRange(&old, 20, 3);

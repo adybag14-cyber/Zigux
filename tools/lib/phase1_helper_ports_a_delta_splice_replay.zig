@@ -22,12 +22,12 @@ fn keyCompare(comptime Entry: type, key: *const anyopaque, node: *const rbtree.N
 
 test "Lane 06 delta splice keeps helper ports A in lockstep" {
     const nbits = 96;
-    var old = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var new = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var mask = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var spliced = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var shared = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var delta = [_]Word{0} ** bitmap.bitsToWords(nbits);
+    var old = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var new = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var mask = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var spliced = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var shared = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var delta = [_]Word{0}**bitmap.bitsToWords(nbits);
 
     bitmap.bitmap_set(&old, 1, 5);
     bitmap.bitmap_set(&old, 12, 4);

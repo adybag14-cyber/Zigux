@@ -100,7 +100,7 @@ test "phase1 helper ports A quorum span replay" {
     const rendered_len = bitmap.scnprintf(&majority, nbits, &rendered_buffer);
     const rendered = rendered_buffer[0..rendered_len];
 
-    var padded = [_]u8{0} ** 80;
+    var padded = [_]u8{0}**80;
     padded[0] = ' ';
     @memcpy(padded[1 .. 1 + rendered.len], rendered);
     padded[1 + rendered.len] = ' ';
@@ -118,7 +118,7 @@ test "phase1 helper ports A quorum span replay" {
     try std.testing.expectEqualSlices(u8, "quorumspan", compact);
     try std.testing.expectEqual(@as(?usize, 1), string.sysfsMatchString(&[_][]const u8{ "other", trimmed, "miss" }, trimmed));
 
-    var copied = [_]u8{0xaa} ** 24;
+    var copied = [_]u8{0xaa}**24;
     try std.testing.expectEqual(@as(isize, @intCast(compact.len)), string.strscpyPad(&copied, compact));
     try std.testing.expectEqual(@as(u8, 0), copied[compact.len]);
     try std.testing.expectEqual(@as(u8, 0), copied[compact.len + 1]);

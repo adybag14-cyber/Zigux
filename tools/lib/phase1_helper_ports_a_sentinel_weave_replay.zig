@@ -30,12 +30,12 @@ fn keyCompare(comptime Entry: type, key: *const anyopaque, node: *const rbtree.N
 
 test "Lane 06 sentinel weave keeps bitmap find string and cached rbtree aligned" {
     const nbits = 96;
-    var old = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var new = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var mask = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var woven = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var overlap = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var sentinel = [_]Word{0} ** bitmap.bitsToWords(nbits);
+    var old = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var new = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var mask = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var woven = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var overlap = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var sentinel = [_]Word{0}**bitmap.bitsToWords(nbits);
 
     setRange(&old, 2, 4);
     setRange(&old, 18, 2);

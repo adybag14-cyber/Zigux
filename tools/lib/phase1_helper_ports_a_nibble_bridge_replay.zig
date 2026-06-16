@@ -18,10 +18,10 @@ fn nodeKey(comptime Entry: type, node: *const rbtree.Node) usize {
 
 test "Lane 06 nibble bridge keeps bitmap find string and cached rbtree aligned" {
     const nbits = 76;
-    var base = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var gate = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var remaining = [_]Word{0} ** bitmap.bitsToWords(nbits);
-    var merged = [_]Word{0} ** bitmap.bitsToWords(nbits);
+    var base = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var gate = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var remaining = [_]Word{0}**bitmap.bitsToWords(nbits);
+    var merged = [_]Word{0}**bitmap.bitsToWords(nbits);
 
     setRange(&base, 4, 4);
     setRange(&base, 64, 4);

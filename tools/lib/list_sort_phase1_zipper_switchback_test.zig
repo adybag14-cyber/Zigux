@@ -69,7 +69,7 @@ fn detachBack(from: *ListHead) !*ListHead {
 test "list sort preserves zipper switchback rebuild stability" {
     var head: ListHead = .{};
     head.init();
-    var lanes = [_]ListHead{.{}} ** 6;
+    var lanes = [_]ListHead{.{}}**6;
     for (&lanes) |*lane| lane.init();
 
     var entries = [_]Entry{

@@ -55,22 +55,22 @@ test "lane06 edge-window replay carries bitmap cursors through strings and cache
     try std.testing.expectEqual(@as(usize, 3), nwords);
     try std.testing.expectEqual(nwords, bitmap.bitsToWords(nbits));
 
-    var base = [_]Word{0} ** nwords;
+    var base = [_]Word{0}**nwords;
     bitmap.setRange(&base, 0, 2);
     bitmap.setRange(&base, 62, 5);
     bitmap.setRange(&base, 126, 4);
 
-    var overlay = [_]Word{0} ** nwords;
+    var overlay = [_]Word{0}**nwords;
     bitmap.setRange(&overlay, 1, 1);
     bitmap.setRange(&overlay, 64, 3);
     bitmap.setRange(&overlay, 128, 1);
 
-    var mask = [_]Word{0} ** nwords;
+    var mask = [_]Word{0}**nwords;
     bitmap.setRange(&mask, 0, 3);
     bitmap.setRange(&mask, 63, 4);
     bitmap.setRange(&mask, 126, 4);
 
-    var edge = [_]Word{0} ** nwords;
+    var edge = [_]Word{0}**nwords;
     bitmap.replace(&edge, &base, &overlay, &mask, nbits);
     try std.testing.expectEqual(@as(usize, 6), bitmap.weight(&edge, nbits));
     try std.testing.expect(!bitmap.empty(&edge, nbits));
@@ -90,12 +90,12 @@ test "lane06 edge-window replay carries bitmap cursors through strings and cache
     try std.testing.expectEqual(@as(usize, 128), find_bit.findNextClump8(&clump, &edge, nbits, 120));
     try std.testing.expectEqual(@as(u8, 0x01), clump);
 
-    var rendered = [_]u8{0} ** 48;
+    var rendered = [_]u8{0}**48;
     const rendered_len = bitmap.scnprintf(&edge, nbits, &rendered);
     try std.testing.expectEqualSlices(u8, "1,62,64-66,128", rendered[0..rendered_len]);
     try std.testing.expectEqual(@as(u8, 0), rendered[rendered_len]);
 
-    var padded = [_]u8{0xee} ** 48;
+    var padded = [_]u8{0xee}**48;
     const copied = string.strscpyPad(&padded, rendered[0 .. rendered_len + 1]);
     try std.testing.expectEqual(@as(isize, @intCast(rendered_len)), copied);
     try std.testing.expectEqual(@as(usize, 4), string.strHasPrefix(&padded, "1,62"));

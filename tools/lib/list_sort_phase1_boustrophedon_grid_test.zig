@@ -62,7 +62,7 @@ fn detachBack(from: *ListHead) !*ListHead {
 test "list sort preserves boustrophedon grid rebuild stability" {
     var head: ListHead = .{};
     head.init();
-    var rows = [_]ListHead{.{}} ** 4;
+    var rows = [_]ListHead{.{}}**4;
     for (&rows) |*row| row.init();
 
     var entries = [_]Entry{

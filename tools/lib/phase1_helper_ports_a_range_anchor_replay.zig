@@ -53,14 +53,14 @@ test "phase1 helper ports A range anchor replay" {
     const nbits = find_bit.bits_per_long * 2 + 13;
     const count = find_bit.bits_per_long + 10;
 
-    var source = [_]Word{0} ** 3;
-    var extended = [_]Word{0xaa55} ** 3;
-    var complement = [_]Word{0} ** 3;
-    var partner = [_]Word{0} ** 3;
-    var weighted_or = [_]Word{0} ** 3;
-    var weighted_xor = [_]Word{0} ** 3;
-    var shared = [_]Word{0} ** 3;
-    var remainder = [_]Word{0} ** 3;
+    var source = [_]Word{0}**3;
+    var extended = [_]Word{0xaa55}**3;
+    var complement = [_]Word{0}**3;
+    var partner = [_]Word{0}**3;
+    var weighted_or = [_]Word{0}**3;
+    var weighted_xor = [_]Word{0}**3;
+    var shared = [_]Word{0}**3;
+    var remainder = [_]Word{0}**3;
 
     bitmap.bitmap_set(&source, 2, 4);
     bitmap.bitmap_set(&source, find_bit.bits_per_long - 1, 3);
@@ -104,13 +104,13 @@ test "phase1 helper ports A range anchor replay" {
     try std.testing.expectEqual(@as(usize, find_bit.bits_per_long + 8), find_bit.find_next_clump8(&clump, &extended, nbits, find_bit.bits_per_long + 2));
     try std.testing.expectEqual(@as(u8, 0x03), clump);
 
-    var rendered = [_]u8{0} ** 48;
+    var rendered = [_]u8{0}**48;
     const rendered_len = bitmap.bitmap_scnprintf(&extended, nbits, &rendered);
     try std.testing.expectEqualSlices(u8, "2-5,63-65,72-73", rendered[0..rendered_len]);
 
-    var label_storage = [_]u8{0} ** 64;
+    var label_storage = [_]u8{0}**64;
     const raw_label = try std.fmt.bufPrint(&label_storage, "  range:{s}\n", .{rendered[0..rendered_len]});
-    var label = [_]u8{0} ** 64;
+    var label = [_]u8{0}**64;
     @memcpy(label[0..raw_label.len], raw_label);
     const trimmed = string.strim(&label);
     try std.testing.expectEqualSlices(u8, "range:2-5,63-65,72-73", trimmed);
@@ -133,7 +133,7 @@ test "phase1 helper ports A range anchor replay" {
     const without_spaces = string.remove_spaces(&collapsed);
     try std.testing.expectEqualSlices(u8, "rangeanchor", without_spaces);
 
-    var padded = [_]u8{0xaa} ** 24;
+    var padded = [_]u8{0xaa}**24;
     try std.testing.expectEqual(@as(isize, 6), string.strscpy_pad(&padded, "anchor"));
     try std.testing.expectEqual(@as(?usize, 0), string.memchr_inv(padded[0..7], 0));
     try std.testing.expectEqual(@as(?usize, null), string.memchr_inv(padded[7..], 0));

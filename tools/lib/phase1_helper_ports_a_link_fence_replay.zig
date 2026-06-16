@@ -30,13 +30,13 @@ fn keyCmp(key: *const anyopaque, node: *const rbtree.Node) i32 {
 
 test "phase1 helper ports A link fence replay" {
     const nbits = 130;
-    var old = [_]bitmap.Word{0} ** bitmap.bitsToWords(nbits);
-    var new = [_]bitmap.Word{0} ** bitmap.bitsToWords(nbits);
-    var mask = [_]bitmap.Word{0} ** bitmap.bitsToWords(nbits);
-    var fenced = [_]bitmap.Word{0} ** bitmap.bitsToWords(nbits);
-    var inverted = [_]bitmap.Word{0} ** bitmap.bitsToWords(nbits);
-    var shared = [_]bitmap.Word{0} ** bitmap.bitsToWords(nbits);
-    var outside = [_]bitmap.Word{0} ** bitmap.bitsToWords(nbits);
+    var old = [_]bitmap.Word{0}**bitmap.bitsToWords(nbits);
+    var new = [_]bitmap.Word{0}**bitmap.bitsToWords(nbits);
+    var mask = [_]bitmap.Word{0}**bitmap.bitsToWords(nbits);
+    var fenced = [_]bitmap.Word{0}**bitmap.bitsToWords(nbits);
+    var inverted = [_]bitmap.Word{0}**bitmap.bitsToWords(nbits);
+    var shared = [_]bitmap.Word{0}**bitmap.bitsToWords(nbits);
+    var outside = [_]bitmap.Word{0}**bitmap.bitsToWords(nbits);
 
     bitmap.bitmap_set(&old, 1, 8);
     bitmap.bitmap_set(&old, 42, 1);
@@ -79,7 +79,7 @@ test "phase1 helper ports A link fence replay" {
     const rendered_len = bitmap.bitmap_scnprintf(&fenced, nbits, &rendered);
     try std.testing.expectEqualStrings("3-6,42,66-71,96-97,120-127", rendered[0..rendered_len]);
 
-    var padded = [_]u8{0xcc} ** 40;
+    var padded = [_]u8{0xcc}**40;
     try std.testing.expectEqual(@as(isize, @intCast(rendered_len)), string.strscpyPad(&padded, rendered[0..rendered_len]));
     try std.testing.expectEqual(@as(?usize, null), string.memchr_inv(padded[rendered_len + 1 ..], 0));
     try std.testing.expect(string.strstarts(&padded, "3-6"));

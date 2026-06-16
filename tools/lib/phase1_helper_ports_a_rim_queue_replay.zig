@@ -55,28 +55,28 @@ test "lane06 rim-queue replay carries rim bitmaps through strings and cached rbt
     try std.testing.expectEqual(@as(usize, 3), nwords);
     try std.testing.expectEqual(nwords, bitmap.bitsToWords(nbits));
 
-    var base = [_]Word{0} ** nwords;
+    var base = [_]Word{0}**nwords;
     bitmap.setRange(&base, 4, 4);
     bitmap.setRange(&base, 60, 6);
     bitmap.setRange(&base, 124, 4);
 
-    var overlay = [_]Word{0} ** nwords;
+    var overlay = [_]Word{0}**nwords;
     bitmap.setRange(&overlay, 2, 3);
     bitmap.setRange(&overlay, 61, 3);
     bitmap.setRange(&overlay, 126, 3);
 
-    var mask = [_]Word{0} ** nwords;
+    var mask = [_]Word{0}**nwords;
     bitmap.setRange(&mask, 0, 8);
     bitmap.setRange(&mask, 60, 6);
     bitmap.setRange(&mask, 124, 5);
 
-    var rim = [_]Word{0} ** nwords;
+    var rim = [_]Word{0}**nwords;
     bitmap.bitmap_replace(&rim, &base, &overlay, &mask, nbits);
     try std.testing.expectEqual(@as(usize, 9), bitmap.bitmap_weight(&rim, nbits));
     try std.testing.expect(bitmap.bitmap_subset(&overlay, &mask, nbits));
     try std.testing.expect(bitmap.bitmap_intersects(&rim, &base, nbits));
 
-    var inverse = [_]Word{0} ** nwords;
+    var inverse = [_]Word{0}**nwords;
     bitmap.bitmap_complement(&inverse, &rim, nbits);
     try std.testing.expectEqual(@as(usize, nbits - 9), bitmap.bitmap_weight(&inverse, nbits));
     try std.testing.expect(!bitmap.bitmap_intersects(&rim, &inverse, nbits));
@@ -98,12 +98,12 @@ test "lane06 rim-queue replay carries rim bitmaps through strings and cached rbt
     try std.testing.expectEqual(@as(usize, 128), find_bit.find_next_clump8(&clump, &rim, nbits, 128));
     try std.testing.expectEqual(@as(u8, 0x01), clump);
 
-    var rendered = [_]u8{0} ** 48;
+    var rendered = [_]u8{0}**48;
     const rendered_len = bitmap.bitmap_scnprintf(&rim, nbits, &rendered);
     try std.testing.expectEqualSlices(u8, "2-4,61-63,126-128", rendered[0..rendered_len]);
     try std.testing.expectEqual(@as(u8, 0), rendered[rendered_len]);
 
-    var padded = [_]u8{0xdd} ** 48;
+    var padded = [_]u8{0xdd}**48;
     const copied = string.strscpy_pad(&padded, rendered[0 .. rendered_len + 1]);
     try std.testing.expectEqual(@as(isize, @intCast(rendered_len)), copied);
     try std.testing.expectEqual(@as(usize, 3), string.str_has_prefix(&padded, "2-4"));

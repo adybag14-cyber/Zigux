@@ -86,13 +86,13 @@ test "masked gap reseed ties helper cursors to cached rbtree state" {
     try std.testing.expectEqual(@as(usize, bits_per_long + 8), find_bit.findNextClump8(&clump, &replaced, nbits, bits_per_long + 5));
     try std.testing.expectEqual(@as(u8, 0b0000_0010), clump);
 
-    var rendered = [_]u8{0} ** 64;
+    var rendered = [_]u8{0}**64;
     const rendered_len = bitmap.bitmap_scnprintf(&replaced, nbits, &rendered);
-    var expected_rendered = [_]u8{0} ** 32;
+    var expected_rendered = [_]u8{0}**32;
     const expected = try std.fmt.bufPrint(&expected_rendered, "3,5,{d},{d}", .{ bits_per_long + 4, bits_per_long + 9 });
     try std.testing.expectEqualSlices(u8, expected, rendered[0..rendered_len]);
 
-    var summary = [_]u8{0} ** 96;
+    var summary = [_]u8{0}**96;
     const written = try std.fmt.bufPrint(&summary, "  gaps={d}:{d}; kept={s}\n", .{ first_gap, second_gap, rendered[0..rendered_len] });
     summary[written.len] = 0;
     const trimmed = string.strim(&summary);
@@ -104,7 +104,7 @@ test "masked gap reseed ties helper cursors to cached rbtree state" {
     try std.testing.expectEqual(@as(?usize, 1), string.match_string(&choices, trimmed));
     try std.testing.expectEqual(@as(?usize, 2), string.sysfs_match_string(&choices, "kept=stale"));
 
-    var padded = [_]u8{0xaa} ** 96;
+    var padded = [_]u8{0xaa}**96;
     try std.testing.expectEqual(@as(isize, @intCast(trimmed.len)), string.strscpy_pad(&padded, trimmed));
     try std.testing.expectEqual(@as(u8, 0), padded[trimmed.len]);
     try std.testing.expectEqual(@as(?usize, null), string.memchr_inv(padded[trimmed.len + 1 ..], 0));
