@@ -59,9 +59,9 @@ test "toolchain CLI reports the final status packet" {
 test "checker self-test covers present not-pinned and too-old outcomes" {
     const source = checker_source;
 
-    try requireContains(source, "evaluate_toolchain_version(\"0.17.0-dev.758+748e7c5e3\", \"0.17.0-dev.758+748e7c5e3\")");
+    try requireContains(source, "evaluate_toolchain_version(\"0.17.0-dev.877+a3ae499dc\", \"0.17.0-dev.877+a3ae499dc\")");
     try requireContains(source, "(\"present\", None)");
-    try requireContains(source, "(\"not_pinned\", \"expected pinned Zig channel 0.17.0-dev.758+748e7c5e3\")");
+    try requireContains(source, "(\"not_pinned\", \"expected pinned Zig channel 0.17.0-dev.877+a3ae499dc\")");
     try requireContains(source, "(\"too_old\", None)");
     try requireContains(source, "ZIG_TOOLCHAIN_SELF_TEST=pass");
     try requireContains(source, "ZIG_TOOLCHAIN_SELF_TEST_CASE_COUNT=");

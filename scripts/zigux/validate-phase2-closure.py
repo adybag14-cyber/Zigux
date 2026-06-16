@@ -92,8 +92,8 @@ MANIFEST_SURFACE_KEYS = (
 )
 
 OPTIONAL_MANIFEST_SURFACE_PATHS = {
-    "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz",
-    "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts/manifest.json",
+    "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz",
+    "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts/manifest.json",
 }
 
 

@@ -10,8 +10,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")
-ARCHIVE_PAYLOAD = "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz"
-ARCHIVE_PARTS_MANIFEST = "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts/manifest.json"
+ARCHIVE_PAYLOAD = "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz"
+ARCHIVE_PARTS_MANIFEST = "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts/manifest.json"
 ARCHIVE_SUPPORT_FIXED_PREFIX = ("third_party/README.md",)
 ARCHIVE_SUPPORT_ALTERNATIVES = (
     ARCHIVE_PAYLOAD,
@@ -489,8 +489,8 @@ def build_self_test_root(
     write_manifest(root / MANIFEST, build_self_test_manifest(required_make_routes, archive_entry))
     policy_payload = {
         "phase": "Phase 2",
-        "channel": "0.17.0-dev.758+748e7c5e3",
-        "minimum_version": "0.17.0-dev.758+748e7c5e3",
+        "channel": "0.17.0-dev.877+a3ae499dc",
+        "minimum_version": "0.17.0-dev.877+a3ae499dc",
         "archive_sha256": {"x86_64-linux": "3" * 64},
         "upgrade_policy": {
             "channel_minimum_lockstep": True,
@@ -549,8 +549,8 @@ def run_self_test() -> int:
             seed_required_repo_paths(root, required_present_surfaces)
             write_text(root / TOOLCHAIN_POLICY, json.dumps({
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.758+748e7c5e3",
-                "minimum_version": "0.17.0-dev.758+748e7c5e3",
+                "channel": "0.17.0-dev.877+a3ae499dc",
+                "minimum_version": "0.17.0-dev.877+a3ae499dc",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
@@ -571,8 +571,8 @@ def run_self_test() -> int:
             seed_required_repo_paths(root, required_present_surfaces)
             write_text(root / TOOLCHAIN_POLICY, json.dumps({
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.758+748e7c5e3",
-                "minimum_version": "0.17.0-dev.758+748e7c5e3",
+                "channel": "0.17.0-dev.877+a3ae499dc",
+                "minimum_version": "0.17.0-dev.877+a3ae499dc",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
@@ -586,8 +586,8 @@ def run_self_test() -> int:
                 seed_required_repo_paths(root, required_present_surfaces)
                 write_text(root / TOOLCHAIN_POLICY, json.dumps({
                     "phase": "Phase 2",
-                    "channel": "0.17.0-dev.758+748e7c5e3",
-                    "minimum_version": "0.17.0-dev.758+748e7c5e3",
+                    "channel": "0.17.0-dev.877+a3ae499dc",
+                    "minimum_version": "0.17.0-dev.877+a3ae499dc",
                     "archive_sha256": {"x86_64-linux": "3" * 64},
                     "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
                 }, indent=2) + "\n")
@@ -601,8 +601,8 @@ def run_self_test() -> int:
                 seed_required_repo_paths(root, required_present_surfaces)
                 write_text(root / TOOLCHAIN_POLICY, json.dumps({
                     "phase": "Phase 2",
-                    "channel": "0.17.0-dev.758+748e7c5e3",
-                    "minimum_version": "0.17.0-dev.758+748e7c5e3",
+                    "channel": "0.17.0-dev.877+a3ae499dc",
+                    "minimum_version": "0.17.0-dev.877+a3ae499dc",
                     "archive_sha256": {"x86_64-linux": "3" * 64},
                     "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
                 }, indent=2) + "\n")
@@ -616,8 +616,8 @@ def run_self_test() -> int:
                 seed_required_repo_paths(root, required_present_surfaces)
                 write_text(root / TOOLCHAIN_POLICY, json.dumps({
                     "phase": "Phase 2",
-                    "channel": "0.17.0-dev.758+748e7c5e3",
-                    "minimum_version": "0.17.0-dev.758+748e7c5e3",
+                    "channel": "0.17.0-dev.877+a3ae499dc",
+                    "minimum_version": "0.17.0-dev.877+a3ae499dc",
                     "archive_sha256": {"x86_64-linux": "3" * 64},
                     "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
                 }, indent=2) + "\n")
@@ -632,8 +632,8 @@ def run_self_test() -> int:
                 seed_required_repo_paths(root, required_present_surfaces)
                 write_text(root / TOOLCHAIN_POLICY, json.dumps({
                     "phase": "Phase 2",
-                    "channel": "0.17.0-dev.758+748e7c5e3",
-                    "minimum_version": "0.17.0-dev.758+748e7c5e3",
+                    "channel": "0.17.0-dev.877+a3ae499dc",
+                    "minimum_version": "0.17.0-dev.877+a3ae499dc",
                     "archive_sha256": {"x86_64-linux": "3" * 64},
                     "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
                 }, indent=2) + "\n")
@@ -646,8 +646,8 @@ def run_self_test() -> int:
             seed_required_repo_paths(root, required_present_surfaces)
             write_text(root / TOOLCHAIN_POLICY, json.dumps({
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.758+748e7c5e3",
-                "minimum_version": "0.17.0-dev.758+748e7c5e3",
+                "channel": "0.17.0-dev.877+a3ae499dc",
+                "minimum_version": "0.17.0-dev.877+a3ae499dc",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
@@ -660,8 +660,8 @@ def run_self_test() -> int:
             seed_required_repo_paths(root, required_present_surfaces)
             write_text(root / TOOLCHAIN_POLICY, json.dumps({
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.758+748e7c5e3",
-                "minimum_version": "0.17.0-dev.758+748e7c5e3",
+                "channel": "0.17.0-dev.877+a3ae499dc",
+                "minimum_version": "0.17.0-dev.877+a3ae499dc",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
@@ -674,8 +674,8 @@ def run_self_test() -> int:
             seed_required_repo_paths(root, required_present_surfaces)
             write_text(root / TOOLCHAIN_POLICY, json.dumps({
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.758+748e7c5e3",
-                "minimum_version": "0.17.0-dev.758+748e7c5e3",
+                "channel": "0.17.0-dev.877+a3ae499dc",
+                "minimum_version": "0.17.0-dev.877+a3ae499dc",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
@@ -690,8 +690,8 @@ def run_self_test() -> int:
                 seed_required_repo_paths(root, required_present_surfaces)
                 write_text(root / TOOLCHAIN_POLICY, json.dumps({
                     "phase": "Phase 2",
-                    "channel": "0.17.0-dev.758+748e7c5e3",
-                    "minimum_version": "0.17.0-dev.758+748e7c5e3",
+                    "channel": "0.17.0-dev.877+a3ae499dc",
+                    "minimum_version": "0.17.0-dev.877+a3ae499dc",
                     "archive_sha256": {"x86_64-linux": "3" * 64},
                     "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
                 }, indent=2) + "\n")
@@ -715,8 +715,8 @@ def run_self_test() -> int:
         seed_required_repo_paths(root, required_present_surfaces)
         write_text(root / TOOLCHAIN_POLICY, json.dumps({
             "phase": "Phase 2",
-            "channel": "0.17.0-dev.758+748e7c5e3",
-            "minimum_version": "0.17.0-dev.758+748e7c5e3",
+            "channel": "0.17.0-dev.877+a3ae499dc",
+            "minimum_version": "0.17.0-dev.877+a3ae499dc",
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")
@@ -730,8 +730,8 @@ def run_self_test() -> int:
         seed_required_repo_paths(root, required_present_surfaces)
         write_text(root / TOOLCHAIN_POLICY, json.dumps({
             "phase": "Phase 2",
-            "channel": "0.17.0-dev.758+748e7c5e3",
-            "minimum_version": "0.17.0-dev.758+748e7c5e3",
+            "channel": "0.17.0-dev.877+a3ae499dc",
+            "minimum_version": "0.17.0-dev.877+a3ae499dc",
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")
@@ -746,8 +746,8 @@ def run_self_test() -> int:
             seed_required_repo_paths(root, required_present_surfaces)
             write_text(root / TOOLCHAIN_POLICY, json.dumps({
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.758+748e7c5e3",
-                "minimum_version": "0.17.0-dev.758+748e7c5e3",
+                "channel": "0.17.0-dev.877+a3ae499dc",
+                "minimum_version": "0.17.0-dev.877+a3ae499dc",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
@@ -761,8 +761,8 @@ def run_self_test() -> int:
         seed_required_repo_paths(root, required_present_surfaces)
         write_text(root / TOOLCHAIN_POLICY, json.dumps({
             "phase": "Phase 2",
-            "channel": "0.17.0-dev.758+748e7c5e3",
-            "minimum_version": "0.17.0-dev.758+748e7c5e3",
+            "channel": "0.17.0-dev.877+a3ae499dc",
+            "minimum_version": "0.17.0-dev.877+a3ae499dc",
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")
@@ -776,8 +776,8 @@ def run_self_test() -> int:
         seed_required_repo_paths(root, required_present_surfaces)
         write_text(root / TOOLCHAIN_POLICY, json.dumps({
             "phase": "Phase 2",
-            "channel": "0.17.0-dev.758+748e7c5e3",
-            "minimum_version": "0.17.0-dev.758+748e7c5e3",
+            "channel": "0.17.0-dev.877+a3ae499dc",
+            "minimum_version": "0.17.0-dev.877+a3ae499dc",
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")
@@ -791,8 +791,8 @@ def run_self_test() -> int:
         seed_required_repo_paths(root, required_present_surfaces)
         write_text(root / TOOLCHAIN_POLICY, json.dumps({
             "phase": "Phase 2",
-            "channel": "0.17.0-dev.758+748e7c5e3",
-            "minimum_version": "0.17.0-dev.758+748e7c5e3",
+            "channel": "0.17.0-dev.877+a3ae499dc",
+            "minimum_version": "0.17.0-dev.877+a3ae499dc",
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")
@@ -806,8 +806,8 @@ def run_self_test() -> int:
         seed_required_repo_paths(root, required_present_surfaces)
         write_text(root / TOOLCHAIN_POLICY, json.dumps({
             "phase": "Phase 2",
-            "channel": "0.17.0-dev.758+748e7c5e3",
-            "minimum_version": "0.17.0-dev.758+748e7c5e3",
+            "channel": "0.17.0-dev.877+a3ae499dc",
+            "minimum_version": "0.17.0-dev.877+a3ae499dc",
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")

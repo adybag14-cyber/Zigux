@@ -2,11 +2,11 @@ const std = @import("std");
 
 const CurrentPinnedArchive = struct {
     target: []const u8 = "x86_64-linux",
-    channel: []const u8 = "0.17.0-dev.758+748e7c5e3",
-    filename: []const u8 = "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz",
-    archive_path: []const u8 = "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz",
-    parts_dir: []const u8 = "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts",
-    sha256: []const u8 = "0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6",
+    channel: []const u8 = "0.17.0-dev.877+a3ae499dc",
+    filename: []const u8 = "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz",
+    archive_path: []const u8 = "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz",
+    parts_dir: []const u8 = "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts",
+    sha256: []const u8 = "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8",
     size_bytes: usize = 59_410_844,
 };
 
@@ -28,21 +28,21 @@ test "lane 05 publish boundary names the current archive and parts directory" {
     const current: CurrentPinnedArchive = .{};
 
     try std.testing.expectEqualStrings("x86_64-linux", current.target);
-    try std.testing.expectEqualStrings("0.17.0-dev.758+748e7c5e3", current.channel);
+    try std.testing.expectEqualStrings("0.17.0-dev.877+a3ae499dc", current.channel);
     try std.testing.expectEqualStrings(
-        "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz",
+        "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz",
         current.filename,
     );
     try std.testing.expectEqualStrings(
-        "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz",
+        "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz",
         current.archive_path,
     );
     try std.testing.expectEqualStrings(
-        "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts",
+        "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts",
         current.parts_dir,
     );
     try std.testing.expectEqualStrings(
-        "0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6",
+        "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8",
         current.sha256,
     );
     try std.testing.expectEqual(@as(usize, 59_410_844), current.size_bytes);

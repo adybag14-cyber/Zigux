@@ -2,19 +2,19 @@ const std = @import("std");
 const testing = std.testing;
 
 const pinned_target = "x86_64-linux";
-const pinned_channel = "0.17.0-dev.758+748e7c5e3";
-const pinned_digest = "0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6";
-const pinned_filename = "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz";
+const pinned_channel = "0.17.0-dev.877+a3ae499dc";
+const pinned_digest = "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8";
+const pinned_filename = "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz";
 const canonical_repo = "adybag14-cyber/zig";
-const canonical_tag = "upstream-748e7c5e39fc";
+const canonical_tag = "upstream-a3ae499dc297";
 const mirror_index_url = "https://ziglang.org/download/community-mirrors.txt";
 const direct_builds_url = "https://ziglang.org/builds/";
 const mirror_bootstrap_query = "?source=github-zigux-bootstrap";
 
 const policy =
-    \\"channel": "0.17.0-dev.758+748e7c5e3",
+    \\"channel": "0.17.0-dev.877+a3ae499dc",
     \\"archive_sha256": {
-    \\  "x86_64-linux": "0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6"
+    \\  "x86_64-linux": "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8"
     \\},
     \\"archive_target_scope": [
     \\  "x86_64-linux"
@@ -23,9 +23,9 @@ const policy =
 
 const third_party_readme =
     \\- target: `x86_64-linux`
-    \\- channel: `0.17.0-dev.758+748e7c5e3`
-    \\- file: `third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz`
-    \\- sha256: `0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6`
+    \\- channel: `0.17.0-dev.877+a3ae499dc`
+    \\- file: `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz`
+    \\- sha256: `c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8`
     \\- If the repo-local archive is unavailable, `.github/workflows/zigux-bootstrap.yml` falls back to the canonical `adybag14-cyber/zig` release before `community-mirrors.txt` and the direct `ziglang.org` download URL.
     \\- Before retrying the canonical release, mirror, or direct-download path, `.github/workflows/zigux-bootstrap.yml` clears the extracted `.zig-toolchain` root plus the cached `community-mirrors.txt` handle so stale partial recovery state is discarded before the next fallback attempt.
     \\- duplicate-suffix archives are rejected before staging
@@ -34,7 +34,7 @@ const third_party_readme =
 const workflow =
     \\filename = f"zig-{target}-{channel}.tar.xz"
     \\canonical_repo = "adybag14-cyber/zig"
-    \\canonical_tag = "upstream-748e7c5e39fc"
+    \\canonical_tag = "upstream-a3ae499dc297"
     \\url = f"https://ziglang.org/builds/{filename}"
     \\canonical_url = f"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}"
     \\mirror_file=".zig-toolchain/community-mirrors.txt"

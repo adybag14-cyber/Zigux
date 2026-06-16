@@ -71,19 +71,19 @@ test "installer self-test covers duplicate top-level and archive target policies
     const source = try readInstallerSource();
     defer std.testing.allocator.free(source);
 
-    try expectContains(source, "\"channel\":\"0.17.0-dev.758+748e7c5e3\",\"channel\":\"0.17.0-dev.90+abcdef\"");
+    try expectContains(source, "\"channel\":\"0.17.0-dev.877+a3ae499dc\",\"channel\":\"0.17.0-dev.90+abcdef\"");
     try expectContains(source, "assert 'duplicate toolchain policy keys' in str(exc)");
-    try expectContains(source, "\"x86_64-linux\":\"0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6\",\"x86_64-linux\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"");
+    try expectContains(source, "\"x86_64-linux\":\"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\",\"x86_64-linux\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"");
     try expectContains(source, "assert 'duplicate archive_sha256 targets' in str(exc)");
 
     try expectOrdered(
         source,
-        "\"channel\":\"0.17.0-dev.758+748e7c5e3\",\"channel\":\"0.17.0-dev.90+abcdef\"",
+        "\"channel\":\"0.17.0-dev.877+a3ae499dc\",\"channel\":\"0.17.0-dev.90+abcdef\"",
         "assert 'duplicate toolchain policy keys' in str(exc)",
     );
     try expectOrdered(
         source,
-        "\"x86_64-linux\":\"0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6\",\"x86_64-linux\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"",
+        "\"x86_64-linux\":\"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\",\"x86_64-linux\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"",
         "assert 'duplicate archive_sha256 targets' in str(exc)",
     );
 }

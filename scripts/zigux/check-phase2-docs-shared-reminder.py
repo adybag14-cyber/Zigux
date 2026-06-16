@@ -19,7 +19,7 @@ DOCS_README_MARKERS = (
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`scripts/zigux/check-phase2-tool-manifest.py` and `zigux/tests/fixtures/phase2_tool_manifest.json` keep the fixture-backed Phase 2 manifest packet explicit from the docs root beside the shipped reminder and make-wrapper surfaces.",
     "`scripts/zigux/check-phase2-artifact-tools-manifest.py` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` keep the fixture-backed Phase 2 manifest packet explicit from the docs root beside the shipped reminder and make-wrapper surfaces.",
-    "`third_party/README.md`, `scripts/zigux/check-lane05-local-first-archive-workflow.py`, and `scripts/zigux/check-lane05-local-archive-readme.py` are directly readable on current `master` again, so keep the repo-local pinned archive contract, the `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz --archive-target x86_64-linux` replay, the local-first `third_party`, canonical `adybag14-cyber/zig` release, mirror, then direct-download bootstrap order, and the two shipped Lane 05 reminder guards explicit from the docs root beside the returned toolchain packet.",
+    "`third_party/README.md`, `scripts/zigux/check-lane05-local-first-archive-workflow.py`, and `scripts/zigux/check-lane05-local-archive-readme.py` are directly readable on current `master` again, so keep the repo-local pinned archive contract, the `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz --archive-target x86_64-linux` replay, the local-first `third_party`, canonical `adybag14-cyber/zig` release, mirror, then direct-download bootstrap order, and the two shipped Lane 05 reminder guards explicit from the docs root beside the returned toolchain packet.",
     "`scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, `scripts/zigux/check-phase2-cross-selftest-alignment.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master` again, so keep the installer and direct cross-route packet explicit beside the shipped toolchain, kconfig, genksyms, and make-wrapper surfaces instead of leaving them in historical-gap wording.",
     "`scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `zigux/tests/fixtures/fixdep/cases.json`, and `make -C zigux phase2-fixdep` are directly readable on current `master` again, so keep the returned fixdep governance, parity, helper, fixture, and wrapper packet explicit beside the shipped toolchain, kconfig, and genksyms surfaces instead of leaving fixdep implicit in the broader Phase 2 reminder.",
     "`python3 scripts/zigux/validate-phase2.py`, `python3 scripts/zigux/validate-phase2-closure.py`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-fixdep`, `make -C zigux phase2-validate`, and `make -C zigux phase2` replay the bounded current Phase 2 closure-side, bounded genksyms bridge, and make-wrapper packet without widening it back into older missing-route assumptions.",
@@ -127,7 +127,7 @@ REVIEW_CHECKLIST_MARKERS = (
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz --archive-target x86_64-linux`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz --archive-target x86_64-linux`",
     "`python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`",
     "`python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`",
     "`python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`",
@@ -160,7 +160,7 @@ REVIEW_CHECKLIST_FORBIDDEN_MARKERS = (
 REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = (
     "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
     "`scripts/zigux/check-lane05-local-archive-readme.py`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz --archive-target x86_64-linux`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz --archive-target x86_64-linux`",
     "current directly readable Phase 2 local-first archive, toolchain, installer, direct cross-route, kbuild, kconfig bridge, docs-shared-reminder, tool-manifest, artifact-support, fixdep, genksyms-bridge, and required-make-route packet",
     "current rematerialized Phase 2 local-first archive, closure-side, closure-validator, validation, installer, direct cross-route, artifact-support, fixdep, toolchain self-check, and make-wrapper packet",
 )
@@ -201,7 +201,7 @@ TESTS_README_MARKERS = (
     "`scripts/zigux/check-lane05-local-archive-readme.py`",
     "current `master` now directly materializes `third_party/README.md`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-lane05-local-first-archive-workflow.py`, and `scripts/zigux/check-lane05-local-archive-readme.py`, so keep that returned repo-local pinned-archive workflow, bootstrap guard, and archive README contract explicit here instead of leaving them outside the tests-root reminder",
     "Keep the current toolchain self-check and replay surface explicit through `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --policy-only`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`, `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`, `python3 scripts/zigux/install-zig.py --self-test`, and `python3 scripts/zigux/check-phase2-cross.py --self-test`.",
-    "keep the repo-local pinned archive packet explicit through `third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz --archive-target x86_64-linux`, and the local-first `third_party`, canonical `adybag14-cyber/zig` release, mirror, then direct-download bootstrap order reused by `.github/workflows/zigux-bootstrap.yml` and the two Lane 05 archive checkers",
+    "keep the repo-local pinned archive packet explicit through `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz --archive-target x86_64-linux`, and the local-first `third_party`, canonical `adybag14-cyber/zig` release, mirror, then direct-download bootstrap order reused by `.github/workflows/zigux-bootstrap.yml` and the two Lane 05 archive checkers",
     "keep the local-first archive workflow replay surface explicit through `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`, `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`, `python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`, and `python3 scripts/zigux/check-lane05-local-archive-readme.py`.",
     "the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, toolchain reminder, helper-local kconfig allconfig guard, kconfig bridge checker, the dedicated genksyms survey, selftest-alignment guard, bridge helper, and standalone version-side-effect proofs, fixdep governance and parity set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
 )
@@ -216,29 +216,29 @@ THIRD_PARTY_README_MARKERS = (
     "# Zigux third-party archives",
     "## Current pinned Zig archive contract",
     "- target: `x86_64-linux`",
-    "- channel: `0.17.0-dev.758+748e7c5e3`",
-    "- file: `third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz`",
-    "- sha256: `0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6`",
-    "- size: `59410844` bytes",
+    "- channel: `0.17.0-dev.877+a3ae499dc`",
+    "- file: `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz`",
+    "- sha256: `c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8`",
+    "- size: `59581484` bytes",
     "## Validation",
-    "- `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz --archive-target x86_64-linux`",
-    "- Lane 05 bootstrap first reuses and validates `third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz` when that pinned archive is present.",
-    "- If the exact archive file is absent but `third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts` is present, `.github/workflows/zigux-bootstrap.yml` stages the same pinned payload locally with `scripts/zigux/stage-pinned-zig-archive.py` before canonical release, mirror, or direct-download fallback.",
+    "- `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz --archive-target x86_64-linux`",
+    "- Lane 05 bootstrap first reuses and validates `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz` when that pinned archive is present.",
+    "- If the exact archive file is absent but `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts` is present, `.github/workflows/zigux-bootstrap.yml` stages the same pinned payload locally with `scripts/zigux/stage-pinned-zig-archive.py` before canonical release, mirror, or direct-download fallback.",
     "- Before retrying the canonical release, mirror, or direct-download path, `.github/workflows/zigux-bootstrap.yml` clears the extracted `.zig-toolchain` root plus the cached `community-mirrors.txt` handle so stale partial recovery state is discarded before the next fallback attempt.",
     "- If the repo-local archive is unavailable, `.github/workflows/zigux-bootstrap.yml` falls back to the canonical `adybag14-cyber/zig` release before `community-mirrors.txt` and the direct `ziglang.org` download URL.",
     "- `scripts/zigux/check-lane05-local-first-archive-workflow.py` and `scripts/zigux/check-lane05-local-archive-readme.py` are the shipped reminder guards for that local-first archive path.",
-    "- do not keep duplicate-suffix copies such as `zig-x86_64-linux-0.17.0-dev.758+748e7c5e3 (1).tar.xz` in this directory",
+    "- do not keep duplicate-suffix copies such as `zig-x86_64-linux-0.17.0-dev.877+a3ae499dc (1).tar.xz` in this directory",
 )
 
 THIRD_PARTY_README_FORBIDDEN_MARKERS: tuple[str, ...] = ()
 
 THIRD_PARTY_README_EXACT_COUNT_MARKERS = (
-    "- Lane 05 bootstrap first reuses and validates `third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz` when that pinned archive is present.",
-    "- If the exact archive file is absent but `third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts` is present, `.github/workflows/zigux-bootstrap.yml` stages the same pinned payload locally with `scripts/zigux/stage-pinned-zig-archive.py` before canonical release, mirror, or direct-download fallback.",
+    "- Lane 05 bootstrap first reuses and validates `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz` when that pinned archive is present.",
+    "- If the exact archive file is absent but `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts` is present, `.github/workflows/zigux-bootstrap.yml` stages the same pinned payload locally with `scripts/zigux/stage-pinned-zig-archive.py` before canonical release, mirror, or direct-download fallback.",
     "- Before retrying the canonical release, mirror, or direct-download path, `.github/workflows/zigux-bootstrap.yml` clears the extracted `.zig-toolchain` root plus the cached `community-mirrors.txt` handle so stale partial recovery state is discarded before the next fallback attempt.",
     "- If the repo-local archive is unavailable, `.github/workflows/zigux-bootstrap.yml` falls back to the canonical `adybag14-cyber/zig` release before `community-mirrors.txt` and the direct `ziglang.org` download URL.",
     "- `scripts/zigux/check-lane05-local-first-archive-workflow.py` and `scripts/zigux/check-lane05-local-archive-readme.py` are the shipped reminder guards for that local-first archive path.",
-    "- do not keep duplicate-suffix copies such as `zig-x86_64-linux-0.17.0-dev.758+748e7c5e3 (1).tar.xz` in this directory",
+    "- do not keep duplicate-suffix copies such as `zig-x86_64-linux-0.17.0-dev.877+a3ae499dc (1).tar.xz` in this directory",
 )
 
 

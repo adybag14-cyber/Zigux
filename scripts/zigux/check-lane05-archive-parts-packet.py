@@ -194,8 +194,8 @@ def write_policy(root: Path, *, filename_sha256: str, size: int) -> None:
         json.dumps(
             {
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.758+748e7c5e3",
-                "minimum_version": "0.17.0-dev.758+748e7c5e3",
+                "channel": "0.17.0-dev.877+a3ae499dc",
+                "minimum_version": "0.17.0-dev.877+a3ae499dc",
                 "archive_size_bytes": size,
                 "archive_sha256": {"x86_64-linux": filename_sha256},
                 "upgrade_policy": {
@@ -243,7 +243,7 @@ def run_self_test() -> int:
     payload = (b"zigux-lane05-packet-" * 200) + b"tail"
     sha256 = hashlib.sha256(payload).hexdigest()
     chunk_bytes = 1024
-    filename = "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz"
+    filename = "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz"
 
     with tempfile.TemporaryDirectory(prefix="lane05_parts_packet_pass_") as tmp_dir:
         root = Path(tmp_dir)

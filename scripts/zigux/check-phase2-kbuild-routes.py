@@ -70,8 +70,8 @@ SURFACE_PATHS = (
 
 ARCHIVE_SURFACE_PATHS = (
     Path("third_party/README.md"),
-    Path("third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz"),
-    Path("third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts/manifest.json"),
+    Path("third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz"),
+    Path("third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts/manifest.json"),
 )
 
 WORKFLOW_LINES = (

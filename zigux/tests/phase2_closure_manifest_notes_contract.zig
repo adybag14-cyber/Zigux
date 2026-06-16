@@ -41,7 +41,7 @@ test "phase 2 closure manifest notes keep shared local archive and installer rem
     try expectContains(manifest, "scripts/zigux/check-lane05-stage-helper-contract.py");
     try expectContains(manifest, "scripts/zigux/check-lane05-stage-helper-selftest.py");
     try expectContains(manifest, "scripts/zigux/stage-pinned-zig-archive.py");
-    try expectContains(manifest, "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz");
+    try expectContains(manifest, "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz");
 
     try expectContains(closure, "scripts/zigux/check-phase2-tool-manifest.py");
     try expectContains(closure, "scripts/zigux/check-phase2-bootstrap-workflow-routes.py");

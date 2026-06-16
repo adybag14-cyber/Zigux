@@ -43,7 +43,7 @@ test "phase2 review checklist keeps the rematerialized current packet explicit" 
     try expectContains(checklist, "make -C zigux phase2");
 
     try expectOrder(checklist, "scripts/zigux/check-zig-toolchain.py", "scripts/zigux/check-phase2-fixdep-gate.py");
-    try expectOrder(checklist, "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz --archive-target x86_64-linux", "python3 scripts/zigux/check-phase2-cross.py --self-test");
+    try expectOrder(checklist, "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz --archive-target x86_64-linux", "python3 scripts/zigux/check-phase2-cross.py --self-test");
 }
 
 test "phase2 review checklist stays aligned with neighboring reminder surfaces" {
@@ -88,7 +88,7 @@ test "phase2 review checklist points to live closure, archive, and manifest proo
     try expectContains(closure, "PHASE2_SHARED_TOOLING_CHECKERS=python3 scripts/zigux/check-phase2-tool-manifest.py,python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py,python3 scripts/zigux/check-phase2-artifact-tools-manifest.py,python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py,python3 scripts/zigux/check-phase2-cross.py,python3 scripts/zigux/check-phase2-fixdep-gate.py,python3 scripts/zigux/check-fixdep-diff.py");
     try expectContains(closure, "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2");
 
-    try expectContains(archive_readme, "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz");
+    try expectContains(archive_readme, "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz");
     try expectContains(archive_readme, "scripts/zigux/stage-pinned-zig-archive.py");
     try expectContains(archive_readme, "falls back to the canonical `adybag14-cyber/zig` release before `community-mirrors.txt` and the direct `ziglang.org` download URL");
 

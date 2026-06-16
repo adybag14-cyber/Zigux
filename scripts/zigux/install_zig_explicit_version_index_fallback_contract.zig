@@ -23,9 +23,9 @@ test "explicit Zig version channels can resolve without the download index" {
 }
 
 test "canonical release explicit channel bypasses the download index entry lookup" {
-    try expectContains(install_zig_text, "CANONICAL_RELEASE_CHANNEL = '0.17.0-dev.758+748e7c5e3'");
+    try expectContains(install_zig_text, "CANONICAL_RELEASE_CHANNEL = '0.17.0-dev.877+a3ae499dc'");
     try expectContains(install_zig_text, "CANONICAL_RELEASE_REPO = os.environ.get('ZIGUX_ZIG_RELEASE_REPO', 'adybag14-cyber/zig')");
-    try expectContains(install_zig_text, "CANONICAL_RELEASE_TAG = os.environ.get('ZIGUX_ZIG_RELEASE_TAG', 'upstream-748e7c5e39fc')");
+    try expectContains(install_zig_text, "CANONICAL_RELEASE_TAG = os.environ.get('ZIGUX_ZIG_RELEASE_TAG', 'upstream-a3ae499dc297')");
     try expectContains(install_zig_text, "if channel == CANONICAL_RELEASE_CHANNEL:");
     try expectContains(install_zig_text, "f'https://github.com/{CANONICAL_RELEASE_REPO}/releases/download/'");
     try expectContains(install_zig_text, "f'{CANONICAL_RELEASE_TAG}/zig-{target_key}-{channel}{suffix}'");
@@ -45,8 +45,8 @@ test "generic explicit dev versions still infer stable Zig build URLs" {
 
 test "fallback behavior is covered by installer self-test markers" {
     try expectContains(install_zig_text, "globals()['read_index'] = lambda: (_ for _ in ()).throw(TimeoutError('timed out'))");
-    try expectContains(install_zig_text, "assert load_index('0.17.0-dev.758+748e7c5e3') == {}");
+    try expectContains(install_zig_text, "assert load_index('0.17.0-dev.877+a3ae499dc') == {}");
     try expectContains(install_zig_text, "load_index('master')");
     try expectContains(install_zig_text, "raise AssertionError('expected non-explicit channel timeout to fail')");
-    try expectContains(install_zig_text, "https://github.com/adybag14-cyber/zig/releases/download/upstream-748e7c5e39fc/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz");
+    try expectContains(install_zig_text, "https://github.com/adybag14-cyber/zig/releases/download/upstream-a3ae499dc297/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz");
 }

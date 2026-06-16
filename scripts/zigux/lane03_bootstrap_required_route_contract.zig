@@ -47,10 +47,10 @@ test "toolchain policy keeps the current required Phase 2 make-route roster" {
     const policy = try readRepoFile("scripts/zigux/zig-toolchain-policy.json", 16 * 1024);
     defer std.testing.allocator.free(policy);
 
-    try std.testing.expectEqual(@as(usize, 1), countSubstring(policy, "\"channel\": \"0.17.0-dev.758+748e7c5e3\""));
-    try std.testing.expectEqual(@as(usize, 1), countSubstring(policy, "\"minimum_version\": \"0.17.0-dev.758+748e7c5e3\""));
+    try std.testing.expectEqual(@as(usize, 1), countSubstring(policy, "\"channel\": \"0.17.0-dev.877+a3ae499dc\""));
+    try std.testing.expectEqual(@as(usize, 1), countSubstring(policy, "\"minimum_version\": \"0.17.0-dev.877+a3ae499dc\""));
     try std.testing.expectEqual(@as(usize, 1), countSubstring(policy, "\"channel_minimum_lockstep\": true"));
-    try std.testing.expectEqual(@as(usize, 1), countSubstring(policy, "\"x86_64-linux\": \"0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6\""));
+    try std.testing.expectEqual(@as(usize, 1), countSubstring(policy, "\"x86_64-linux\": \"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\""));
 
     for (required_make_routes) |route| {
         var route_marker: [64]u8 = undefined;

@@ -61,7 +61,7 @@ test "pinned setup action path tries trusted local archive then canonical releas
     );
 
     try expectContains(setup_path, "canonical_repo = \"adybag14-cyber/zig\"");
-    try expectContains(setup_path, "canonical_tag = \"upstream-748e7c5e39fc\"");
+    try expectContains(setup_path, "canonical_tag = \"upstream-a3ae499dc297\"");
     try expectContains(setup_path, "repo_archive_path=\"third_party/$ZIGUX_ZIG_FILENAME\"");
     try expectContains(setup_path, "repo_archive_parts_dir=\"${repo_archive_path}.parts\"");
     try expectContains(setup_path, "python3 scripts/zigux/stage-pinned-zig-archive.py");

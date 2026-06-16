@@ -5,11 +5,11 @@ const ContractError = error{
     OutOfOrderMarker,
 };
 
-const expected_channel = "0.17.0-dev.758+748e7c5e3";
-const expected_sha256 = "0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6";
-const expected_size = "59410844";
-const expected_filename = "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz";
-const expected_parts_dir = "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts";
+const expected_channel = "0.17.0-dev.877+a3ae499dc";
+const expected_sha256 = "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8";
+const expected_size = "59581484";
+const expected_filename = "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz";
+const expected_parts_dir = "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts";
 
 const failure_diagnostic =
     "failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org";
@@ -43,7 +43,7 @@ fn checkReadme(readme: []const u8) ContractError!void {
 
 fn checkWorkflow(workflow: []const u8) ContractError!void {
     try requireContains(workflow, "canonical_repo = \"adybag14-cyber/zig\"");
-    try requireContains(workflow, "canonical_tag = \"upstream-748e7c5e39fc\"");
+    try requireContains(workflow, "canonical_tag = \"upstream-a3ae499dc297\"");
     try requireContains(workflow, "repo_archive_path=\"third_party/$ZIGUX_ZIG_FILENAME\"");
     try requireContains(workflow, "repo_archive_parts_dir=\"${repo_archive_path}.parts\"");
     try requireContains(workflow, "python3 scripts/zigux/stage-pinned-zig-archive.py");
@@ -73,10 +73,10 @@ fn checkLane05BootstrapFailureDiagnostic(
 const current_policy =
     \\{
     \\  "phase": "Phase 2",
-    \\  "channel": "0.17.0-dev.758+748e7c5e3",
-    \\  "minimum_version": "0.17.0-dev.758+748e7c5e3",
+    \\  "channel": "0.17.0-dev.877+a3ae499dc",
+    \\  "minimum_version": "0.17.0-dev.877+a3ae499dc",
     \\  "archive_sha256": {
-    \\    "x86_64-linux": "0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6"
+    \\    "x86_64-linux": "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8"
     \\  },
     \\  "upgrade_policy": {
     \\    "channel_minimum_lockstep": true,
@@ -93,16 +93,16 @@ const current_policy =
 const current_readme =
     \\# Zigux third-party archives
     \\
-    \\- channel: `0.17.0-dev.758+748e7c5e3`
-    \\- file: `third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz`
-    \\- parts: `third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts`
-    \\- sha256: `0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6`
-    \\- size: `59410844` bytes
+    \\- channel: `0.17.0-dev.877+a3ae499dc`
+    \\- file: `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz`
+    \\- parts: `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts`
+    \\- sha256: `c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8`
+    \\- size: `59581484` bytes
 ;
 
 const current_workflow =
     \\canonical_repo = "adybag14-cyber/zig"
-    \\canonical_tag = "upstream-748e7c5e39fc"
+    \\canonical_tag = "upstream-a3ae499dc297"
     \\repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"
     \\repo_archive_parts_dir="${repo_archive_path}.parts"
     \\python3 scripts/zigux/stage-pinned-zig-archive.py --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1
@@ -135,7 +135,7 @@ test "lane05 bootstrap failure diagnostic names every fallback source" {
 test "lane05 bootstrap failure diagnostic rejects a missing mirror source" {
     const stale_workflow =
         \\canonical_repo = "adybag14-cyber/zig"
-        \\canonical_tag = "upstream-748e7c5e39fc"
+        \\canonical_tag = "upstream-a3ae499dc297"
         \\repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"
         \\repo_archive_parts_dir="${repo_archive_path}.parts"
         \\python3 scripts/zigux/stage-pinned-zig-archive.py
@@ -157,7 +157,7 @@ test "lane05 bootstrap failure diagnostic rejects a missing mirror source" {
 test "lane05 bootstrap failure diagnostic stays after direct ziglang fallback" {
     const stale_workflow =
         \\canonical_repo = "adybag14-cyber/zig"
-        \\canonical_tag = "upstream-748e7c5e39fc"
+        \\canonical_tag = "upstream-a3ae499dc297"
         \\repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"
         \\repo_archive_parts_dir="${repo_archive_path}.parts"
         \\python3 scripts/zigux/stage-pinned-zig-archive.py

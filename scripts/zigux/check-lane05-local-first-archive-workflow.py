@@ -66,7 +66,7 @@ POLICY_MARKERS = (
     'channel = policy["channel"]',
     'filename = f"zig-{target}-{channel}.tar.xz"',
     'canonical_repo = "adybag14-cyber/zig"',
-    'canonical_tag = "upstream-748e7c5e39fc"',
+    'canonical_tag = "upstream-a3ae499dc297"',
     'url = f"https://ziglang.org/builds/{filename}"',
     'canonical_url = f"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}"',
     'print(f"ZIGUX_ZIG_TARGET=\'{target}\'")',
@@ -256,12 +256,12 @@ def check_workflow(text: str) -> None:
     require_order(
         text,
         'canonical_repo = "adybag14-cyber/zig"',
-        'canonical_tag = "upstream-748e7c5e39fc"',
+        'canonical_tag = "upstream-a3ae499dc297"',
         "workflow inline policy order",
     )
     require_order(
         text,
-        'canonical_tag = "upstream-748e7c5e39fc"',
+        'canonical_tag = "upstream-a3ae499dc297"',
         'url = f"https://ziglang.org/builds/{filename}"',
         "workflow inline policy order",
     )
@@ -388,7 +388,7 @@ jobs:
           channel = policy["channel"]
           filename = f"zig-{target}-{channel}.tar.xz"
           canonical_repo = "adybag14-cyber/zig"
-          canonical_tag = "upstream-748e7c5e39fc"
+          canonical_tag = "upstream-a3ae499dc297"
           url = f"https://ziglang.org/builds/{filename}"
           canonical_url = f"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}"
           print(f"ZIGUX_ZIG_TARGET='{target}'")

@@ -72,9 +72,9 @@ const required_workflow_lines = [_][]const u8{
 };
 
 const policy_markers = [_][]const u8{
-    "\"channel\": \"0.17.0-dev.758+748e7c5e3\"",
-    "\"minimum_version\": \"0.17.0-dev.758+748e7c5e3\"",
-    "\"x86_64-linux\": \"0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6\"",
+    "\"channel\": \"0.17.0-dev.877+a3ae499dc\"",
+    "\"minimum_version\": \"0.17.0-dev.877+a3ae499dc\"",
+    "\"x86_64-linux\": \"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\"",
     "\"channel_minimum_lockstep\": true",
     "\"phase2-toolchain\"",
     "\"phase2-tools\"",
@@ -145,9 +145,9 @@ test "Lane 03 workflow line packet stays narrower than Phase 2 route ownership" 
 test "Lane 03 policy markers match the current pinned archive packet" {
     try std.testing.expectEqual(@as(usize, 11), policy_markers.len);
     try expectUnique(&policy_markers);
-    try std.testing.expect(contains(&policy_markers, "\"channel\": \"0.17.0-dev.758+748e7c5e3\""));
-    try std.testing.expect(contains(&policy_markers, "\"minimum_version\": \"0.17.0-dev.758+748e7c5e3\""));
-    try std.testing.expect(contains(&policy_markers, "\"x86_64-linux\": \"0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6\""));
+    try std.testing.expect(contains(&policy_markers, "\"channel\": \"0.17.0-dev.877+a3ae499dc\""));
+    try std.testing.expect(contains(&policy_markers, "\"minimum_version\": \"0.17.0-dev.877+a3ae499dc\""));
+    try std.testing.expect(contains(&policy_markers, "\"x86_64-linux\": \"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\""));
     try std.testing.expect(contains(&policy_markers, "\"channel_minimum_lockstep\": true"));
     try std.testing.expect(contains(&policy_markers, "\"phase2-toolchain\""));
     try std.testing.expect(contains(&policy_markers, "\"phase2-validate\""));

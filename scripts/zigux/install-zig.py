@@ -31,9 +31,9 @@ MAX_RETRY_DELAY = 30.0
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 TOOLCHAIN_POLICY = ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json'
 FALLBACK_CHANNEL = 'master'
-CANONICAL_RELEASE_CHANNEL = '0.17.0-dev.758+748e7c5e3'
+CANONICAL_RELEASE_CHANNEL = '0.17.0-dev.877+a3ae499dc'
 CANONICAL_RELEASE_REPO = os.environ.get('ZIGUX_ZIG_RELEASE_REPO', 'adybag14-cyber/zig')
-CANONICAL_RELEASE_TAG = os.environ.get('ZIGUX_ZIG_RELEASE_TAG', 'upstream-748e7c5e39fc')
+CANONICAL_RELEASE_TAG = os.environ.get('ZIGUX_ZIG_RELEASE_TAG', 'upstream-a3ae499dc297')
 
 
 class DuplicateTrackingDict(dict[str, object]):
@@ -408,7 +408,7 @@ def run_self_test() -> int:
     assert normalize_arch('i686') == 'x86'
     sample_index = {
         'master': {
-            'version': '0.17.0-dev.758+748e7c5e3',
+            'version': '0.17.0-dev.877+a3ae499dc',
             'x86_64-linux': {
                 'tarball': 'https://example.invalid/zig-linux.tar.xz',
             },
@@ -426,34 +426,34 @@ def run_self_test() -> int:
 
     assert resolve_target(sample_index, 'master', 'x86_64', 'linux') == (
         'x86_64-linux',
-        '0.17.0-dev.758+748e7c5e3',
+        '0.17.0-dev.877+a3ae499dc',
         'https://example.invalid/zig-linux.tar.xz',
     )
     assert resolve_target(sample_index, 'master', 'aarch64', 'macos') == (
         'aarch64-macos',
-        '0.17.0-dev.758+748e7c5e3',
+        '0.17.0-dev.877+a3ae499dc',
         'https://example.invalid/zig-macos.tar.xz',
     )
-    assert resolve_target(sample_index, '0.17.0-dev.758+748e7c5e3', 'x86_64', 'linux') == (
+    assert resolve_target(sample_index, '0.17.0-dev.877+a3ae499dc', 'x86_64', 'linux') == (
         'x86_64-linux',
-        '0.17.0-dev.758+748e7c5e3',
-        'https://github.com/adybag14-cyber/zig/releases/download/upstream-748e7c5e39fc/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz',
+        '0.17.0-dev.877+a3ae499dc',
+        'https://github.com/adybag14-cyber/zig/releases/download/upstream-a3ae499dc297/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz',
     )
     assert resolve_target(
         {'0.16.0': sample_index['0.16.0']},
-        '0.17.0-dev.758+748e7c5e3',
+        '0.17.0-dev.877+a3ae499dc',
         'x86_64',
         'linux',
     ) == (
         'x86_64-linux',
-        '0.17.0-dev.758+748e7c5e3',
-        'https://github.com/adybag14-cyber/zig/releases/download/upstream-748e7c5e39fc/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz',
+        '0.17.0-dev.877+a3ae499dc',
+        'https://github.com/adybag14-cyber/zig/releases/download/upstream-a3ae499dc297/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz',
     )
 
     original_read_index = globals()['read_index']
     try:
         globals()['read_index'] = lambda: (_ for _ in ()).throw(TimeoutError('timed out'))
-        assert load_index('0.17.0-dev.758+748e7c5e3') == {}
+        assert load_index('0.17.0-dev.877+a3ae499dc') == {}
         try:
             load_index('master')
         except TimeoutError:
@@ -468,11 +468,11 @@ def run_self_test() -> int:
         assert load_policy_channel(policy_path, '0.15.0') == '0.15.0'
         assert load_policy_archive_sha256(policy_path, 'x86_64-linux') is None
         policy_path.write_text(
-            '{"channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6"}}\n',
+            '{"channel":"0.17.0-dev.877+a3ae499dc","archive_sha256":{"x86_64-linux":"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8"}}\n',
             encoding='utf-8',
         )
-        assert load_policy_channel(policy_path, '0.15.0') == '0.17.0-dev.758+748e7c5e3'
-        assert load_policy_archive_sha256(policy_path, 'x86_64-linux') == '0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6'
+        assert load_policy_channel(policy_path, '0.15.0') == '0.17.0-dev.877+a3ae499dc'
+        assert load_policy_archive_sha256(policy_path, 'x86_64-linux') == 'c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8'
         assert load_policy_archive_sha256(policy_path, 'aarch64-linux') is None
         policy_path.write_text('{"channel":7}\n', encoding='utf-8')
         try:
@@ -481,14 +481,14 @@ def run_self_test() -> int:
             assert 'invalid channel' in str(exc)
         else:
             raise AssertionError('expected invalid channel to fail')
-        policy_path.write_text('{"channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":7}\n', encoding='utf-8')
+        policy_path.write_text('{"channel":"0.17.0-dev.877+a3ae499dc","archive_sha256":7}\n', encoding='utf-8')
         try:
             load_policy_archive_sha256(policy_path, 'x86_64-linux')
         except SystemExit as exc:
             assert 'invalid archive_sha256' in str(exc)
         else:
             raise AssertionError('expected invalid archive_sha256 to fail')
-        policy_path.write_text('{"channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"short"}}\n', encoding='utf-8')
+        policy_path.write_text('{"channel":"0.17.0-dev.877+a3ae499dc","archive_sha256":{"x86_64-linux":"short"}}\n', encoding='utf-8')
         try:
             load_policy_archive_sha256(policy_path, 'x86_64-linux')
         except SystemExit as exc:
@@ -503,7 +503,7 @@ def run_self_test() -> int:
         else:
             raise AssertionError('expected invalid JSON policy to fail')
         policy_path.write_text(
-            '{"channel":"0.17.0-dev.758+748e7c5e3","channel":"0.17.0-dev.90+abcdef"}\n',
+            '{"channel":"0.17.0-dev.877+a3ae499dc","channel":"0.17.0-dev.90+abcdef"}\n',
             encoding='utf-8',
         )
         try:
@@ -513,7 +513,7 @@ def run_self_test() -> int:
         else:
             raise AssertionError('expected duplicate policy keys to fail')
         policy_path.write_text(
-            '{"channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6","x86_64-linux":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}\n',
+            '{"channel":"0.17.0-dev.877+a3ae499dc","archive_sha256":{"x86_64-linux":"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8","x86_64-linux":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}\n',
             encoding='utf-8',
         )
         try:

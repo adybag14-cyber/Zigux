@@ -440,8 +440,8 @@ def run_self_test() -> int:
             json.dumps(
                 {
                     "phase": "Phase 2",
-                    "channel": "0.17.0-dev.758+748e7c5e3",
-                    "minimum_version": "0.17.0-dev.758+748e7c5e3",
+                    "channel": "0.17.0-dev.877+a3ae499dc",
+                    "minimum_version": "0.17.0-dev.877+a3ae499dc",
                     "archive_sha256": {"x86_64-linux": sha256},
                     "upgrade_policy": {
                         "channel_minimum_lockstep": True,
@@ -469,7 +469,7 @@ def run_self_test() -> int:
         assert status == "staged"
         assert actual_sha == expected_sha
         assert destination.read_bytes() == source.read_bytes()
-        assert metadata["filename"] == "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz"
+        assert metadata["filename"] == "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz"
         assert input_mode == "source"
         case_count += 1
 
@@ -583,7 +583,7 @@ def run_self_test() -> int:
                 return
             raise AssertionError("expected stage_archive to fail")
 
-    expect_failure(source_size=1, expected_substring="to be 59410844 bytes, got 1")
+    expect_failure(source_size=1, expected_substring="to be 59581484 bytes, got 1")
     expect_failure(
         mutator=lambda root, source, expected_sha, parts_dir: (root / TOOLCHAIN_POLICY).write_text(
             (root / TOOLCHAIN_POLICY).read_text(encoding="utf-8").replace(expected_sha, "3" * 64),
@@ -593,26 +593,26 @@ def run_self_test() -> int:
     )
     expect_failure(
         mutator=lambda root, source, expected_sha, parts_dir: (
-            root / "third_party" / duplicate_archive_name("zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz")
+            root / "third_party" / duplicate_archive_name("zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz")
         ).write_bytes(b"x"),
         expected_substring="duplicate-suffix archive copies",
     )
     expect_failure(
         mutator=lambda root, source, expected_sha, parts_dir: (
-            root / "third_party" / "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz"
+            root / "third_party" / "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz"
         ).mkdir(),
         expected_substring="destination archive is not a regular file",
     )
     expect_failure(
         mutator=lambda root, source, expected_sha, parts_dir: (
-            root / "third_party" / "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz"
+            root / "third_party" / "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz"
         ).write_bytes(b"y" * EXPECTED_ARCHIVE_SIZES["x86_64-linux"]),
         expected_substring="to have sha256",
         check_only=False,
     )
     expect_failure(
         mutator=lambda root, source, expected_sha, parts_dir: (root / TOOLCHAIN_POLICY).write_text(
-            '{"phase":"Phase 2","phase":"Phase 3","channel":"0.17.0-dev.758+748e7c5e3","minimum_version":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"'
+            '{"phase":"Phase 2","phase":"Phase 3","channel":"0.17.0-dev.877+a3ae499dc","minimum_version":"0.17.0-dev.877+a3ae499dc","archive_sha256":{"x86_64-linux":"'
             + expected_sha
             + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n',
             encoding="utf-8",
@@ -628,8 +628,8 @@ def run_self_test() -> int:
     expect_failure(
         mutator=lambda root, source, expected_sha, parts_dir: (parts_dir / "manifest.json").write_text(
             (parts_dir / "manifest.json").read_text(encoding="utf-8").replace(
-                "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz",
-                "zig-aarch64-linux-0.17.0-dev.758+748e7c5e3.tar.xz",
+                "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz",
+                "zig-aarch64-linux-0.17.0-dev.877+a3ae499dc.tar.xz",
                 1,
             ),
             encoding="utf-8",

@@ -1,7 +1,7 @@
 const std = @import("std");
 
-const expected_channel = "0.17.0-dev.758+748e7c5e3";
-const expected_archive_sha = "0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6";
+const expected_channel = "0.17.0-dev.877+a3ae499dc";
+const expected_archive_sha = "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8";
 const expected_route = "make -C zigux phase2-cross";
 
 const expected_routes = [_][]const u8{

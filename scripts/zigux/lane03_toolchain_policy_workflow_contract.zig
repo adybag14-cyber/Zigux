@@ -2,9 +2,9 @@ const std = @import("std");
 
 const policy_packet = [_][]const u8{
     "\"phase\": \"Phase 2\"",
-    "\"channel\": \"0.17.0-dev.758+748e7c5e3\"",
-    "\"minimum_version\": \"0.17.0-dev.758+748e7c5e3\"",
-    "\"x86_64-linux\": \"0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6\"",
+    "\"channel\": \"0.17.0-dev.877+a3ae499dc\"",
+    "\"minimum_version\": \"0.17.0-dev.877+a3ae499dc\"",
+    "\"x86_64-linux\": \"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\"",
     "\"channel_minimum_lockstep\": true",
     "\"archive_target_scope\"",
     "\"required_make_routes\"",
@@ -43,7 +43,7 @@ const workflow_toolchain_markers = [_][]const u8{
     "if len(targets) != 1:",
     "filename = f\"zig-{target}-{channel}.tar.xz\"",
     "canonical_repo = \"adybag14-cyber/zig\"",
-    "canonical_tag = \"upstream-748e7c5e39fc\"",
+    "canonical_tag = \"upstream-a3ae499dc297\"",
     "repo_archive_path=\"third_party/$ZIGUX_ZIG_FILENAME\"",
     "repo_archive_parts_dir=\"${repo_archive_path}.parts\"",
     "python3 scripts/zigux/stage-pinned-zig-archive.py",
@@ -104,9 +104,9 @@ fn expectOrdered(haystack: []const []const u8, before: []const u8, after: []cons
 test "Lane 03 policy packet keeps the current pinned target and Phase 2 routes explicit" {
     try std.testing.expectEqual(@as(usize, 14), policy_packet.len);
     try expectUnique(&policy_packet);
-    try std.testing.expect(contains(&policy_packet, "\"channel\": \"0.17.0-dev.758+748e7c5e3\""));
-    try std.testing.expect(contains(&policy_packet, "\"minimum_version\": \"0.17.0-dev.758+748e7c5e3\""));
-    try std.testing.expect(contains(&policy_packet, "\"x86_64-linux\": \"0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6\""));
+    try std.testing.expect(contains(&policy_packet, "\"channel\": \"0.17.0-dev.877+a3ae499dc\""));
+    try std.testing.expect(contains(&policy_packet, "\"minimum_version\": \"0.17.0-dev.877+a3ae499dc\""));
+    try std.testing.expect(contains(&policy_packet, "\"x86_64-linux\": \"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\""));
     try std.testing.expect(contains(&policy_packet, "\"phase2-toolchain\""));
     try std.testing.expect(contains(&policy_packet, "\"phase2-validate\""));
 }

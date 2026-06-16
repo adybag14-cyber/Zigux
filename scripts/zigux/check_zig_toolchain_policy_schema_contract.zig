@@ -64,9 +64,9 @@ test "live policy pins phase two channel and target scope exactly" {
     defer allocator.free(policy);
 
     try expectContains(policy, "\"phase\": \"Phase 2\"");
-    try expectContains(policy, "\"channel\": \"0.17.0-dev.758+748e7c5e3\"");
-    try expectContains(policy, "\"minimum_version\": \"0.17.0-dev.758+748e7c5e3\"");
-    try expectContains(policy, "\"x86_64-linux\": \"0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6\"");
+    try expectContains(policy, "\"channel\": \"0.17.0-dev.877+a3ae499dc\"");
+    try expectContains(policy, "\"minimum_version\": \"0.17.0-dev.877+a3ae499dc\"");
+    try expectContains(policy, "\"x86_64-linux\": \"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\"");
     try expectContains(policy, "\"channel_minimum_lockstep\": true");
     try expectInOrder(policy, "\"archive_target_scope\": [", "\"x86_64-linux\"");
     try expectInOrder(policy, "\"required_make_routes\": [", "\"phase2-toolchain\"");

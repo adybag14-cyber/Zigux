@@ -15,7 +15,7 @@ The roadmap and current repo state already expose a bounded bytestream FIFO samp
 
 ## Commands run on 2026-05-27
 
-The checks were rerun locally with the bundled Zig toolchain archive `zig-x86_64-linux-0.17.0-dev.758+748e7c5e3`.
+The checks were rerun locally with the bundled Zig toolchain archive `zig-x86_64-linux-0.17.0-dev.877+a3ae499dc`.
 
 1. `zig test samples/zigux/bytestream_fifo.zig`
 2. `zig test samples/zigux/bytestream_fifo_window_contract.zig`

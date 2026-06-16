@@ -42,7 +42,7 @@ test "toolchain bootstrap note pins the returned Phase 2 packet" {
     defer std.testing.allocator.free(files.third_party_readme);
     defer std.testing.allocator.free(files.makefile);
 
-    try expectContains(files.bootstrap_note, "channel `0.17.0-dev.758+748e7c5e3`");
+    try expectContains(files.bootstrap_note, "channel `0.17.0-dev.877+a3ae499dc`");
     try expectContains(files.bootstrap_note, "limits archive digests to `x86_64-linux`");
     try expectContains(files.bootstrap_note, "phase2-toolchain");
     try expectContains(files.bootstrap_note, "phase2-tools");
@@ -64,13 +64,13 @@ test "bootstrap note reconciles local archive and artifact-support evidence" {
     try expectContains(files.bootstrap_note, "scripts/zigux/check-phase2-artifact-tools-manifest.py");
     try expectContains(files.bootstrap_note, "scripts/zigux/artifact_diff.py");
     try expectContains(files.bootstrap_note, "text`, `json`, `bytes`, and legacy `sha256`-alias");
-    try expectContains(files.bootstrap_note, "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz");
+    try expectContains(files.bootstrap_note, "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz");
     try expectContains(files.bootstrap_note, "scripts/zigux/stage-pinned-zig-archive.py");
 
     try expectContains(files.tool_manifest, "\"artifact_support\"");
     try expectContains(files.tool_manifest, "\"scripts/zigux/artifact_diff.py\"");
     try expectContains(files.tool_manifest, "\"scripts/zigux/check-phase2-artifact-tools-manifest.py\"");
-    try expectContains(files.third_party_readme, "sha256: `0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6`");
+    try expectContains(files.third_party_readme, "sha256: `c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8`");
 }
 
 test "bootstrap note keeps bridge, fixdep, cross, and no-gap posture explicit" {

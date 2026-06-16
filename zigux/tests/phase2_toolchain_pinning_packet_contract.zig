@@ -66,7 +66,7 @@ test "pinning checker records the current archive and workflow guard packet" {
 
     try expectContains(files.pinning_checker, "POLICY = \"scripts/zigux/zig-toolchain-policy.json\"");
     try expectContains(files.pinning_checker, "ARCHIVE_TARGET = \"x86_64-linux\"");
-    try expectContains(files.pinning_checker, "ARCHIVE_CHANNEL = \"0.17.0-dev.758+748e7c5e3\"");
+    try expectContains(files.pinning_checker, "ARCHIVE_CHANNEL = \"0.17.0-dev.877+a3ae499dc\"");
     try expectContains(files.pinning_checker, "ARCHIVE_SIZE = 59_410_844");
     try expectContains(files.pinning_checker, "EXPECTED_SELF_TEST_CASE_COUNT = 55");
     try expectContains(files.pinning_checker, "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only");
@@ -81,9 +81,9 @@ test "policy and checker keep channel lockstep and route scope explicit" {
     defer freeRootFiles(std.testing.allocator, files);
 
     try expectContains(files.policy, "\"phase\": \"Phase 2\"");
-    try expectContains(files.policy, "\"channel\": \"0.17.0-dev.758+748e7c5e3\"");
-    try expectContains(files.policy, "\"minimum_version\": \"0.17.0-dev.758+748e7c5e3\"");
-    try expectContains(files.policy, "\"x86_64-linux\": \"0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6\"");
+    try expectContains(files.policy, "\"channel\": \"0.17.0-dev.877+a3ae499dc\"");
+    try expectContains(files.policy, "\"minimum_version\": \"0.17.0-dev.877+a3ae499dc\"");
+    try expectContains(files.policy, "\"x86_64-linux\": \"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\"");
     try expectContains(files.policy, "\"channel_minimum_lockstep\": true");
     try expectContains(files.policy, "\"archive_target_scope\"");
     try expectContains(files.policy, "\"required_make_routes\"");

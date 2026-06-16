@@ -78,6 +78,6 @@ test "phase2 cross archive filter does not regress to a legacy explicit tarball-
     ));
     try std.testing.expectEqual(@as(usize, 0), countExactLines(
         pr_block,
-        "- 'third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz'",
+        "- 'third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz'",
     ));
 }

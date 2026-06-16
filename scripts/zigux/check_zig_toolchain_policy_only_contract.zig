@@ -49,8 +49,8 @@ test "policy-only invalid path fails closed with policy status and note" {
 
 test "pinned Phase 2 policy names the complete toolchain route handoff" {
     try requireContains(policy_source, "\"phase\": \"Phase 2\"");
-    try requireContains(policy_source, "\"channel\": \"0.17.0-dev.758+748e7c5e3\"");
-    try requireContains(policy_source, "\"minimum_version\": \"0.17.0-dev.758+748e7c5e3\"");
+    try requireContains(policy_source, "\"channel\": \"0.17.0-dev.877+a3ae499dc\"");
+    try requireContains(policy_source, "\"minimum_version\": \"0.17.0-dev.877+a3ae499dc\"");
     try requireContains(policy_source, "\"channel_minimum_lockstep\": true");
     try requireContains(policy_source, "\"archive_target_scope\"");
     try requireContains(policy_source, "\"x86_64-linux\"");

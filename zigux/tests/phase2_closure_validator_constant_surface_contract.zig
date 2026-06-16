@@ -86,8 +86,8 @@ test "validator keeps required file constants and optional archive exceptions ex
         try expectContains(validator, marker);
     }
     try expectContains(validator, "OPTIONAL_MANIFEST_SURFACE_PATHS = {");
-    try expectContains(validator, "\"third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz\"");
-    try expectContains(validator, "\"third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts/manifest.json\"");
+    try expectContains(validator, "\"third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz\"");
+    try expectContains(validator, "\"third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts/manifest.json\"");
     try expectContains(validator, "if value in OPTIONAL_MANIFEST_SURFACE_PATHS and not (root / value).exists():");
     try expectContains(validator, "continue");
 }

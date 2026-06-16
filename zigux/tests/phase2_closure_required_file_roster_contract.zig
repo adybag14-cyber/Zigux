@@ -34,8 +34,8 @@ const validator_surface_contract =
     \\)
     \\
     \\OPTIONAL_MANIFEST_SURFACE_PATHS = {
-    \\    "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz",
-    \\    "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts/manifest.json",
+    \\    "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz",
+    \\    "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts/manifest.json",
     \\}
 ;
 
@@ -138,8 +138,8 @@ test "phase2 closure validator manifest surfaces remain explicit" {
     };
 
     try expectOrdered(validator_surface_contract, &surfaces);
-    try expectContains(validator_surface_contract, "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz");
-    try expectContains(validator_surface_contract, "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts/manifest.json");
+    try expectContains(validator_surface_contract, "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz");
+    try expectContains(validator_surface_contract, "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts/manifest.json");
     try expectNotContains(validator_surface_contract, "\"repo_reality_gaps\"");
 }
 

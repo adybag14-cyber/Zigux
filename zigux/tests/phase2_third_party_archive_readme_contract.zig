@@ -1,12 +1,12 @@
 const std = @import("std");
 
 const target = "x86_64-linux";
-const channel = "0.17.0-dev.758+748e7c5e3";
-const archive_name = "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz";
+const channel = "0.17.0-dev.877+a3ae499dc";
+const archive_name = "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz";
 const archive_path = "third_party/" ++ archive_name;
 const parts_path = archive_path ++ ".parts";
-const archive_sha = "0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6";
-const archive_size = "59410844";
+const archive_sha = "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8";
+const archive_size = "59581484";
 const archive_replay_command =
     "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive " ++
     archive_path ++ " --archive-target " ++ target;
@@ -70,7 +70,7 @@ test "third_party README keeps the local-first archive replay and duplicate boun
     try requireContains(third_party_readme, "`scripts/zigux/check-lane05-stage-helper-contract.py`");
     try requireContains(third_party_readme, "`scripts/zigux/check-lane05-stage-helper-selftest.py`");
     try requireContains(third_party_readme, "duplicate-suffix archives are rejected before staging");
-    try requireContains(third_party_readme, "`zig-x86_64-linux-0.17.0-dev.758+748e7c5e3 (1).tar.xz`");
+    try requireContains(third_party_readme, "`zig-x86_64-linux-0.17.0-dev.877+a3ae499dc (1).tar.xz`");
 
     try requireBefore(third_party_readme, "repo-local archive", "canonical release before `community-mirrors.txt`");
     try requireBefore(third_party_readme, "`community-mirrors.txt`", "direct `ziglang.org` download URL");

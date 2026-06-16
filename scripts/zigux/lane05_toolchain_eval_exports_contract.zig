@@ -16,7 +16,7 @@ const ordered_workflow_markers = [_][]const u8{
     "channel = policy[\"channel\"]",
     "filename = f\"zig-{target}-{channel}.tar.xz\"",
     "canonical_repo = \"adybag14-cyber/zig\"",
-    "canonical_tag = \"upstream-748e7c5e39fc\"",
+    "canonical_tag = \"upstream-a3ae499dc297\"",
     "url = f\"https://ziglang.org/builds/{filename}\"",
     "canonical_url = f\"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}\"",
     "print(f\"ZIGUX_ZIG_TARGET='{target}'\")",
@@ -47,8 +47,8 @@ fn requireOrdered(haystack: []const u8, markers: []const []const u8) ContractErr
 
 fn requirePolicyAlignment(workflow: []const u8, policy: []const u8) ContractError!void {
     const target = "\"x86_64-linux\"";
-    const channel = "\"channel\": \"0.17.0-dev.758+748e7c5e3\"";
-    const digest = "\"x86_64-linux\": \"0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6\"";
+    const channel = "\"channel\": \"0.17.0-dev.877+a3ae499dc\"";
+    const digest = "\"x86_64-linux\": \"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\"";
 
     _ = try requireContains(policy, target);
     _ = try requireContains(policy, channel);
@@ -110,7 +110,7 @@ test "rejects filename derivation after repo archive path use" {
 test "rejects stale policy channel" {
     const stale = replace(
         current_policy,
-        "\"channel\": \"0.17.0-dev.758+748e7c5e3\"",
+        "\"channel\": \"0.17.0-dev.877+a3ae499dc\"",
         "\"channel\": \"0.17.0-dev.87+9b177a7d2\"",
     );
     defer std.testing.allocator.free(stale);
@@ -124,10 +124,10 @@ fn replace(source: []const u8, needle: []const u8, replacement: []const u8) []u8
 const current_policy =
     \\{
     \\  "phase": "Phase 2",
-    \\  "channel": "0.17.0-dev.758+748e7c5e3",
-    \\  "minimum_version": "0.17.0-dev.758+748e7c5e3",
+    \\  "channel": "0.17.0-dev.877+a3ae499dc",
+    \\  "minimum_version": "0.17.0-dev.877+a3ae499dc",
     \\  "archive_sha256": {
-    \\    "x86_64-linux": "0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6"
+    \\    "x86_64-linux": "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8"
     \\  },
     \\  "upgrade_policy": {
     \\    "channel_minimum_lockstep": true,
@@ -154,7 +154,7 @@ const current_workflow =
     \\          channel = policy["channel"]
     \\          filename = f"zig-{target}-{channel}.tar.xz"
     \\          canonical_repo = "adybag14-cyber/zig"
-    \\          canonical_tag = "upstream-748e7c5e39fc"
+    \\          canonical_tag = "upstream-a3ae499dc297"
     \\          url = f"https://ziglang.org/builds/{filename}"
     \\          canonical_url = f"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}"
     \\          print(f"ZIGUX_ZIG_TARGET='{target}'")

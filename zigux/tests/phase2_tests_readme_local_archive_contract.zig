@@ -23,15 +23,15 @@ test "phase2 tests readme keeps local archive reminder packet explicit" {
     try expectContains(tests_readme, "current `master` now directly materializes `third_party/README.md`");
     try expectContains(tests_readme, "scripts/zigux/check-lane05-local-first-archive-workflow.py");
     try expectContains(tests_readme, "scripts/zigux/check-lane05-local-archive-readme.py");
-    try expectContains(tests_readme, "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz");
-    try expectContains(tests_readme, "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz --archive-target x86_64-linux");
+    try expectContains(tests_readme, "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz");
+    try expectContains(tests_readme, "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz --archive-target x86_64-linux");
     try expectContains(tests_readme, "local-first `third_party`, canonical `adybag14-cyber/zig` release, mirror, then direct-download bootstrap order");
     try expectContains(tests_readme, "python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test");
     try expectContains(tests_readme, "python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test");
 
     try expectOrder(
         tests_readme,
-        "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz",
+        "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz",
         "local-first `third_party`, canonical `adybag14-cyber/zig` release, mirror, then direct-download bootstrap order",
     );
 }
@@ -40,8 +40,8 @@ test "third party archive readme keeps pinned archive and staged helper surfaces
     const archive_readme = try readRepoFile("third_party/README.md", 32 * 1024);
     defer std.testing.allocator.free(archive_readme);
 
-    try expectContains(archive_readme, "Lane 05 bootstrap first reuses and validates `third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz`");
-    try expectContains(archive_readme, "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts");
+    try expectContains(archive_readme, "Lane 05 bootstrap first reuses and validates `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz`");
+    try expectContains(archive_readme, "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts");
     try expectContains(archive_readme, "scripts/zigux/stage-pinned-zig-archive.py");
     try expectContains(archive_readme, "canonical `adybag14-cyber/zig` release before `community-mirrors.txt`");
     try expectContains(archive_readme, "direct `ziglang.org` download URL");
@@ -76,7 +76,7 @@ test "lane05 archive checkers expose the guarded local first replay commands" {
     try expectContains(readme_checker, "expected exactly one archive target");
     try expectContains(readme_checker, "duplicate-suffix archive copies");
     try expectContains(readme_checker, "LANE05_LOCAL_ARCHIVE_README_MARKER_COUNT");
-    try expectContains(readme_checker, "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3 (1).tar.xz");
+    try expectContains(readme_checker, "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc (1).tar.xz");
 
     try expectContains(scripts_readme, "third_party/README.md");
     try expectContains(scripts_readme, "scripts/zigux/stage-pinned-zig-archive.py");

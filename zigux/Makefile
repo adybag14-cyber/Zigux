@@ -25,6 +25,9 @@ phase1-route-summary:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-route-summary-counts.py
 
 phase2-toolchain:
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/toolchain_policy.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_policy_validation_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_version_evaluation_contract.zig
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing

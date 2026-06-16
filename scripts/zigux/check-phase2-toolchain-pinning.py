@@ -19,7 +19,7 @@ SCRIPTS_README = "scripts/zigux/README.md"
 TESTS_README = "zigux/tests/README.md"
 TOOL_MANIFEST = "zigux/tests/fixtures/phase2_tool_manifest.json"
 ARCHIVE_TARGET = "x86_64-linux"
-ARCHIVE_CHANNEL = "0.17.0-dev.758+748e7c5e3"
+ARCHIVE_CHANNEL = "0.17.0-dev.877+a3ae499dc"
 ARCHIVE_SIZE = 59_410_844
 EXPECTED_SELF_TEST_CASE_COUNT = 55
 

@@ -188,13 +188,13 @@ def write_fixture(
     (third_party_dir / "README.md").write_text(readme_text, encoding="utf-8")
 
     if include_archive:
-        payload_name = "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz"
+        payload_name = "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz"
         archive_path = third_party_dir / payload_name
         size = archive_size if archive_size is not None else EXPECTED_ARCHIVE_SIZES["x86_64-linux"]
         repeat_count = (size + len(archive_bytes) - 1) // len(archive_bytes)
         archive_path.write_bytes((archive_bytes * repeat_count)[:size])
         if duplicate_copy:
-            (third_party_dir / "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3 (1).tar.xz").write_bytes(b"x")
+            (third_party_dir / "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc (1).tar.xz").write_bytes(b"x")
 
 
 def run_self_test() -> int:
@@ -229,7 +229,7 @@ def run_self_test() -> int:
     )
     expect_failure(
         lambda root: write_fixture(root, include_archive=True, archive_size=1),
-        "to be 59410844 bytes, got 1",
+        "to be 59581484 bytes, got 1",
     )
     expect_failure(
         lambda root: write_fixture(root, include_archive=True, duplicate_copy=True),
@@ -241,7 +241,7 @@ def run_self_test() -> int:
             include_archive=True,
             archive_bytes=b"wrong-bytes",
         ),
-        "to have sha256 0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6",
+        "to have sha256 c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8",
     )
 
     print("LANE05_LOCAL_ARCHIVE_README_SELF_TEST=pass")

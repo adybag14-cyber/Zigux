@@ -168,7 +168,7 @@ def fixture_makefile() -> str:
     return """PYTHON ?= python3
 PHASE2_SCRIPT_ROOT := ../scripts/zigux
 ZIGUX_ROOT := ..
-ZIG_PINNED_CHANNEL := 0.17.0-dev.758+748e7c5e3
+ZIG_PINNED_CHANNEL := 0.17.0-dev.877+a3ae499dc
 ZIG_PINNED_TARGET := x86_64-linux
 ZIG_PINNED_EXTRACT_ROOT := $(ZIGUX_ROOT)/.zig-toolchain/zig-$(ZIG_PINNED_TARGET)-$(ZIG_PINNED_CHANNEL)
 ZIG_PINNED_EXECUTABLE := $(firstword $(wildcard $(ZIG_PINNED_EXTRACT_ROOT)/zig $(ZIG_PINNED_EXTRACT_ROOT)/bin/zig))

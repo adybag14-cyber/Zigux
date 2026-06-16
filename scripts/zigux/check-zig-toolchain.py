@@ -579,64 +579,64 @@ def run_self_test() -> int:
         raise AssertionError("expected ValueError to fail")
 
     expect_equal(parse_zig_version("0.16.0"), ZigVersion(0, 16, 0, 1, 0))
-    expect_equal(parse_zig_version("0.17.0-dev.758+748e7c5e3"), ZigVersion(0, 17, 0, 0, 758))
-    expect_true(parse_zig_version("0.17.0-dev.759") > parse_zig_version("0.17.0-dev.758+748e7c5e3"))
+    expect_equal(parse_zig_version("0.17.0-dev.877+a3ae499dc"), ZigVersion(0, 17, 0, 0, 758))
+    expect_true(parse_zig_version("0.17.0-dev.759") > parse_zig_version("0.17.0-dev.877+a3ae499dc"))
     expect_true(parse_zig_version("0.17.0") > parse_zig_version("0.17.0-dev.999+abcdef"))
     expect_true(parse_zig_version("0.17.1-dev.1") > parse_zig_version("0.17.0"))
     expect_true(parse_zig_version("0.16.0") > parse_zig_version("0.15.2"))
-    expect_equal(policy_archive_filename("x86_64-linux", "0.17.0-dev.758+748e7c5e3"), "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz")
+    expect_equal(policy_archive_filename("x86_64-linux", "0.17.0-dev.877+a3ae499dc"), "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz")
     expect_true(
         archive_name_has_duplicate_suffix(
-            "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3 (1).tar.xz",
-            "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz",
+            "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc (1).tar.xz",
+            "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz",
         )
     )
     expect_true(
         archive_name_matches_policy(
-            "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3 (2).tar.xz",
-            "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz",
+            "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc (2).tar.xz",
+            "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz",
         )
     )
     expect_true(
         not archive_name_has_duplicate_suffix(
-            "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3-copy.tar.xz",
-            "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz",
+            "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc-copy.tar.xz",
+            "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz",
         )
     )
     expect_raises(lambda: normalize_explicit_zig_path("/tmp/zigux-toolchain-self-test-missing-zig"), "explicit zig path does not exist")
 
     expect_equal(
-        evaluate_toolchain_version("0.17.0-dev.758+748e7c5e3", "0.17.0-dev.758+748e7c5e3"),
+        evaluate_toolchain_version("0.17.0-dev.877+a3ae499dc", "0.17.0-dev.877+a3ae499dc"),
         ("present", None),
     )
     expect_equal(
         evaluate_toolchain_version(
-            "0.17.0-dev.758+748e7c5e3",
-            "0.17.0-dev.758+748e7c5e3",
-            "0.17.0-dev.758+748e7c5e3",
+            "0.17.0-dev.877+a3ae499dc",
+            "0.17.0-dev.877+a3ae499dc",
+            "0.17.0-dev.877+a3ae499dc",
         ),
         ("present", None),
     )
     expect_equal(
         evaluate_toolchain_version(
             "0.17.0",
-            "0.17.0-dev.758+748e7c5e3",
-            "0.17.0-dev.758+748e7c5e3",
+            "0.17.0-dev.877+a3ae499dc",
+            "0.17.0-dev.877+a3ae499dc",
         ),
-        ("not_pinned", "expected pinned Zig channel 0.17.0-dev.758+748e7c5e3"),
+        ("not_pinned", "expected pinned Zig channel 0.17.0-dev.877+a3ae499dc"),
     )
     expect_equal(
         evaluate_toolchain_version(
             "0.17.0-dev.759+abcdef",
-            "0.17.0-dev.758+748e7c5e3",
-            "0.17.0-dev.758+748e7c5e3",
+            "0.17.0-dev.877+a3ae499dc",
+            "0.17.0-dev.877+a3ae499dc",
         ),
-        ("not_pinned", "expected pinned Zig channel 0.17.0-dev.758+748e7c5e3"),
+        ("not_pinned", "expected pinned Zig channel 0.17.0-dev.877+a3ae499dc"),
     )
     expect_equal(
         evaluate_toolchain_version(
             "0.17.0-dev.757+abcdef",
-            "0.17.0-dev.758+748e7c5e3",
+            "0.17.0-dev.877+a3ae499dc",
         ),
         ("too_old", None),
     )
@@ -649,11 +649,11 @@ def run_self_test() -> int:
         expect_equal(load_pinned_channel(policy_path), None)
         expect_equal(
             describe_missing_zig(
-                pinned_channel="0.17.0-dev.758+748e7c5e3",
+                pinned_channel="0.17.0-dev.877+a3ae499dc",
                 search_roots=iter_zig_search_roots(root),
             ),
             (
-                "zig not found on PATH or in repo-local toolchain search roots for pinned channel 0.17.0-dev.758+748e7c5e3",
+                "zig not found on PATH or in repo-local toolchain search roots for pinned channel 0.17.0-dev.877+a3ae499dc",
                 format_search_roots(iter_zig_search_roots(root)),
             ),
         )
@@ -799,27 +799,27 @@ def run_self_test() -> int:
             "outside archive_target_scope",
         )
         expect_raises(lambda: validate_policy_archive(duplicate_archive_path, "aarch64-linux", policy_path=policy_path), "is not pinned")
-        policy_path.write_text('{"phase":"Phase 2","minimum_version":7,"channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":7,"channel":"0.17.0-dev.877+a3ae499dc","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid minimum_version")
-        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.758+748e7c5e3","channel":7,"archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.877+a3ae499dc","channel":7,"archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
         expect_raises(lambda: load_pinned_channel(policy_path), "invalid channel")
-        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.758+748e7c5e3","channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"oops"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.877+a3ae499dc","channel":"0.17.0-dev.877+a3ae499dc","archive_sha256":{"x86_64-linux":"oops"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid archive_sha256[x86_64-linux]")
-        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.758+748e7c5e3","channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["aarch64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.877+a3ae499dc","channel":"0.17.0-dev.877+a3ae499dc","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["aarch64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "archive_target_scope references missing archive_sha256 entries")
-        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.758+748e7c5e3","channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":[]}}\n', encoding="utf-8")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.877+a3ae499dc","channel":"0.17.0-dev.877+a3ae499dc","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":[]}}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid required_make_routes")
-        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.758+748e7c5e3","channel":"0.17.0-dev.90+abcdef","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.877+a3ae499dc","channel":"0.17.0-dev.90+abcdef","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "minimum_version must match channel")
-        policy_path.write_text('{"phase":"Phase 2","phase":"Phase 3","minimum_version":"0.17.0-dev.758+748e7c5e3","channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
+        policy_path.write_text('{"phase":"Phase 2","phase":"Phase 3","minimum_version":"0.17.0-dev.877+a3ae499dc","channel":"0.17.0-dev.877+a3ae499dc","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "duplicate toolchain policy keys")
-        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.758+748e7c5e3","channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"unexpected":"value","upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.877+a3ae499dc","channel":"0.17.0-dev.877+a3ae499dc","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"unexpected":"value","upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "unexpected toolchain policy keys")
-        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.758+748e7c5e3","channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"channel_minimum_lockstep":false,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.877+a3ae499dc","channel":"0.17.0-dev.877+a3ae499dc","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"channel_minimum_lockstep":false,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "duplicate upgrade_policy keys")
-        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.758+748e7c5e3","channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"],"unexpected_route":"phase2-extra"}}\n', encoding="utf-8")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.877+a3ae499dc","channel":"0.17.0-dev.877+a3ae499dc","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"],"unexpected_route":"phase2-extra"}}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "unexpected upgrade_policy keys")
-        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.758+748e7c5e3","channel":"0.17.0-dev.758+748e7c5e3","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-toolchain"]}}\n', encoding="utf-8")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.877+a3ae499dc","channel":"0.17.0-dev.877+a3ae499dc","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-toolchain"]}}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "duplicate required_make_routes entry")
         policy_path.write_text('{not-json}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid toolchain policy JSON")
@@ -832,8 +832,8 @@ def run_self_test() -> int:
             json.dumps(
                 {
                     "phase": "Phase 2",
-                    "channel": "0.17.0-dev.758+748e7c5e3",
-                    "minimum_version": "0.17.0-dev.758+748e7c5e3",
+                    "channel": "0.17.0-dev.877+a3ae499dc",
+                    "minimum_version": "0.17.0-dev.877+a3ae499dc",
                     "archive_sha256": {"x86_64-linux": "3" * 64},
                     "upgrade_policy": {
                         "channel_minimum_lockstep": True,
@@ -853,11 +853,11 @@ def run_self_test() -> int:
             runner=lambda *args, **kwargs: subprocess.CompletedProcess(
                 args[0],
                 0,
-                stdout="0.17.0-dev.758+748e7c5e3\n",
+                stdout="0.17.0-dev.877+a3ae499dc\n",
                 stderr="",
             ),
         ),
-        "0.17.0-dev.758+748e7c5e3",
+        "0.17.0-dev.877+a3ae499dc",
     )
     expect_raises(
         lambda: read_zig_version(

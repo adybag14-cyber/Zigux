@@ -116,7 +116,7 @@ test "phase2 cross fixture stays pinned to x86 archive plus aarch64 route contra
 
     try expectInOrder(policy, &.{
         "\"archive_sha256\": {",
-        "\"x86_64-linux\": \"0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6\"",
+        "\"x86_64-linux\": \"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\"",
         "\"archive_target_scope\": [",
         "\"x86_64-linux\"",
     });

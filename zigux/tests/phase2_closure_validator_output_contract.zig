@@ -124,6 +124,6 @@ test "phase2 closure validator keeps manifest surfaces and optional archive path
     try expectContains(validator, "OPTIONAL_MANIFEST_SURFACE_PATHS = {");
     try expectOrdered(validator, "MANIFEST_SURFACE_KEYS = (", "for key in MANIFEST_SURFACE_KEYS:");
     try expectOrdered(validator, "OPTIONAL_MANIFEST_SURFACE_PATHS = {", "if value in OPTIONAL_MANIFEST_SURFACE_PATHS");
-    try expectContains(validator, "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz");
-    try expectContains(validator, "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts/manifest.json");
+    try expectContains(validator, "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz");
+    try expectContains(validator, "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts/manifest.json");
 }

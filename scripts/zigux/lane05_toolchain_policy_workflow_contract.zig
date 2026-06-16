@@ -1,11 +1,11 @@
 const std = @import("std");
 
-const current_channel = "0.17.0-dev.758+748e7c5e3";
+const current_channel = "0.17.0-dev.877+a3ae499dc";
 const current_target = "x86_64-linux";
-const current_digest = "0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6";
-const current_filename = "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz";
+const current_digest = "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8";
+const current_filename = "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz";
 const canonical_repo = "adybag14-cyber/zig";
-const canonical_tag = "upstream-748e7c5e39fc";
+const canonical_tag = "upstream-a3ae499dc297";
 
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(1024 * 1024));

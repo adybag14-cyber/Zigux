@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Track the bounded Phase 2 Makefile toolchain fallback gap."""
+"""Verify the resolved Phase 2 Makefile toolchain fallback contract."""
 
 from __future__ import annotations
 
@@ -10,31 +10,30 @@ ROOT = Path(__file__).resolve().parents[2]
 MAKEFILE = ROOT / "zigux" / "Makefile"
 NOTE = ROOT / "Documentation" / "zigux" / "phase2-makefile-toolchain-fallback-gap.md"
 
-ACTUAL_GAP_LINE = "ZIG_LOCAL_TOOLCHAIN := $(ZIG_PINNED_TOOLCHAIN)"
 EXPECTED_FALLBACK_LINE = (
-    "ZIG_LOCAL_TOOLCHAIN := $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),"
-    "$(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig "
-    "$(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig)))"
+    "ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig "
+    "$(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))"
 )
+EXPECTED_PINNED_LINE = "ZIG_PINNED_TOOLCHAIN := $(if $(ZIG_PINNED_EXECUTABLE),$(ZIG_PINNED_EXECUTABLE),$(ZIG_LOCAL_TOOLCHAIN))"
 
 NOTE_MARKERS = (
-    "The live `zigux/Makefile` line is:",
-    ACTUAL_GAP_LINE,
-    "The existing Phase 2 pin-scope checker expects:",
+    "**Status: resolved on current `master`.**",
     EXPECTED_FALLBACK_LINE,
+    EXPECTED_PINNED_LINE,
+    "zig test scripts/zigux/toolchain_policy.zig",
     "make -C zigux phase2-toolchain",
     "make -C zigux phase2-validate",
 )
 
 
-def validate_gap(makefile_text: str, note_text: str) -> list[str]:
+def validate_resolved(makefile_text: str, note_text: str) -> list[str]:
     issues: list[str] = []
 
-    if ACTUAL_GAP_LINE not in makefile_text:
-        issues.append("Makefile no longer exposes the documented current gap line.")
+    if EXPECTED_FALLBACK_LINE not in makefile_text:
+        issues.append("Makefile is missing the repo-local .zig-toolchain fallback line.")
 
-    if EXPECTED_FALLBACK_LINE in makefile_text:
-        issues.append("Makefile already contains the expected fallback line; retire or rewrite the gap note.")
+    if EXPECTED_PINNED_LINE not in makefile_text:
+        issues.append("Makefile is missing the pinned-then-local toolchain selection line.")
 
     for marker in NOTE_MARKERS:
         if marker not in note_text:
@@ -44,34 +43,34 @@ def validate_gap(makefile_text: str, note_text: str) -> list[str]:
 
 
 def run_self_test() -> int:
-    gap_makefile = "\n".join(
+    resolved_makefile = "\n".join(
         (
-            "ZIG_PINNED_CHANNEL := 0.17.0-dev.758+748e7c5e3",
-            ACTUAL_GAP_LINE,
-            'ZIG ?= $(if $(ZIG_LOCAL_TOOLCHAIN),$(ZIG_LOCAL_TOOLCHAIN),zig)',
+            "ZIG_PINNED_CHANNEL := 0.17.0-dev.877+a3ae499dc",
+            EXPECTED_FALLBACK_LINE,
+            EXPECTED_PINNED_LINE,
+            'ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)',
         )
     )
     note_text = "\n".join(NOTE_MARKERS)
-    resolved_makefile = gap_makefile.replace(ACTUAL_GAP_LINE, EXPECTED_FALLBACK_LINE)
 
     cases = (
-        ("gap-present", gap_makefile, note_text, []),
+        ("resolved-present", resolved_makefile, note_text, []),
         (
-            "resolved-needs-note-update",
-            resolved_makefile,
+            "makefile-missing-fallback",
+            resolved_makefile.replace(EXPECTED_FALLBACK_LINE, ""),
             note_text,
-            ["Makefile no longer exposes the documented current gap line.", "Makefile already contains the expected fallback line; retire or rewrite the gap note."],
+            ["Makefile is missing the repo-local .zig-toolchain fallback line."],
         ),
         (
             "note-missing-marker",
-            gap_makefile,
+            resolved_makefile,
             note_text.replace("make -C zigux phase2-validate", ""),
             ["Gap note is missing marker: make -C zigux phase2-validate"],
         ),
     )
 
     for name, makefile_text, note_body, expected in cases:
-        actual = validate_gap(makefile_text, note_body)
+        actual = validate_resolved(makefile_text, note_body)
         if actual != expected:
             print("PHASE2_MAKEFILE_TOOLCHAIN_FALLBACK_GAP_SELF_TEST=fail")
             print(f"CASE={name}")
@@ -86,7 +85,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Keep the bounded Phase 2 Makefile toolchain fallback gap note aligned with current repo reality."
+        description="Keep the resolved Phase 2 Makefile toolchain fallback note aligned with current repo reality."
     )
     parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage.")
     args = parser.parse_args()
@@ -103,7 +102,7 @@ def main() -> int:
         print("MISSING_PHASE2_MAKEFILE_TOOLCHAIN_FALLBACK_GAP_FILES_END")
         return 1
 
-    issues = validate_gap(
+    issues = validate_resolved(
         MAKEFILE.read_text(encoding="utf-8"),
         NOTE.read_text(encoding="utf-8"),
     )
@@ -116,7 +115,7 @@ def main() -> int:
         return 1
 
     print("PHASE2_MAKEFILE_TOOLCHAIN_FALLBACK_GAP=present")
-    print("PHASE2_MAKEFILE_TOOLCHAIN_FALLBACK_GAP_STATUS=documented")
+    print("PHASE2_MAKEFILE_TOOLCHAIN_FALLBACK_GAP_STATUS=resolved")
     return 0
 
 

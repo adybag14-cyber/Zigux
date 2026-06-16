@@ -6,7 +6,7 @@ const required_markers = [_][]const u8{
     "- name: Setup pinned Zig toolchain",
     "policy = json.loads(Path(\"scripts/zigux/zig-toolchain-policy.json\").read_text(encoding=\"utf-8\"))",
     "canonical_repo = \"adybag14-cyber/zig\"",
-    "canonical_tag = \"upstream-748e7c5e39fc\"",
+    "canonical_tag = \"upstream-a3ae499dc297\"",
     "repo_archive_path=\"third_party/$ZIGUX_ZIG_FILENAME\"",
     "repo_archive_parts_dir=\"${repo_archive_path}.parts\"",
     "python3 scripts/zigux/stage-pinned-zig-archive.py",

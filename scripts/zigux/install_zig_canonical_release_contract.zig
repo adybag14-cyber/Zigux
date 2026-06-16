@@ -3,13 +3,13 @@ const std = @import("std");
 const install_zig_source = @embedFile("install-zig.py");
 const policy_source = @embedFile("zig-toolchain-policy.json");
 
-const canonical_channel = "0.17.0-dev.758+748e7c5e3";
+const canonical_channel = "0.17.0-dev.877+a3ae499dc";
 const canonical_repo = "adybag14-cyber/zig";
-const canonical_tag = "upstream-748e7c5e39fc";
+const canonical_tag = "upstream-a3ae499dc297";
 const canonical_target = "x86_64-linux";
-const canonical_archive = "zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz";
-const canonical_url = "https://github.com/adybag14-cyber/zig/releases/download/upstream-748e7c5e39fc/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz";
-const canonical_sha256 = "0af43565c01997c12b1f770928de4ed983c3e099730c452ef5ec205d74a582f6";
+const canonical_archive = "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz";
+const canonical_url = "https://github.com/adybag14-cyber/zig/releases/download/upstream-a3ae499dc297/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz";
+const canonical_sha256 = "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8";
 const historical_runtime_channel = "0.17.0-dev.87+9b177a7d2";
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {

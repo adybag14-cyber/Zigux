@@ -149,8 +149,8 @@ FIXDEP_FIXTURE_FILES = (
     "zigux/tests/fixtures/fixdep/shared#config.h",
     "zigux/tests/fixtures/fixdep/shared:config.h",
 )
-ARCHIVE_PAYLOAD_PATH = "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz"
-ARCHIVE_PARTS_MANIFEST_PATH = "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts/manifest.json"
+ARCHIVE_PAYLOAD_PATH = "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz"
+ARCHIVE_PARTS_MANIFEST_PATH = "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts/manifest.json"
 ARCHIVE_SUPPORT_ALTERNATIVES = (
     ARCHIVE_PAYLOAD_PATH,
     ARCHIVE_PARTS_MANIFEST_PATH,
@@ -561,8 +561,8 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 def policy_payload(required_make_routes: tuple[str, ...]) -> str:
     payload = {
         "phase": "Phase 2",
-        "channel": "0.17.0-dev.758+748e7c5e3",
-        "minimum_version": "0.17.0-dev.758+748e7c5e3",
+        "channel": "0.17.0-dev.877+a3ae499dc",
+        "minimum_version": "0.17.0-dev.877+a3ae499dc",
         "archive_sha256": {"x86_64-linux": "3" * 64},
         "upgrade_policy": {
             "channel_minimum_lockstep": True,
@@ -758,8 +758,8 @@ def run_self_test() -> int:
             ARCHIVE_README_PATH,
             "\n".join(
                 (
-                    "`third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz`",
-                    "`third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts`",
+                    "`third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz`",
+                    "`third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts`",
                     "`3333333333333333333333333333333333333333333333333333333333333333`",
                     "canonical `adybag14-cyber/zig` release",
                     "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",

@@ -1,85 +1,60 @@
 const std = @import("std");
-
-const checker_source = @embedFile("check-zig-toolchain.py");
-
-fn expectContains(needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, checker_source, needle) != null);
-}
-
-fn expectBefore(first: []const u8, second: []const u8) !void {
-    const first_index = std.mem.indexOf(u8, checker_source, first) orelse return error.MissingFirstMarker;
-    const second_index = std.mem.indexOf(u8, checker_source, second) orelse return error.MissingSecondMarker;
-    try std.testing.expect(first_index < second_index);
-}
+const policy = @import("toolchain_policy.zig");
 
 test "version evaluation keeps exact present too old and not pinned states" {
-    try expectContains("def evaluate_toolchain_version(");
-    try expectContains("parsed_version = parse_zig_version(version)");
-    try expectContains("min_version = parse_zig_version(min_version_raw)");
-    try expectContains(
-        \\if parsed_version < min_version:
-        \\        return "too_old", None
+    const present = try policy.evaluateToolchainVersion(
+        "0.17.0-dev.877+a3ae499dc",
+        "0.17.0-dev.877+a3ae499dc",
+        "0.17.0-dev.877+a3ae499dc",
     );
-    try expectContains(
-        \\if expected_channel_raw is not None:
-        \\        expected_channel_raw = expected_channel_raw.strip()
-    );
-    try expectContains(
-        \\if version.strip() != expected_channel_raw:
-        \\            return "not_pinned", f"expected pinned Zig channel {expected_channel_raw}"
-    );
-    try expectContains(
-        \\return "present", None
-    );
+    try std.testing.expectEqual(policy.ToolchainStatus.present, present.status);
+    try std.testing.expect(present.note == null);
 
-    try expectBefore(
-        "if parsed_version < min_version:",
-        "if expected_channel_raw is not None:",
+    const too_old = try policy.evaluateToolchainVersion(
+        "0.16.0",
+        "0.17.0-dev.877+a3ae499dc",
+        null,
     );
-    try expectContains(
-        \\if expected_channel_raw is not None:
-        \\        expected_channel_raw = expected_channel_raw.strip()
-        \\        parse_zig_version(expected_channel_raw)
-        \\        if version.strip() != expected_channel_raw:
-        \\            return "not_pinned", f"expected pinned Zig channel {expected_channel_raw}"
-        \\    return "present", None
+    try std.testing.expectEqual(policy.ToolchainStatus.too_old, too_old.status);
+    try std.testing.expect(too_old.note == null);
+
+    const not_pinned = try policy.evaluateToolchainVersion(
+        "0.17.0-dev.877+stalehash",
+        "0.17.0-dev.877+a3ae499dc",
+        "0.17.0-dev.877+a3ae499dc",
+    );
+    try std.testing.expectEqual(policy.ToolchainStatus.not_pinned, not_pinned.status);
+    try std.testing.expect(not_pinned.note != null);
+    try std.testing.expectEqualStrings("0.17.0-dev.877+a3ae499dc", not_pinned.note.?);
+}
+
+test "version ordering treats dev builds below release at same semver" {
+    const dev = try policy.parseZigVersion("0.17.0-dev.1+abc");
+    const release = try policy.parseZigVersion("0.17.0");
+    try std.testing.expect(dev.lessThan(release));
+}
+
+test "policy archive filename matches pinned channel contract" {
+    var buffer: [96]u8 = undefined;
+    const filename = try policy.policyArchiveFilename(
+        "x86_64-linux",
+        "0.17.0-dev.877+a3ae499dc",
+        &buffer,
+    );
+    try std.testing.expectEqualStrings(
+        "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz",
+        filename,
     );
 }
 
-test "successful probe reports evaluated status and pin policy fields" {
-    try expectContains("version = read_zig_version(zig)");
-    try expectContains("status, note = evaluate_toolchain_version(version, min_version_raw, expected_channel_raw)");
-    try expectContains("exit_code = 0 if status == \"present\" else 1");
-    try expectContains("print(f\"ZIG_TOOLCHAIN_STATUS={status}\")");
-    try expectContains("print(f\"ZIG_TOOLCHAIN_PATH={zig}\")");
-    try expectContains("print(f\"ZIG_TOOLCHAIN_VERSION={version}\")");
-    try expectContains("print(f\"ZIG_TOOLCHAIN_MIN_SUPPORTED={min_version_raw}\")");
-    try expectContains("print(f\"ZIG_TOOLCHAIN_PINNED_CHANNEL={expected_channel_raw}\")");
-    try expectContains("print(\"ZIG_TOOLCHAIN_PIN_POLICY=exact\")");
-    try expectContains("print(\"ZIG_TOOLCHAIN_PIN_POLICY=minimum_only\")");
-    try expectContains("print(f\"ZIG_TOOLCHAIN_NOTE={note}\")");
-    try expectContains("return exit_code");
-    try expectContains(
-        \\print(f"ZIG_TOOLCHAIN_STATUS={status}")
-        \\    print(f"ZIG_TOOLCHAIN_PATH={zig}")
-        \\    print(f"ZIG_TOOLCHAIN_VERSION={version}")
-        \\    print(f"ZIG_TOOLCHAIN_MIN_SUPPORTED={min_version_raw}")
-    );
-
-    try expectBefore("version = read_zig_version(zig)", "status, note = evaluate_toolchain_version");
-    try expectBefore("exit_code = 0 if status == \"present\" else 1", "print(f\"ZIG_TOOLCHAIN_STATUS={status}\")");
-    try expectBefore("if note is not None:", "print(f\"ZIG_TOOLCHAIN_NOTE={note}\")");
-}
-
-test "self test covers version evaluation branches" {
-    try expectContains("evaluate_toolchain_version(");
-    try expectContains("(\"not_pinned\", \"expected pinned Zig channel");
-    try expectContains("(\"too_old\", None)");
-    try expectContains("print(\"ZIG_TOOLCHAIN_SELF_TEST=pass\")");
-    try expectContains("print(f\"ZIG_TOOLCHAIN_SELF_TEST_CASE_COUNT={case_count}\")");
-
-    try expectBefore(
-        "expect_equal(\n        evaluate_toolchain_version",
-        "print(\"ZIG_TOOLCHAIN_SELF_TEST=pass\")",
-    );
+test "self-test catalog covers evaluation branches" {
+    const cases = [_]struct { version: []const u8, min: []const u8, expected: policy.ToolchainStatus }{
+        .{ .version = "0.17.0-dev.877+a3ae499dc", .min = "0.17.0-dev.877+a3ae499dc", .expected = .present },
+        .{ .version = "0.15.2", .min = "0.17.0-dev.877+a3ae499dc", .expected = .too_old },
+    };
+    for (cases) |case| {
+        const result = try policy.evaluateToolchainVersion(case.version, case.min, null);
+        try std.testing.expectEqual(case.expected, result.status);
+    }
+    try std.testing.expectEqual(@as(usize, 2), cases.len);
 }

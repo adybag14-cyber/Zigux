@@ -176,8 +176,8 @@ def build_self_test_root(root: Path) -> None:
         json.dumps(
             {
                 "phase": "Phase 2",
-                "channel": "0.17.0-dev.758+748e7c5e3",
-                "minimum_version": "0.17.0-dev.758+748e7c5e3",
+                "channel": "0.17.0-dev.877+a3ae499dc",
+                "minimum_version": "0.17.0-dev.877+a3ae499dc",
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {
                     "channel_minimum_lockstep": True,

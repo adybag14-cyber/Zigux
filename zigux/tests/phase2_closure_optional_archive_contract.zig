@@ -5,9 +5,9 @@ const manifest_path = "zigux/tests/fixtures/phase2_tool_manifest.json";
 const closure_path = "Documentation/zigux/phase2-closure.md";
 
 const optional_archive_path =
-    "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz";
+    "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz";
 const optional_parts_manifest_path =
-    "third_party/zig-x86_64-linux-0.17.0-dev.758+748e7c5e3.tar.xz.parts/manifest.json";
+    "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts/manifest.json";
 
 fn readFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(1024 * 1024));
