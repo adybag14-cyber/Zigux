@@ -17,10 +17,10 @@ It is a PMO closure record only. It does not claim that Phase 3 is already close
 - shared-reminder companion: `Documentation/zigux/phase3-shared-reminder-gap.md`
 - export and header companions: `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-abi-header-family-survey.md`, and `Documentation/zigux/phase3-linux-zigux-header-governance.md`
 - low-level wrapper companion: `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
-- shared validator entrypoint: `scripts/zigux/validate-phase3.py`
-- shared ABI checker: `scripts/zigux/check-phase3-abi.py`
-- shared check runner: `scripts/zigux/run-phase3-checks.py`
-- shared selftest driver: `scripts/zigux/validate_phase3_selftest.py`
+- shared validator entrypoint: `scripts\zigux/validate_phase3.zig`
+- shared ABI checker: `scripts\zigux/check_phase3_abi.zig`
+- shared check runner: `scripts/zigux/run_phase3_checks.zig`
+- shared selftest driver: `scripts/zigux/validate_phase3_selftest.zig`
 - manifest authority: `zigux/tests/fixtures/phase3_abi_manifest.json`
 - shared build wiring: `zigux/tests/build.zig`, `zigux/tests/phase3_export_shim_build.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
 
@@ -30,16 +30,16 @@ Keep the current Phase 3 release packet bounded to the directly readable ABI and
 
 - shared ABI starter and reminder packet: `Documentation/zigux/phase3-abi-slice.md`, `include/linux/zigux.h`, `include/zigux/dev_t.h`, `include/zigux/abi.h`, `zigux/uapi/dev_t.zig`, `zigux/uapi/version.zig`, `zigux/bindings/dev_t.zig`, `zigux/bindings/version.zig`, `zigux/bindings/header_family.zig`, `zigux/bindings/abi.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_dev_t_starter_packet.zig`, `zigux/tests/phase3_dev_t_starter_packet_build.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_export_uapi_c_header_smoke.c`, and `zigux/tests/fixtures/phase3_abi_manifest.json`
 - focused helper slices already landed on `master`: `Documentation/zigux/phase3-bitmap-cpumask-slice.md`, `Documentation/zigux/phase3-list-hlist-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-xarray-slot-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, and `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
-- validator and catalog support already landed on `master`: `Documentation/zigux/phase3-validator-support-surface.md`, `Documentation/zigux/phase3-shared-reminder-gap.md`, `scripts/zigux/check-phase3-abi.py`, `scripts/zigux/check-phase3-abi-support-packet.py`, `scripts/zigux/check-phase3-abi-manifest-replay-routes.py`, `scripts/zigux/check-phase3-shared-tests-routes.py`, `scripts/zigux/check-phase3-selftest-surface.py`, `scripts/zigux/phase3_catalog.py`, `scripts/zigux/check-phase3-catalog-selftest.py`, `scripts/zigux/run-phase3-checks.py`, and `scripts/zigux/validate_phase3_selftest.py`
-- policy, export/UAPI, and low-level wrapper surveys already landed on `master`: `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-kernel-export-shim-governance.md`, `Documentation/zigux/phase3-abi-header-family-survey.md`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, `Documentation/zigux/phase3-abi-h-boundary-next-step.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `scripts/zigux/validate-phase3-abi-header-family-survey.py`, `scripts/zigux/validate-phase3-policy-unsafe-survey.py`, and `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
+- validator and catalog support already landed on `master`: `Documentation/zigux/phase3-validator-support-surface.md`, `Documentation/zigux/phase3-shared-reminder-gap.md`, `scripts\zigux/check_phase3_abi.zig`, `scripts\zigux/check_phase3_abi_support_packet.zig`, `scripts\zigux/check_phase3_abi_manifest_replay_routes.zig`, `scripts\zigux/check_phase3_shared_tests_routes.zig`, `scripts\zigux/check_phase3_selftest_surface.zig`, `scripts/zigux/phase3_catalog.zig`, `scripts\zigux/check_phase3_catalog_selftest.zig`, `scripts/zigux/run_phase3_checks.zig`, and `scripts/zigux/validate_phase3_selftest.zig`
+- policy, export/UAPI, and low-level wrapper surveys already landed on `master`: `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-kernel-export-shim-governance.md`, `Documentation/zigux/phase3-abi-header-family-survey.md`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, `Documentation/zigux/phase3-abi-h-boundary-next-step.md`, `scripts\zigux/validate_phase3_export_uapi_survey.zig`, `scripts\zigux/validate_phase3_abi_header_family_survey.zig`, `scripts\zigux/validate_phase3_policy_unsafe_survey.zig`, and `scripts\zigux/validate_phase3_low_level_wrapper_survey.zig`
 
 ## Closure Gates
 
 Keep Phase 3 marked open until every item below is true on current `master`:
 
 - the docs-root PMO packet stays aligned across `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, this closure note, `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-validator-support-surface.md`, `Documentation/zigux/phase3-policy-slice.md`, `Documentation/zigux/phase3-shared-reminder-gap.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
-- the shared validator entrypoint and replay guards remain directly readable through `scripts/zigux/validate-phase3.py`, `scripts/zigux/check-phase3-abi.py`, `scripts/zigux/check-phase3-abi-support-packet.py`, `scripts/zigux/check-phase3-abi-manifest-replay-routes.py`, `scripts/zigux/check-phase3-shared-tests-routes.py`, `scripts/zigux/check-phase3-selftest-surface.py`, `scripts/zigux/run-phase3-checks.py`, and `scripts/zigux/validate_phase3_selftest.py`
-- the shared ABI manifest and catalog packet remain directly readable through `zigux/tests/fixtures/phase3_abi_manifest.json`, `scripts/zigux/phase3_catalog.py`, and `scripts/zigux/check-phase3-catalog-selftest.py`
+- the shared validator entrypoint and replay guards remain directly readable through `scripts\zigux/validate_phase3.zig`, `scripts\zigux/check_phase3_abi.zig`, `scripts\zigux/check_phase3_abi_support_packet.zig`, `scripts\zigux/check_phase3_abi_manifest_replay_routes.zig`, `scripts\zigux/check_phase3_shared_tests_routes.zig`, `scripts\zigux/check_phase3_selftest_surface.zig`, `scripts/zigux/run_phase3_checks.zig`, and `scripts/zigux/validate_phase3_selftest.zig`
+- the shared ABI manifest and catalog packet remain directly readable through `zigux/tests/fixtures/phase3_abi_manifest.json`, `scripts/zigux/phase3_catalog.zig`, and `scripts\zigux/check_phase3_catalog_selftest.zig`
 - the shared replay and wrapper routes remain visible through `zigux/tests/build.zig`, `zigux/tests/phase3_export_shim_build.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`
 - the bounded helper-slice packet remains explicit through the bitmap/cpumask, list/hlist, err_ptr/xarray, xarray-slot, policy, and low-level-wrapper notes and their directly coupled helper, manifest, and replay surfaces rather than being rounded up into a blanket "Phase 3 complete" claim
 - the export and header-family boundary packet remains explicit through `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-abi-header-family-survey.md`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, `Documentation/zigux/phase3-abi-h-boundary-next-step.md`, and the direct export/UAPI layout plus C-header smoke routes instead of being collapsed into a generic ABI-complete claim
@@ -70,8 +70,8 @@ When same-lane PMO wording changes, reread in this order:
 9. `Documentation/zigux/README.md`
 10. `scripts/zigux/README.md`
 11. `zigux/tests/README.md`
-12. `scripts/zigux/validate-phase3.py`
-13. `scripts/zigux/check-phase3-abi.py`
+12. `scripts\zigux/validate_phase3.zig`
+13. `scripts\zigux/check_phase3_abi.zig`
 14. `zigux/tests/fixtures/phase3_abi_manifest.json`
 
 ## Next Bounded Step

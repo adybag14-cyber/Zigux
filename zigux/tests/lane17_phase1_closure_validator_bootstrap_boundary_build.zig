@@ -16,7 +16,7 @@ pub fn build(b: *std.Build) void {
     const sources = b.addOptions();
     sources.addOption([]const u8, "workflow_text", readRootFile(b, ".github/workflows/zigux-bootstrap.yml"));
     sources.addOption([]const u8, "closure_note_text", readRootFile(b, "Documentation/zigux/phase1-closure.md"));
-    sources.addOption([]const u8, "validator_text", readRootFile(b, "scripts/zigux/validate-phase1-closure.py"));
+    sources.addOption([]const u8, "validator_text", readRootFile(b, "scripts\zigux/validate_phase1_closure.zig"));
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("lane17_phase1_closure_validator_bootstrap_boundary.zig"),

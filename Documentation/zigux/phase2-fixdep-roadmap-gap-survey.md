@@ -11,8 +11,8 @@ Lane: `P2-L01`
 ## Current repo evidence
 
 - `scripts/zigux/fixdep.zig` is the live Zig dual-implementation surface for the roadmap-backed `fixdep` lane.
-- `scripts/zigux/check-fixdep-diff.py` keeps the current C-versus-Zig fixture packet explicit.
-- `scripts/zigux/check-phase2-fixdep-gate.py` keeps the fixdep-local review packet aligned across the dedicated note, closure note, fixtures, workflow, and tests-facing reminder surfaces.
+- `scripts\zigux/check_fixdep_diff.zig` keeps the current C-versus-Zig fixture packet explicit.
+- `scripts\zigux/check_phase2_fixdep_gate.zig` keeps the fixdep-local review packet aligned across the dedicated note, closure note, fixtures, workflow, and tests-facing reminder surfaces.
 - `zigux/tests/fixtures/fixdep/cases.json` is the live twelve-case fixture packet for the current `fixdep` slice.
 - `Documentation/zigux/phase2-closure.md` records that same twelve-case packet and keeps the direct `zig test scripts/zigux/fixdep.zig` replay explicit in the closure story.
 
@@ -23,4 +23,4 @@ Lane: `P2-L01`
 
 ## Next bounded step
 
-- Keep fixdep-local truthfulness tied to `scripts/zigux/fixdep.zig`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/check-phase2-fixdep-gate.py`, `zigux/tests/fixtures/fixdep/cases.json`, and `Documentation/zigux/phase2-closure.md` instead of reopening parser implementation work that the current lane evidence already covers.
+- Keep fixdep-local truthfulness tied to `scripts/zigux/fixdep.zig`, `scripts\zigux/check_fixdep_diff.zig`, `scripts\zigux/check_phase2_fixdep_gate.zig`, `zigux/tests/fixtures/fixdep/cases.json`, and `Documentation/zigux/phase2-closure.md` instead of reopening parser implementation work that the current lane evidence already covers.

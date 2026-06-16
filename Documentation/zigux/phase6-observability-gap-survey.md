@@ -8,8 +8,8 @@ This note records the current observability posture for the bounded Phase 6 leaf
 - surveyed head: `current-master-readback-2026-05-25`
 - lane scope: runtime logging and diagnostics survey only
 - roadmap boundary: Phase 6 stays scoped to low-risk leaf helpers rooted in `lib/base64.c`, `lib/bsearch.c`, `lib/checksum.c`, and `lib/hexdump.c`
-- direct Phase 6 shared packet: `Documentation/zigux/phase6-helper-evidence-catalog.md`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/validate-phase6.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, and `zigux/Makefile`
-- neighboring observability anchors: `Documentation/zigux/phase5-trace-events-sample-survey.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `samples/zigux/trace_events_string_formatting_sample.zig`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `samples/zigux/runtime_trace_events.zig`, and `zigux/tests/runtime_trace_events_survey.zig`
+- direct Phase 6 shared packet: `Documentation/zigux/phase6-helper-evidence-catalog.md`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, `scripts\zigux/check_phase6_shared_surface.zig`, `scripts\zigux/check_phase6_present_entrypoints.zig`, `scripts\zigux/validate_phase6.zig`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, and `zigux/Makefile`
+- neighboring observability anchors: `Documentation/zigux/phase5-trace-events-sample-survey.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `samples/zigux/trace_events_string_formatting_sample.zig`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `scripts\zigux/check_phase9_trace_events_runtime_packet.zig`, `samples/zigux/runtime_trace_events.zig`, and `zigux/tests/runtime_trace_events_survey.zig`
 
 ## Why this survey exists
 
@@ -35,7 +35,7 @@ Current Phase 6 evidence is not runtime observability evidence.
 Current observability evidence lives in neighboring phases instead.
 
 - Phase 5 keeps the non-runtime trace-events contributor surface explicit through `Documentation/zigux/phase5-trace-events-sample-survey.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, and `samples/zigux/trace_events_string_formatting_sample.zig`.
-- Phase 9 keeps the shipped runtime trace-events packet explicit through `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `samples/zigux/runtime_trace_events.zig`, and `zigux/tests/runtime_trace_events_survey.zig`.
+- Phase 9 keeps the shipped runtime trace-events packet explicit through `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `scripts\zigux/check_phase9_trace_events_runtime_packet.zig`, `samples/zigux/runtime_trace_events.zig`, and `zigux/tests/runtime_trace_events_survey.zig`.
 - Phase 9 also keeps the shared runtime-loader and command or environment boundary packet separate from that trace-events family, so current observability evidence there is still bounded rather than a claim of broader runtime-substrate completion.
 
 ## Roadmap gap summary

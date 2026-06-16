@@ -27,11 +27,11 @@ Before retagging the shared Phase 6 surveyed head, do one fresh authenticated re
 - `Documentation/zigux/phase6-helper-parity-catalog.md`
 - `zigux/tests/phase6_helper_evidence_manifest.json`
 - `zigux/tests/phase6_helper_parity_manifest.json`
-- `scripts/zigux/validate-phase6.py`
-- `scripts/zigux/check-phase6-shared-surface.py`
-- `scripts/zigux/check-phase6-present-entrypoints.py`
-- `scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`
-- `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`
-- `scripts/zigux/check-phase6-perf-threshold-markers.py`
+- `scripts\zigux/validate_phase6.zig`
+- `scripts\zigux/check_phase6_shared_surface.zig`
+- `scripts\zigux/check_phase6_present_entrypoints.zig`
+- `scripts\zigux/check_phase6_base64_bsearch_perf_markers.zig`
+- `scripts\zigux/check_phase6_checksum_hexdump_perf_markers.zig`
+- `scripts\zigux/check_phase6_perf_threshold_markers.zig`
 
 Do not retag only one or two of those files. The honest fix is a one-pass refresh of the whole shared packet.

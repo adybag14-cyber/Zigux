@@ -18,14 +18,14 @@ It is a release-planning artifact only. It does not widen Phase 12 into new driv
 
 Keep the shared validator-first support bundle explicit as:
 
-- `scripts/zigux/validate-phase12.py`
-- `scripts/zigux/check-build-only-phase12-surface.py`
-- `scripts/zigux/check-phase12-release-readiness-packet.py`
-- `scripts/zigux/check-phase12-complex-driver-lane-packet.py`
-- `scripts/zigux/check-phase12-cross-compile-smoke.py`
-- `scripts/zigux/check-phase12-libbpf-snapshot.py`
-- `scripts/zigux/check-phase12-libbpf-lane-marker.py`
-- `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`
+- `scripts\zigux/validate_phase12.zig`
+- `scripts\zigux/check_build_only_phase12_surface.zig`
+- `scripts\zigux/check_phase12_release_readiness_packet.zig`
+- `scripts\zigux/check_phase12_complex_driver_lane_packet.zig`
+- `scripts\zigux/check_phase12_cross_compile_smoke.zig`
+- `scripts\zigux/check_phase12_libbpf_snapshot.zig`
+- `scripts\zigux/check_phase12_libbpf_lane_marker.zig`
+- `scripts\zigux/check_phase12_libbpf_heavy_consumer_packet.zig`
 
 Those support surfaces are shared release-packet truthfulness evidence. They are not proof of deeper DMA, queue ownership, recovery, transport, or object-model delivery.
 

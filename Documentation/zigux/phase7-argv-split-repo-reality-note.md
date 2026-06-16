@@ -16,8 +16,8 @@ Repo-reality warning for the missing dedicated `argv_split` packet on current `m
 - `zigux/tests/phase7_argv_split_survey.zig`
 - `zigux/tests/phase7_argv_split_manifest.json`
 - `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
-- `scripts/zigux/check-phase7-argv-split-packet.py`
-- `scripts/zigux/validate-phase7.py`
+- `scripts\zigux/check_phase7_argv_split_packet.zig`
+- `scripts\zigux/validate_phase7.zig`
 - `zigux/tests/phase7_build.zig`
 - `zigux/Makefile`
 

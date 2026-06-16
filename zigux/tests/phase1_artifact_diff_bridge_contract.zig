@@ -34,7 +34,7 @@ test "phase 1 artifact-diff helper keeps current bytes mode and parser contract"
     try expectContains(artifact_diff, "ARTIFACT_DIFF_SELF_TEST=pass");
 
     try expectContains(artifact_diff, "if (std.mem.eql(u8, raw, \"sha256\")) return .bytes;");
-    try expectContains(artifact_diff, "usage: artifact_diff.py [-h] [--mode {text,json,bytes}] [--self-test]");
+    try expectContains(artifact_diff, "usage: artifact_diff.zig [-h] [--mode {text,json,bytes}] [--self-test]");
     try expectContains(artifact_diff, "invalid choice: '{s}' (choose from text, json, bytes)");
     try expectContains(artifact_diff, "\"legacy_sha256_alias\"");
     try expectContains(artifact_diff, "\"missing_mode_value_rejected\"");
@@ -45,10 +45,10 @@ test "phase 1 artifact-diff helper keeps current bytes mode and parser contract"
 }
 
 test "phase 1 parity checker depends on artifact-diff JSON comparison gate" {
-    const parity_checker = try readRepoFile("scripts/zigux/check-phase1-parity.py", 192 * 1024);
+    const parity_checker = try readRepoFile("scripts\zigux/check_phase1_parity.zig", 192 * 1024);
     defer allocator.free(parity_checker);
 
-    try expectContains(parity_checker, "ARTIFACT_DIFF_REL = Path(\"scripts/zigux/artifact_diff.py\")");
+    try expectContains(parity_checker, "ARTIFACT_DIFF_REL = Path(\"scripts/zigux/artifact_diff.zig\")");
     try expectContains(parity_checker, "FIXTURE_REL = Path(\"zigux/tests/fixtures/phase1_helpers.json\")");
     try expectContains(parity_checker, "HARNESS_REL = Path(\"zigux/tests/fixtures/phase1_helpers_c_harness.c\")");
     try expectContains(parity_checker, "phase1_helpers");
@@ -65,17 +65,17 @@ test "phase 1 workflow keeps artifact-diff gates ordered as a deterministic repl
     const artifact_step = std.mem.indexOf(u8, workflow, "run: zig run scripts/zigux/artifact_diff.zig -- --self-test") orelse
         return error.MissingArtifactDiffSelfTest;
 
-    if (std.mem.indexOf(u8, workflow, "run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test")) |contract_self_test| {
-        const contract_check = std.mem.indexOfPos(u8, workflow, contract_self_test + 1, "run: python3 scripts/zigux/check-artifact-diff-contract.py") orelse
+    if (std.mem.indexOf(u8, workflow, "run: zig run check_artifact_diff_contract.zig --self-test")) |contract_self_test| {
+        const contract_check = std.mem.indexOfPos(u8, workflow, contract_self_test + 1, "run: zig run check_artifact_diff_contract.zig") orelse
             return error.MissingArtifactDiffContractCheck;
-        const determinism_self_test = std.mem.indexOf(u8, workflow, "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test") orelse
+        const determinism_self_test = std.mem.indexOf(u8, workflow, "run: zig run check_phase4_artifact_diff_determinism.zig --self-test") orelse
             return error.MissingArtifactDiffDeterminismSelfTest;
         try std.testing.expect(artifact_step < contract_self_test);
         try std.testing.expect(contract_self_test < contract_check);
         try std.testing.expect(contract_check < determinism_self_test);
     }
 
-    if (std.mem.indexOf(u8, workflow, "run: python3 scripts/zigux/check-phase1-parity.py")) |parity_step| {
+    if (std.mem.indexOf(u8, workflow, "run: zig run check_phase1_parity.zig")) |parity_step| {
         try std.testing.expect(artifact_step < parity_step);
     }
 }

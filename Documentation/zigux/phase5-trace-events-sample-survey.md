@@ -48,11 +48,11 @@ Fully aligned reminder surfaces for the direct formatting, callback-focus, and p
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/phase5-sample-lane-sequencing.md`
 - `samples/zigux/README.md`
-- `scripts/zigux/check-phase5-review-guide-surface.py`
+- `scripts\zigux/check_phase5_review_guide_surface.zig`
 
 Those surfaces already keep the landed trace-events packet explicit, keep the selected-string plus `iter=%d` formatting cue positioned as the approved bounded formatting reminder instead of a standalone Phase 5 formatting sample, keep the callback-focus companion framed as direct reviewability help for the same anchor rather than a fifth sample, keep the payload-preview companion framed as direct payload-shape and conditional-event-family reviewability help for the same anchor rather than a fifth sample, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet.
 They also should keep the broader non-runtime trace-events companions framed as current public-tree-backed companion or shared reminder vocabulary until the contents route actually returns those files again.
-The same current reminder packet also stays checker-backed in this run: `scripts/zigux/check-phase5-review-guide-surface.py` still guards the direct-proof, public-tree-backed-companion, and no-extra-sample wording across `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` instead of leaving the approved formatting story as guide-only prose.
+The same current reminder packet also stays checker-backed in this run: `scripts\zigux/check_phase5_review_guide_surface.zig` still guards the direct-proof, public-tree-backed-companion, and no-extra-sample wording across `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` instead of leaving the approved formatting story as guide-only prose.
 
 `Documentation/zigux/review-checklist.md` stays aligned on the direct bounded trace-events packet in this run. The checklist keeps the bounded formatting companion, the bounded callback-focus companion, the broader sample-local split, the kobject split, the shared build-route handle, and the no-extra-sample boundary explicit, so this survey should treat that checklist surface as current shared-packet inventory rather than an outstanding undercount.
 

@@ -8,17 +8,17 @@ const required_paths = [_][]const u8{
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/freeze-map.md",
     "scripts/zigux/README.md",
-    "scripts/zigux/check-zig-toolchain.py",
-    "scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
-    "scripts/zigux/check-lane05-local-first-archive-workflow.py",
-    "scripts/zigux/check-lane05-local-archive-readme.py",
-    "scripts/zigux/check-lane05-install-zig-archive-verification.py",
-    "scripts/zigux/stage-pinned-zig-archive.py",
-    "scripts/zigux/check-lane05-stage-helper-contract.py",
-    "scripts/zigux/check-lane05-stage-helper-selftest.py",
-    "scripts/zigux/check-phase1-route-summary-counts.py",
-    "scripts/zigux/install-zig.py",
-    "scripts/zigux/validate-bootstrap.py",
+    "scripts\zigux/check_zig_toolchain.zig",
+    "scripts\zigux/check_lane01_bootstrap_charter_alignment.zig",
+    "scripts\zigux/check_lane05_local_first_archive_workflow.zig",
+    "scripts\zigux/check_lane05_local_archive_readme.zig",
+    "scripts\zigux/check_lane05_install_zig_archive_verification.zig",
+    "scripts/zigux/stage_pinned_zig_archive.zig",
+    "scripts\zigux/check_lane05_stage_helper_contract.zig",
+    "scripts\zigux/check_lane05_stage_helper_selftest.zig",
+    "scripts\zigux/check_phase1_route_summary_counts.zig",
+    "scripts/zigux/install_zig.zig",
+    "scripts/zigux/validate_bootstrap.zig",
     "scripts/zigux/zig-toolchain-policy.json",
     "zigux/tests/README.md",
     ".github/workflows/zigux-bootstrap.yml",
@@ -46,29 +46,29 @@ const validator_marker_packet = [_][]const u8{
 };
 
 const required_workflow_lines = [_][]const u8{
-    "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
-    "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
-    "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
-    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test",
-    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py",
-    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
-    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
-    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test",
-    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
-    "run: python3 scripts/zigux/install-zig.py --self-test",
-    "run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test",
-    "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test",
-    "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
-    "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test",
-    "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py",
-    "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py --self-test",
-    "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
-    "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
-    "run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
+    "run: zig run check_zig_toolchain.zig --self-test",
+    "run: zig run check_zig_toolchain.zig --policy-only",
+    "run: zig run check_zig_toolchain.zig --archive-only --allow-missing",
+    "run: zig run check_lane05_local_first_archive_workflow.zig --self-test",
+    "run: zig run check_lane05_local_first_archive_workflow.zig",
+    "run: zig run check_lane05_local_archive_readme.zig --self-test",
+    "run: zig run check_lane05_local_archive_readme.zig",
+    "run: zig run check_lane05_install_zig_archive_verification.zig --self-test",
+    "run: zig run check_lane05_install_zig_archive_verification.zig",
+    "run: zig run scripts/zigux/install_zig.zig --self-test",
+    "run: zig run scripts/zigux/stage_pinned_zig_archive.zig --self-test",
+    "run: zig run check_lane05_stage_helper_contract.zig --self-test",
+    "run: zig run check_lane05_stage_helper_contract.zig",
+    "run: zig run check_lane05_stage_helper_selftest.zig --self-test",
+    "run: zig run check_lane05_stage_helper_selftest.zig",
+    "run: zig run check_lane01_bootstrap_charter_alignment.zig --self-test",
+    "run: zig run check_lane01_bootstrap_charter_alignment.zig",
+    "run: zig run check_phase1_route_summary_counts.zig --self-test",
+    "run: zig run check_phase1_route_summary_counts.zig",
     "run: make -C zigux phase6-validate",
     "run: zig build test --build-file zigux/tests/phase6_build.zig --summary all",
-    "run: python3 scripts/zigux/validate-bootstrap.py --self-test",
-    "run: python3 scripts/zigux/validate-bootstrap.py",
+    "run: zig run scripts/zigux/validate_bootstrap.zig -- --self-test",
+    "run: zig run scripts/zigux/validate_bootstrap.zig",
 };
 
 const policy_markers = [_][]const u8{
@@ -111,11 +111,11 @@ fn expectUnique(haystack: []const []const u8) !void {
 test "Lane 03 validator required paths stay on the bootstrap surface" {
     try std.testing.expectEqual(@as(usize, 21), required_paths.len);
     try expectUnique(&required_paths);
-    try std.testing.expect(contains(&required_paths, "scripts/zigux/check-zig-toolchain.py"));
-    try std.testing.expect(contains(&required_paths, "scripts/zigux/validate-bootstrap.py"));
+    try std.testing.expect(contains(&required_paths, "scripts\zigux/check_zig_toolchain.zig"));
+    try std.testing.expect(contains(&required_paths, "scripts/zigux/validate_bootstrap.zig"));
     try std.testing.expect(contains(&required_paths, "scripts/zigux/zig-toolchain-policy.json"));
-    try std.testing.expect(contains(&required_paths, "scripts/zigux/stage-pinned-zig-archive.py"));
-    try std.testing.expect(contains(&required_paths, "scripts/zigux/check-lane05-stage-helper-contract.py"));
+    try std.testing.expect(contains(&required_paths, "scripts/zigux/stage_pinned_zig_archive.zig"));
+    try std.testing.expect(contains(&required_paths, "scripts\zigux/check_lane05_stage_helper_contract.zig"));
     try std.testing.expect(contains(&required_paths, ".github/workflows/zigux-bootstrap.yml"));
 }
 
@@ -134,12 +134,12 @@ test "Lane 03 workflow line packet stays narrower than Phase 2 route ownership" 
     try std.testing.expectEqual(@as(usize, 23), required_workflow_lines.len);
     try expectUnique(&required_workflow_lines);
     try std.testing.expectEqual(@as(usize, 23), countWithPrefix(&required_workflow_lines, "run: "));
-    try std.testing.expect(contains(&required_workflow_lines, "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only"));
-    try std.testing.expect(contains(&required_workflow_lines, "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing"));
-    try std.testing.expect(contains(&required_workflow_lines, "run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test"));
+    try std.testing.expect(contains(&required_workflow_lines, "run: zig run check_zig_toolchain.zig --policy-only"));
+    try std.testing.expect(contains(&required_workflow_lines, "run: zig run check_zig_toolchain.zig --archive-only --allow-missing"));
+    try std.testing.expect(contains(&required_workflow_lines, "run: zig run scripts/zigux/stage_pinned_zig_archive.zig --self-test"));
     try std.testing.expect(contains(&required_workflow_lines, "run: make -C zigux phase6-validate"));
-    try std.testing.expect(contains(&required_workflow_lines, "run: python3 scripts/zigux/validate-bootstrap.py --self-test"));
-    try std.testing.expect(contains(&required_workflow_lines, "run: python3 scripts/zigux/validate-bootstrap.py"));
+    try std.testing.expect(contains(&required_workflow_lines, "run: zig run scripts/zigux/validate_bootstrap.zig -- --self-test"));
+    try std.testing.expect(contains(&required_workflow_lines, "run: zig run scripts/zigux/validate_bootstrap.zig"));
 }
 
 test "Lane 03 policy markers match the current pinned archive packet" {

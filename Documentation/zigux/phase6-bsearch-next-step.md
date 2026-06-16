@@ -9,7 +9,7 @@ This note is limited to the `lib/bsearch.zig` helper lane.
 - `lib/bsearch.zig` is already a substantial Phase 6 helper, not an empty scaffold. It ships typed and raw search helpers, lower-bound and upper-bound helpers, equal-range helpers, native comparator handling, C ABI comparator handling, and inline tests for duplicate spans, insertion points, comparison-budget behavior, and mutable aliasing.
 - `zigux/tests/phase6_build.zig` already wires helper-local replay for `phase6-bsearch-test`, `phase6-bsearch-perf`, `phase6-bsearch-index-range-accessors-tests`, `phase6-bsearch-lower-bound-c-abi-tests`, and `phase6-bsearch-c-abi-budget-tests`.
 - `zigux/Makefile` already exposes `make -C zigux phase6-bsearch-test` and `make -C zigux phase6-bsearch-perf` on current `master`.
-- `scripts/zigux/validate-phase6.py` already treats bsearch as part of the live Phase 6 packet through `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, `scripts/zigux/check-phase6-bsearch-c-parity.py`, and the shared perf-marker surfaces.
+- `scripts\zigux/validate_phase6.zig` already treats bsearch as part of the live Phase 6 packet through `scripts\zigux/check_phase6_bsearch_corpus_evidence.zig`, `scripts\zigux/check_phase6_bsearch_c_parity.zig`, and the shared perf-marker surfaces.
 - The broader reminder surfaces checked in this lane run do not currently carry a helper-local bsearch summary even though the helper, replay routes, parity checker, and perf gate are already present.
 
 ## Closure correction
@@ -23,7 +23,7 @@ The next safe helper-only follow-up is a reminder-surface correction that thread
 - `lib/bsearch.zig`
 - `zigux/tests/phase6_bsearch.zig`
 - `zigux/tests/phase6_bsearch_perf.zig`
-- `scripts/zigux/check-phase6-bsearch-c-parity.py`
+- `scripts\zigux/check_phase6_bsearch_c_parity.zig`
 - `make -C zigux phase6-bsearch-test`
 - `make -C zigux phase6-bsearch-perf`
 

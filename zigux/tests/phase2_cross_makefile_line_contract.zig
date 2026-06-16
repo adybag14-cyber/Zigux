@@ -1,7 +1,7 @@
 const std = @import("std");
 
 const fixture = @embedFile("fixtures/phase2_cross_targets.json");
-const checker_path = "scripts/zigux/check-phase2-cross.py";
+const checker_path = "scripts\zigux/check_phase2_cross.zig";
 
 const ContractError = error{
     MissingMarker,
@@ -41,8 +41,8 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
 fn validateCheckerMakefileEnvelope(text: []const u8) !void {
     try requireContains(text, "MAKEFILE_LINES = (");
     try requireContains(text, "\"phase2-cross:\"");
-    try requireContains(text, "\"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py\"");
-    try requireContains(text, "\"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py\"");
+    try requireContains(text, "\"$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig\"");
+    try requireContains(text, "\"$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig\"");
     try requireContains(text, "EXPECTED_FIXTURE_PHASE = \"Phase 2\"");
     try requireContains(text, "EXPECTED_FIXTURE_STATUS = \"active\"");
     try requireContains(text, "ALLOWED_VALIDATION_MODES = (\"archive_required\", \"route_contract_only\")");
@@ -94,7 +94,7 @@ test "contract catches checker Makefile-envelope drift" {
     try std.testing.expectError(ContractError.MissingMarker, validateCheckerMakefileEnvelope(
         \\MAKEFILE_LINES = (
         \\    "phase2-cross:"
-        \\    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py"
+        \\    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig"
         \\)
         \\EXPECTED_FIXTURE_PHASE = "Phase 2"
         \\EXPECTED_FIXTURE_STATUS = "active"
@@ -120,8 +120,8 @@ test "contract catches checker Makefile-envelope drift" {
     try std.testing.expectError(ContractError.MissingMarker, validateCheckerMakefileEnvelope(
         \\MAKEFILE_LINES = (
         \\    "phase2-cross:"
-        \\    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py"
-        \\    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py"
+        \\    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig"
+        \\    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig"
         \\)
         \\EXPECTED_FIXTURE_PHASE = "Phase 2"
         \\EXPECTED_FIXTURE_STATUS = "active"

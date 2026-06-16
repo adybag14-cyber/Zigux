@@ -32,13 +32,13 @@ The same run also hit missing contents reads for older closure-side paths still 
 
 - `Documentation/zigux/phase1-closure.md`
 - `scripts/zigux/README.md`
-- `scripts/zigux/install-zig.py`
-- `scripts/zigux/check-zig-toolchain.py`
-- `scripts/zigux/validate-phase1.py`
-- `scripts/zigux/validate-phase1-closure.py`
-- `scripts/zigux/check-phase1-parity.py`
-- `scripts/zigux/check-phase1-bench.py`
-- `scripts/zigux/check-phase1-installer-review-surfaces.py`
+- `scripts/zigux/install_zig.zig`
+- `scripts\zigux/check_zig_toolchain.zig`
+- `scripts\zigux/validate_phase1.zig`
+- `scripts\zigux/validate_phase1_closure.zig`
+- `scripts\zigux/check_phase1_parity.zig`
+- `scripts\zigux/check_phase1_bench.zig`
+- `scripts\zigux/check_phase1_installer_review_surfaces.zig`
 
 Treat those paths as last-known Phase 1 closure packet members that require a fresh reread or re-materialization before any later host-tools-alpha run presents them as current direct evidence again.
 

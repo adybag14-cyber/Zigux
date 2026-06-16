@@ -8,7 +8,7 @@ This note tracks a bounded Phase 7 runtime leaf-library packet around `lib/base6
 - `PHASE7_SLICE=base64-runtime-leaf`
 - `PHASE7_LANE_KEY=P7-L14`
 - scope: keep this lane limited to the helper-local `base64` review packet rooted at `lib/base64.zig`, one dedicated replay, one dedicated standalone build entrypoint, one dedicated survey, one dedicated manifest, and one dedicated checker
-- lane state: current packet surfaces are `Documentation/zigux/phase7-base64-slice.md`, `scripts/zigux/check-phase7-base64-packet.py`, `lib/base64.zig`, `zigux/tests/phase7_base64.zig`, `zigux/tests/phase7_base64_build.zig`, `zigux/tests/phase7_base64_survey.zig`, and `zigux/tests/phase7_base64_manifest.json`
+- lane state: current packet surfaces are `Documentation/zigux/phase7-base64-slice.md`, `scripts\zigux/check_phase7_base64_packet.zig`, `lib/base64.zig`, `zigux/tests/phase7_base64.zig`, `zigux/tests/phase7_base64_build.zig`, `zigux/tests/phase7_base64_survey.zig`, and `zigux/tests/phase7_base64_manifest.json`
 
 ## Why This Slice Exists
 
@@ -28,7 +28,7 @@ Phase 7 is where Zigux carries bounded runtime leaf helpers in product-facing lo
 
 2. keep the helper-local packet explicit
 - `Documentation/zigux/phase7-base64-slice.md`
-- `scripts/zigux/check-phase7-base64-packet.py`
+- `scripts\zigux/check_phase7_base64_packet.zig`
 - `zigux/tests/phase7_base64.zig`
 - `zigux/tests/phase7_base64_build.zig`
 - `zigux/tests/phase7_base64_survey.zig`

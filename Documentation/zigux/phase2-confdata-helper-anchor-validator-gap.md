@@ -5,9 +5,9 @@
 - lane: `toolchain-kbuild`
 - phase: `Phase 2`
 - scope: shared toolchain, build-check, and kbuild-facing validation wiring
-- current `master` still ships the bounded confdata helper-anchor checker `scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py`
+- current `master` still ships the bounded confdata helper-anchor checker `scripts\zigux/check_phase2_confdata_helper_anchor_alignment.zig`
 - current `master` also still documents that checker inside the live shared Phase 2 scripts-root inventory in `scripts/zigux/README.md`
-- the shared validator gate `scripts/zigux/validate-phase2.py` currently inventories the shared tests README, kconfig README, kconfig self-test alignment, fixdep gate, fixdep diff, cross compile, cross self-test alignment, tool-manifest packet, and toolchain pin-scope checks, but it does not yet carry the confdata helper-anchor checker in its command packet or required-file inventory
+- the shared validator gate `scripts\zigux/validate_phase2.zig` currently inventories the shared tests README, kconfig README, kconfig self-test alignment, fixdep gate, fixdep diff, cross compile, cross self-test alignment, tool-manifest packet, and toolchain pin-scope checks, but it does not yet carry the confdata helper-anchor checker in its command packet or required-file inventory
 
 ## Why This Note Exists
 
@@ -21,14 +21,14 @@ That mismatch matters because it lets one live Phase 2 checker remain outside th
 
 - `scripts/zigux/README.md` lists `check-phase2-confdata-helper-anchor-alignment.py` among the live shared Phase 2 helpers on current `master`
 - `Documentation/zigux/phase2-closure.md` keeps the bounded Phase 2 packet framed around shared validator, closure, cross-target, kconfig, fixdep, genksyms, and toolchain-pin routes
-- `scripts/zigux/validate-phase2.py` currently does not include the confdata helper-anchor checker in the shared command inventory or required-file inventory
+- `scripts\zigux/validate_phase2.zig` currently does not include the confdata helper-anchor checker in the shared command inventory or required-file inventory
 - the live tree still carries `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, and the committed `zigux/tests/fixtures/kconfig_bridge/` packet, so this note is about validator wiring drift, not a claim that the scaffold itself is absent
 
 ## Next Bounded Same-Lane Step
 
-Wire `scripts/zigux/check-phase2-confdata-helper-anchor-alignment.py` into the shared Phase 2 validator packet by updating:
+Wire `scripts\zigux/check_phase2_confdata_helper_anchor_alignment.zig` into the shared Phase 2 validator packet by updating:
 
-- `scripts/zigux/validate-phase2.py`
+- `scripts\zigux/validate_phase2.zig`
 - `Documentation/zigux/phase2-closure.md`
 - any shared route inventory that should explicitly track the added self-test and gate markers after the validator wiring lands
 

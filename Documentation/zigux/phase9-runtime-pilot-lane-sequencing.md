@@ -27,7 +27,7 @@ Trusted mixed rereads on 2026-05-25 confirm four distinct current-master Phase 9
 
 ### 1. Trace-events remains the direct shipped runtime sample family
 
-- surviving review surfaces: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `scripts/zigux/check-phase9-trace-events-direct-summary.py`, `scripts/zigux/check-phase9-trace-events-summary-preservation.py`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/README.md`
+- surviving review surfaces: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts\zigux/check_phase9_trace_events_runtime_packet.zig`, `scripts\zigux/check_phase9_trace_events_direct_summary.zig`, `scripts\zigux/check_phase9_trace_events_summary_preservation.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/README.md`
 - surviving direct runtime-module sample: `samples/zigux/runtime_trace_events.zig`
 - surviving fail-closed runtime companion: `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 - surviving exit-rollback runtime companion: `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`

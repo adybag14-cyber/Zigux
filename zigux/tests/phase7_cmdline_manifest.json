@@ -12,7 +12,7 @@
     "zigux/tests/phase7_cmdline_survey.zig",
     "zigux/tests/phase7_cmdline_manifest.json",
     "zigux/tests/phase7_cmdline_survey_build.zig",
-    "scripts/zigux/check-phase7-cmdline-packet.py",
+    "scripts\zigux/check_phase7_cmdline_packet.zig",
     "samples/zigux/README.md"
   ],
   "covered_helpers": [

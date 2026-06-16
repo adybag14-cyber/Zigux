@@ -69,8 +69,8 @@ test "phase2 closure manifest pins validators and make wrappers as first-class c
     defer std.testing.allocator.free(manifest);
 
     const validators = [_][]const u8{
-        "\"scripts/zigux/validate-phase2.py\"",
-        "\"scripts/zigux/validate-phase2-closure.py\"",
+        "\"scripts\zigux/validate_phase2.zig\"",
+        "\"scripts\zigux/validate_phase2_closure.zig\"",
     };
     for (validators) |validator| {
         try expectContains(manifest, validator);
@@ -94,16 +94,16 @@ test "phase2 closure manifest covers each Phase 2 implementation family once in 
     defer std.testing.allocator.free(manifest);
 
     const key_checkers = [_][]const u8{
-        "\"scripts/zigux/check-zig-toolchain.py\"",
-        "\"scripts/zigux/check-kconfig-bridge.py\"",
-        "\"scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py\"",
-        "\"scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py\"",
-        "\"scripts/zigux/check-genksyms-bridge.py\"",
-        "\"scripts/zigux/check-phase2-fixdep-gate.py\"",
-        "\"scripts/zigux/check-fixdep-diff.py\"",
-        "\"scripts/zigux/check-phase2-cross.py\"",
-        "\"scripts/zigux/check-phase2-tool-manifest.py\"",
-        "\"scripts/zigux/check-phase2-bootstrap-workflow-routes.py\"",
+        "\"scripts\zigux/check_zig_toolchain.zig\"",
+        "\"scripts\zigux/check_kconfig_bridge.zig\"",
+        "\"scripts\zigux/check_phase2_kconfig_allconfig_helper_packet.zig\"",
+        "\"scripts\zigux/check_phase2_genksyms_dual_implementation_survey.zig\"",
+        "\"scripts\zigux/check_genksyms_bridge.zig\"",
+        "\"scripts\zigux/check_phase2_fixdep_gate.zig\"",
+        "\"scripts\zigux/check_fixdep_diff.zig\"",
+        "\"scripts\zigux/check_phase2_cross.zig\"",
+        "\"scripts\zigux/check_phase2_tool_manifest.zig\"",
+        "\"scripts\zigux/check_phase2_bootstrap_workflow_routes.zig\"",
     };
     for (key_checkers) |checker| {
         try expectContains(manifest, checker);

@@ -1,27 +1,27 @@
 const std = @import("std");
 
 const shared_tooling_commands = [_][]const u8{
-    "python3 scripts/zigux/check-phase2-tool-manifest.py",
-    "python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
-    "python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
-    "python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
-    "python3 scripts/zigux/check-phase2-cross.py",
-    "python3 scripts/zigux/check-phase2-fixdep-gate.py",
-    "python3 scripts/zigux/check-fixdep-diff.py",
+    "zig run check_phase2_tool_manifest.zig",
+    "zig run check_phase2_bootstrap_workflow_routes.zig",
+    "zig run check_phase2_artifact_tools_manifest.zig",
+    "zig run check_phase2_kconfig_allconfig_helper_packet.zig",
+    "zig run check_phase2_cross.zig",
+    "zig run check_phase2_fixdep_gate.zig",
+    "zig run check_fixdep_diff.zig",
 };
 
 const shared_tooling_paths = [_][]const u8{
-    "scripts/zigux/check-phase2-tool-manifest.py",
-    "scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
-    "scripts/zigux/check-phase2-artifact-tools-manifest.py",
-    "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
-    "scripts/zigux/check-phase2-cross.py",
-    "scripts/zigux/check-phase2-fixdep-gate.py",
-    "scripts/zigux/check-fixdep-diff.py",
+    "scripts\zigux/check_phase2_tool_manifest.zig",
+    "scripts\zigux/check_phase2_bootstrap_workflow_routes.zig",
+    "scripts\zigux/check_phase2_artifact_tools_manifest.zig",
+    "scripts\zigux/check_phase2_kconfig_allconfig_helper_packet.zig",
+    "scripts\zigux/check_phase2_cross.zig",
+    "scripts\zigux/check_phase2_fixdep_gate.zig",
+    "scripts\zigux/check_fixdep_diff.zig",
 };
 
 const shared_tooling_line =
-    "PHASE2_SHARED_TOOLING_CHECKERS=python3 scripts/zigux/check-phase2-tool-manifest.py,python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py,python3 scripts/zigux/check-phase2-artifact-tools-manifest.py,python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py,python3 scripts/zigux/check-phase2-cross.py,python3 scripts/zigux/check-phase2-fixdep-gate.py,python3 scripts/zigux/check-fixdep-diff.py";
+    "PHASE2_SHARED_TOOLING_CHECKERS=zig run check_phase2_tool_manifest.zig,zig run check_phase2_bootstrap_workflow_routes.zig,zig run check_phase2_artifact_tools_manifest.zig,zig run check_phase2_kconfig_allconfig_helper_packet.zig,zig run check_phase2_cross.zig,zig run check_phase2_fixdep_gate.zig,zig run check_fixdep_diff.zig";
 
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(
@@ -64,7 +64,7 @@ test "phase2 closure note keeps the shared tooling checker line exact" {
 }
 
 test "phase2 closure validator derives the same shared tooling line" {
-    const validator = try readRepoFile(std.testing.allocator, "scripts/zigux/validate-phase2-closure.py");
+    const validator = try readRepoFile(std.testing.allocator, "scripts\zigux/validate_phase2_closure.zig");
     defer std.testing.allocator.free(validator);
 
     try expectContains(validator, "SHARED_TOOLING_COMMANDS = (");
@@ -99,7 +99,7 @@ test "scripts and tests readmes both name the shared tooling packet" {
         try expectContains(tests_readme, path);
     }
 
-    try expectTrimmedLineCount(tests_readme, "* `scripts/zigux/check-phase2-tool-manifest.py`", 1);
-    try expectTrimmedLineCount(tests_readme, "* `scripts/zigux/check-phase2-bootstrap-workflow-routes.py`", 1);
-    try expectTrimmedLineCount(tests_readme, "* `scripts/zigux/check-phase2-artifact-tools-manifest.py`", 1);
+    try expectTrimmedLineCount(tests_readme, "* `scripts\zigux/check_phase2_tool_manifest.zig`", 1);
+    try expectTrimmedLineCount(tests_readme, "* `scripts\zigux/check_phase2_bootstrap_workflow_routes.zig`", 1);
+    try expectTrimmedLineCount(tests_readme, "* `scripts\zigux/check_phase2_artifact_tools_manifest.zig`", 1);
 }

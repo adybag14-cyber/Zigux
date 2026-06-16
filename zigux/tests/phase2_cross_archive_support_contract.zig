@@ -22,7 +22,7 @@ fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
 }
 
 test "phase2 cross validator keeps archive support alternatives explicit" {
-    const validate_phase2 = try readRepoFile(std.testing.allocator, "scripts/zigux/validate-phase2.py");
+    const validate_phase2 = try readRepoFile(std.testing.allocator, "scripts\zigux/validate_phase2.zig");
     defer std.testing.allocator.free(validate_phase2);
 
     try expectContains(validate_phase2, "ARCHIVE_PAYLOAD_PATH");
@@ -36,12 +36,12 @@ test "phase2 cross validator keeps archive support alternatives explicit" {
 }
 
 test "phase2 cross validator accepts documented canonical fallback markers" {
-    const validate_phase2 = try readRepoFile(std.testing.allocator, "scripts/zigux/validate-phase2.py");
+    const validate_phase2 = try readRepoFile(std.testing.allocator, "scripts\zigux/validate_phase2.zig");
     defer std.testing.allocator.free(validate_phase2);
 
     try expectContains(validate_phase2, "canonical `adybag14-cyber/zig` release");
-    try expectContains(validate_phase2, "`scripts/zigux/check-lane05-local-first-archive-workflow.py`");
-    try expectContains(validate_phase2, "`scripts/zigux/check-lane05-local-archive-readme.py`");
+    try expectContains(validate_phase2, "`scripts\zigux/check_lane05_local_first_archive_workflow.zig`");
+    try expectContains(validate_phase2, "`scripts\zigux/check_lane05_local_archive_readme.zig`");
     try expectContains(validate_phase2, "all(marker in readme_text for marker in required_markers)");
     try expectContains(validate_phase2, "return []");
 }

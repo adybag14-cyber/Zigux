@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const checker_path = "scripts/zigux/check-phase1-cmdline-review-packet.py";
+const checker_path = "scripts\zigux/check_phase1_cmdline_review_packet.zig";
 const helper_path = "tools/lib/cmdline.zig";
 const fixture_path = "zigux/tests/fixtures/phase1_helpers.json";
 const smoke_path = "zigux/tests/phase1_host_tools_smoke.zig";

@@ -189,7 +189,7 @@ test "phase13 devres iomap planner manifest records the landed helper-first mmio
     try requireContains(manifest, "lib/devres.zig");
     try requireContains(manifest, "Documentation/zigux/phase13-devres-iomap-planner.md");
     try requireContains(manifest, "zigux/tests/phase13_devres_iomap_planner.zig");
-    try requireContains(manifest, "scripts/zigux/check-phase13-devres-iomap-planner.py");
+    try requireContains(manifest, "scripts\zigux/check_phase13_devres_iomap_planner.zig");
     try requireContains(manifest, "\"translation_miss_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"");
     try requireContains(manifest, "\"request_region_denial_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"");
     try requireContains(manifest, "\"nonposted_wrapper_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"");
@@ -240,12 +240,12 @@ test "phase13 devres slice records the helper-first iomap packet in current evid
 
     try requireContains(slice, "`Documentation/zigux/phase13-devres-iomap-planner.md`");
     try requireContains(slice, "`zigux/tests/phase13_devres_iomap_planner.zig`");
-    try requireContains(slice, "`scripts/zigux/check-phase13-devres-iomap-planner.py`");
+    try requireContains(slice, "`scripts\zigux/check_phase13_devres_iomap_planner.zig`");
     try requireContains(slice, "current packet helper-first, planning-only, and MMIO-bounded");
 }
 
 test "phase13 devres iomap planner checker stays packet-local" {
-    const checker = try readRepoFile(std.testing.allocator, "scripts/zigux/check-phase13-devres-iomap-planner.py");
+    const checker = try readRepoFile(std.testing.allocator, "scripts\zigux/check_phase13_devres_iomap_planner.zig");
     defer std.testing.allocator.free(checker);
 
     try requireContains(checker, "HELPER_PATH = Path(\"lib/devres.zig\")");

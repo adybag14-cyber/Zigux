@@ -23,14 +23,14 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_POLICY_SLICE_DOC_BLOB_SHA=07a0a34ed9b2d5b1794862a441e540c82302faf3`
 - `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_DOC_BLOB_SHA=031daa955a72076a697d374792973f94c9a22fa4`
 - `PHASE3_POLICY_STARTER_PACKET_MANIFEST_PATH=zigux/tests/phase3_policy_starter_packet_manifest.json`
-- `PHASE3_POLICY_PACKET_GATE=python3 scripts/zigux/check-phase3-policy-starter-packet.py`
+- `PHASE3_POLICY_PACKET_GATE=zig run check_phase3_policy_starter_packet.zig`
 - `PHASE3_POLICY_PACKET_TEST_GATE=zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig`
 - `PHASE3_POLICY_PACKET_MAKE_GATE=make -C zigux phase3-policy-starter-packet-test`
-- `PHASE3_POLICY_DUMP_GATE=python3 scripts/zigux/check-phase3-policy-dump.py`
+- `PHASE3_POLICY_DUMP_GATE=zig run check_phase3_policy_dump.zig`
 - `PHASE3_POLICY_DUMP_MAKE_GATE=make -C zigux phase3-policy-dump`
-- `PHASE3_POLICY_UNSAFE_REPLAY_GATE=python3 scripts/zigux/check-phase3-policy-unsafe-replay.py`
-- `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
-- `PHASE3_POLICY_UNSAFE_SURVEY_GATE=python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py`
+- `PHASE3_POLICY_UNSAFE_REPLAY_GATE=zig run check_phase3_policy_unsafe_replay.zig`
+- `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=zig run validate_phase3_low_level_wrapper_survey.zig`
+- `PHASE3_POLICY_UNSAFE_SURVEY_GATE=zig run validate_phase3_policy_unsafe_survey.zig`
 - `PHASE3_POLICY_UNSAFE_REPLAY_PATH=zigux/tests/phase3_policy_unsafe.zig`
 - `PHASE3_POLICY_UNSAFE_REPLAY_BUILD_PATH=zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_POLICY_UNSAFE_REPLAY_TEST_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
@@ -53,17 +53,17 @@ This lane does not justify broad runtime policy machinery on its own.
 ## Live Repo Reality
 This survey is anchored to packet-local blob IDs because the current connector run could inspect the live Phase 3 packet files directly but did not expose a trustworthy branch-head commit SHA. The blob markers above are therefore the authoritative current boundary evidence for this directly coupled policy-and-unsafe packet.
 
-Current `master` now also carries `scripts/zigux/validate-phase3-policy-unsafe-survey.py`, which exact-requires those helper and adjacent-note blob markers so this survey fails closed when the live `layout_assert`, `panic_policy`, `allocator_policy`, `unsafe_policy`, `mmio`, or `narrow` packet drifts.
+Current `master` now also carries `scripts\zigux/validate_phase3_policy_unsafe_survey.zig`, which exact-requires those helper and adjacent-note blob markers so this survey fails closed when the live `layout_assert`, `panic_policy`, `allocator_policy`, `unsafe_policy`, `mmio`, or `narrow` packet drifts.
 
 The live bounded packet is currently split across four directly coupled proof surfaces:
 - `zigux/helpers/layout_assert.zig`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, `zigux/helpers/unsafe_policy.zig`, `zigux/helpers/mmio.zig`, and `zigux/unsafe/narrow.zig`, which keep layout, panic, allocator, unsafe-scope, MMIO, and raw-pointer-bridge policy explicit in helper-local code.
-- `Documentation/zigux/phase3-policy-slice.md`, `zigux/tests/phase3_policy_starter_packet_manifest.json`, `scripts/zigux/check-phase3-policy-starter-packet.py`, and `zigux/tests/phase3_policy_starter_packet_build.zig`, which keep the helper-local starter packet reviewable through the direct starter-packet route and its `make -C zigux phase3-policy-starter-packet-test` wrapper.
-- `zigux/tests/phase3_policy_unsafe.zig`, `zigux/tests/phase3_policy_unsafe_build.zig`, and `scripts/zigux/check-phase3-policy-unsafe-replay.py`, which now provide a dedicated replay pair and packet-local checker for shared interop-policy records, helper-versus-narrow gate alignment, fail-closed require paths, and the resulting panic, allocator, and unsafe-surface consequences without reopening the starter packet or low-level wrapper packet.
-- `zigux/tests/phase3_policy_dump.zig`, `zigux/tests/phase3_policy_dump_build.zig`, `zigux/tests/fixtures/phase3_policy_dump_expected.txt`, `scripts/zigux/check-phase3-policy-dump.py`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`, which keep the focused dump replay and the directly coupled MMIO-plus-narrow wrapper packet explicit beside the dedicated survey guard.
+- `Documentation/zigux/phase3-policy-slice.md`, `zigux/tests/phase3_policy_starter_packet_manifest.json`, `scripts\zigux/check_phase3_policy_starter_packet.zig`, and `zigux/tests/phase3_policy_starter_packet_build.zig`, which keep the helper-local starter packet reviewable through the direct starter-packet route and its `make -C zigux phase3-policy-starter-packet-test` wrapper.
+- `zigux/tests/phase3_policy_unsafe.zig`, `zigux/tests/phase3_policy_unsafe_build.zig`, and `scripts\zigux/check_phase3_policy_unsafe_replay.zig`, which now provide a dedicated replay pair and packet-local checker for shared interop-policy records, helper-versus-narrow gate alignment, fail-closed require paths, and the resulting panic, allocator, and unsafe-surface consequences without reopening the starter packet or low-level wrapper packet.
+- `zigux/tests/phase3_policy_dump.zig`, `zigux/tests/phase3_policy_dump_build.zig`, `zigux/tests/fixtures/phase3_policy_dump_expected.txt`, `scripts\zigux/check_phase3_policy_dump.zig`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts\zigux/validate_phase3_low_level_wrapper_survey.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`, which keep the focused dump replay and the directly coupled MMIO-plus-narrow wrapper packet explicit beside the dedicated survey guard.
 
 Current `master` also keeps `zigux/Makefile` plus `.github/workflows/zigux-bootstrap.yml` explicit with both the direct `zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig` replay and the returned `make -C zigux phase3-policy-unsafe-test` wrapper, so this survey should treat those support routes as current bounded packet evidence rather than leaving the dedicated policy-unsafe replay implicit behind the Zig-only route.
 
-This note should stay tied to those current packet-local surfaces instead of using `Documentation/zigux/phase3-abi-slice.md`, `zigux/tests/fixtures/phase3_abi_manifest.json`, or `scripts/zigux/validate-phase3.py` as its parking trigger.
+This note should stay tied to those current packet-local surfaces instead of using `Documentation/zigux/phase3-abi-slice.md`, `zigux/tests/fixtures/phase3_abi_manifest.json`, or `scripts\zigux/validate_phase3.zig` as its parking trigger.
 
 ## Ledger Alignment
 This policy-and-unsafe note is still evidence for the same bounded Phase 3 ABI substrate packet recorded in `BOOTSTRAP_COMMIT_LEDGER.md` entry `26`, `feat(zigux): start bounded Phase 3 abi substrate skeleton`. That means this lane remains survey-and-marker maintenance inside the shared ABI packet rather than a new standalone tranche.
@@ -75,7 +75,7 @@ There is no remaining packet-local product gap to open inside this lane today. T
 - avoid claiming that the older shared-ABI reminder path is still the only proof route when current `master` already ships a dedicated replay pair with direct, make-backed, and workflow-backed evidence
 
 ## Next Bounded Step
-- leave this lane parked unless `zigux/helpers/layout_assert.zig`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, `zigux/helpers/unsafe_policy.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_policy_unsafe.zig`, `zigux/tests/phase3_policy_unsafe_build.zig`, `scripts/zigux/check-phase3-policy-unsafe-replay.py`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `Documentation/zigux/phase3-policy-slice.md`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, or `scripts/zigux/validate-phase3-policy-unsafe-survey.py` drifts again from this survey
+- leave this lane parked unless `zigux/helpers/layout_assert.zig`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, `zigux/helpers/unsafe_policy.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_policy_unsafe.zig`, `zigux/tests/phase3_policy_unsafe_build.zig`, `scripts\zigux/check_phase3_policy_unsafe_replay.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `Documentation/zigux/phase3-policy-slice.md`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, or `scripts\zigux/validate_phase3_policy_unsafe_survey.zig` drifts again from this survey
 - keep the next same-lane change to one packet-local note refresh or one validator-wording refresh tied only to this unsafe substrate slice and its dedicated blob-marker guard
-- treat `Documentation/zigux/phase3-abi-slice.md`, `zigux/tests/fixtures/phase3_abi_manifest.json`, and `scripts/zigux/validate-phase3.py` as adjacent shared surfaces rather than parking triggers for this unsafe survey
+- treat `Documentation/zigux/phase3-abi-slice.md`, `zigux/tests/fixtures/phase3_abi_manifest.json`, and `scripts\zigux/validate_phase3.zig` as adjacent shared surfaces rather than parking triggers for this unsafe survey
 - if the helper-local policy starter packet, dedicated policy-unsafe replay pair, focused policy dump route, directly coupled low-level-wrapper replay, returned `make -C zigux phase3-policy-unsafe-test` wrapper, workflow-backed replay route, either dedicated survey check, or any listed blob marker changes later, resurvey this note against the exact live files before claiming that surface here

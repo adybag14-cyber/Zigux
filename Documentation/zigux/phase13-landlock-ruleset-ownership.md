@@ -16,7 +16,7 @@ Current `master` now materializes the ruleset helper packet through:
 - `security/landlock/ruleset.zig`
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
-- `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
+- `scripts\zigux/check_phase13_landlock_ruleset_packet.zig`
 - `zigux/tests/phase13_landlock_ruleset.zig`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 
@@ -35,7 +35,7 @@ When contributors touch the ruleset-facing Landlock packet, keep this note align
 - `security/landlock/ruleset.zig`
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
-- `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
+- `scripts\zigux/check_phase13_landlock_ruleset_packet.zig`
 - `zigux/tests/phase13_landlock_ruleset.zig`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 

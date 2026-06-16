@@ -33,22 +33,14 @@ jobs:
           shopt -s dotglob
           mv "$src_dir"/* "$GITHUB_WORKSPACE"/
 
-      - name: Setup Python
-        uses: actions/setup-python@v6.2.0
-        with:
-          python-version: '3.x'
-
-      - name: Compile current split-helper packet scripts
-        run: python3 -m py_compile scripts/zigux/split-pinned-zig-archive.py scripts/zigux/check-lane05-split-helper-selftest.py scripts/zigux/check-lane05-split-helper-workflow.py
-
       - name: Self-test current split pinned Zig archive helper
-        run: python3 scripts/zigux/split-pinned-zig-archive.py --self-test
+        run: zig run scripts/zigux/split_pinned_zig_archive.zig --self-test
 
       - name: Self-test current Lane 05 split helper selftest checker
-        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test
+        run: zig run scripts/zigux/check_lane05_split_helper_selftest.zig --self-test
 
       - name: Self-test current Lane 05 split-helper workflow checker
-        run: python3 scripts/zigux/check-lane05-split-helper-workflow.py --self-test
+        run: zig run scripts/zigux/check_lane05_split_helper_workflow.zig --self-test
 
       - name: Check current Lane 05 split-helper workflow packet
-        run: python3 scripts/zigux/check-lane05-split-helper-workflow.py
+        run: zig run scripts/zigux/check_lane05_split_helper_workflow.zig

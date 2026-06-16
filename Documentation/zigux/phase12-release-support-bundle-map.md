@@ -18,16 +18,16 @@ It is a release-coordination artifact only. It does not close Phase 12, and it d
 
 Current repo-first reads on `master` keep the Phase 12 PMO support packet explicit through these checker and validator surfaces:
 
-- `scripts/zigux/validate-phase12.py`
-- `scripts/zigux/check-build-only-phase12-surface.py`
-- `scripts/zigux/check-phase12-build-inventory.py`
-- `scripts/zigux/check-phase12-release-readiness-packet.py`
-- `scripts/zigux/check-phase12-complex-driver-lane-packet.py`
-- `scripts/zigux/check-phase12-cross-compile-smoke.py`
-- `scripts/zigux/check-phase12-libbpf-snapshot.py`
-- `scripts/zigux/check-phase12-libbpf-lane-marker.py`
-- `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`
-- `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py`
+- `scripts\zigux/validate_phase12.zig`
+- `scripts\zigux/check_build_only_phase12_surface.zig`
+- `scripts\zigux/check_phase12_build_inventory.zig`
+- `scripts\zigux/check_phase12_release_readiness_packet.zig`
+- `scripts\zigux/check_phase12_complex_driver_lane_packet.zig`
+- `scripts\zigux/check_phase12_cross_compile_smoke.zig`
+- `scripts\zigux/check_phase12_libbpf_snapshot.zig`
+- `scripts\zigux/check_phase12_libbpf_lane_marker.zig`
+- `scripts\zigux/check_phase12_libbpf_heavy_consumer_packet.zig`
+- `scripts\zigux/check_phase12_virtio_scsi_libbpf_boundary.zig`
 
 Treat that set as the current shared PMO truthfulness packet for release planning on `master`.
 

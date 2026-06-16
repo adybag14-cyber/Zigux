@@ -37,11 +37,11 @@ test "phase2 closure note keeps direct cross target packet parked in shared tool
 
     try expectInOrder(closure, &.{
         "## Current Shared Repo-Tooling Evidence",
-        "scripts/zigux/check-phase2-cross.py",
+        "scripts\zigux/check_phase2_cross.zig",
         "zigux/tests/fixtures/phase2_cross_targets.json",
-        "scripts/zigux/check-phase2-fixdep-gate.py",
+        "scripts\zigux/check_phase2_fixdep_gate.zig",
         "PHASE2_SHARED_TOOLING_CHECKERS=",
-        "python3 scripts/zigux/check-phase2-cross.py",
+        "zig run check_phase2_cross.zig",
         "## Shared Replay Routes",
         "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2",
     });
@@ -57,17 +57,17 @@ test "phase2 tool manifest and tests-root reminder agree on cross target surface
 
     try expectInOrder(manifest, &.{
         "\"cross_route_support\": [",
-        "\"scripts/zigux/check-phase2-cross.py\"",
+        "\"scripts\zigux/check_phase2_cross.zig\"",
         "\"zigux/tests/fixtures/phase2_cross_targets.json\"",
     });
-    try expectContains(manifest, "\"scripts/zigux/check-phase2-cross-selftest-alignment.py\"");
+    try expectContains(manifest, "\"scripts\zigux/check_phase2_cross_selftest_alignment.zig\"");
     try expectContains(manifest, "\"make -C zigux phase2-cross\"");
     try expectContains(manifest, "\"repo_reality_gaps\": []");
 
     try expectInOrder(tests_readme, &.{
         "## Phase 2 review packet",
-        "`scripts/zigux/check-phase2-cross.py`",
-        "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
+        "`scripts\zigux/check_phase2_cross.zig`",
+        "`zig run check_phase2_cross.zig --self-test`",
         "`zigux/tests/fixtures/phase2_cross_targets.json`",
         "`make -C zigux phase2-cross`",
     });
@@ -76,7 +76,7 @@ test "phase2 tool manifest and tests-root reminder agree on cross target surface
 }
 
 test "direct cross checker preserves the two target fixture contract vocabulary" {
-    const checker = try readFile("scripts/zigux/check-phase2-cross.py");
+    const checker = try readFile("scripts\zigux/check_phase2_cross.zig");
     defer testing.allocator.free(checker);
 
     try expectContains(checker, "EXPECTED_SELF_TEST_CASE_COUNT = 17");

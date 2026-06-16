@@ -61,15 +61,15 @@ test "bootstrap note reconciles local archive and artifact-support evidence" {
     defer std.testing.allocator.free(files.third_party_readme);
     defer std.testing.allocator.free(files.makefile);
 
-    try expectContains(files.bootstrap_note, "scripts/zigux/check-phase2-artifact-tools-manifest.py");
-    try expectContains(files.bootstrap_note, "scripts/zigux/artifact_diff.py");
+    try expectContains(files.bootstrap_note, "scripts\zigux/check_phase2_artifact_tools_manifest.zig");
+    try expectContains(files.bootstrap_note, "scripts/zigux/artifact_diff.zig");
     try expectContains(files.bootstrap_note, "text`, `json`, `bytes`, and legacy `sha256`-alias");
     try expectContains(files.bootstrap_note, "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz");
-    try expectContains(files.bootstrap_note, "scripts/zigux/stage-pinned-zig-archive.py");
+    try expectContains(files.bootstrap_note, "scripts/zigux/stage_pinned_zig_archive.zig");
 
     try expectContains(files.tool_manifest, "\"artifact_support\"");
-    try expectContains(files.tool_manifest, "\"scripts/zigux/artifact_diff.py\"");
-    try expectContains(files.tool_manifest, "\"scripts/zigux/check-phase2-artifact-tools-manifest.py\"");
+    try expectContains(files.tool_manifest, "\"scripts/zigux/artifact_diff.zig\"");
+    try expectContains(files.tool_manifest, "\"scripts\zigux/check_phase2_artifact_tools_manifest.zig\"");
     try expectContains(files.third_party_readme, "sha256: `c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8`");
 }
 
@@ -83,8 +83,8 @@ test "bootstrap note keeps bridge, fixdep, cross, and no-gap posture explicit" {
     try expectContains(files.bootstrap_note, "scripts/zigux/kconfig/conf_bridge.zig");
     try expectContains(files.bootstrap_note, "scripts/zigux/kconfig/confdata_bridge.zig");
     try expectContains(files.bootstrap_note, "scripts/zigux/genksyms.zig");
-    try expectContains(files.bootstrap_note, "scripts/zigux/check-phase2-fixdep-gate.py");
-    try expectContains(files.bootstrap_note, "scripts/zigux/check-fixdep-diff.py");
+    try expectContains(files.bootstrap_note, "scripts\zigux/check_phase2_fixdep_gate.zig");
+    try expectContains(files.bootstrap_note, "scripts\zigux/check_fixdep_diff.zig");
     try expectContains(files.bootstrap_note, "zigux/tests/fixtures/phase2_cross_targets.json");
     try expectContains(files.bootstrap_note, "No current repo-reality gaps remain");
 

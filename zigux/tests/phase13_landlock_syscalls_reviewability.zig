@@ -100,11 +100,11 @@ test "phase13 roadmap traceability keeps the shared-subsystems anchor map honest
     try requireContains(traceability, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`");
     try requireContains(traceability, "`zigux/tests/phase13_landlock_syscalls_manifest.json`");
     try requireContains(traceability, "current `master` materializes the helper-local packet plus the direct replay and direct reviewability companions");
-    try requireDoesNotContain(traceability, "## Repo-Reality Gaps\n\nKeep the remaining current gaps explicit:\n- docs-root `Documentation/zigux/README.md` still lacks a dedicated Phase 13 reminder block\n- `make -C zigux phase13-validate`\n- `make -C zigux phase13`\n- `zigux/tests/phase13_build.zig`\n- `zigux/tests/phase13_devres.zig`\n- `zigux/tests/phase13_devres_reviewability.zig`\n- `zigux/tests/phase13_devres_boundary_evidence.zig`\n- `zigux/tests/phase13_devres_manifest.json`\n- `scripts/zigux/check-phase13-devres-packet.py`\n- `scripts/zigux/check-phase13-devres-packet-alignment.py`\n- `zigux/tests/phase13_landlock_syscalls.zig`");
+    try requireDoesNotContain(traceability, "## Repo-Reality Gaps\n\nKeep the remaining current gaps explicit:\n- docs-root `Documentation/zigux/README.md` still lacks a dedicated Phase 13 reminder block\n- `make -C zigux phase13-validate`\n- `make -C zigux phase13`\n- `zigux/tests/phase13_build.zig`\n- `zigux/tests/phase13_devres.zig`\n- `zigux/tests/phase13_devres_reviewability.zig`\n- `zigux/tests/phase13_devres_boundary_evidence.zig`\n- `zigux/tests/phase13_devres_manifest.json`\n- `scripts\zigux/check_phase13_devres_packet.zig`\n- `scripts\zigux/check_phase13_devres_packet_alignment.zig`\n- `zigux/tests/phase13_landlock_syscalls.zig`");
 }
 
 test "phase13 landlock syscalls packet checker keeps the breadcrumb-only survey-gap classification explicit" {
-    const checker = try readRepoFile(std.testing.allocator, "scripts/zigux/check-phase13-landlock-syscalls-packet.py");
+    const checker = try readRepoFile(std.testing.allocator, "scripts\zigux/check_phase13_landlock_syscalls_packet.zig");
     defer std.testing.allocator.free(checker);
 
     try requireContains(checker, "\"zigux/tests/phase13_landlock_syscalls.zig\": [");

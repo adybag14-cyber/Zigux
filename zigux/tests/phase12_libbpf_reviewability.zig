@@ -124,7 +124,7 @@ test "phase12 libbpf reviewability gate keeps the current snapshot anchor exact"
     try std.testing.expectEqual(expected_paths.len, fixture.verification_evidence.current_note_blobs.len);
     try std.testing.expectEqualStrings("github-contents-readback", fixture.verification_evidence.readback_mode);
     try std.testing.expectEqualStrings(
-        "scripts/zigux/check-phase12-libbpf-snapshot.py",
+        "scripts\zigux/check_phase12_libbpf_snapshot.zig",
         fixture.verification_evidence.checker.path,
     );
     try std.testing.expectEqualStrings(
@@ -163,7 +163,7 @@ test "phase12 libbpf reviewability gate keeps the helper-local determinism fixtu
     try std.testing.expect(isHexSha(fixture.files[0].blob_sha));
     try std.testing.expectEqualStrings("github-contents-readback", fixture.verification_evidence.readback_mode);
     try std.testing.expectEqualStrings(
-        "scripts/zigux/check-phase12-libbpf-snapshot.py",
+        "scripts\zigux/check_phase12_libbpf_snapshot.zig",
         fixture.verification_evidence.checker.path,
     );
     try std.testing.expectEqualStrings(

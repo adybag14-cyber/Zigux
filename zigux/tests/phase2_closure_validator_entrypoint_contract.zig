@@ -6,13 +6,13 @@ const max_validator_bytes = 1024 * 1024;
 fn readValidatorSource(allocator: std.mem.Allocator) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(
         std.testing.io,
-        "scripts/zigux/validate-phase2-closure.py",
+        "scripts\zigux/validate_phase2_closure.zig",
         allocator,
         .limited(max_validator_bytes),
     ) catch |err| switch (err) {
         error.FileNotFound => std.Io.Dir.cwd().readFileAlloc(
             std.testing.io,
-            "../scripts/zigux/validate-phase2-closure.py",
+            "../scripts\zigux/validate_phase2_closure.zig",
             allocator,
             .limited(max_validator_bytes),
         ),

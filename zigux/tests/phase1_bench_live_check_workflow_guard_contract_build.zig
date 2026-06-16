@@ -12,7 +12,7 @@ pub fn build(b: *std.Build) void {
     ) catch |err| @panic(@errorName(err));
     const checker_text = std.Io.Dir.cwd().readFileAlloc(
         b.graph.io,
-        "scripts/zigux/check-phase1-bench-live-check-workflow.py",
+        "scripts\zigux/check_phase1_bench_live_check_workflow.zig",
         b.allocator,
         .limited(1024 * 1024),
     ) catch |err| @panic(@errorName(err));

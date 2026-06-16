@@ -12,11 +12,11 @@ This note does not promote `phase14-smoke`, `phase14-test`, or aggregate `phase1
 
 Authenticated GitHub contents readback on 2026-05-29 confirmed these current `master` blobs:
 
-- `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`: `61e0a58fb28fa0ae9c239c1f03017a48693e5ee2`
-- `scripts/zigux/validate-phase14.py`: `c1f45e1b6029c5435c0bcc13b1e45dff9d86d246`
-- `scripts/zigux/check-phase14-shared-smoke-route.py`: `540252eeb270d87f1a61f17ec5a076b2c7bb19ed`
-- `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`: `d2d7f587cadb2c479c5acdc2d96c569cf817cbcd`
-- `scripts/zigux/check-phase14-rcu-compile-route.py`: `5821a391ea562fbcf9c9c5043786b59fe8acbb25`
+- `scripts\zigux/check_phase14_rollback_threshold_sequencing.zig`: `61e0a58fb28fa0ae9c239c1f03017a48693e5ee2`
+- `scripts\zigux/validate_phase14.zig`: `c1f45e1b6029c5435c0bcc13b1e45dff9d86d246`
+- `scripts\zigux/check_phase14_shared_smoke_route.zig`: `540252eeb270d87f1a61f17ec5a076b2c7bb19ed`
+- `scripts\zigux/check_phase14_tests_readme_smoke_summary.zig`: `d2d7f587cadb2c479c5acdc2d96c569cf817cbcd`
+- `scripts\zigux/check_phase14_rcu_compile_route.zig`: `5821a391ea562fbcf9c9c5043786b59fe8acbb25`
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json`: `0902b0f2d02d18f0208db171f9e4c77af2ee9506`
 - `zigux/Makefile`: `b590ef1bb4a3ddd6a817734ee2241442e8935927`
 - `.github/workflows/zigux-bootstrap.yml`: `5bdb136b8b6710c08c19566879d5a9da42b63445`

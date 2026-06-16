@@ -7,8 +7,8 @@ const survey_markers =
     \\Lane scope for this survey:
     \\`scripts/zigux/kconfig/conf_bridge.zig`
     \\`scripts/zigux/kconfig/confdata_bridge.zig`
-    \\`scripts/zigux/check-kconfig-bridge.py`
-    \\`scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`
+    \\`scripts\zigux/check_kconfig_bridge.zig`
+    \\`scripts\zigux/check_phase2_kconfig_allconfig_helper_packet.zig`
     \\`zigux/tests/fixtures/kconfig_bridge/`
     \\The current repo already carries meaningful bridge scaffolding instead of placeholder churn.
     \\the lane has already cleared the roadmap's anti-churn bar for bridge scaffolding
@@ -71,8 +71,8 @@ test "kconfig bridge gap survey records shipped scaffold and upstream source gap
     try expectContains(survey_markers, "Lane scope for this survey:");
     try expectContains(survey_markers, "`scripts/zigux/kconfig/conf_bridge.zig`");
     try expectContains(survey_markers, "`scripts/zigux/kconfig/confdata_bridge.zig`");
-    try expectContains(survey_markers, "`scripts/zigux/check-kconfig-bridge.py`");
-    try expectContains(survey_markers, "`scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`");
+    try expectContains(survey_markers, "`scripts\zigux/check_kconfig_bridge.zig`");
+    try expectContains(survey_markers, "`scripts\zigux/check_phase2_kconfig_allconfig_helper_packet.zig`");
     try expectContains(survey_markers, "`zigux/tests/fixtures/kconfig_bridge/`");
 
     try expectContains(survey_markers, "The current repo already carries meaningful bridge scaffolding instead of placeholder churn.");

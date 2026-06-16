@@ -1,7 +1,7 @@
 const std = @import("std");
 
 const checker_paths = [_][]const u8{
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts\zigux/check_phase2_toolchain_pin_scope.zig",
     "check-phase2-toolchain-pin-scope.py",
 };
 
@@ -22,8 +22,8 @@ const policy_markers = [_][]const u8{
 };
 
 const checker_route_markers = [_][]const u8{
-    "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-    "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "zig run check_phase2_toolchain_pin_scope.zig --self-test",
+    "zig run check_phase2_toolchain_pin_scope.zig",
     "make -C zigux phase2-toolchain",
     "make -C zigux phase2-validate",
 };
@@ -107,11 +107,11 @@ test "pin-scope checker keeps workflow and make-route action paths explicit" {
 
     try expectContainsAll(source, &checker_route_markers);
     try expectAnyContains(source, &[_][]const u8{
-        "check-zig-toolchain.py --policy-only",
-        "check-zig-toolchain.py --self-test",
+        "check_zig_toolchain.zig --policy-only",
+        "check_zig_toolchain.zig --self-test",
     });
     try expectAnyContains(source, &[_][]const u8{
-        "check-zig-toolchain.py --archive-only --allow-missing",
-        "check-zig-toolchain.py --zig",
+        "check_zig_toolchain.zig --archive-only --allow-missing",
+        "check_zig_toolchain.zig --zig",
     });
 }

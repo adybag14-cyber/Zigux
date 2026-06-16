@@ -5,7 +5,7 @@ This note records the current `tools/lib/rbtree.zig` gap that still keeps the Ph
 ## Grounding
 
 - Roadmap anchor: Phase 1 requires low-risk host-side helper ports in `tools/lib/*.zig`, mixed-language helper build support, golden-output parity tests, and clear ownership for Zig helpers beside their C originals.
-- Bootstrap-ledger anchor: the Phase 1 helper train includes `tools/lib/rbtree.zig`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/build.zig`, `scripts/zigux/validate-phase1.py`, and later Phase 1 parity fixtures and artifact diff gates.
+- Bootstrap-ledger anchor: the Phase 1 helper train includes `tools/lib/rbtree.zig`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/build.zig`, `scripts\zigux/validate_phase1.zig`, and later Phase 1 parity fixtures and artifact diff gates.
 - Current helper readback: `tools/lib/rbtree.zig` at `b8cc3d811028922be412f40cfddfd8da82ea6d8c` still contains the ordered Linux-style alias and cached-root alias coverage, but it does not yet expose the non-cached low-level Linux-style alias wrappers.
 
 ## Current Gap

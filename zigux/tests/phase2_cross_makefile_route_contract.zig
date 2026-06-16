@@ -5,21 +5,21 @@ const route = "make -C zigux phase2-cross";
 const phase2_cross_target = "phase2-cross:";
 const phase2_validate_target =
     "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep";
-const direct_cross_checker = "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py";
-const alignment_checker = "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py";
+const direct_cross_checker = "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig";
+const alignment_checker = "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig";
 
 const makefile_packet =
     \\.PHONY: phase1-route-summary phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2
     \\
     \\phase2-cross:
-    \\    $(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py --self-test
-    \\    $(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py
-    \\    $(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py --self-test
-    \\    $(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py
+    \\    $(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig --self-test
+    \\    $(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig
+    \\    $(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig --self-test
+    \\    $(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig
     \\
     \\phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep
-    \\    $(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py --self-test
-    \\    $(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py
+    \\    $(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_tests_readme_alignment.zig --self-test
+    \\    $(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_tests_readme_alignment.zig
 ;
 
 const cross_fixture_packet =

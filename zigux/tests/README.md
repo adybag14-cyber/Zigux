@@ -16,12 +16,12 @@ Purpose
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
-- `scripts/zigux/check-phase1-string-review-packet.py`
-- `scripts/zigux/check-phase1-direct-owner-markers.py`
-- `scripts/zigux/check-phase1-direct-anchor-manifest-gate.py`
-- `scripts/zigux/check-phase1-bench.py`
-- `scripts/zigux/check-phase1-shared-reminder-packet.py`
-- `scripts/zigux/validate-phase1-closure.py`
+- `scripts\zigux/check_phase1_string_review_packet.zig`
+- `scripts\zigux/check_phase1_direct_owner_markers.zig`
+- `scripts\zigux/check_phase1_direct_anchor_manifest_gate.zig`
+- `scripts\zigux/check_phase1_bench.zig`
+- `scripts\zigux/check_phase1_shared_reminder_packet.zig`
+- `scripts\zigux/validate_phase1_closure.zig`
 - `zigux/tests/build.zig`
 - `zigux/tests/phase1_helpers.zig`
 - `zigux/tests/phase1_helpers_build.zig`
@@ -33,7 +33,7 @@ Purpose
   * current shared Phase 1 smoke route: `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
   * current focused Phase 1 helper replay route: `zig build phase1-helpers --build-file zigux/tests/phase1_helpers_build.zig`
   * current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof
-  * broader Phase 1 closure companions stay outside the narrow direct-readback packet: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/phase1_helpers_c_harness.c`, but current public-tree readback does rematerialize that validator-first, bench, and replay family on `master`, so keep those paths framed as broader closure companions rather than as active tests-root proof inside this direct-readback reminder packet
+  * broader Phase 1 closure companions stay outside the narrow direct-readback packet: authenticated contents reads on current `master` still return missing for `scripts\zigux/validate_phase1.zig`, `scripts\zigux/check_phase1_parity.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/phase1_helpers_c_harness.c`, but current public-tree readback does rematerialize that validator-first, bench, and replay family on `master`, so keep those paths framed as broader closure companions rather than as active tests-root proof inside this direct-readback reminder packet
   * keep the Phase 1 tests-root reminder truthful: the thirteen helper ports remain closed through the committed manifest, the nine shared-replay parked helpers reopen only for packet or fixture drift, and only `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` still keep bounded direct-anchor follow-up markers on current `master`
 
 ## Phase 2 review packet
@@ -44,43 +44,43 @@ Purpose
   * `Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`
   * `Documentation/zigux/review-checklist.md`
   * `scripts/zigux/README.md`
-  * `scripts/zigux/validate-phase2.py`
-  * `scripts/zigux/validate-phase2-closure.py`
-  * `scripts/zigux/check-zig-toolchain.py`
-  * `scripts/zigux/check-phase2-kbuild-routes.py`
-  * `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
-  * `scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`
-  * `scripts/zigux/check-kconfig-bridge.py`
+  * `scripts\zigux/validate_phase2.zig`
+  * `scripts\zigux/validate_phase2_closure.zig`
+  * `scripts\zigux/check_zig_toolchain.zig`
+  * `scripts\zigux/check_phase2_kbuild_routes.zig`
+  * `scripts\zigux/check_phase2_kconfig_selftest_alignment.zig`
+  * `scripts\zigux/check_phase2_kconfig_allconfig_helper_packet.zig`
+  * `scripts\zigux/check_kconfig_bridge.zig`
   * current shared Phase 2 kconfig route: `make -C zigux phase2-kconfig`
-  * `scripts/zigux/check-phase2-tests-readme-alignment.py`
-  * `scripts/zigux/check-phase2-genksyms-selftest-alignment.py`
-  * `scripts/zigux/check-phase2-cross-selftest-alignment.py`
-  * `scripts/zigux/check-phase2-toolchain-pinning.py`
-  * `scripts/zigux/check-phase2-toolchain-pin-scope.py`
-  * `scripts/zigux/check-phase2-docs-shared-reminder.py`
-  * `scripts/zigux/check-phase2-tool-manifest.py`
-  * `scripts/zigux/check-phase2-bootstrap-workflow-routes.py`
-  * `scripts/zigux/check-phase2-artifact-tools-manifest.py`
-  * `scripts/zigux/check-phase2-required-make-routes.py`
-  * `scripts/zigux/check-genksyms-bridge.py`
-  * `scripts/zigux/check-phase2-fixdep-gate.py`
-  * `scripts/zigux/check-fixdep-diff.py`
-  * `scripts/zigux/install-zig.py`
-  * `scripts/zigux/check-phase2-cross.py`
-  * `python3 scripts/zigux/check-zig-toolchain.py --self-test`
-  * `python3 scripts/zigux/check-zig-toolchain.py --policy-only`
-  * `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`
-  * `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
-  * `python3 scripts/zigux/install-zig.py --self-test`
-  * `python3 scripts/zigux/check-phase2-cross.py --self-test`
-  * Keep the current toolchain self-check and replay surface explicit through `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --policy-only`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`, `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`, `python3 scripts/zigux/install-zig.py --self-test`, and `python3 scripts/zigux/check-phase2-cross.py --self-test`.
+  * `scripts\zigux/check_phase2_tests_readme_alignment.zig`
+  * `scripts\zigux/check_phase2_genksyms_selftest_alignment.zig`
+  * `scripts\zigux/check_phase2_cross_selftest_alignment.zig`
+  * `scripts\zigux/check_phase2_toolchain_pinning.zig`
+  * `scripts\zigux/check_phase2_toolchain_pin_scope.zig`
+  * `scripts\zigux/check_phase2_docs_shared_reminder.zig`
+  * `scripts\zigux/check_phase2_tool_manifest.zig`
+  * `scripts\zigux/check_phase2_bootstrap_workflow_routes.zig`
+  * `scripts\zigux/check_phase2_artifact_tools_manifest.zig`
+  * `scripts\zigux/check_phase2_required_make_routes.zig`
+  * `scripts\zigux/check_genksyms_bridge.zig`
+  * `scripts\zigux/check_phase2_fixdep_gate.zig`
+  * `scripts\zigux/check_fixdep_diff.zig`
+  * `scripts/zigux/install_zig.zig`
+  * `scripts\zigux/check_phase2_cross.zig`
+  * `zig run check_zig_toolchain.zig --self-test`
+  * `zig run check_zig_toolchain.zig --policy-only`
+  * `zig run check_zig_toolchain.zig --archive-only --allow-missing`
+  * `zig run check_phase2_toolchain_pin_scope.zig --self-test`
+  * `zig run scripts/zigux/install_zig.zig --self-test`
+  * `zig run check_phase2_cross.zig --self-test`
+  * Keep the current toolchain self-check and replay surface explicit through `zig run check_zig_toolchain.zig --self-test`, `zig run check_zig_toolchain.zig --policy-only`, `zig run check_zig_toolchain.zig --archive-only --allow-missing`, `zig run check_phase2_toolchain_pin_scope.zig --self-test`, `zig run scripts/zigux/install_zig.zig --self-test`, and `zig run check_phase2_cross.zig --self-test`.
   * `third_party/README.md`
   * `.github/workflows/zigux-bootstrap.yml`
-  * `scripts/zigux/check-lane05-local-first-archive-workflow.py`
-  * `scripts/zigux/check-lane05-local-archive-readme.py`
-  * current `master` now directly materializes `third_party/README.md`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-lane05-local-first-archive-workflow.py`, and `scripts/zigux/check-lane05-local-archive-readme.py`, so keep that returned repo-local pinned-archive workflow, bootstrap guard, and archive README contract explicit here instead of leaving them outside the tests-root reminder
-  * keep the repo-local pinned archive packet explicit through `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz --archive-target x86_64-linux`, and the local-first `third_party`, canonical `adybag14-cyber/zig` release, mirror, then direct-download bootstrap order reused by `.github/workflows/zigux-bootstrap.yml` and the two Lane 05 archive checkers
-  * keep the local-first archive workflow replay surface explicit through `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`, `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`, `python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`, and `python3 scripts/zigux/check-lane05-local-archive-readme.py`.
+  * `scripts\zigux/check_lane05_local_first_archive_workflow.zig`
+  * `scripts\zigux/check_lane05_local_archive_readme.zig`
+  * current `master` now directly materializes `third_party/README.md`, `.github/workflows/zigux-bootstrap.yml`, `scripts\zigux/check_lane05_local_first_archive_workflow.zig`, and `scripts\zigux/check_lane05_local_archive_readme.zig`, so keep that returned repo-local pinned-archive workflow, bootstrap guard, and archive README contract explicit here instead of leaving them outside the tests-root reminder
+  * keep the repo-local pinned archive packet explicit through `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz`, `zig run check_zig_toolchain.zig --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz --archive-target x86_64-linux`, and the local-first `third_party`, canonical `adybag14-cyber/zig` release, mirror, then direct-download bootstrap order reused by `.github/workflows/zigux-bootstrap.yml` and the two Lane 05 archive checkers
+  * keep the local-first archive workflow replay surface explicit through `zig run check_lane05_local_first_archive_workflow.zig --self-test`, `zig run check_lane05_local_first_archive_workflow.zig`, `zig run check_lane05_local_archive_readme.zig --self-test`, and `zig run check_lane05_local_archive_readme.zig`.
   * `scripts/zigux/kconfig/conf_bridge.zig`
   * `scripts/zigux/kconfig/confdata_bridge.zig`
   * `scripts/zigux/genksyms.zig`
@@ -132,10 +132,10 @@ Purpose
   * `zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json`
   * `zigux/tests/fixtures/fixdep/cases.json`
   * the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, toolchain reminder, helper-local kconfig allconfig guard, kconfig bridge checker, the dedicated genksyms survey, selftest-alignment guard, bridge helper, and standalone version-side-effect proofs, fixdep governance and parity set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster
-  * keep `scripts/zigux/zig-toolchain-policy.json`, the pinned `x86_64-linux` bootstrap archive note, the live `python3 scripts/zigux/check-zig-toolchain.py --policy-only` plus `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing` replays, and the repo-local `.zig-toolchain` fallback reused by the surviving `scripts/zigux/check-zig-toolchain.py` and pin-scope guards explicit in this tests-root packet
-  * current `master` now directly materializes `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so keep that returned installer, direct cross-route, and cross-target fixture packet explicit here instead of leaving it in the historical-gap bucket
-  * current `master` also directly materializes `Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`, `scripts/zigux/check-phase2-genksyms-selftest-alignment.py`, `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/genksyms.zig`, `scripts/zigux/genksyms_version_before_invalid_long_option_test.zig`, `scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig`, `scripts/zigux/genksyms_inline_short_option_argument_test.zig`, `scripts/zigux/genksyms_repeated_version_before_abbrev_argument_failure_test.zig`, `scripts/zigux/genksyms_abbreviated_warning_quiet_terminator_test.zig`, `make -C zigux phase2-genksyms`, and the `zigux/tests/fixtures/genksyms_bridge/` packet, so keep that returned survey, selftest-alignment, checker, bridge helper, standalone proof, wrapper, and fixture roster explicit here instead of leaving it outside the tests-root reminder
-  * current `master` also directly materializes `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`, so keep that returned fixdep governance, parity, helper, wrapper, and fixture packet explicit here instead of leaving it outside the tests-root reminder
+  * keep `scripts/zigux/zig-toolchain-policy.json`, the pinned `x86_64-linux` bootstrap archive note, the live `zig run check_zig_toolchain.zig --policy-only` plus `zig run check_zig_toolchain.zig --archive-only --allow-missing` replays, and the repo-local `.zig-toolchain` fallback reused by the surviving `scripts\zigux/check_zig_toolchain.zig` and pin-scope guards explicit in this tests-root packet
+  * current `master` now directly materializes `scripts/zigux/install_zig.zig`, `zig run scripts/zigux/install_zig.zig --self-test`, `scripts\zigux/check_phase2_cross.zig`, `zig run check_phase2_cross.zig --self-test`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so keep that returned installer, direct cross-route, and cross-target fixture packet explicit here instead of leaving it in the historical-gap bucket
+  * current `master` also directly materializes `Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`, `scripts\zigux/check_phase2_genksyms_selftest_alignment.zig`, `scripts\zigux/check_genksyms_bridge.zig`, `scripts/zigux/genksyms.zig`, `scripts/zigux/genksyms_version_before_invalid_long_option_test.zig`, `scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig`, `scripts/zigux/genksyms_inline_short_option_argument_test.zig`, `scripts/zigux/genksyms_repeated_version_before_abbrev_argument_failure_test.zig`, `scripts/zigux/genksyms_abbreviated_warning_quiet_terminator_test.zig`, `make -C zigux phase2-genksyms`, and the `zigux/tests/fixtures/genksyms_bridge/` packet, so keep that returned survey, selftest-alignment, checker, bridge helper, standalone proof, wrapper, and fixture roster explicit here instead of leaving it outside the tests-root reminder
+  * current `master` also directly materializes `scripts\zigux/check_phase2_fixdep_gate.zig`, `scripts\zigux/check_fixdep_diff.zig`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`, so keep that returned fixdep governance, parity, helper, wrapper, and fixture packet explicit here instead of leaving it outside the tests-root reminder
   * keep the fixture-backed tool-manifest and artifact-tools-manifest guards, tool-manifest, artifact-tools, cross-target, helper-local kconfig allconfig, the survey-backed genksyms packet, and fixdep packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
 
 ## Phase 3 review packet
@@ -187,27 +187,27 @@ Purpose
   * `zigux/tests/fixtures/phase3_list_hlist_manifest.json`
   * `zigux/tests/fixtures/phase3_xarray_slot_manifest.json`
   * `zigux/tests/fixtures/phase3_idr_slot_manifest.json`
-  * `scripts/zigux/validate_phase3_selftest.py`
-  * `scripts/zigux/run-phase3-checks.py`
-  * `scripts/zigux/validate-phase3.py`
-  * `scripts/zigux/validate-phase3-validator-support-surface.py`
-  * `scripts/zigux/validate-phase3-export-uapi-survey.py`
-  * `scripts/zigux/validate-phase3-abi-header-family-survey.py`
-  * `scripts/zigux/validate-phase3-policy-unsafe-survey.py`
-  * `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
-  * `scripts/zigux/check-phase3-export-uapi-c-header-smoke.py`
-  * `scripts/zigux/check-phase3-bitmap-cpumask.py`
-  * `scripts/zigux/check-phase3-list-hlist-starter-packet.py`
-  * `scripts/zigux/check-phase3-list-hlist.py`
-  * `scripts/zigux/check-phase3-xarray-slot-starter-packet.py`
-  * `scripts/zigux/check-phase3-xarray-slot.py`
-  * `scripts/zigux/check-phase3-idr-slot-starter-packet.py`
-  * `scripts/zigux/check-phase3-idr-slot.py`
-  * `scripts/zigux/check-phase3-policy-starter-packet.py`
-  * `scripts/zigux/check-phase3-policy-dump.py`
-  * `scripts/zigux/check-phase3-abi.py`
-  * `scripts/zigux/check-phase3-catalog-selftest.py`
-  * `scripts/zigux/phase3_catalog.py`
+  * `scripts/zigux/validate_phase3_selftest.zig`
+  * `scripts/zigux/run_phase3_checks.zig`
+  * `scripts\zigux/validate_phase3.zig`
+  * `scripts\zigux/validate_phase3_validator_support_surface.zig`
+  * `scripts\zigux/validate_phase3_export_uapi_survey.zig`
+  * `scripts\zigux/validate_phase3_abi_header_family_survey.zig`
+  * `scripts\zigux/validate_phase3_policy_unsafe_survey.zig`
+  * `scripts\zigux/validate_phase3_low_level_wrapper_survey.zig`
+  * `scripts\zigux/check_phase3_export_uapi_c_header_smoke.zig`
+  * `scripts\zigux/check_phase3_bitmap_cpumask.zig`
+  * `scripts\zigux/check_phase3_list_hlist_starter_packet.zig`
+  * `scripts\zigux/check_phase3_list_hlist.zig`
+  * `scripts\zigux/check_phase3_xarray_slot_starter_packet.zig`
+  * `scripts\zigux/check_phase3_xarray_slot.zig`
+  * `scripts\zigux/check_phase3_idr_slot_starter_packet.zig`
+  * `scripts\zigux/check_phase3_idr_slot.zig`
+  * `scripts\zigux/check_phase3_policy_starter_packet.zig`
+  * `scripts\zigux/check_phase3_policy_dump.zig`
+  * `scripts\zigux/check_phase3_abi.zig`
+  * `scripts\zigux/check_phase3_catalog_selftest.zig`
+  * `scripts/zigux/phase3_catalog.zig`
   * current shared Phase 3 route: `make -C zigux phase3-validate`
   * current shared Phase 3 aggregate route: `make -C zigux phase3`
   * `zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig`
@@ -223,12 +223,12 @@ Purpose
   * `Documentation/zigux/README.md`
   * `Documentation/zigux/review-checklist.md`
   * `scripts/zigux/README.md`
-  * `scripts/zigux/check-phase4-repo-reality-warning.py`
-  * `scripts/zigux/check-phase4-tests-readme-packet.py`
-  * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
+  * `scripts\zigux/check_phase4_repo_reality_warning.zig`
+  * `scripts\zigux/check_phase4_tests_readme_packet.zig`
+  * `scripts\zigux/check_phase4_reversible_delivery_pins.zig`
   * `zigux/tests/README.md`
-  * keep the directly readable local-only perf packet explicit through `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-perf-threshold-matrix.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `make -C zigux phase4-perf-baseline-survey`
-  * keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, and `scripts/zigux/validate-phase4.py`
+  * keep the directly readable local-only perf packet explicit through `scripts\zigux/check_phase4_perf_baseline_packet.zig`, `scripts\zigux/check_phase4_perf_threshold_matrix.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `make -C zigux phase4-perf-baseline-survey`
+  * keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts\zigux/check_phase4_gate_evidence.zig`, `scripts\zigux/check_phase4_remaining_gap_matrix.zig`, and `scripts\zigux/validate_phase4.zig`
   * keep the roadmap-backed direct differential pair explicit through `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`
   * keep the broader validator-plus-bitmap replay packet visible too: `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` remain part of the current Phase 4 review surface even while same-route authenticated blob refresh stays narrower than the rollback-owner packet itself
   * keep the parked sample-gap packets explicit too: `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, `zigux/tests/phase4_kprobe_example_survey.zig`, `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, `zigux/tests/phase4_test_fsmount_survey.zig`, `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, `make -C zigux phase4-test-fsmount-survey`, and the absent `samples/zigux/test_fsmount.zig` destination under `c_anchor_only_until_test_fsmount_starter_lands`
@@ -241,14 +241,14 @@ Purpose
   * `Documentation/zigux/README.md`
   * `Documentation/zigux/review-checklist.md`
   * `scripts/zigux/README.md`
-  * `scripts/zigux/check-phase7-shared-surface.py`
-  * `scripts/zigux/check-phase7-build-wiring.py`
-  * `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
-  * `scripts/zigux/check-phase7-cmdline-packet.py`
-  * `scripts/zigux/check-phase7-argv-split-packet.py`
-  * `scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`
-  * `scripts/zigux/check-phase7-rbtree-parity.py`
-  * `scripts/zigux/validate-phase7.py`
+  * `scripts\zigux/check_phase7_shared_surface.zig`
+  * `scripts\zigux/check_phase7_build_wiring.zig`
+  * `scripts\zigux/check_phase7_make_wrapper_selftest_alignment.zig`
+  * `scripts\zigux/check_phase7_cmdline_packet.zig`
+  * `scripts\zigux/check_phase7_argv_split_packet.zig`
+  * `scripts\zigux/check_phase7_string_helpers_format_boundary_packet.zig`
+  * `scripts\zigux/check_phase7_rbtree_parity.zig`
+  * `scripts\zigux/validate_phase7.zig`
   * `zigux/tests/phase7_leaf_library_evidence_manifest.json`
   * `zigux/tests/phase7_build.zig`
   * `zigux/Makefile`
@@ -256,14 +256,14 @@ Purpose
   * `lib/cmdline.zig`
   * `lib/argv_split.zig`
   * `lib/rbtree.zig`
-  * Keep the validator-first reminder packet explicit too: `python3 scripts/zigux/check-phase7-shared-surface.py`, `python3 scripts/zigux/check-phase7-build-wiring.py`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `python3 scripts/zigux/check-phase7-cmdline-packet.py`, `python3 scripts/zigux/check-phase7-argv-split-packet.py`, `python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`, `python3 scripts/zigux/check-phase7-rbtree-parity.py`, `python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test`, `python3 scripts/zigux/validate-phase7.py`, `python3 scripts/zigux/validate-phase7.py --self-test`, and `make -C zigux phase7-validate` remain the shipped bounded replay surfaces, while `zigux/Makefile` keeps `phase7-validate` as the shared foothold and `phase7-rbtree-test:` plus `phase7-rbtree-survey:` as dedicated helper-local wrappers rather than a broader aggregate wrapper family.
+  * Keep the validator-first reminder packet explicit too: `zig run check_phase7_shared_surface.zig`, `zig run check_phase7_build_wiring.zig`, `zig run check_phase7_make_wrapper_selftest_alignment.zig`, `zig run check_phase7_cmdline_packet.zig`, `zig run check_phase7_argv_split_packet.zig`, `zig run check_phase7_string_helpers_format_boundary_packet.zig`, `zig run check_phase7_rbtree_parity.zig`, `zig run check_phase7_rbtree_parity.zig --self-test`, `zig run validate_phase7.zig`, `zig run validate_phase7.zig --self-test`, and `make -C zigux phase7-validate` remain the shipped bounded replay surfaces, while `zigux/Makefile` keeps `phase7-validate` as the shared foothold and `phase7-rbtree-test:` plus `phase7-rbtree-survey:` as dedicated helper-local wrappers rather than a broader aggregate wrapper family.
 
 ## Phase 8 tooling packet
 
   * current direct-readback Phase 8 anchors:
-  * `scripts/zigux/check-phase8-tests-readme-alignment.py`
-  * `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
-  * `scripts/zigux/validate-phase8.py`
+  * `scripts\zigux/check_phase8_tests_readme_alignment.zig`
+  * `scripts\zigux/check_phase8_perf_buffer_poll_gate.zig`
+  * `scripts\zigux/validate_phase8.zig`
   * `zigux/tests/phase8_exec_cmd.zig`
   * `zigux/tests/phase8_exec_cmd_only_build.zig`
   * `zigux/tests/phase8_perf_buffer_poll.zig`
@@ -280,7 +280,7 @@ Purpose
   * current mixed-source file-path-handle bridge companions also remain reviewable on current `master` through the public tree and aligned reminder packet:
   * `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
   * `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
-  * `scripts/zigux/validate-phase8.py`
+  * `scripts\zigux/validate_phase8.zig`
   * `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
   * `zigux/tests/phase8_file_path_handle_bridge.zig`
   * `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
@@ -324,9 +324,9 @@ Purpose
   * `scripts/zigux/README.md`
   * `samples/zigux/README.md`
   * `zigux/tests/README.md`
-  * `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`
-  * `scripts/zigux/check-phase9-trace-events-runtime-packet.py`
-  * `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`
+  * `scripts\zigux/check_phase9_review_checklist_phase_boundaries.zig`
+  * `scripts\zigux/check_phase9_trace_events_runtime_packet.zig`
+  * `scripts\zigux/check_phase9_freeze_map_study_boundaries.zig`
   * `zigux/tests/phase9_build.zig`
   * `zigux/tests/runtime_trace_events_manifest.json`
   * `zigux/tests/runtime_trace_events_survey.zig`
@@ -338,7 +338,7 @@ Purpose
   * `zigux/tests/runtime_kretprobe_survey.zig`
   * `zigux/tests/runtime_kretprobe_module.zig`
   * `zigux/tests/runtime_first_loadable_parity_behavior.zig`
-  * Keep the current bounded Phase 9 reminder packet explicit through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, and `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`.
+  * Keep the current bounded Phase 9 reminder packet explicit through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, `scripts\zigux/check_phase9_review_checklist_phase_boundaries.zig`, `scripts\zigux/check_phase9_trace_events_runtime_packet.zig`, and `scripts\zigux/check_phase9_freeze_map_study_boundaries.zig`.
   * keep the freeze-map boundary explicit here too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than runtime-substrate readiness proof in the tests root
   * keep the narrow trace-events packet distinct too: `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_unregistered_gate.zig`, `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`, `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`, `samples/zigux/runtime_trace_events_reinit_rollback_guard.zig`, `samples/zigux/runtime_trace_events_reinit_reexit_guard.zig`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` remain the current shipped runtime-pilot proof rather than a claim that broader runtime-loader or publication boundaries are solved
   * keep the returned shared runtime-loader allocator/init-flow and command/environment boundary packet explicit as neighboring shared-owner evidence through `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the bounded `zigux/tests/phase9_build.zig` `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-loader-shared-tests`, and `phase9-runtime-loader-command-env-boundary-guard-tests` routes, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` scaffold without implying that blocked publication, install-root, or module-metadata surfaces are complete
@@ -351,9 +351,9 @@ Purpose
 
 ## Phase 10 shared virtio closure packet
 
-Keep `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and `scripts/zigux/check-phase10-tests-readme-core-surfaces.py` explicit as the shared Phase 10 tests-root reminder packet.
+Keep `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and `scripts\zigux/check_phase10_tests_readme_core_surfaces.zig` explicit as the shared Phase 10 tests-root reminder packet.
 
-Keep the returned checker-backed build gate explicit through `scripts/zigux/check-phase10-bootstrap-route.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/validate-phase10-closure.py`, `zigux/tests/phase10_closure_manifest.json`, and `zigux/tests/phase10_build.zig` so the tests-root reminder stays aligned with the same bounded closure packet already named by the docs root, the lane-sequencing note, the shared review companion, and the scripts-root Phase 10 packet.
+Keep the returned checker-backed build gate explicit through `scripts\zigux/check_phase10_bootstrap_route.zig`, `scripts\zigux/check_phase10_harness_coverage.zig`, `scripts\zigux/validate_phase10_closure.zig`, `zigux/tests/phase10_closure_manifest.json`, and `zigux/tests/phase10_build.zig` so the tests-root reminder stays aligned with the same bounded closure packet already named by the docs root, the lane-sequencing note, the shared review companion, and the scripts-root Phase 10 packet.
 
 The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`.
 
@@ -363,11 +363,11 @@ Keep the bounded input packet explicit too through `Documentation/zigux/phase10-
 
 Keep the queue-callback-preflight, registration-preflight, status-drain, and teardown-observation replays explicit here so the current tests-root packet still records queue-readiness ordering, registration blockers, in-memory status reclamation, and teardown-reset parity without widening into input registration lifecycle closure, transport callbacks, IRQ delivery, or DMA behavior.
 
-Keep the helper-local MMIO replay pair explicit too through `zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig` and `zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig` so the landed apply-observation shard stays reviewable beside `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `scripts/zigux/check-phase10-mmio-packet.py` without widening into lifecycle, IRQ-delivery, or DMA claims.
+Keep the helper-local MMIO replay pair explicit too through `zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig` and `zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig` so the landed apply-observation shard stays reviewable beside `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `scripts\zigux/check_phase10_mmio_packet.zig` without widening into lifecycle, IRQ-delivery, or DMA claims.
 
 ## Phase 12 shared release packet
 
-  * Keep the directly readable validator-first support bundle explicit too: `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the current shared build gate explicit from the tests root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` remain shipped wrapper evidence on current `master`.
+  * Keep the directly readable validator-first support bundle explicit too: `scripts\zigux/check_build_only_phase12_surface.zig`, `scripts\zigux/check_phase12_release_readiness_packet.zig`, `scripts\zigux/validate_phase12.zig`, `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the current shared build gate explicit from the tests root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` remain shipped wrapper evidence on current `master`.
   * Keep the adjacent driver-local split explicit too: `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` stay the rollback-lab `virtio_scsi` packet outside the shared route, `Documentation/zigux/phase12-nvme-pci-survey.md` plus `zigux/tests/phase12_nvme_pci_manifest.json` stay the bounded driver-local NVMe foothold, and `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and `zigux/tests/fixtures/phase12_libbpf_snapshot.json` keep the parked libbpf packet explicit without promoting any of them into shared build outputs.
   * Keep `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` explicit as the shared heavy-helper anti-overlap companion so the tests-root reminder stays aligned with the same parked libbpf boundary already named by the release-order, closure, readiness, coordination, fallback, and complex-driver notes.
   * Keep `Documentation/zigux/phase12-raw-github-coverage-survey.md` explicit as the shared degraded-read companion so the tests-root reminder stays aligned with the same one-catalog plus one-current-master-gap-note companion plus shared-support-bundle fallback split already named by the PMO release packet.
@@ -382,19 +382,19 @@ Keep the helper-local MMIO replay pair explicit too through `zigux/tests/phase10
   * `Documentation/zigux/phase12-cross-compile-smoke.md`
   * `Documentation/zigux/review-checklist.md`
   * `scripts/zigux/README.md`
-  * `scripts/zigux/check-build-only-phase12-surface.py`
-  * `scripts/zigux/check-phase12-release-readiness-packet.py`
-  * `scripts/zigux/check-phase12-complex-driver-lane-packet.py`
-  * `scripts/zigux/check-phase12-cross-compile-smoke.py`
-  * `scripts/zigux/check-phase12-libbpf-snapshot.py`
-  * `scripts/zigux/check-phase12-libbpf-lane-marker.py`
-  * `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`
-  * `scripts/zigux/validate-phase12.py`
+  * `scripts\zigux/check_build_only_phase12_surface.zig`
+  * `scripts\zigux/check_phase12_release_readiness_packet.zig`
+  * `scripts\zigux/check_phase12_complex_driver_lane_packet.zig`
+  * `scripts\zigux/check_phase12_cross_compile_smoke.zig`
+  * `scripts\zigux/check_phase12_libbpf_snapshot.zig`
+  * `scripts\zigux/check_phase12_libbpf_lane_marker.zig`
+  * `scripts\zigux/check_phase12_libbpf_heavy_consumer_packet.zig`
+  * `scripts\zigux/validate_phase12.zig`
   * `zigux/tests/phase12_build.zig`
   * `.github/workflows/zigux-bootstrap.yml`
   * `zigux/Makefile`
   * `zigux/tests/README.md`
-  * Keep the directly readable validator-first support bundle explicit too: `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the current shared build gate explicit from the tests root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` remain shipped wrapper evidence on current `master`.
+  * Keep the directly readable validator-first support bundle explicit too: `scripts\zigux/check_build_only_phase12_surface.zig`, `scripts\zigux/check_phase12_release_readiness_packet.zig`, `scripts\zigux/check_phase12_complex_driver_lane_packet.zig`, `scripts\zigux/check_phase12_cross_compile_smoke.zig`, `scripts\zigux/check_phase12_libbpf_snapshot.zig`, `scripts\zigux/check_phase12_libbpf_lane_marker.zig`, `scripts\zigux/check_phase12_libbpf_heavy_consumer_packet.zig`, `scripts\zigux/validate_phase12.zig`, `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the current shared build gate explicit from the tests root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` remain shipped wrapper evidence on current `master`.
   * Keep the active shared build packet explicit too: `zigux/tests/phase12_build.zig` keeps `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, `zigux/tests/phase12_virtio_net_throughput_parity.zig`, and `zigux/tests/phase12_virtio_net_survey.zig` wired through the shared `smoke` and `test` route, so keep that six-file `virtio_net` packet explicit instead of widening it into deeper queue, DMA, throughput, or recovery claims.
   * Keep the adjacent driver-local split explicit too: `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, and `zigux/tests/phase12_virtio_scsi_survey_build.zig` stay the rollback-lab `virtio_scsi` packet outside the shared route, `Documentation/zigux/phase12-nvme-pci-survey.md` plus `zigux/tests/phase12_nvme_pci_manifest.json` stay the bounded driver-local NVMe foothold, and `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and `zigux/tests/fixtures/phase12_libbpf_snapshot.json` keep the parked libbpf packet explicit without promoting any of them into shared build outputs.
   * Tests-root reviewer prompt:
@@ -407,9 +407,9 @@ Keep the helper-local MMIO replay pair explicit too through `zigux/tests/phase10
   * `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`
   * `Documentation/zigux/phase14-release-boundary-survey.md`
   * `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`
-  * `scripts/zigux/check-phase14-shared-smoke-route.py`
-  * `scripts/zigux/validate-phase14.py`
-  * `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
+  * `scripts\zigux/check_phase14_shared_smoke_route.zig`
+  * `scripts\zigux/validate_phase14.zig`
+  * `scripts\zigux/check_phase14_release_boundary_exact_counts.zig`
   * `zigux/Makefile`
   * `kernel/workqueue_bridge.zig`
   * `zigux/tests/phase14_workqueue_bridge.zig`
@@ -428,16 +428,16 @@ Keep the helper-local MMIO replay pair explicit too through `zigux/tests/phase10
 
   * Keep Phase 15 governance wording separate from the Phase 14 shared smoke route until a dedicated Phase 15 checker expands this tests-root section.
   * Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay in the directly readable governance packet instead of undercounting the Architecture Council review-process evidence.
-  * The returned review-process build replay stays paired with `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process.zig`, and `zigux/tests/phase15_architecture_council_review_process_build.zig`.
+  * The returned review-process build replay stays paired with `scripts\zigux/check_phase15_review_process_handoff.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, and `zigux/tests/phase15_architecture_council_review_process_build.zig`.
 
 ## Phase 4 Exact-Readback Reminder
 
-  * Keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`
+  * Keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts\zigux/check_phase4_gate_evidence.zig`, and `scripts\zigux/check_phase4_remaining_gap_matrix.zig`
   * Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`
 
 ## Phase 3 Selftest Surface Addendum
 
   * Shared ABI owner surfaces: `include/linux/zigux.h`, `include/zigux/dev_t.h`, `include/zigux/abi.h`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, `zigux/bindings/dev_t.zig`, `zigux/bindings/abi.zig`, `zigux/helpers/err_ptr.zig`, `zigux/helpers/xa_value.zig`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, and `zigux/helpers/unsafe_policy.zig`.
-  * Starter and helper checkers: `zigux/tests/phase3_policy_starter_packet_manifest.json`, `scripts/zigux/check-phase3-dev-t-starter-packet.py`, `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`.
+  * Starter and helper checkers: `zigux/tests/phase3_policy_starter_packet_manifest.json`, `scripts\zigux/check_phase3_dev_t_starter_packet.zig`, `scripts\zigux/check_phase3_errptr_xarray_starter_packet.zig`.
   * `zigux/tests/README.md` now keeps the returned bitmap/cpumask and list/hlist helper slices explicit beside the packet-local export/UAPI survey note, validator, focused export/UAPI layout replay, and direct C smoke companion family, so the tests-root reminder no longer carries a same-lane summary gap.
   * keep the returned notifier-binding and focused export/UAPI layout replay pair explicit beside `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and `zigux/tests/phase3_export_uapi_layout_build.zig` as shipped tests-root evidence.

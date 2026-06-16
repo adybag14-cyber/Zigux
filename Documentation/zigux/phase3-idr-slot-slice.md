@@ -16,8 +16,8 @@ This note records one bounded Phase 3 helper-side `idr_slot` packet on current `
 - `zigux/tests/fixtures/phase3_idr_slot/phase3_idr_slot_c_harness.c`
 - `zigux/tests/fixtures/phase3_idr_slot/expected.json`
 - `zigux/tests/fixtures/phase3_idr_slot_manifest.json`
-- `scripts/zigux/check-phase3-idr-slot-starter-packet.py`
-- `scripts/zigux/check-phase3-idr-slot.py`
+- `scripts\zigux/check_phase3_idr_slot_starter_packet.zig`
+- `scripts\zigux/check_phase3_idr_slot.zig`
 - `zigux/Makefile`
 
 ## Bounded Contract
@@ -41,9 +41,9 @@ The current helper-local packet now has three bounded replay layers:
   - `zigux/tests/phase3_idr_slot_starter_packet.zig`
   - `zigux/tests/phase3_idr_slot_starter_packet_build.zig`
   - `zigux/tests/fixtures/phase3_idr_slot_manifest.json`
-  - `scripts/zigux/check-phase3-idr-slot-starter-packet.py`
-  - `python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --self-test`
-  - `python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --repo-root .`
+  - `scripts\zigux/check_phase3_idr_slot_starter_packet.zig`
+  - `zig run check_phase3_idr_slot_starter_packet.zig --self-test`
+  - `zig run check_phase3_idr_slot_starter_packet.zig --repo-root .`
   - `zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig`
   - `make -C zigux phase3-idr-slot-starter-packet-test`
 - one fixture-backed dump parity packet:
@@ -51,9 +51,9 @@ The current helper-local packet now has three bounded replay layers:
   - `zigux/tests/phase3_idr_slot_dump_build.zig`
   - `zigux/tests/fixtures/phase3_idr_slot/phase3_idr_slot_c_harness.c`
   - `zigux/tests/fixtures/phase3_idr_slot/expected.json`
-  - `scripts/zigux/check-phase3-idr-slot.py`
-  - `python3 scripts/zigux/check-phase3-idr-slot.py --self-test`
-  - `python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc`
+  - `scripts\zigux/check_phase3_idr_slot.zig`
+  - `zig run check_phase3_idr_slot.zig --self-test`
+  - `zig run check_phase3_idr_slot.zig --repo-root . --zig zig --cc gcc`
   - `zig build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig`
   - `make -C zigux phase3-idr-slot-dump`
 - one shared bundle route:

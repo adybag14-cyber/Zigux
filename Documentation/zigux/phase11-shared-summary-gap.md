@@ -53,7 +53,7 @@ shared reminders are themselves the current owner map.
 Current direct contents reads also do not rematerialize
 `Documentation/zigux/phase11-shared-replay-contract.md`,
 `Documentation/zigux/phase11-closure-note.md`,
-`scripts/zigux/check-phase11-shared-summary-surfaces.py`,
+`scripts\zigux/check_phase11_shared_summary_surfaces.zig`,
 `zigux/tests/phase11_build.zig`, `make -C zigux phase11-contract`,
 `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`,
 `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`,

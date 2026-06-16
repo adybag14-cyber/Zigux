@@ -20,10 +20,10 @@ All four roadmap-backed Phase 6 helper destinations are present on current `mast
 
 | helper | roadmap anchor | Zig helper blob | embedded helper tests | focused replay | exact companion coverage |
 | --- | --- | --- | ---: | --- | --- |
-| `base64` | `lib/base64.c` | `lib/base64.zig` `844a091999aab9a1d78f90d7719450b4e590e962` | 20 | `zigux/tests/phase6_base64.zig` | `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `scripts/zigux/check-phase6-base64-c-parity.py` |
-| `bsearch` | `lib/bsearch.c` | `lib/bsearch.zig` `916a87eb91c0c3e620cf6e85c018180cdf772e58` | 11 | `zigux/tests/phase6_bsearch.zig` | `zigux/tests/phase6_bsearch_perf.zig`, `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, `scripts/zigux/check-phase6-bsearch-c-parity.py` |
-| `checksum` | `lib/checksum.c` | `lib/checksum.zig` `1cda59b1bd4e5d4e9989d2b9f4e84be62b8ccb7e` | 12 | `zigux/tests/phase6_checksum.zig` | `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, `scripts/zigux/check-phase6-checksum-c-parity.py` |
-| `hexdump` | `lib/hexdump.c` | `lib/hexdump.zig` `0fc9534ddf7e020ab00f981d5762b1703430170c` | 17 | `zigux/tests/phase6_hexdump.zig` | `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_hexdump_perf_matrix.zig`, `zigux/tests/phase6_hexdump_c_parity.zig`, `zigux/tests/fixtures/phase6_hexdump_c_harness.c`, `scripts/zigux/check-phase6-hexdump-c-parity.py`, `scripts/zigux/check-phase6-hexdump-packet.py`, `scripts/zigux/check-phase6-hexdump-route.py` |
+| `base64` | `lib/base64.c` | `lib/base64.zig` `844a091999aab9a1d78f90d7719450b4e590e962` | 20 | `zigux/tests/phase6_base64.zig` | `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `scripts\zigux/check_phase6_base64_c_parity.zig` |
+| `bsearch` | `lib/bsearch.c` | `lib/bsearch.zig` `916a87eb91c0c3e620cf6e85c018180cdf772e58` | 11 | `zigux/tests/phase6_bsearch.zig` | `zigux/tests/phase6_bsearch_perf.zig`, `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, `scripts\zigux/check_phase6_bsearch_c_parity.zig` |
+| `checksum` | `lib/checksum.c` | `lib/checksum.zig` `1cda59b1bd4e5d4e9989d2b9f4e84be62b8ccb7e` | 12 | `zigux/tests/phase6_checksum.zig` | `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, `scripts\zigux/check_phase6_checksum_c_parity.zig` |
+| `hexdump` | `lib/hexdump.c` | `lib/hexdump.zig` `0fc9534ddf7e020ab00f981d5762b1703430170c` | 17 | `zigux/tests/phase6_hexdump.zig` | `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_hexdump_perf_matrix.zig`, `zigux/tests/phase6_hexdump_c_parity.zig`, `zigux/tests/fixtures/phase6_hexdump_c_harness.c`, `scripts\zigux/check_phase6_hexdump_c_parity.zig`, `scripts\zigux/check_phase6_hexdump_packet.zig`, `scripts\zigux/check_phase6_hexdump_route.zig` |
 
 ## Helper Evidence
 
@@ -42,7 +42,7 @@ All four roadmap-backed Phase 6 helper destinations are present on current `mast
   - `zigux/tests/fixtures/phase6_base64_c_harness.c`
   - `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`
   - `zigux/tests/phase6_base64_c_casegen.zig`
-  - `scripts/zigux/check-phase6-base64-c-parity.py`
+  - `scripts\zigux/check_phase6_base64_c_parity.zig`
 
 ### bsearch
 
@@ -59,7 +59,7 @@ All four roadmap-backed Phase 6 helper destinations are present on current `mast
   - `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
   - `zigux/tests/phase6_bsearch_c_abi_budget.zig`
   - `zigux/tests/fixtures/phase6_bsearch_c_harness.c`
-  - `scripts/zigux/check-phase6-bsearch-c-parity.py`
+  - `scripts\zigux/check_phase6_bsearch_c_parity.zig`
 
 ### checksum
 
@@ -74,7 +74,7 @@ All four roadmap-backed Phase 6 helper destinations are present on current `mast
   - `zigux/tests/phase6_checksum_perf.zig`
   - `zigux/tests/phase6_checksum_c_parity.zig`
   - `zigux/tests/fixtures/phase6_checksum_c_harness.c`
-  - `scripts/zigux/check-phase6-checksum-c-parity.py`
+  - `scripts\zigux/check_phase6_checksum_c_parity.zig`
 
 ### hexdump
 
@@ -90,8 +90,8 @@ All four roadmap-backed Phase 6 helper destinations are present on current `mast
   - `zigux/tests/phase6_hexdump_perf_matrix.zig`
   - `zigux/tests/phase6_hexdump_c_parity.zig`
   - `zigux/tests/fixtures/phase6_hexdump_c_harness.c`
-  - `scripts/zigux/check-phase6-hexdump-c-parity.py`
-  - `scripts/zigux/check-phase6-hexdump-packet.py`
-  - `scripts/zigux/check-phase6-hexdump-route.py`
+  - `scripts\zigux/check_phase6_hexdump_c_parity.zig`
+  - `scripts\zigux/check_phase6_hexdump_packet.zig`
+  - `scripts\zigux/check_phase6_hexdump_route.zig`
 
 Reopen this exact-current-coverage note only when one of the four roadmap-backed helper blobs changes, the embedded helper test counts change, or the focused replay and parity companions drift on `master`.

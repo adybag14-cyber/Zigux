@@ -18,10 +18,10 @@ pub fn build(b: *std.Build) void {
 
     const contract_step = b.step(
         "artifact-diff-text-contract",
-        "Run the artifact_diff.py text-mode comparison contract",
+        "Run the artifact_diff.zig text-mode comparison contract",
     );
     contract_step.dependOn(&run_tests.step);
 
-    const test_step = b.step("test", "Run the artifact_diff.py text-mode comparison contract");
+    const test_step = b.step("test", "Run the artifact_diff.zig text-mode comparison contract");
     test_step.dependOn(&run_tests.step);
 }

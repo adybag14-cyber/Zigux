@@ -1,7 +1,7 @@
 const std = @import("std");
 
-const toolchain_checker_path = "scripts/zigux/check-zig-toolchain.py";
-const bootstrap_validator_path = "scripts/zigux/validate-bootstrap.py";
+const toolchain_checker_path = "scripts/zigux/check_zig_toolchain.zig";
+const bootstrap_validator_path = "scripts/zigux/validate_bootstrap.zig";
 const toolchain_policy_path = "scripts/zigux/zig-toolchain-policy.json";
 
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
@@ -32,15 +32,15 @@ test "toolchain checker keeps policy and archive-only public entrypoints" {
     const checker = try readRepoFile(std.testing.allocator, toolchain_checker_path);
     defer std.testing.allocator.free(checker);
 
-    try expectContains(checker, "parser.add_argument(\"--policy-only\"");
-    try expectContains(checker, "parser.add_argument(\"--archive-only\"");
-    try expectContains(checker, "parser.add_argument(\"--archive\"");
-    try expectContains(checker, "parser.add_argument(\"--archive-target\"");
+    try expectContains(checker, "\"--policy-only\"");
+    try expectContains(checker, "\"--archive-only\"");
+    try expectContains(checker, "\"--archive\"");
+    try expectContains(checker, "\"--archive-target\"");
     try expectContains(checker, "ZIG_TOOLCHAIN_POLICY_STATUS=present");
     try expectContains(checker, "ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_FILENAME");
     try expectContains(checker, "ZIG_TOOLCHAIN_ARCHIVE_SEARCH_ROOTS");
-    try expectContains(checker, "archive_name_has_duplicate_suffix");
-    try expectContains(checker, "multiple repo-local pinned archive candidates matched");
+    try expectContains(checker, "archiveNameHasDuplicateSuffix");
+    try expectContains(checker, "AmbiguousArchive");
 }
 
 test "pinned policy stays lockstep with the Phase 2 bootstrap route set" {
@@ -70,17 +70,17 @@ test "bootstrap validator requires the Lane 03 workflow commands exactly once" {
     try expectContains(validator, "REQUIRED_WORKFLOW_LINES");
     try expectExactLineCount(
         validator,
-        "\"run: python3 scripts/zigux/check-zig-toolchain.py --self-test\",",
+        "\"run: zig run scripts/zigux/check_zig_toolchain.zig -- --self-test\",",
         1,
     );
     try expectExactLineCount(
         validator,
-        "\"run: python3 scripts/zigux/check-zig-toolchain.py --policy-only\",",
+        "\"run: zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only\",",
         1,
     );
     try expectExactLineCount(
         validator,
-        "\"run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing\",",
+        "\"run: zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing\",",
         1,
     );
     try expectContains(validator, "DUPLICATE_WORKFLOW_LINE");

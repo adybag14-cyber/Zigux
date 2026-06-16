@@ -1,8 +1,8 @@
 const std = @import("std");
 
 const alignment_checker_paths = [_][]const u8{
-    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
-    "../../scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "scripts\zigux/check_phase2_cross_selftest_alignment.zig",
+    "../../scripts\zigux/check_phase2_cross_selftest_alignment.zig",
 };
 
 const fixture_paths = [_][]const u8{

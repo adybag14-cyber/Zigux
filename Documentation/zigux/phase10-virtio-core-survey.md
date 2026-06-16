@@ -8,7 +8,7 @@ This document tracks the bounded Phase 10 governance lane around `drivers/virtio
 - `PHASE10_SLICE=virtio-core-survey`
 - lane: `P10-L01`
 - surveyed packet commit recorded by the live core manifest: `c11221dc7a68d7511ae1c69d64b3f08528287ed8`
-- surveyed inspected `master` head: direct connector readback on `2026-05-26` for this note, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `scripts/zigux/check-phase10-core-packet.py`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `Documentation/zigux/phase10-virtio-core-slice.md`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/build.zig`, `zigux/tests/phase10_build.zig`, and `zigux/tests/phase10_closure_manifest.json`
+- surveyed inspected `master` head: direct connector readback on `2026-05-26` for this note, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `scripts\zigux/check_phase10_core_packet.zig`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `Documentation/zigux/phase10-virtio-core-slice.md`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/build.zig`, `zigux/tests/phase10_build.zig`, and `zigux/tests/phase10_closure_manifest.json`
 - scope: compare the Phase 10 core lane's current repo-visible evidence against the roadmap's lab-driver target and the bootstrap ledger's tranche discipline, then keep this survey aligned with the current core packet without widening into ring, MMIO, input, or transport-facing lifecycle work
 - product boundary:
   - `drivers/virtio/virtio.zig`
@@ -27,14 +27,14 @@ The bootstrap ledger still stops earlier in the commit train and does not yet re
 
 ## Survey findings
 
-- `drivers/virtio/virtio.c` remains the roadmap's Phase 10 core anchor, and current `master` directly materializes `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `Documentation/zigux/phase10-virtio-core-slice.md`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `scripts/zigux/check-phase10-core-packet.py`, and `scripts/zigux/validate-phase10.py`
+- `drivers/virtio/virtio.c` remains the roadmap's Phase 10 core anchor, and current `master` directly materializes `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `Documentation/zigux/phase10-virtio-core-slice.md`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `scripts\zigux/check_phase10_core_packet.zig`, and `scripts\zigux/validate_phase10.zig`
 - the live manifest still records lane `P10-L01`, surveyed commit `c11221dc7a68d7511ae1c69d64b3f08528287ed8`, roadmap destinations `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`, `preexisting_phase10_test_files: 11`, the returned `preexisting_virtio_driver_id_zig_present: true` and `preexisting_virtio_driver_id_test_present: true` flags, and a mostly landed starter packet
 - the direct `phase10_virtio_core` attribute-summary replay keeps the core `status_show` review surface visible from `0x00000000\n` through `0x0000000f\n`, while the direct `phase10_virtio_core`, `drivers/virtio/virtio_verify.zig`, and `phase10_virtio_core_interrupt_compound_ack` replays keep `features_show`-style device, driver, and negotiated bitstrings plus the combined queue-used plus config-change acknowledgement path reviewable as lab-only driver validation evidence
 - the same direct core packet now also keeps the wrapper-facing `driverModelSummary()` and `DriverModelStage` progression explicit from `unattached` through `queue_registration_ready`, `driver_ready`, `device_needs_reset`, and `device_failed`, so staged readiness remains reviewable without claiming transport-backed probe or remove parity
 - the returned `drivers/virtio/virtio_driver_id.zig` helper plus `zigux/tests/phase10_virtio_driver_id.zig` replay keep the narrower `phase10-driver-id-helper` and `phase10-driver-id-coverage-disposition-helper` packet reviewable beside the core helper, verify, and survey packet rather than leaving driver-id reviewability implied
 - direct readback of `zigux/tests/phase10_build.zig` exposes `phase10-virtio-core-tests`, `phase10-virtio-core-interrupt-compound-ack-tests`, `phase10-virtio-core-reset-queue-tests`, `phase10-virtio-core-verify-tests`, `phase10-virtio-core-survey-tests`, and `phase10-virtio-driver-id-tests`, so the core packet's direct lab-validation, narrower driver-id replay, and survey gates are all wired into the live Phase 10 build surface
 - direct readback of `zigux/tests/build.zig` now exposes `phase10-virtio-core-survey`, so the bounded core survey anchor is visible in the shared tests-root smoke beside the later phase survey anchors instead of living only under the dedicated Phase 10 build file
-- direct readback of `scripts/zigux/check-phase10-core-packet.py` now materializes the dedicated core-packet checker on `master`, so the live guardrail stack is the manifest, survey gate, dedicated checker, shared validator, shared build route, and the closure manifest rather than a mixed-read fallback story
+- direct readback of `scripts\zigux/check_phase10_core_packet.zig` now materializes the dedicated core-packet checker on `master`, so the live guardrail stack is the manifest, survey gate, dedicated checker, shared validator, shared build route, and the closure manifest rather than a mixed-read fallback story
 - that same manifest keeps the risky transport boundary explicit through `phase10-core-dual-implementation-bridge` and `phase10-core-probe-remove-lifecycle`, so this is still lab-only driver validation evidence rather than a true lab driver for probe, full remove, and reset parity
 
 ## Roadmap helper parity scoreboard
@@ -100,7 +100,7 @@ The honest current lane checks are direct repository readback plus the existing 
 - direct readback of `Documentation/zigux/phase10-virtio-core-slice.md`
 - direct readback of `zigux/tests/phase10_virtio_core_manifest.json`
 - direct readback of `zigux/tests/phase10_virtio_core_survey.zig`
-- direct readback of `scripts/zigux/check-phase10-core-packet.py`
+- direct readback of `scripts\zigux/check_phase10_core_packet.zig`
 - direct readback of `drivers/virtio/virtio.zig`
 - direct readback of `drivers/virtio/virtio_driver_id.zig`
 - direct readback of `drivers/virtio/virtio_verify.zig`
@@ -126,8 +126,8 @@ The honest current lane checks are direct repository readback plus the existing 
 - `phase10-interrupt-compound-ack-gate`
 - `phase10-core-dual-implementation-bridge`
 - `phase10-core-probe-remove-lifecycle`
-- `scripts/zigux/check-phase10-core-packet.py`
-- `scripts/zigux/validate-phase10.py`
+- `scripts\zigux/check_phase10_core_packet.zig`
+- `scripts\zigux/validate_phase10.zig`
 - `zigux/tests/phase10_virtio_core_manifest.json`
 - `zigux/tests/phase10_virtio_core_survey.zig`
 

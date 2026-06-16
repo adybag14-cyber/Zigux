@@ -56,7 +56,7 @@ test "Architecture Council decision index keeps the zero-approval inventory expl
     try expectContains(decision_index, "PHASE15_STATUS=architecture_council_decision_index_landed");
     try expectContains(decision_index, "PHASE15_LANE_KEY=P15-L09");
     try expectContains(decision_index, "PHASE15_PROVENANCE_MODE=dated_master_readback");
-    try expectContains(decision_index, "PHASE15_PACKET_VALIDATION_GATE=python3 scripts/zigux/check-phase15-architecture-council-decision-index.py");
+    try expectContains(decision_index, "PHASE15_PACKET_VALIDATION_GATE=zig run check_phase15_architecture_council_decision_index.zig");
     try expectContains(decision_index, "PHASE15_PACKET_ROLLBACK_OWNER=Architecture Council");
     try expectContains(decision_index, "approved status-bucket changes recorded on current `master`: none");
     try expectContains(decision_index, "stay-in-C closeout decision records recorded on current `master`: none");
@@ -97,7 +97,7 @@ test "decision-index posture is mirrored by readiness and checker surfaces" {
             },
         },
         .{
-            .path = "scripts/zigux/check-phase15-architecture-council-decision-index.py",
+            .path = "scripts\zigux/check_phase15_architecture_council_decision_index.zig",
             .required_terms = &.{
                 "approved status-bucket changes recorded on current `master`: none",
                 "stay-in-C closeout decision records recorded on current `master`: none",
@@ -108,11 +108,11 @@ test "decision-index posture is mirrored by readiness and checker surfaces" {
             },
         },
         .{
-            .path = "scripts/zigux/validate-phase15.py",
+            .path = "scripts\zigux/validate_phase15.zig",
             .required_terms = &.{
                 "\"Documentation/zigux/phase15-architecture-council-decision-index.md\"",
-                "\"scripts/zigux/check-phase15-architecture-council-packet.py\"",
-                "\"scripts/zigux/validate-phase15.py\"",
+                "\"scripts\zigux/check_phase15_architecture_council_packet.zig\"",
+                "\"scripts\zigux/validate_phase15.zig\"",
                 "\"phase15_validate_target_present\": False",
                 "\"phase15_test_target_present\": False",
                 "\"phase15_aggregate_target_present\": False",

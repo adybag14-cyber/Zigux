@@ -56,15 +56,15 @@ test "Phase 1 shared smoke remains after closure validation" {
 
     const shared_reminder_index = try markerIndex(
         workflow_text,
-        "- name: Check current Phase 1 shared reminder packet\n        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py\n",
+        "- name: Check current Phase 1 shared reminder packet\n        run: zig run check_phase1_shared_reminder_packet.zig\n",
     );
     const closure_selftest_index = try markerIndex(
         workflow_text,
-        "- name: Self-test current Phase 1 closure validator\n        run: python3 scripts/zigux/validate-phase1-closure.py --self-test\n",
+        "- name: Self-test current Phase 1 closure validator\n        run: zig run validate_phase1_closure.zig --self-test\n",
     );
     const closure_check_index = try markerIndex(
         workflow_text,
-        "- name: Check current Phase 1 closure packet\n        run: python3 scripts/zigux/validate-phase1-closure.py\n",
+        "- name: Check current Phase 1 closure packet\n        run: zig run validate_phase1_closure.zig\n",
     );
     const smoke_index = try markerIndex(workflow_text, smoke_marker);
 
@@ -79,11 +79,11 @@ test "Phase 1 shared smoke stays outside the Phase 3 interop packet" {
 
     const phase3_selftest_index = try markerIndex(
         workflow_text,
-        "- name: Self-test current Phase 3 interop packet\n        run: python3 scripts/zigux/validate_phase3_selftest.py\n",
+        "- name: Self-test current Phase 3 interop packet\n        run: zig run scripts/zigux/validate_phase3_selftest.zig\n",
     );
     const phase3_check_index = try markerIndex(
         workflow_text,
-        "- name: Check current Phase 3 interop packet\n        run: python3 scripts/zigux/run-phase3-checks.py\n",
+        "- name: Check current Phase 3 interop packet\n        run: zig run scripts/zigux/run_phase3_checks.zig\n",
     );
     const smoke_index = try markerIndex(workflow_text, smoke_marker);
 

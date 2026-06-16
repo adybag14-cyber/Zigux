@@ -2,8 +2,8 @@ const std = @import("std");
 const testing = std.testing;
 
 const fixture_path = "zigux/tests/fixtures/phase2_cross_targets.json";
-const direct_checker_path = "scripts/zigux/check-phase2-cross.py";
-const alignment_checker_path = "scripts/zigux/check-phase2-cross-selftest-alignment.py";
+const direct_checker_path = "scripts\zigux/check_phase2_cross.zig";
+const alignment_checker_path = "scripts\zigux/check_phase2_cross_selftest_alignment.zig";
 
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     var io_instance: std.Io.Threaded = .init(allocator, .{});

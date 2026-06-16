@@ -62,7 +62,7 @@ const delegated_checkers = [_]Checker{
 fn readValidator(allocator: std.mem.Allocator) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(
         std.testing.io,
-        "scripts/zigux/validate-phase1-closure.py",
+        "scripts\zigux/validate_phase1_closure.zig",
         allocator,
         .limited(512 * 1024),
     );

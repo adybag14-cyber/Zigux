@@ -12,8 +12,8 @@ pub fn build(b: *std.Build) void {
     const validator_path = b.option(
         []const u8,
         "validator-path",
-        "Path to scripts/zigux/validate-phase1-closure.py relative to the repository root",
-    ) orelse "scripts/zigux/validate-phase1-closure.py";
+        "Path to scripts\zigux/validate_phase1_closure.zig relative to the repository root",
+    ) orelse "scripts\zigux/validate_phase1_closure.zig";
 
     const config = b.addOptions();
     config.addOption([]const u8, "closure_note_path", closure_note_path);

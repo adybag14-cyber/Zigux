@@ -9,7 +9,7 @@ This note records the bounded Phase 15 index for Architecture Council decision r
 - `PHASE15_SLICE=decision-record-inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-27`
-- `PHASE15_PACKET_VALIDATION_GATE=python3 scripts/zigux/check-phase15-architecture-council-decision-index.py`
+- `PHASE15_PACKET_VALIDATION_GATE=zig run check_phase15_architecture_council_decision_index.zig`
 - `PHASE15_PACKET_ROLLBACK_OWNER=Architecture Council`
 - role: keep a single reviewable inventory of Architecture Council decisions, explicit zero-decision posture, future record-link rules, and the dedicated decision-index manifest/checker pair beside the freeze-map governance packet, the review-process owner note, and the decision-record template without implying approval where none exists
 
@@ -55,7 +55,7 @@ Use one flat entry per landed Architecture Council decision record:
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `zigux/tests/phase15_architecture_council_decision_index_manifest.json`
-- `scripts/zigux/check-phase15-architecture-council-decision-index.py`
+- `scripts\zigux/check_phase15_architecture_council_decision_index.zig`
 
 ## Non-goals
 

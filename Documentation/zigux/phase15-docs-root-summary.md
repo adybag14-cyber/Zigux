@@ -27,15 +27,15 @@ Keep the current docs-root Phase 15 summary anchored to the directly readable go
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - `Documentation/zigux/phase15-shared-summary-gap.md`
 - `Documentation/zigux/review-checklist.md`
-- `scripts/zigux/check-phase15-docs-readme-alignment.py`
-- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
-- `scripts/zigux/check-phase15-tests-readme-alignment.py`
-- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
-- `scripts/zigux/check-phase15-review-process-handoff.py`
-- `scripts/zigux/check-phase15-handoff-note-alignment.py`
-- `scripts/zigux/check-phase15-shared-summary-gap.py`
-- `scripts/zigux/check-phase15-readiness-gate-packet.py`
-- `scripts/zigux/validate-phase15.py`
+- `scripts\zigux/check_phase15_docs_readme_alignment.zig`
+- `scripts\zigux/check_phase15_scripts_readme_alignment.zig`
+- `scripts\zigux/check_phase15_tests_readme_alignment.zig`
+- `scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig`
+- `scripts\zigux/check_phase15_review_process_handoff.zig`
+- `scripts\zigux/check_phase15_handoff_note_alignment.zig`
+- `scripts\zigux/check_phase15_shared_summary_gap.zig`
+- `scripts\zigux/check_phase15_readiness_gate_packet.zig`
+- `scripts\zigux/validate_phase15.zig`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_architecture_council_review_process_build.zig`
@@ -54,7 +54,7 @@ Keep the current docs-root Phase 15 summary anchored to the directly readable go
 
 Keep the same bounded Phase 15 posture explicit from the docs root:
 
-- Current `master` now directly materializes `scripts/zigux/validate-phase15.py`, so keep that validator-first maintenance gate explicit as landed evidence instead of broader repo-reality-gap wording.
+- Current `master` now directly materializes `scripts\zigux/validate_phase15.zig`, so keep that validator-first maintenance gate explicit as landed evidence instead of broader repo-reality-gap wording.
 - Current `master` now directly materializes `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay explicit in the Architecture Council packet.
 - Current `master` now directly materializes `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig`, so keep the handoff packet framed as manifest-plus-replay evidence rather than manifest-only inventory.
 - Current `master` now directly materializes `zigux/tests/phase15_governance_lane_sequencing_manifest.json` and `zigux/tests/phase15_governance_lane_sequencing.zig`, so keep the lane-sequencing packet framed as manifest-plus-replay evidence rather than an undercounted side companion.

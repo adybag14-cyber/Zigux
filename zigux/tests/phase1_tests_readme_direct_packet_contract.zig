@@ -9,12 +9,12 @@ const current_packet_paths = [_][]const u8{
     "`Documentation/zigux/README.md`",
     "`Documentation/zigux/review-checklist.md`",
     "`scripts/zigux/README.md`",
-    "`scripts/zigux/check-phase1-string-review-packet.py`",
-    "`scripts/zigux/check-phase1-direct-owner-markers.py`",
-    "`scripts/zigux/check-phase1-direct-anchor-manifest-gate.py`",
-    "`scripts/zigux/check-phase1-bench.py`",
-    "`scripts/zigux/check-phase1-shared-reminder-packet.py`",
-    "`scripts/zigux/validate-phase1-closure.py`",
+    "`scripts\zigux/check_phase1_string_review_packet.zig`",
+    "`scripts\zigux/check_phase1_direct_owner_markers.zig`",
+    "`scripts\zigux/check_phase1_direct_anchor_manifest_gate.zig`",
+    "`scripts\zigux/check_phase1_bench.zig`",
+    "`scripts\zigux/check_phase1_shared_reminder_packet.zig`",
+    "`scripts\zigux/validate_phase1_closure.zig`",
     "`zigux/tests/build.zig`",
     "`zigux/tests/phase1_helpers.zig`",
     "`zigux/tests/phase1_helpers_build.zig`",
@@ -25,8 +25,8 @@ const current_packet_paths = [_][]const u8{
 };
 
 const broader_companions = [_][]const u8{
-    "`scripts/zigux/validate-phase1.py`",
-    "`scripts/zigux/check-phase1-parity.py`",
+    "`scripts\zigux/validate_phase1.zig`",
+    "`scripts\zigux/check_phase1_parity.zig`",
     "`zigux/tests/phase1_bench.zig`",
     "`zigux/tests/fixtures/phase1_bench_expectations.json`",
     "`zigux/tests/fixtures/phase1_helpers_c_harness.c`",
@@ -76,7 +76,7 @@ test "tests README preserves the current Phase 1 direct-readback packet and rout
     try expectContains(readme, "current focused Phase 1 helper replay route: `zig build phase1-helpers --build-file zigux/tests/phase1_helpers_build.zig`");
     try expectInOrder(
         readme,
-        "`scripts/zigux/validate-phase1-closure.py`",
+        "`scripts\zigux/validate_phase1_closure.zig`",
         "`zigux/tests/README.md`",
     );
     try expectInOrder(

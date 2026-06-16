@@ -77,16 +77,16 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-27", manifest.surveyed_commit);
     try std.testing.expectEqualStrings(
-        "scripts/zigux/check-phase15-readiness-gate-packet.py",
+        "scripts\zigux/check_phase15_readiness_gate_packet.zig",
         manifest.readiness_packet_checker,
     );
     try std.testing.expectEqual(@as(usize, 41), manifest.direct_packet_paths.len);
     try std.testing.expectEqual(@as(usize, 9), manifest.phase15_validate_checkers.len);
     try std.testing.expectEqual(@as(usize, 0), manifest.still_missing_broader_paths.len);
 
-    try expectSliceContains(manifest.direct_packet_paths, "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py");
-    try expectSliceContains(manifest.direct_packet_paths, "scripts/zigux/check-phase15-readiness-gate-packet.py");
-    try expectSliceContains(manifest.direct_packet_paths, "scripts/zigux/validate-phase15.py");
+    try expectSliceContains(manifest.direct_packet_paths, "scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig");
+    try expectSliceContains(manifest.direct_packet_paths, "scripts\zigux/check_phase15_readiness_gate_packet.zig");
+    try expectSliceContains(manifest.direct_packet_paths, "scripts\zigux/validate_phase15.zig");
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_architecture_council_review_process_build.zig");
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_freeze_map_governance.zig");
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_handoff_next_steps_manifest.json");
@@ -95,10 +95,10 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_readiness_gate_manifest.json");
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_readiness_gap_matrix.json");
 
-    try expectSliceContains(manifest.phase15_validate_checkers, "scripts/zigux/check-phase15-docs-readme-alignment.py");
-    try expectSliceContains(manifest.phase15_validate_checkers, "scripts/zigux/check-phase15-architecture-council-packet.py");
-    try expectSliceContains(manifest.phase15_validate_checkers, "scripts/zigux/check-phase15-handoff-note-alignment.py");
-    try expectSliceContains(manifest.phase15_validate_checkers, "scripts/zigux/check-phase15-shared-summary-gap.py");
+    try expectSliceContains(manifest.phase15_validate_checkers, "scripts\zigux/check_phase15_docs_readme_alignment.zig");
+    try expectSliceContains(manifest.phase15_validate_checkers, "scripts\zigux/check_phase15_architecture_council_packet.zig");
+    try expectSliceContains(manifest.phase15_validate_checkers, "scripts\zigux/check_phase15_handoff_note_alignment.zig");
+    try expectSliceContains(manifest.phase15_validate_checkers, "scripts\zigux/check_phase15_shared_summary_gap.zig");
 
     try std.testing.expect(manifest.repo_evidence.phase15_readiness_packet_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_architecture_council_packet_checker_present);
@@ -177,10 +177,10 @@ test "phase 15 readiness note stays aligned with the validator-first packet" {
         readiness_note,
         "broader make-wrapper and workflow companions still block any claim that the larger Phase 15 replay route is one-command or shared-CI ready",
     );
-    try expectContains(readiness_note, "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`");
-    try expectContains(readiness_note, "`scripts/zigux/check-phase15-handoff-note-alignment.py`");
-    try expectContains(readiness_note, "`scripts/zigux/check-phase15-readiness-gate-packet.py`");
-    try expectContains(readiness_note, "`scripts/zigux/validate-phase15.py`");
+    try expectContains(readiness_note, "`scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig`");
+    try expectContains(readiness_note, "`scripts\zigux/check_phase15_handoff_note_alignment.zig`");
+    try expectContains(readiness_note, "`scripts\zigux/check_phase15_readiness_gate_packet.zig`");
+    try expectContains(readiness_note, "`scripts\zigux/validate_phase15.zig`");
     try expectContains(readiness_note, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
     try expectContains(readiness_note, "`zigux/tests/phase15_freeze_map_governance.zig`");
     try expectContains(readiness_note, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");

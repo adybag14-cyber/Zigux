@@ -14,7 +14,7 @@ This document records the bounded Phase 13 survey lane around `security/landlock
   - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
   - `zigux/tests/phase13_landlock_ruleset.zig`
   - `zigux/tests/phase13_landlock_ruleset_manifest.json`
-  - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
+  - `scripts\zigux/check_phase13_landlock_ruleset_packet.zig`
 
 ## Why this slice exists
 The Phase 13 roadmap explicitly names `security/landlock/ruleset.c` as one of the shared subsystem-helper anchors.
@@ -62,4 +62,4 @@ This slice does not claim:
 - closure of the wider Phase 13 shared-helper tranche
 
 ## Next bounded step
-If this helper-local packet reopens, compare `security/landlock/ruleset.zig`, `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, and `scripts/zigux/check-phase13-landlock-ruleset-packet.py` together on current `master` before widening into any new shared release-note, syscall, notifier, or live-state work.
+If this helper-local packet reopens, compare `security/landlock/ruleset.zig`, `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, and `scripts\zigux/check_phase13_landlock_ruleset_packet.zig` together on current `master` before widening into any new shared release-note, syscall, notifier, or live-state work.

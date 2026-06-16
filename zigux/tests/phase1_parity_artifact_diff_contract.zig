@@ -28,13 +28,13 @@ fn expectAnyContains(haystack: []const u8, needles: []const []const u8) !void {
 }
 
 test "phase1 parity checker keeps the committed fixture and artifact diff helper wired" {
-    const checker = try readFileAlloc("scripts/zigux/check-phase1-parity.py");
+    const checker = try readFileAlloc("scripts\zigux/check_phase1_parity.zig");
     defer std.testing.allocator.free(checker);
 
     const required_paths = [_][]const u8{
         "zigux/tests/fixtures/phase1_helpers.json",
         "zigux/tests/fixtures/phase1_helpers_c_harness.c",
-        "scripts/zigux/artifact_diff.py",
+        "scripts/zigux/artifact_diff.zig",
     };
     for (required_paths) |path| {
         try expectContains(checker, path);
@@ -66,11 +66,11 @@ test "phase1 parity checker keeps the committed fixture and artifact diff helper
 }
 
 test "phase1 parity and artifact diff gates keep fail closed marker catalogs visible" {
-    const parity_checker = try readFileAlloc("scripts/zigux/check-phase1-parity.py");
+    const parity_checker = try readFileAlloc("scripts\zigux/check_phase1_parity.zig");
     defer std.testing.allocator.free(parity_checker);
     const artifact_helper = try readFileAlloc("scripts/zigux/artifact_diff.zig");
     defer std.testing.allocator.free(artifact_helper);
-    const artifact_contract = try readFileAlloc("scripts/zigux/check-artifact-diff-contract.py");
+    const artifact_contract = try readFileAlloc("scripts\zigux/check_artifact_diff_contract.zig");
     defer std.testing.allocator.free(artifact_contract);
 
     const parity_issue_markers = [_][]const u8{
@@ -169,7 +169,7 @@ test "phase1 committed fixture and manifest keep helper coverage aligned" {
 test "artifact diff gate keeps binary diff mode and review coverage visible" {
     const helper = try readFileAlloc("scripts/zigux/artifact_diff.zig");
     defer std.testing.allocator.free(helper);
-    const contract = try readFileAlloc("scripts/zigux/check-artifact-diff-contract.py");
+    const contract = try readFileAlloc("scripts\zigux/check_artifact_diff_contract.zig");
     defer std.testing.allocator.free(contract);
     const note = try readFileAlloc("Documentation/zigux/artifact-diff.md");
     defer std.testing.allocator.free(note);
@@ -219,7 +219,7 @@ test "artifact diff gate keeps binary diff mode and review coverage visible" {
     });
     try expectContains(contract, "ARTIFACT_DIFF_CONTRACT=pass");
 
-    try expectContains(note, "scripts/zigux/artifact_diff.py");
+    try expectContains(note, "scripts/zigux/artifact_diff.zig");
     try expectContains(note, "`Tooling and Validation Team` owns the shared Phase 4 artifact-diff note packet");
     try expectContains(note, "Near-term follow-through should stay limited to truthful catalog refreshes");
 }

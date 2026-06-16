@@ -37,7 +37,7 @@ surfaces through:
 
 The shared route is now:
 
-- `scripts/zigux/validate-phase11.py`
+- `scripts\zigux/validate_phase11.zig`
 - `make -C zigux phase11-validate`
 
 The shared packet also keeps the focused teardown-or-failure-mode proof builds
@@ -51,8 +51,8 @@ explicit through:
 The shared validator roster already fail-closes around the current route and
 check inventory through:
 
-- `scripts/zigux/check-phase11-validate-check-roster.py`
-- `scripts/zigux/check-phase11-validate-route-alignment.py`
+- `scripts\zigux/check_phase11_validate_check_roster.zig`
+- `scripts\zigux/check_phase11_validate_route_alignment.zig`
 
 ## Live Gap Versus The Roadmap
 

@@ -10,7 +10,7 @@ Lane: `P2-L01`
 ## Current repo evidence
 
 - Current `master` still directly serves `scripts/zigux/fixdep.zig`, so the core Zig-side dual-implementation helper remains present on head.
-- Current `master` also directly serves `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, and `scripts/zigux/validate-phase2.py`, so the helper, dedicated gate, parity checker, and shared Phase 2 validator packet are all materialized together.
+- Current `master` also directly serves `scripts\zigux/check_phase2_fixdep_gate.zig`, `scripts\zigux/check_fixdep_diff.zig`, and `scripts\zigux/validate_phase2.zig`, so the helper, dedicated gate, parity checker, and shared Phase 2 validator packet are all materialized together.
 - Current `master` directly serves `zigux/tests/fixtures/fixdep/cases.json`, which now carries the bounded thirteen-case external fixdep packet, including `sample_dependency_continuation`, `sample_comment_continuation`, `sample_double_backslash_comment`, and the current `/dev/full` stdout-failure replays.
 - The live `zigux/Makefile` still exposes `phase2-fixdep` with the dedicated fixdep gate self-test, fixdep gate run, fixdep diff self-test, fixdep diff run, and `zig test scripts/zigux/fixdep.zig` replay.
 - The live `.github/workflows/zigux-bootstrap.yml` still replays the same fixdep packet on current `master` through the dedicated gate self-test and run, the fixdep diff self-test and run, `make -C zigux phase2-fixdep`, and the direct `zig test scripts/zigux/fixdep.zig` step.
@@ -34,7 +34,7 @@ Lane: `P2-L01`
 The current repo evidence now supports keeping this lane parked unless a fresh current-`master` reread finds new drift inside the live fixdep helper, checker, fixture, or route packet.
 
 1. Leave `zigux/tests/README.md` out of this lane unless the shared Phase 2 reminder lane explicitly reopens it.
-2. Keep `scripts/zigux/check-phase2-fixdep-gate.py` aligned with the current helper-local test roster, including the public `runFixdep` escaped-colon entry-path test.
+2. Keep `scripts\zigux/check_phase2_fixdep_gate.zig` aligned with the current helper-local test roster, including the public `runFixdep` escaped-colon entry-path test.
 3. If a future current-head reread makes `scripts/basic/fixdep.c` directly readable through the authenticated exact-path contents route again, refresh this survey note to retire the degraded-read gap.
 4. If a future fixdep behavior lane widens the helper-local regression packet again, keep the gate and survey aligned in the same run so the survey does not fall behind landed code.
 5. Do not widen from this survey into genksyms, kconfig, parser behavior, or shared Phase 2 reminder maintenance.

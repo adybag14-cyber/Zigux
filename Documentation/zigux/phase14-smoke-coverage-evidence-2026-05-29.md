@@ -14,8 +14,8 @@ This note records the `P14-L03` end-to-end smoke lane readback for current `mast
 The following current-`master` files were directly readable through the contents path during this run:
 
 - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, blob `83793609ada351c5c46b8f2b0b3e2d22b3c59c99`
-- `scripts/zigux/check-phase14-shared-smoke-route.py`, blob `f2bb6d69a9ba2051fc91ee20fa965f8635a6e7c1`
-- `scripts/zigux/validate-phase14.py`, blob `c1f45e1b6029c5435c0bcc13b1e45dff9d86d246`
+- `scripts\zigux/check_phase14_shared_smoke_route.zig`, blob `f2bb6d69a9ba2051fc91ee20fa965f8635a6e7c1`
+- `scripts\zigux/validate_phase14.zig`, blob `c1f45e1b6029c5435c0bcc13b1e45dff9d86d246`
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json`, blob `4fdee52d122e7d2651e5f51de3b80d8b4e5c1051`
 - `zigux/Makefile`, blob `47952e68dfa7f1579860db9b6bed6a6c7fd361d9`
 - `.github/workflows/zigux-bootstrap.yml`, blob `5bdb136b8b6710c08c19566879d5a9da42b63445`

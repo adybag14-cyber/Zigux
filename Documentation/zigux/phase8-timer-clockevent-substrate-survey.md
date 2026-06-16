@@ -26,7 +26,7 @@ Current Phase 8 reminder and validation surfaces already keep the timing boundar
 - `Documentation/zigux/phase8-libbpf-segment-survey.md`
 - `Documentation/zigux/phase8-tooling-lane-sequencing.md`
 - `scripts/zigux/README.md`
-- `scripts/zigux/validate-phase8.py`
+- `scripts\zigux/validate_phase8.zig`
 - `zigux/tests/README.md`
 - `zigux/tests/phase8_perf_buffer_poll.zig`
 - `zigux/tests/phase8_libbpf_segments.zig`
@@ -76,7 +76,7 @@ If follow-up is needed, reread this note together with:
 - `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
 - `Documentation/zigux/phase8-libbpf-segment-survey.md`
 - `scripts/zigux/README.md`
-- `scripts/zigux/validate-phase8.py`
+- `scripts\zigux/validate_phase8.zig`
 - `zigux/tests/README.md`
 
 Then repair the smallest wording surface that overstates Phase 8 timing scope.

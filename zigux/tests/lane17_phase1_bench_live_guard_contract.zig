@@ -1,8 +1,8 @@
 const std = @import("std");
 
 const guard_paths = [_][]const u8{
-    "scripts/zigux/check-phase1-bench-live-check-workflow.py",
-    "../../scripts/zigux/check-phase1-bench-live-check-workflow.py",
+    "scripts\zigux/check_phase1_bench_live_check_workflow.zig",
+    "../../scripts\zigux/check_phase1_bench_live_check_workflow.zig",
 };
 
 fn readGuardSource() ![]u8 {
@@ -43,14 +43,14 @@ test "lane17 guard keeps the bench live workflow handoff explicit" {
     defer std.testing.allocator.free(guard_source);
 
     try expectContains(guard_source, "WORKFLOW_REL = Path(\".github/workflows/zigux-bootstrap.yml\")");
-    try expectContains(guard_source, "BENCH_CHECKER_REL = Path(\"scripts/zigux/check-phase1-bench.py\")");
+    try expectContains(guard_source, "BENCH_CHECKER_REL = Path(\"scripts\zigux/check_phase1_bench.zig\")");
 
     try expectContains(guard_source, "BENCH_SELF_TEST_STEP = \"Self-test current Phase 1 bench checker\"");
-    try expectContains(guard_source, "BENCH_SELF_TEST_RUN = \"python3 scripts/zigux/check-phase1-bench.py --self-test\"");
+    try expectContains(guard_source, "BENCH_SELF_TEST_RUN = \"zig run check_phase1_bench.zig --self-test\"");
     try expectContains(guard_source, "BENCH_LIVE_CHECK_STEP = \"Check current Phase 1 bench packet\"");
-    try expectContains(guard_source, "BENCH_LIVE_CHECK_RUN = \"python3 scripts/zigux/check-phase1-bench.py\"");
+    try expectContains(guard_source, "BENCH_LIVE_CHECK_RUN = \"zig run check_phase1_bench.zig\"");
     try expectContains(guard_source, "FIND_BIT_BENCH_STEP = \"Self-test current Phase 1 find-bit bench anchor checker\"");
-    try expectContains(guard_source, "FIND_BIT_BENCH_RUN = \"python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --self-test\"");
+    try expectContains(guard_source, "FIND_BIT_BENCH_RUN = \"zig run check_phase1_find_bit_bench_anchors.zig --self-test\"");
 }
 
 test "lane17 guard requires exactly the intended workflow chain and marker packet" {

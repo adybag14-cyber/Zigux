@@ -40,8 +40,8 @@ The current repo already exposes the four required Phase 15 governance features 
 Those governance features are also backed by the current Phase 15 readiness packet rather than standing alone as prose:
 
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
-- `scripts/zigux/check-phase15-readiness-gate-packet.py`
-- `scripts/zigux/validate-phase15.py`
+- `scripts\zigux/check_phase15_readiness_gate_packet.zig`
+- `scripts\zigux/validate_phase15.zig`
 - `zigux/tests/phase15_build.zig`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 
@@ -79,7 +79,7 @@ These are readiness gaps because they block one-command or shared-CI replay clai
 
 This note is paired with:
 
-- `scripts/zigux/check-phase15-roadmap-ledger-readiness-gap.py`
+- `scripts\zigux/check_phase15_roadmap_ledger_readiness_gap.zig`
 - `zigux/tests/phase15_roadmap_ledger_readiness_gap_manifest.json`
 
 The checker keeps this lane focused on roadmap-versus-ledger truthfulness and fails closed if:

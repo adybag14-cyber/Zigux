@@ -26,9 +26,9 @@ Keep Phase 3 marked open until every item below is true on current `master`:
 
 - The docs-root release packet stays aligned across `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, this checklist, `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-kernel-export-shim-governance.md`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, `Documentation/zigux/phase3-abi-header-family-survey.md`, `Documentation/zigux/phase3-validator-support-surface.md`, `Documentation/zigux/phase3-shared-reminder-gap.md`, and `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`.
 - The bounded interop packet stays explicit rather than implied: `Documentation/zigux/phase3-bitmap-cpumask-slice.md`, `Documentation/zigux/phase3-list-hlist-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, and `Documentation/zigux/phase3-xarray-slot-slice.md` keep the current helper-local ABI evidence reviewable without being rounded up into full Phase 3 completion.
-- The shared validator packet still reruns through `python3 scripts/zigux/validate-phase3.py`, `python3 scripts/zigux/validate-phase3-validator-support-surface.py`, `python3 scripts/zigux/validate-phase3-export-uapi-survey.py`, `python3 scripts/zigux/validate-phase3-abi-header-family-survey.py`, `python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py`, and `python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`.
-- The shared support bundle still reruns through `python3 scripts/zigux/check-phase3-abi.py`, `python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test`, `python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test`, `python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test`, `python3 scripts/zigux/check-phase3-selftest-surface.py --self-test`, `python3 scripts/zigux/check-phase3-catalog-selftest.py`, `python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test`, and `python3 scripts/zigux/check-phase3-policy-dump.py --self-test`.
-- The shared manifest-backed ABI inventory remains explicit through `zigux/tests/fixtures/phase3_abi_manifest.json`, `scripts/zigux/phase3_catalog.py`, `scripts/zigux/run-phase3-checks.py`, and `scripts/zigux/validate_phase3_selftest.py`.
+- The shared validator packet still reruns through `zig run validate_phase3.zig`, `zig run validate_phase3_validator_support_surface.zig`, `zig run validate_phase3_export_uapi_survey.zig`, `zig run validate_phase3_abi_header_family_survey.zig`, `zig run validate_phase3_policy_unsafe_survey.zig`, and `zig run validate_phase3_low_level_wrapper_survey.zig`.
+- The shared support bundle still reruns through `zig run check_phase3_abi.zig`, `zig run check_phase3_abi_support_packet.zig --self-test`, `zig run check_phase3_abi_manifest_replay_routes.zig --self-test`, `zig run check_phase3_shared_tests_routes.zig --self-test`, `zig run check_phase3_selftest_surface.zig --self-test`, `zig run check_phase3_catalog_selftest.zig`, `zig run check_phase3_policy_starter_packet.zig --self-test`, and `zig run check_phase3_policy_dump.zig --self-test`.
+- The shared manifest-backed ABI inventory remains explicit through `zigux/tests/fixtures/phase3_abi_manifest.json`, `scripts/zigux/phase3_catalog.zig`, `scripts/zigux/run_phase3_checks.zig`, and `scripts/zigux/validate_phase3_selftest.zig`.
 - The directly readable replay routes remain explicit through `zig build phase3-abi-core-packet --build-file zigux/tests/build.zig`, `zig build phase3-dump --build-file zigux/tests/build.zig`, `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`, `zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig`, and `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`.
 - The directly readable Makefile-backed replay routes remain bounded and truthful through `make -C zigux phase3-export-uapi-layout-test`, `make -C zigux phase3-low-level-wrappers`, and `make -C zigux phase3-low-level-wrappers-test`; keep these as explicit route evidence, not as proof that the whole Phase 3 tranche is closed.
 - The shared packet stays limited to bounded ABI, export/UAPI, header-family, policy, unsafe-boundary, and low-level-wrapper evidence rather than deeper scheduler, allocator, MMIO-heavy driver, DMA, or runtime-core completion claims.
@@ -47,16 +47,16 @@ Keep the checklist in the open state while these Phase 3 closure blockers remain
 
 If a full local repo checkout or broader build path is unavailable, keep the same validation order and start with the Python truthfulness packet before relying on focused Zig replay routes:
 
-1. `python3 scripts/zigux/validate-phase3.py`
-2. `python3 scripts/zigux/validate-phase3-validator-support-surface.py`
-3. `python3 scripts/zigux/validate-phase3-export-uapi-survey.py`
-4. `python3 scripts/zigux/validate-phase3-abi-header-family-survey.py`
-5. `python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py`
-6. `python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
-7. `python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test`
-8. `python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test`
-9. `python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test`
-10. `python3 scripts/zigux/check-phase3-selftest-surface.py --self-test`
+1. `zig run validate_phase3.zig`
+2. `zig run validate_phase3_validator_support_surface.zig`
+3. `zig run validate_phase3_export_uapi_survey.zig`
+4. `zig run validate_phase3_abi_header_family_survey.zig`
+5. `zig run validate_phase3_policy_unsafe_survey.zig`
+6. `zig run validate_phase3_low_level_wrapper_survey.zig`
+7. `zig run check_phase3_abi_support_packet.zig --self-test`
+8. `zig run check_phase3_abi_manifest_replay_routes.zig --self-test`
+9. `zig run check_phase3_shared_tests_routes.zig --self-test`
+10. `zig run check_phase3_selftest_surface.zig --self-test`
 11. `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
 12. `zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig`
 13. `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`

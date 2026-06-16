@@ -5,14 +5,14 @@ on:
     branches: [ master ]
     paths:
       - 'scripts/zigux/kconfig/confdata_bridge.zig'
-      - 'scripts/zigux/check-phase2-confdata-output-modes.py'
+      - 'scripts\zigux/check_phase2_confdata_output_modes.zig'
       - '.github/workflows/zigux-phase2-confdata-output-modes.yml'
       - 'scripts/zigux/zig-toolchain-policy.json'
       - 'third_party/**'
   pull_request:
     paths:
       - 'scripts/zigux/kconfig/confdata_bridge.zig'
-      - 'scripts/zigux/check-phase2-confdata-output-modes.py'
+      - 'scripts\zigux/check_phase2_confdata_output_modes.zig'
       - '.github/workflows/zigux-phase2-confdata-output-modes.yml'
       - 'scripts/zigux/zig-toolchain-policy.json'
       - 'third_party/**'
@@ -43,13 +43,13 @@ jobs:
           python-version: '3.x'
 
       - name: Setup pinned Zig toolchain
-        run: python3 scripts/zigux/install-zig.py
+        run: zig run scripts/zigux/install_zig.zig
 
       - name: Compile confdata output-mode gate
-        run: python3 -m py_compile scripts/zigux/check-phase2-confdata-output-modes.py
+        run: python3 -m py_compile scripts\zigux/check_phase2_confdata_output_modes.zig
 
       - name: Self-test confdata output-mode gate
-        run: python3 scripts/zigux/check-phase2-confdata-output-modes.py --self-test
+        run: zig run check_phase2_confdata_output_modes.zig --self-test
 
       - name: Check deterministic confdata output modes
-        run: python3 scripts/zigux/check-phase2-confdata-output-modes.py
+        run: zig run check_phase2_confdata_output_modes.zig

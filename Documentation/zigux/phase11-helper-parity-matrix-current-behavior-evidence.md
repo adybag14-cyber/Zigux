@@ -38,7 +38,7 @@ The survey also keeps the focused teardown-or-failure-mode proof builds explicit
 
 The current lightweight survey checker blob reread for this lane is:
 
-- `scripts/zigux/check-phase11-matrix-gap-survey.py`: `58ad4965d1a714c48b22b886f89cc69b3da7e3f1`
+- `scripts\zigux/check_phase11_matrix_gap_survey.zig`: `58ad4965d1a714c48b22b886f89cc69b3da7e3f1`
 
 That checker currently requires the shared survey to retain:
 
@@ -61,14 +61,14 @@ PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=24
 
 The stricter cross-surface checker blob reread for this lane is:
 
-- `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`: `2ec8d6d2db9f3992cf8dcacfb7418ed780c72676`
+- `scripts\zigux/check_phase11_validation_matrix_gap_survey.zig`: `2ec8d6d2db9f3992cf8dcacfb7418ed780c72676`
 
 That checker currently validates the shared survey against all of these surfaces together:
 
 - `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/fixtures/phase11_validate_checks.json`
-- `scripts/zigux/validate-phase11.py`
+- `scripts\zigux/validate_phase11.zig`
 - `zigux/Makefile`
 
 Its current behavior requires:

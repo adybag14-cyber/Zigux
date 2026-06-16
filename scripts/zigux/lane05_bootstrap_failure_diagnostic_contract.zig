@@ -139,7 +139,7 @@ test "lane05 bootstrap failure diagnostic rejects a missing mirror source" {
         \\canonical_tag = "upstream-a3ae499dc297"
         \\repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"
         \\repo_archive_parts_dir="${repo_archive_path}.parts"
-        \\python3 scripts/zigux/stage-pinned-zig-archive.py
+        \\zig run scripts/zigux/stage_pinned_zig_archive.zig
         \\if try_local_archive; then
         \\elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then
         \\fi
@@ -161,7 +161,7 @@ test "lane05 bootstrap failure diagnostic stays after direct ziglang fallback" {
         \\canonical_tag = "upstream-a3ae499dc297"
         \\repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"
         \\repo_archive_parts_dir="${repo_archive_path}.parts"
-        \\python3 scripts/zigux/stage-pinned-zig-archive.py
+        \\zig run scripts/zigux/stage_pinned_zig_archive.zig
         \\if try_local_archive; then
         \\elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then
         \\elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then

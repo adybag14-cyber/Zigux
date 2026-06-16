@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const checker_path = "scripts/zigux/check-phase1-string-review-packet.py";
+const checker_path = "scripts\zigux/check_phase1_string_review_packet.zig";
 const closure_path = "Documentation/zigux/phase1-closure.md";
 const lane_note_path = "Documentation/zigux/phase1-host-helper-lane-sequencing.md";
 
@@ -57,8 +57,8 @@ test "phase1 closure note advertises the string review guard as current reminder
     const closure = try readFile(closure_path);
     defer std.testing.allocator.free(closure);
 
-    try expectContains(closure, "`scripts/zigux/check-phase1-string-review-packet.py`");
-    try expectContains(closure, "PHASE1_STRING_REVIEW_GUARD=python3 scripts/zigux/check-phase1-string-review-packet.py");
+    try expectContains(closure, "`scripts\zigux/check_phase1_string_review_packet.zig`");
+    try expectContains(closure, "PHASE1_STRING_REVIEW_GUARD=zig run check_phase1_string_review_packet.zig");
     try expectContains(closure, "helper-local string sysfs newline-aware equality and lookup-order anchors stay explicit");
     try expectContains(closure, "`memtostr()`, `memtostrPad()`, and `memtostr_pad()`");
 }

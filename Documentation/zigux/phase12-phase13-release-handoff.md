@@ -14,7 +14,7 @@ It is a release-planning artifact only. It does not close either tranche, widen 
 - lane owner: `pmo-release`
 - Phase 12 source companions: `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`
 - Phase 13 destination companions: `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase13-release-packet-index.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`
-- shared validator-side companions: `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `scripts/zigux/check-phase13-tests-readme-alignment.py`, `scripts/zigux/validate-phase13-release.py`
+- shared validator-side companions: `scripts\zigux/check_build_only_phase12_surface.zig`, `scripts\zigux/check_phase12_release_readiness_packet.zig`, `scripts\zigux/validate_phase12.zig`, `scripts\zigux/check_phase13_shared_summary_surfaces.zig`, `scripts\zigux/check_phase13_tests_readme_alignment.zig`, `scripts\zigux/validate_phase13_release.zig`
 
 ## Handoff Reading
 
@@ -26,8 +26,8 @@ It is a release-planning artifact only. It does not close either tranche, widen 
 
 ## Review Order
 
-1. Reread the Phase 12 source packet first through `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `scripts/zigux/validate-phase12.py`, and `zigux/Makefile`.
-2. Reread the Phase 13 destination packet next through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase13-release-packet-index.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, and `scripts/zigux/check-phase13-tests-readme-alignment.py`.
+1. Reread the Phase 12 source packet first through `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `scripts\zigux/validate_phase12.zig`, and `zigux/Makefile`.
+2. Reread the Phase 13 destination packet next through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase13-release-packet-index.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `scripts\zigux/validate_phase13_release.zig`, `scripts\zigux/check_phase13_shared_summary_surfaces.zig`, and `scripts\zigux/check_phase13_tests_readme_alignment.zig`.
 3. Refresh this note only when one of those two packets changes the cross-phase release boundary. Leave fallback-only evidence refreshes to the neighboring fallback lane and leave helper-local Phase 13 expansion to the shared-helper lane.
 
 ## Boundaries

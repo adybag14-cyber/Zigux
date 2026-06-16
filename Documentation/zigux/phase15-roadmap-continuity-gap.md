@@ -32,13 +32,13 @@ Current `master` now materially carries those owner notes and their focused comp
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - `Documentation/zigux/phase15-deep-core-blocker-survey.md`
 - `Documentation/zigux/README.md`
-- `scripts/zigux/check-lane01-bootstrap-roadmap-phase15.py`
-- `scripts/zigux/check-phase15-docs-readme-alignment.py`
-- `scripts/zigux/check-phase15-architecture-council-packet.py`
-- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
-- `scripts/zigux/check-phase15-tests-readme-alignment.py`
-- `scripts/zigux/check-phase15-shared-summary-gap.py`
-- `scripts/zigux/validate-phase15.py`
+- `scripts\zigux/check_lane01_bootstrap_roadmap_phase15.zig`
+- `scripts\zigux/check_phase15_docs_readme_alignment.zig`
+- `scripts\zigux/check_phase15_architecture_council_packet.zig`
+- `scripts\zigux/check_phase15_scripts_readme_alignment.zig`
+- `scripts\zigux/check_phase15_tests_readme_alignment.zig`
+- `scripts\zigux/check_phase15_shared_summary_gap.zig`
+- `scripts\zigux/validate_phase15.zig`
 - `zigux/tests/phase15_freeze_map_governance.zig`
 - `zigux/tests/phase15_parity_scorecard.json`
 - `zigux/tests/phase15_parity_scorecard.zig`
@@ -65,8 +65,8 @@ The roadmap-required governance minimums are directly readable today:
 - the Architecture Council review-process packet is materialized through `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, and `Documentation/zigux/phase15-architecture-council-decision-index.md`
 - the parity scorecard is materialized through `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `zigux/tests/phase15_parity_scorecard.json`, and `zigux/tests/phase15_parity_scorecard.zig`
 - the indefinite-C policy is materialized through `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, and `zigux/tests/phase15_indefinite_c_policy.zig`
-- the broad docs-root reminder is now materialized through the Phase 15 section in `Documentation/zigux/README.md` and kept reviewable through `scripts/zigux/check-phase15-docs-readme-alignment.py`
-- the bootstrap-roadmap Phase 15 packet is now directly guarded by `scripts/zigux/check-lane01-bootstrap-roadmap-phase15.py`
+- the broad docs-root reminder is now materialized through the Phase 15 section in `Documentation/zigux/README.md` and kept reviewable through `scripts\zigux/check_phase15_docs_readme_alignment.zig`
+- the bootstrap-roadmap Phase 15 packet is now directly guarded by `scripts\zigux/check_lane01_bootstrap_roadmap_phase15.zig`
 
 That means the current continuity gap is no longer a missing-owner-note problem and no longer the older docs-root Phase 14-only reminder problem. It has narrowed to reminder-surface maintenance and route-truthfulness around an already-materialized governance packet.
 
@@ -104,9 +104,9 @@ Before making that move, reread these together:
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase15-shared-summary-gap.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
-- `scripts/zigux/check-lane01-bootstrap-roadmap-phase15.py`
-- `scripts/zigux/check-phase15-docs-readme-alignment.py`
-- `scripts/zigux/check-phase15-shared-summary-gap.py`
+- `scripts\zigux/check_lane01_bootstrap_roadmap_phase15.zig`
+- `scripts\zigux/check_phase15_docs_readme_alignment.zig`
+- `scripts\zigux/check_phase15_shared_summary_gap.zig`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 

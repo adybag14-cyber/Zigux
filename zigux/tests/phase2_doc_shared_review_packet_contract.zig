@@ -36,9 +36,9 @@ test "docs root keeps the current Phase 2 shared review packet explicit" {
     try expectContains(docs_root, "Phase 2 notes");
     try expectContains(docs_root, "`Documentation/zigux/review-checklist.md`");
     try expectContains(docs_root, "`zigux/tests/README.md`");
-    try expectContains(docs_root, "`scripts/zigux/check-phase2-docs-shared-reminder.py`");
-    try expectContains(docs_root, "`scripts/zigux/check-phase2-artifact-tools-manifest.py`");
-    try expectContains(docs_root, "`scripts/zigux/check-phase2-fixdep-gate.py`");
+    try expectContains(docs_root, "`scripts\zigux/check_phase2_docs_shared_reminder.zig`");
+    try expectContains(docs_root, "`scripts\zigux/check_phase2_artifact_tools_manifest.zig`");
+    try expectContains(docs_root, "`scripts\zigux/check_phase2_fixdep_gate.zig`");
     try expectContains(docs_root, "`make -C zigux phase2-genksyms`");
     try expectContains(docs_root, "`make -C zigux phase2-fixdep`");
 }
@@ -55,10 +55,10 @@ test "review checklist keeps the Phase 2 reviewer prompt aligned" {
     try expectContains(checklist, "if the change touches the shared Phase 2 toolchain packet");
     try expectContains(checklist, "`Documentation/zigux/README.md`");
     try expectContains(checklist, "`zigux/tests/README.md`");
-    try expectContains(checklist, "`scripts/zigux/check-phase2-docs-shared-reminder.py`");
-    try expectContains(checklist, "`scripts/zigux/check-phase2-artifact-tools-manifest.py`");
-    try expectContains(checklist, "`scripts/zigux/check-phase2-required-make-routes.py`");
-    try expectContains(checklist, "`scripts/zigux/check-phase2-fixdep-gate.py`");
+    try expectContains(checklist, "`scripts\zigux/check_phase2_docs_shared_reminder.zig`");
+    try expectContains(checklist, "`scripts\zigux/check_phase2_artifact_tools_manifest.zig`");
+    try expectContains(checklist, "`scripts\zigux/check_phase2_required_make_routes.zig`");
+    try expectContains(checklist, "`scripts\zigux/check_phase2_fixdep_gate.zig`");
     try expectContains(checklist, "`make -C zigux phase2-fixdep`");
 }
 
@@ -73,10 +73,10 @@ test "tests root keeps the Phase 2 packet visible to Zig-facing validation" {
 
     try expectContains(tests_readme, "## Phase 2 review packet");
     try expectContains(tests_readme, "`Documentation/zigux/review-checklist.md`");
-    try expectContains(tests_readme, "`scripts/zigux/check-phase2-docs-shared-reminder.py`");
-    try expectContains(tests_readme, "`scripts/zigux/check-phase2-artifact-tools-manifest.py`");
-    try expectContains(tests_readme, "`scripts/zigux/check-phase2-required-make-routes.py`");
-    try expectContains(tests_readme, "`scripts/zigux/check-phase2-fixdep-gate.py`");
+    try expectContains(tests_readme, "`scripts\zigux/check_phase2_docs_shared_reminder.zig`");
+    try expectContains(tests_readme, "`scripts\zigux/check_phase2_artifact_tools_manifest.zig`");
+    try expectContains(tests_readme, "`scripts\zigux/check_phase2_required_make_routes.zig`");
+    try expectContains(tests_readme, "`scripts\zigux/check_phase2_fixdep_gate.zig`");
     try expectContains(tests_readme, "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`");
     try expectContains(tests_readme, "`make -C zigux phase2-fixdep`");
 }

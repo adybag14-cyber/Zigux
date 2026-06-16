@@ -6,10 +6,10 @@ pub fn build(b: *std.Build) void {
 
     const checker_text = std.Io.Dir.cwd().readFileAlloc(
         b.graph.io,
-        "scripts/zigux/check-phase1-bench.py",
+        "scripts\zigux/check_phase1_bench.zig",
         b.allocator,
         .limited(1024 * 1024),
-    ) catch @panic("unable to read scripts/zigux/check-phase1-bench.py");
+    ) catch @panic("unable to read scripts\zigux/check_phase1_bench.zig");
 
     const options = b.addOptions();
     options.addOption([]const u8, "checker_text", checker_text);

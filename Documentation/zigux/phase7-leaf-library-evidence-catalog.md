@@ -7,14 +7,14 @@
 - `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
-- `scripts/zigux/check-phase7-shared-surface.py`
-- `scripts/zigux/check-phase7-build-wiring.py`
-- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
-- `scripts/zigux/check-phase7-cmdline-packet.py`
-- `scripts/zigux/check-phase7-argv-split-packet.py`
-- `scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`
-- `scripts/zigux/check-phase7-rbtree-parity.py`
-- `scripts/zigux/validate-phase7.py`
+- `scripts\zigux/check_phase7_shared_surface.zig`
+- `scripts\zigux/check_phase7_build_wiring.zig`
+- `scripts\zigux/check_phase7_make_wrapper_selftest_alignment.zig`
+- `scripts\zigux/check_phase7_cmdline_packet.zig`
+- `scripts\zigux/check_phase7_argv_split_packet.zig`
+- `scripts\zigux/check_phase7_string_helpers_format_boundary_packet.zig`
+- `scripts\zigux/check_phase7_rbtree_parity.zig`
+- `scripts\zigux/validate_phase7.zig`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `zigux/tests/phase7_leaf_library_evidence_manifest.json`
@@ -41,22 +41,22 @@
 
 ## Current replay inventory
 
-- `python3 scripts/zigux/check-phase7-shared-surface.py`
-- `python3 scripts/zigux/check-phase7-shared-surface.py --self-test`
-- `python3 scripts/zigux/check-phase7-build-wiring.py`
-- `python3 scripts/zigux/check-phase7-build-wiring.py --self-test`
-- `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
-- `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test`
-- `python3 scripts/zigux/check-phase7-cmdline-packet.py`
-- `python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test`
-- `python3 scripts/zigux/check-phase7-argv-split-packet.py`
-- `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`
-- `python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`
-- `python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py --self-test`
-- `python3 scripts/zigux/check-phase7-rbtree-parity.py`
-- `python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test`
-- `python3 scripts/zigux/validate-phase7.py`
-- `python3 scripts/zigux/validate-phase7.py --self-test`
+- `zig run check_phase7_shared_surface.zig`
+- `zig run check_phase7_shared_surface.zig --self-test`
+- `zig run check_phase7_build_wiring.zig`
+- `zig run check_phase7_build_wiring.zig --self-test`
+- `zig run check_phase7_make_wrapper_selftest_alignment.zig`
+- `zig run check_phase7_make_wrapper_selftest_alignment.zig --self-test`
+- `zig run check_phase7_cmdline_packet.zig`
+- `zig run check_phase7_cmdline_packet.zig --self-test`
+- `zig run check_phase7_argv_split_packet.zig`
+- `zig run check_phase7_argv_split_packet.zig --self-test`
+- `zig run check_phase7_string_helpers_format_boundary_packet.zig`
+- `zig run check_phase7_string_helpers_format_boundary_packet.zig --self-test`
+- `zig run check_phase7_rbtree_parity.zig`
+- `zig run check_phase7_rbtree_parity.zig --self-test`
+- `zig run validate_phase7.zig`
+- `zig run validate_phase7.zig --self-test`
 - `make -C zigux phase7-validate`
 
 ## Current build-wiring evidence
@@ -68,9 +68,9 @@
 
 ## Current repo-reality gaps
 
-- shared `Documentation/zigux/README.md` Phase 7 reminder text still omits the shipped `scripts/zigux/check-phase7-cmdline-packet.py` guard from the shared packet inventory
-- shared `Documentation/zigux/review-checklist.md` Phase 7 reminder text still omits the shipped `scripts/zigux/check-phase7-cmdline-packet.py` guard from the shared packet inventory
-- shared `scripts/zigux/README.md` and `zigux/tests/README.md` Phase 7 reminder text still omits the shipped `scripts/zigux/check-phase7-cmdline-packet.py` guard from the shared packet inventory
+- shared `Documentation/zigux/README.md` Phase 7 reminder text still omits the shipped `scripts\zigux/check_phase7_cmdline_packet.zig` guard from the shared packet inventory
+- shared `Documentation/zigux/review-checklist.md` Phase 7 reminder text still omits the shipped `scripts\zigux/check_phase7_cmdline_packet.zig` guard from the shared packet inventory
+- shared `scripts/zigux/README.md` and `zigux/tests/README.md` Phase 7 reminder text still omits the shipped `scripts\zigux/check_phase7_cmdline_packet.zig` guard from the shared packet inventory
 
 ## Review posture
 

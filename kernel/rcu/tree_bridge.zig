@@ -28,8 +28,8 @@ pub const review_packet = [_][]const u8{
     "Documentation/zigux/phase14-core-boundary-traceability.md",
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
     "zigux/tests/phase14_end_to_end_smoke_manifest.json",
-    "scripts/zigux/check-phase14-rcu-compile-route.py",
-    "scripts/zigux/check-phase14-rcu-rollback-guardrail.py",
+    "scripts\zigux/check_phase14_rcu_compile_route.zig",
+    "scripts\zigux/check_phase14_rcu_rollback_guardrail.zig",
 };
 
 pub const blocked_boundaries = [_]BridgeBoundary{
@@ -182,8 +182,8 @@ test "tree bridge boundary map stays review-only" {
     try std.testing.expectEqualStrings("Documentation/zigux/phase14-core-boundary-traceability.md", review_packet[4]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase14-end-to-end-smoke-survey.md", review_packet[5]);
     try std.testing.expectEqualStrings("zigux/tests/phase14_end_to_end_smoke_manifest.json", review_packet[6]);
-    try std.testing.expectEqualStrings("scripts/zigux/check-phase14-rcu-compile-route.py", review_packet[7]);
-    try std.testing.expectEqualStrings("scripts/zigux/check-phase14-rcu-rollback-guardrail.py", review_packet[8]);
+    try std.testing.expectEqualStrings("scripts\zigux/check_phase14_rcu_compile_route.zig", review_packet[7]);
+    try std.testing.expectEqualStrings("scripts\zigux/check_phase14_rcu_rollback_guardrail.zig", review_packet[8]);
     try std.testing.expectEqual(@as(usize, 11), blockedBoundaryCount());
     try std.testing.expectEqual(@as(usize, 9), concurrencyCoupledBoundaryCount());
     try std.testing.expectEqual(@as(usize, 2), publicWaitSurfaceBoundaryCount());

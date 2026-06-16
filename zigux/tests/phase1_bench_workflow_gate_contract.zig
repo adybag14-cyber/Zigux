@@ -10,32 +10,32 @@ const Command = struct {
 
 const phase1_bench_selftest = Command{
     .name = "Self-test current Phase 1 bench checker",
-    .run = "python3 scripts/zigux/check-phase1-bench.py --self-test",
+    .run = "zig run check_phase1_bench.zig --self-test",
 };
 
 const phase1_bench_check = Command{
     .name = "Check current Phase 1 bench packet",
-    .run = "python3 scripts/zigux/check-phase1-bench.py",
+    .run = "zig run check_phase1_bench.zig",
 };
 
 const phase1_bench_workflow_selftest = Command{
     .name = "Self-test current Phase 1 bench live-check workflow guard",
-    .run = "python3 scripts/zigux/check-phase1-bench-live-check-workflow.py --self-test",
+    .run = "zig run check_phase1_bench_live_check_workflow.zig --self-test",
 };
 
 const phase1_bench_workflow_check = Command{
     .name = "Check current Phase 1 bench live-check workflow guard packet",
-    .run = "python3 scripts/zigux/check-phase1-bench-live-check-workflow.py",
+    .run = "zig run check_phase1_bench_live_check_workflow.zig",
 };
 
 const phase1_find_bit_bench_selftest = Command{
     .name = "Self-test current Phase 1 find-bit bench anchor checker",
-    .run = "python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --self-test",
+    .run = "zig run check_phase1_find_bit_bench_anchors.zig --self-test",
 };
 
 const phase1_find_bit_bench_check = Command{
     .name = "Check current Phase 1 find-bit bench anchor packet",
-    .run = "python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py",
+    .run = "zig run check_phase1_find_bit_bench_anchors.zig",
 };
 
 fn requireMissing(haystack: []const u8, needle: []const u8) !void {
@@ -72,15 +72,15 @@ test "workflow keeps bench live-check and find-bit bench gates as exact commands
 
     try requireMissing(
         workflow_text,
-        "run: python3 scripts/zigux/check-phase1-bench-live-check-workflow.py --allow-missing",
+        "run: zig run check_phase1_bench_live_check_workflow.zig --allow-missing",
     );
     try requireMissing(
         workflow_text,
-        "run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --root",
+        "run: zig run check_phase1_find_bit_bench_anchors.zig --root",
     );
     try requireMissing(
         workflow_text,
-        "run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --allow-missing",
+        "run: zig run check_phase1_find_bit_bench_anchors.zig --allow-missing",
     );
 }
 
@@ -102,17 +102,17 @@ test "bench workflow guard follows the live bench check before find-bit bench an
 test "bench gate window stays between route-summary and shared-reminder closure gates" {
     const route_summary_index = try markerIndex(
         workflow_text,
-        "- name: Check current Phase 1 route summary packet\n        run: python3 scripts/zigux/check-phase1-route-summary-counts.py\n",
+        "- name: Check current Phase 1 route summary packet\n        run: zig run check_phase1_route_summary_counts.zig\n",
     );
     const bench_selftest_index = try commandIndex(phase1_bench_selftest);
     const find_bit_check_index = try commandIndex(phase1_find_bit_bench_check);
     const shared_reminder_index = try markerIndex(
         workflow_text,
-        "- name: Self-test current Phase 1 shared reminder checker\n        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test\n",
+        "- name: Self-test current Phase 1 shared reminder checker\n        run: zig run check_phase1_shared_reminder_packet.zig --self-test\n",
     );
     const closure_index = try markerIndex(
         workflow_text,
-        "- name: Self-test current Phase 1 closure validator\n        run: python3 scripts/zigux/validate-phase1-closure.py --self-test\n",
+        "- name: Self-test current Phase 1 closure validator\n        run: zig run validate_phase1_closure.zig --self-test\n",
     );
     const smoke_index = try markerIndex(
         workflow_text,

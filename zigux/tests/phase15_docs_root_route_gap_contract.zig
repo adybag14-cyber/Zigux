@@ -41,13 +41,13 @@ test "phase 15 docs root keeps validator and build companion present" {
     const build_file = try readFile(allocator, "zigux/tests/phase15_build.zig");
     defer allocator.free(build_file);
 
-    try expectContains(docs_root, "scripts/zigux/validate-phase15.py");
+    try expectContains(docs_root, "scripts\zigux/validate_phase15.zig");
     try expectContains(docs_root, "zigux/tests/phase15_build.zig");
     try expectContains(shared_gap, "dedicated validator maintenance gate");
     try expectContains(shared_gap, "dedicated shared build companion");
-    try expectContains(handoff, "scripts/zigux/validate-phase15.py");
+    try expectContains(handoff, "scripts\zigux/validate_phase15.zig");
     try expectContains(handoff, "zigux/tests/phase15_build.zig");
-    try expectContains(scripts_root, "directly readable `scripts/zigux/validate-phase15.py` maintenance gate");
+    try expectContains(scripts_root, "directly readable `scripts\zigux/validate_phase15.zig` maintenance gate");
     try expectContains(scripts_root, "directly readable `zigux/tests/phase15_build.zig` shared build companion");
     try expectContains(tests_root, "zigux/tests/phase15_architecture_council_review_process_build.zig");
     try expectContains(build_file, "phase15-freeze-map-governance");

@@ -22,9 +22,9 @@ test "phase2 closure keeps artifact support and shared tooling packet explicit" 
 
     try expectContains(closure, "PHASE2_STATUS=parked");
     try expectContains(closure, "PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest");
-    try expectContains(closure, "scripts/zigux/check-phase2-artifact-tools-manifest.py");
-    try expectContains(closure, "`scripts/zigux/artifact_diff.py` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair");
-    try expectContains(closure, "PHASE2_SHARED_TOOLING_CHECKERS=python3 scripts/zigux/check-phase2-tool-manifest.py,python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py,python3 scripts/zigux/check-phase2-artifact-tools-manifest.py");
+    try expectContains(closure, "scripts\zigux/check_phase2_artifact_tools_manifest.zig");
+    try expectContains(closure, "`scripts/zigux/artifact_diff.zig` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair");
+    try expectContains(closure, "PHASE2_SHARED_TOOLING_CHECKERS=zig run check_phase2_tool_manifest.zig,zig run check_phase2_bootstrap_workflow_routes.zig,zig run check_phase2_artifact_tools_manifest.zig");
     try expectContains(closure, "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2");
 
     try expectOrder(
@@ -34,7 +34,7 @@ test "phase2 closure keeps artifact support and shared tooling packet explicit" 
     );
     try expectOrder(
         closure,
-        "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+        "scripts\zigux/check_phase2_artifact_tools_manifest.zig",
         "PHASE2_SHARED_TOOLING_CHECKERS=",
     );
 }
@@ -45,8 +45,8 @@ test "artifact diff note preserves phase2 comparison ownership boundary" {
 
     try expectContains(artifact_note, "## Current Phase 2 use");
     try expectContains(artifact_note, "Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep` and the kconfig bridge packet.");
-    try expectContains(artifact_note, "The current `genksyms` bridge packet keeps its fixture comparisons local to `scripts/zigux/check-genksyms-bridge.py`.");
-    try expectContains(artifact_note, "scripts/zigux/artifact_diff.py");
+    try expectContains(artifact_note, "The current `genksyms` bridge packet keeps its fixture comparisons local to `scripts\zigux/check_genksyms_bridge.zig`.");
+    try expectContains(artifact_note, "scripts/zigux/artifact_diff.zig");
     try expectContains(artifact_note, "text`, `json`, and `bytes` artifacts");
 
     try expectOrder(artifact_note, "## Current Phase 1 use", "## Current Phase 2 use");
@@ -65,9 +65,9 @@ test "scripts readme and bootstrap ledger keep the broadened phase2 tranche hand
     defer std.testing.allocator.free(ledger);
 
     try expectContains(scripts_readme, "Phase 2 flow - the current scripts-root bridge packet stays reviewable through the live toolchain checker");
-    try expectContains(scripts_readme, "scripts/zigux/check-phase2-docs-shared-reminder.py");
-    try expectContains(scripts_readme, "scripts/zigux/check-phase2-required-make-routes.py");
-    try expectContains(scripts_readme, "scripts/zigux/check-phase2-artifact-tools-manifest.py");
+    try expectContains(scripts_readme, "scripts\zigux/check_phase2_docs_shared_reminder.zig");
+    try expectContains(scripts_readme, "scripts\zigux/check_phase2_required_make_routes.zig");
+    try expectContains(scripts_readme, "scripts\zigux/check_phase2_artifact_tools_manifest.zig");
     try expectContains(scripts_readme, "zigux/tests/fixtures/phase2_artifact_tools_manifest.json");
     try expectContains(scripts_readme, "make -C zigux phase2-toolchain");
     try expectContains(scripts_readme, "make -C zigux phase2");

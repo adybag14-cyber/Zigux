@@ -11,7 +11,7 @@ Current directly readable deferred-exec packet on `master`:
 - `Documentation/zigux/phase8-exec-cmd-slice.md`
 - `Documentation/zigux/phase8-exec-cmd-repo-reality-note.md`
 - `Documentation/zigux/review-checklist.md`
-- `scripts/zigux/validate-phase8.py`
+- `scripts\zigux/validate_phase8.zig`
 - `tools/lib/subcmd/exec-cmd.zig`
 - `zigux/Makefile`
 - `zigux/tests/README.md`
@@ -21,8 +21,8 @@ Current directly readable deferred-exec packet on `master`:
 Current directly readable sibling Phase 8 anchors on `master`:
 - `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
 - `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
-- `scripts/zigux/check-phase8-tests-readme-alignment.py`
-- `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+- `scripts\zigux/check_phase8_tests_readme_alignment.zig`
+- `scripts\zigux/check_phase8_perf_buffer_poll_gate.zig`
 - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
 - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
 - `zigux/tests/phase8_file_path_handle_bridge.zig`

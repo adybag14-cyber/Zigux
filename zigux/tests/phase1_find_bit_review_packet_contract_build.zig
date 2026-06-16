@@ -13,7 +13,7 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const options = b.addOptions();
-    options.addOption([]const u8, "checker_text", readText(b, "scripts/zigux/check-phase1-find-bit-review-packet.py"));
+    options.addOption([]const u8, "checker_text", readText(b, "scripts\zigux/check_phase1_find_bit_review_packet.zig"));
     options.addOption([]const u8, "lane_note_text", readText(b, "Documentation/zigux/phase1-host-helper-lane-sequencing.md"));
     options.addOption([]const u8, "closure_note_text", readText(b, "Documentation/zigux/phase1-closure.md"));
     options.addOption([]const u8, "manifest_text", readText(b, "zigux/tests/fixtures/phase1_helper_manifest.json"));

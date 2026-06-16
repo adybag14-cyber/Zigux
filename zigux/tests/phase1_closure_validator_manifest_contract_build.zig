@@ -13,7 +13,7 @@ pub fn build(b: *std.Build) void {
         []const u8,
         "validator-path",
         "Path to the Phase 1 closure validator",
-    ) orelse "scripts/zigux/validate-phase1-closure.py";
+    ) orelse "scripts\zigux/validate_phase1_closure.zig";
     const manifest_path = b.option(
         []const u8,
         "manifest-path",

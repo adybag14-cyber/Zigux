@@ -27,9 +27,9 @@ The broader helper-local packet still reads missing on current `master`:
 - `zigux/tests/phase7_rbtree.zig`
 - `zigux/tests/fixtures/phase7_rbtree.json`
 - `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
-- `scripts/zigux/check-phase7-rbtree-parity.py`
+- `scripts\zigux/check_phase7_rbtree_parity.zig`
 - `zigux/tests/phase7_build.zig`
-- `scripts/zigux/validate-phase7.py`
+- `scripts\zigux/validate_phase7.zig`
 
 Readable non-owner evidence that still matters for route truthfulness:
 
@@ -64,7 +64,7 @@ Use this order when rechecking the current packet:
 2. Recheck `zigux/tests/phase7_rbtree_survey.zig` so the survey still exact-requires the same owner-map and missing-path truthfulness.
 3. Recheck `Documentation/zigux/phase7-helper-lane-sequencing.md` so the shared owner map still keeps same-lane work anchored to the surviving survey-plus-manifest packet.
 4. Recheck `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` only as non-owner route evidence; do not use them alone to imply that the broader rbtree helper packet returned.
-5. Recheck `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, `scripts/zigux/check-phase7-rbtree-parity.py`, `zigux/tests/phase7_build.zig`, and `scripts/zigux/validate-phase7.py` only if a fresh reread proves those missing files have returned.
+5. Recheck `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, `scripts\zigux/check_phase7_rbtree_parity.zig`, `zigux/tests/phase7_build.zig`, and `scripts\zigux/validate_phase7.zig` only if a fresh reread proves those missing files have returned.
 
 ## Next Bounded Step
 

@@ -6,22 +6,22 @@ Keep the current lane split explicit:
 - shared sequencing lane `P2-Y10` owns only shared Phase 2 toolchain reminder and anti-overlap work
 - shared backlog truthfulness lane `P2-Y12` owns turning current cross-family backlog evidence into one bounded next-safe-step correction when a shared reminder surface overclaims unshipped direct replays or wider checker coverage on current `master`
 - Makefile toolchain lane `P2-X09` owns the repo-local `.zig-toolchain` fallback and the shipped Phase 2 routes in `zigux/Makefile`
-- fixdep route-governance lane `P2-Y01` owns fixdep gate-marker and route-inventory wording around `scripts/zigux/check-phase2-fixdep-gate.py`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `Documentation/zigux/phase2-closure.md`, and directly coupled reminder surfaces
-- fixdep closure lane `P2-Y02` owns bounded next-step or closure truthfulness after the route-governance packet is already split, including same-family reminder wording around `Documentation/zigux/phase2-fixdep-next-step-note.md`, `Documentation/zigux/artifact-diff.md`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, and `zigux/tests/fixtures/fixdep/`
+- fixdep route-governance lane `P2-Y01` owns fixdep gate-marker and route-inventory wording around `scripts\zigux/check_phase2_fixdep_gate.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `Documentation/zigux/phase2-closure.md`, and directly coupled reminder surfaces
+- fixdep closure lane `P2-Y02` owns bounded next-step or closure truthfulness after the route-governance packet is already split, including same-family reminder wording around `Documentation/zigux/phase2-fixdep-next-step-note.md`, `Documentation/zigux/artifact-diff.md`, `scripts\zigux/check_fixdep_diff.zig`, `scripts/zigux/fixdep.zig`, and `zigux/tests/fixtures/fixdep/`
 - genksyms roadmap-survey lane `P2-L07` owns repo-versus-roadmap evidence for the wrapper-first bridge packet recorded in `Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`
 - genksyms note-truthfulness lane `P2-L12` owns same-family survey or closure wording corrections when live workflow or validator routing drifts after the roadmap survey packet is already landed
-- genksyms fixture lane `P2-L10` owns bounded genksyms bridge fixture and expected-output drift around `scripts/zigux/genksyms.zig`, `scripts/zigux/check-genksyms-bridge.py`, and `zigux/tests/fixtures/genksyms_bridge/`
+- genksyms fixture lane `P2-L10` owns bounded genksyms bridge fixture and expected-output drift around `scripts/zigux/genksyms.zig`, `scripts\zigux/check_genksyms_bridge.zig`, and `zigux/tests/fixtures/genksyms_bridge/`
 - genksyms gate lane `P2-L11` owns workflow-backed replay or validator wiring for the already-landed genksyms bridge packet
 - kconfig bridge behavior lane `P2-X05` owns `scripts/zigux/kconfig/conf_bridge.zig` behavior follow-up together with the committed `zigux/tests/fixtures/kconfig_bridge/cases.json` request packet
-- kconfig bridge checker parity lane `P2-L18` owns the current `conf_bridge` checker-and-manifest helper-anchor parity around `scripts/zigux/check-kconfig-bridge.py` plus `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
+- kconfig bridge checker parity lane `P2-L18` owns the current `conf_bridge` checker-and-manifest helper-anchor parity around `scripts\zigux/check_kconfig_bridge.zig` plus `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
 - confdata survey lane `P2-L19` stays parked as the scaffold-closed survey note under `Documentation/zigux/phase2-confdata-bridge-survey.md`
-- confdata checker lane `P2-Y07` owns current checker-underflow repair around `scripts/zigux/check-kconfig-bridge.py` and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
+- confdata checker lane `P2-Y07` owns current checker-underflow repair around `scripts\zigux/check_kconfig_bridge.zig` and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
 - confdata bridge truthfulness lane `P2-L24` owns malformed-quote and helper-anchor follow-through inside `scripts/zigux/kconfig/confdata_bridge.zig` plus directly coupled checker or manifest wording when substantive bridge-local changes land
 The roadmap-backed toolchain tranche from the Phase 2 plan and the bootstrap ledger is already represented on current `master` by the shared route inventory, tool-manifest packet, cross-target packet, closure note, bootstrap note, and lane-sequencing note above.
 Future Phase 2 toolchain work should therefore prefer owner-map and review-surface truthfulness over reopening already-split tool-local replay steps from the wrong lane.
 ## Owner Split
 Keep the current owner map explicit:
-- shared sequencing truthfulness under `P2-Y10` owns only cross-family reminder drift in `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/phase2-toolchain-lane-sequencing.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_cross_targets.json`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, `scripts/zigux/check-phase2-tool-manifest.py`, `scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-docs-shared-reminder.py`, `scripts/zigux/check-phase2-cross.py`, `scripts/zigux/check-phase2-cross-selftest-alignment.py`, `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, and `zigux/Makefile`
+- shared sequencing truthfulness under `P2-Y10` owns only cross-family reminder drift in `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/phase2-toolchain-lane-sequencing.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_cross_targets.json`, `scripts\zigux/check_phase2_toolchain_pin_scope.zig`, `scripts\zigux/check_phase2_tool_manifest.zig`, `scripts\zigux/check_phase2_tests_readme_alignment.zig`, `scripts\zigux/check_phase2_docs_shared_reminder.zig`, `scripts\zigux/check_phase2_cross.zig`, `scripts\zigux/check_phase2_cross_selftest_alignment.zig`, `scripts\zigux/check_phase2_kconfig_selftest_alignment.zig`, `scripts\zigux/validate_phase2.zig`, `scripts\zigux/validate_phase2_closure.zig`, and `zigux/Makefile`
 - shared backlog truthfulness under `P2-Y12` owns only the next-safe-step correction when the shared packet names wider direct replay coverage than the live Makefile and closure note actually ship; keep that lane parked unless a shared reminder, README, validator, or checker surface starts pointing at the wrong same-tranche follow-through, not at tool-local behavior inside `fixdep.zig`, `genksyms.zig`, `conf_bridge.zig`, `confdata_bridge.zig`, or `mk_elfconfig.zig`
 - `P2-X09` owns direct Makefile route or `.zig-toolchain` fallback drift only; it does not own fixdep, genksyms, conf bridge, or confdata replay expansion
 - `P2-Y01` owns fixdep route-governance and gate-marker drift only, while `P2-Y02` owns fixdep closure-note or next-step truthfulness after that route split; shared sequencing lanes should not collapse those two packets back into one generic fixdep reopen
@@ -46,15 +46,15 @@ When a real cross-family Phase 2 toolchain change lands, keep these shared surfa
 - `zigux/tests/README.md`
 - `zigux/tests/fixtures/phase2_tool_manifest.json`
 - `zigux/tests/fixtures/phase2_cross_targets.json`
-- `scripts/zigux/check-phase2-toolchain-pin-scope.py`
-- `scripts/zigux/check-phase2-tool-manifest.py`
-- `scripts/zigux/check-phase2-tests-readme-alignment.py`
-- `scripts/zigux/check-phase2-docs-shared-reminder.py`
-- `scripts/zigux/check-phase2-cross.py`
-- `scripts/zigux/check-phase2-cross-selftest-alignment.py`
-- `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
-- `scripts/zigux/validate-phase2.py`
-- `scripts/zigux/validate-phase2-closure.py`
+- `scripts\zigux/check_phase2_toolchain_pin_scope.zig`
+- `scripts\zigux/check_phase2_tool_manifest.zig`
+- `scripts\zigux/check_phase2_tests_readme_alignment.zig`
+- `scripts\zigux/check_phase2_docs_shared_reminder.zig`
+- `scripts\zigux/check_phase2_cross.zig`
+- `scripts\zigux/check_phase2_cross_selftest_alignment.zig`
+- `scripts\zigux/check_phase2_kconfig_selftest_alignment.zig`
+- `scripts\zigux/validate_phase2.zig`
+- `scripts\zigux/validate_phase2_closure.zig`
 - `zigux/Makefile`
 - `make -C zigux phase2-toolchain`
 - `make -C zigux phase2-validate`

@@ -9,8 +9,8 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 - scope: roadmap-backed symbol-lane reminder truthfulness, helper-first expansion wording, focused build-route verification, and one remaining helper-local reopen cue only
 - current directly readable packet in this scheduled environment:
   - `Documentation/zigux/phase8-kallsyms-slice.md`
-  - `scripts/zigux/validate-phase8.py`
-  - `scripts/zigux/check-phase8-help-kallsyms-packet.py` through authenticated GitHub contents readback
+  - `scripts\zigux/validate_phase8.zig`
+  - `scripts\zigux/check_phase8_help_kallsyms_packet.zig` through authenticated GitHub contents readback
   - `zigux/Makefile` through authenticated GitHub contents readback
   - `tools/lib/symbol/kallsyms.zig` through the public raw fallback
   - `zigux/tests/phase8_kallsyms.zig` and `zigux/tests/phase8_kallsyms_only_build.zig` through the public raw fallback
@@ -32,8 +32,8 @@ The current repo state that is directly verifiable from this run is narrower tha
 This run could verify that:
 
 - `Documentation/zigux/phase8-kallsyms-slice.md` is present on `master`
-- `scripts/zigux/validate-phase8.py` is present on `master`
-- `scripts/zigux/check-phase8-help-kallsyms-packet.py` is present on `master` through authenticated GitHub contents readback, keeping the dedicated lane markers for shared validation overlap only, `make -C zigux phase8-kallsyms-test`, and the current CRLF-normalizing parser contract reviewable without relying on the raw fallback for that checker body
+- `scripts\zigux/validate_phase8.zig` is present on `master`
+- `scripts\zigux/check_phase8_help_kallsyms_packet.zig` is present on `master` through authenticated GitHub contents readback, keeping the dedicated lane markers for shared validation overlap only, `make -C zigux phase8-kallsyms-test`, and the current CRLF-normalizing parser contract reviewable without relying on the raw fallback for that checker body
 - the public raw fallback returns usable `tools/lib/symbol/kallsyms.zig` helper content, including the landed direct parser callback wrapper surface around `kallsymsParseFile()`, `forEachParsedPath()`, and `kallsymsParse()`
 - that same helper body still shows that oversized symbol names now truncate to `KSYM_NAME_LEN`
 - that same helper body still shows that weak-object `V` and `v` classes still follow the current C header contract
@@ -51,7 +51,7 @@ The current readable packet still covers:
 - the roadmap-backed claim that `kallsyms` remains a valid Phase 8 tool lane
 - the helper-first expansion wording and the landed direct `kallsymsParse()` wrapper surface
 - one directly readable lane note that matches the mixed read surface available to this scheduled run
-- one directly readable `scripts/zigux/check-phase8-help-kallsyms-packet.py` checker body through authenticated GitHub contents readback
+- one directly readable `scripts\zigux/check_phase8_help_kallsyms_packet.zig` checker body through authenticated GitHub contents readback
 - one directly readable `zigux/Makefile` route packet through authenticated GitHub contents readback
 - one directly readable `tools/lib/symbol/kallsyms.zig` helper body through the public raw fallback
 - oversized symbol names now truncate to `KSYM_NAME_LEN`
@@ -86,4 +86,4 @@ Because the current mixed-source readback now exposes the checker and Makefile t
 
 Until then, keep the note aligned with the landed wrapper surface, keep the dedicated `make -C zigux phase8-kallsyms-test` route tied to the helper-local source tests, keep the broader dedicated replay packet visible through its parked `startup_64` witness after CRLF normalization, keep the empty-scratch-buffer fail-closed guard visible beside that same focused packet, and treat the mixed `phase8-help-kallsyms` smoke route as shared validation only instead of reopening broader Phase 8 wording or help-lane ownership.
 
-If authenticated contents reads become practical later, restart with one focused replay step around the dedicated packet: reread `tools/lib/symbol/kallsyms.zig`, `scripts/zigux/check-phase8-help-kallsyms-packet.py`, `zigux/tests/phase8_kallsyms.zig`, `zigux/tests/phase8_kallsyms_only_build.zig`, and `make -C zigux phase8-kallsyms-test` from the same exact-write-capable source, then land the smallest checker-, helper-, or test-local follow-through that the reread actually proves.
+If authenticated contents reads become practical later, restart with one focused replay step around the dedicated packet: reread `tools/lib/symbol/kallsyms.zig`, `scripts\zigux/check_phase8_help_kallsyms_packet.zig`, `zigux/tests/phase8_kallsyms.zig`, `zigux/tests/phase8_kallsyms_only_build.zig`, and `make -C zigux phase8-kallsyms-test` from the same exact-write-capable source, then land the smallest checker-, helper-, or test-local follow-through that the reread actually proves.

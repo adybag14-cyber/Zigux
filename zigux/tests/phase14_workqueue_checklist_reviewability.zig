@@ -94,7 +94,7 @@ test "phase14 workqueue checklist remains aligned with the current study-only sh
     );
     defer std.testing.allocator.free(review_checklist);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "shared Phase 14 smoke packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "`scripts/zigux/validate-phase14.py` framed as blob-readable mixed-source evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "`scripts\zigux/validate_phase14.zig` framed as blob-readable mixed-source evidence") != null);
     try std.testing.expect(std.mem.indexOf(
         u8,
         review_checklist,
@@ -113,6 +113,6 @@ test "phase14 workqueue checklist remains aligned with the current study-only sh
     try std.testing.expect(std.mem.indexOf(
         u8,
         review_checklist,
-        "`scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_ring_buffer_survey.zig`, `zigux/tests/phase14_rcu_tree_survey.zig`, and `net/core/skbuff_bridge.zig` framed as repo-reality gaps rather than shipped current-`master` proof",
+        "`scripts\zigux/check_phase14_release_boundary_exact_counts.zig`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_ring_buffer_survey.zig`, `zigux/tests/phase14_rcu_tree_survey.zig`, and `net/core/skbuff_bridge.zig` framed as repo-reality gaps rather than shipped current-`master` proof",
     ) != null);
 }

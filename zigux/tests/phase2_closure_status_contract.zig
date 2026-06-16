@@ -40,7 +40,7 @@ test "phase 2 closure note keeps current parked status and restored surface poin
     try expectContains(closure, "`PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest`");
     try expectContains(closure, "manifest: `zigux/tests/fixtures/phase2_tool_manifest.json`");
     try expectContains(closure, "shared note: `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`");
-    try expectContains(closure, "shared validator pair: `python3 scripts/zigux/validate-phase2.py` and `python3 scripts/zigux/validate-phase2-closure.py`");
+    try expectContains(closure, "shared validator pair: `zig run validate_phase2.zig` and `zig run validate_phase2_closure.zig`");
     try expectMissing(closure, "`PHASE2_STATUS=closed`");
     try expectMissing(closure, "`PHASE2_CLOSURE_RESTORE_STATE=workflow_only`");
 }
@@ -80,9 +80,9 @@ test "phase 2 manifest keeps closure notes and validators aligned with the parke
     try expectContains(manifest, "\"repo_reality_gaps\": []");
     try expectContains(manifest, "\"Documentation/zigux/phase2-closure.md\"");
     try expectContains(manifest, "\"Documentation/zigux/phase2-toolchain-bootstrap-notes.md\"");
-    try expectContains(manifest, "\"scripts/zigux/validate-phase2.py\"");
-    try expectContains(manifest, "\"scripts/zigux/validate-phase2-closure.py\"");
-    try expectContains(manifest, "\"scripts/zigux/check-phase2-tool-manifest.py\"");
-    try expectContains(manifest, "\"scripts/zigux/check-phase2-bootstrap-workflow-routes.py\"");
-    try expectContains(manifest, "\"scripts/zigux/check-phase2-artifact-tools-manifest.py\"");
+    try expectContains(manifest, "\"scripts\zigux/validate_phase2.zig\"");
+    try expectContains(manifest, "\"scripts\zigux/validate_phase2_closure.zig\"");
+    try expectContains(manifest, "\"scripts\zigux/check_phase2_tool_manifest.zig\"");
+    try expectContains(manifest, "\"scripts\zigux/check_phase2_bootstrap_workflow_routes.zig\"");
+    try expectContains(manifest, "\"scripts\zigux/check_phase2_artifact_tools_manifest.zig\"");
 }

@@ -71,7 +71,7 @@ test "phase 2 closure and scripts root share the required replay packet" {
     try expectContains(phase2_closure.contents, "PHASE2_STATUS=parked");
     try expectContains(phase2_closure.contents, "PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest");
     try expectContains(phase2_closure.contents, "PHASE2_SHARED_MAKE_ROUTES=");
-    try expectContains(scripts_readme.contents, "scripts/zigux/check-phase2-required-make-routes.py");
+    try expectContains(scripts_readme.contents, "scripts\zigux/check_phase2_required_make_routes.zig");
 
     for (required_routes) |route| {
         try expectContains(phase2_closure.contents, route);
@@ -85,13 +85,13 @@ test "artifact diff phase 2 scope stays aligned with the closure reminder" {
     const artifact_diff_note = try readFile("Documentation/zigux/artifact-diff.md", 512 * 1024);
     defer unloadFile(artifact_diff_note);
 
-    try expectContains(phase2_closure.contents, "scripts/zigux/artifact_diff.py");
+    try expectContains(phase2_closure.contents, "scripts/zigux/artifact_diff.zig");
     try expectContains(phase2_closure.contents, "zigux/tests/fixtures/phase2_artifact_tools_manifest.json");
-    try expectContains(phase2_closure.contents, "python3 scripts/zigux/check-phase2-artifact-tools-manifest.py");
+    try expectContains(phase2_closure.contents, "zig run check_phase2_artifact_tools_manifest.zig");
 
     try expectContains(artifact_diff_note.contents, "## Current Phase 2 use");
     try expectContains(artifact_diff_note.contents, "Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep` and the kconfig bridge packet.");
-    try expectContains(artifact_diff_note.contents, "The current `genksyms` bridge packet keeps its fixture comparisons local to `scripts/zigux/check-genksyms-bridge.py`.");
+    try expectContains(artifact_diff_note.contents, "The current `genksyms` bridge packet keeps its fixture comparisons local to `scripts\zigux/check_genksyms_bridge.zig`.");
     try expectContains(artifact_diff_note.contents, "text`, `json`, and `bytes` artifacts");
 
     try expectNotContains(artifact_diff_note.contents, "Phase 2 no longer");

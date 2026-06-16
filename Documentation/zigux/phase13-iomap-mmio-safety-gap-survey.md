@@ -5,7 +5,7 @@ This note records the current roadmap-versus-repo reality for lane `P13-L01` on 
 ## Scope
 
 - `P13_L01_SCOPE=this lane stays inside the iomap/mmio safety surface survey and compares the current Zigux MMIO helper against the roadmap rule that approved MMIO wrappers must keep the unsafe surface narrow, reviewable, and validation-backed`
-- `P13_L01_REPO_EVIDENCE=direct current-head readback reaches zigux/helpers/mmio.zig, zigux/helpers/unsafe_policy.zig, zigux/unsafe/narrow.zig, zigux/tests/phase3_low_level_wrappers.zig, Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, and scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
+- `P13_L01_REPO_EVIDENCE=direct current-head readback reaches zigux/helpers/mmio.zig, zigux/helpers/unsafe_policy.zig, zigux/unsafe/narrow.zig, zigux/tests/phase3_low_level_wrappers.zig, Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, and scripts\zigux/validate_phase3_low_level_wrapper_survey.zig`
 - `P13_L01_ROADMAP_RULE=the roadmap keeps MMIO inside the approved atomic/barrier/MMIO wrapper family and requires wrapper-first handling plus a narrow unsafe surface rather than open-ended raw access`
 
 ## Current Landed Surface

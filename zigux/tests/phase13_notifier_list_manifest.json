@@ -43,7 +43,7 @@
       "sha": "57f1542b3e6f1901f444bc2d94b5e438f14eb9b3",
       "behavior": "Keeps the adjacent HVC notifier declarations visible through notifier_add_irq, notifier_del_irq, notifier_hangup_irq, and the hv_ops notifier callbacks."
     },
-    "scripts/zigux/check-phase13-notifier-packet.py": {
+    "scripts\zigux/check_phase13_notifier_packet.zig": {
       "sha": "be20b2bbd5c0b6bf73f0a5b1b03ea2d15bf06875",
       "behavior": "Fail-closes the adjacent packet around the survey note, manifest, reviewability gate, read-only helpers, the exported list-empty, first-pprev, broken-prev, consistent-prev, and C-side tail-next witnesses, HVC declarations, and repo-reality-gap wording."
     },
@@ -51,7 +51,7 @@
       "sha": "6d89c65a0582ed3d3dfe35d99093d97be46c13e0",
       "behavior": "Keeps the manifest, survey, checker, binding, helper, ABI-header, HVC-header, the exported list-empty, first-pprev, broken-prev, consistent-prev, and C-side tail-next witnesses, and returned zigux/Makefile versus missing shared-route distinction visible without widening into the shared Phase 13 build shard."
     },
-    "scripts/zigux/validate-phase13-release.py": {
+    "scripts\zigux/validate_phase13_release.zig": {
       "sha": "31c8bb1fb9be5fb023dfb429a02ff9014965042e",
       "behavior": "Keeps the shared Phase 13 release reminder packet aligned while treating the missing dedicated notifier ABI header and missing shared build-route names as repo-reality gaps."
     },
@@ -86,14 +86,14 @@
       "id": "phase13-notifier-focused-packet-checker",
       "status": "starter_landed",
       "kind": "validation",
-      "zigux_destination": "scripts/zigux/check-phase13-notifier-packet.py",
+      "zigux_destination": "scripts\zigux/check_phase13_notifier_packet.zig",
       "why_now": "The focused checker now fail-closes on the survey, manifest, reviewability gate, ABI foothold, notifier-chain, list_head, and hlist helpers, exported list-empty, first-pprev, broken-prev, consistent-prev, and C-side tail-next witnesses, and HVC notifier declarations for the shipped adjacent packet."
     },
     {
       "id": "phase13-notifier-release-validator-companion",
       "status": "starter_landed",
       "kind": "validation",
-      "zigux_destination": "scripts/zigux/validate-phase13-release.py",
+      "zigux_destination": "scripts\zigux/validate_phase13_release.zig",
       "why_now": "Current master ships the shared Phase 13 release validator, and the adjacent notifier packet depends on that returned companion to keep shipped surfaces and repo-reality gaps framed truthfully."
     },
     {
@@ -114,7 +114,7 @@
       "id": "phase13-notifier-priority-signal-gap",
       "status": "blocked_on_checker_followthrough",
       "kind": "validation",
-      "zigux_destination": "scripts/zigux/check-phase13-notifier-priority-signal.py",
+      "zigux_destination": "scripts\zigux/check_phase13_notifier_priority_signal.zig",
       "why_now": "The focused packet checker keeps the adjacent packet fail-closed, but the separate priority-signal companion is still absent on current master."
     },
     {

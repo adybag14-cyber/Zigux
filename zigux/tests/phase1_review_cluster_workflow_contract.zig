@@ -10,65 +10,65 @@ const Step = struct {
 const review_steps = [_]Step{
     .{
         .name = "Self-test current Phase 1 direct-anchor manifest gate",
-        .command = "python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py --self-test",
+        .command = "zig run check_phase1_direct_anchor_manifest_gate.zig --self-test",
     },
     .{
         .name = "Check current Phase 1 direct-anchor manifest gate",
-        .command = "python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py",
+        .command = "zig run check_phase1_direct_anchor_manifest_gate.zig",
     },
     .{
         .name = "Self-test current Phase 1 string review checker",
-        .command = "python3 scripts/zigux/check-phase1-string-review-packet.py --self-test",
+        .command = "zig run check_phase1_string_review_packet.zig --self-test",
     },
     .{
         .name = "Check current Phase 1 string review packet",
-        .command = "python3 scripts/zigux/check-phase1-string-review-packet.py",
+        .command = "zig run check_phase1_string_review_packet.zig",
     },
     .{
         .name = "Self-test current Phase 1 find-bit review checker",
-        .command = "python3 scripts/zigux/check-phase1-find-bit-review-packet.py --self-test",
+        .command = "zig run check_phase1_find_bit_review_packet.zig --self-test",
     },
     .{
         .name = "Check current Phase 1 find-bit review packet",
-        .command = "python3 scripts/zigux/check-phase1-find-bit-review-packet.py",
+        .command = "zig run check_phase1_find_bit_review_packet.zig",
     },
     .{
         .name = "Self-test current Phase 1 bitmap direct-anchor checker",
-        .command = "python3 scripts/zigux/check-phase1-bitmap-direct-anchors.py --self-test",
+        .command = "zig run check_phase1_bitmap_direct_anchors.zig --self-test",
     },
     .{
         .name = "Check current Phase 1 bitmap direct-anchor packet",
-        .command = "python3 scripts/zigux/check-phase1-bitmap-direct-anchors.py",
+        .command = "zig run check_phase1_bitmap_direct_anchors.zig",
     },
     .{
         .name = "Self-test current Phase 1 rbtree review checker",
-        .command = "python3 scripts/zigux/check-phase1-rbtree-review-packet.py --self-test",
+        .command = "zig run check_phase1_rbtree_review_packet.zig --self-test",
     },
     .{
         .name = "Check current Phase 1 rbtree review packet",
-        .command = "python3 scripts/zigux/check-phase1-rbtree-review-packet.py",
+        .command = "zig run check_phase1_rbtree_review_packet.zig",
     },
     .{
         .name = "Self-test current Phase 1 route summary checker",
-        .command = "python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
+        .command = "zig run check_phase1_route_summary_counts.zig --self-test",
     },
     .{
         .name = "Check current Phase 1 route summary packet",
-        .command = "python3 scripts/zigux/check-phase1-route-summary-counts.py",
+        .command = "zig run check_phase1_route_summary_counts.zig",
     },
 };
 
 const stale_variants = [_][]const u8{
-    "python3 scripts/zigux/check-phase1-string-review-packet.py --root",
-    "python3 scripts/zigux/check-phase1-string-review-packet.py --allow-missing",
-    "python3 scripts/zigux/check-phase1-find-bit-review-packet.py --root",
-    "python3 scripts/zigux/check-phase1-find-bit-review-packet.py --allow-missing",
-    "python3 scripts/zigux/check-phase1-bitmap-direct-anchors.py --root",
-    "python3 scripts/zigux/check-phase1-bitmap-direct-anchors.py --allow-missing",
-    "python3 scripts/zigux/check-phase1-rbtree-review-packet.py --root",
-    "python3 scripts/zigux/check-phase1-rbtree-review-packet.py --allow-missing",
-    "python3 scripts/zigux/check-phase1-route-summary-counts.py --root",
-    "python3 scripts/zigux/check-phase1-route-summary-counts.py --allow-missing",
+    "zig run check_phase1_string_review_packet.zig --root",
+    "zig run check_phase1_string_review_packet.zig --allow-missing",
+    "zig run check_phase1_find_bit_review_packet.zig --root",
+    "zig run check_phase1_find_bit_review_packet.zig --allow-missing",
+    "zig run check_phase1_bitmap_direct_anchors.zig --root",
+    "zig run check_phase1_bitmap_direct_anchors.zig --allow-missing",
+    "zig run check_phase1_rbtree_review_packet.zig --root",
+    "zig run check_phase1_rbtree_review_packet.zig --allow-missing",
+    "zig run check_phase1_route_summary_counts.zig --root",
+    "zig run check_phase1_route_summary_counts.zig --allow-missing",
 };
 
 fn readWorkflow() ![]u8 {

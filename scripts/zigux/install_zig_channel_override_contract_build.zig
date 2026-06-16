@@ -16,7 +16,7 @@ pub fn build(b: *std.Build) void {
 
     const contract_step = b.step(
         "install-zig-channel-override-contract",
-        "Validate install-zig.py policy-channel archive verification boundaries",
+        "Validate install_zig.zig policy-channel archive verification boundaries",
     );
     contract_step.dependOn(&run_tests.step);
 

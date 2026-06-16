@@ -12,11 +12,11 @@ const direct_anchor_helpers = [_][]const u8{
 };
 
 const delegated_checkers = [_][]const u8{
-    "scripts/zigux/check-phase1-bitmap-direct-anchors.py",
-    "scripts/zigux/check-phase1-find-bit-review-packet.py",
-    "scripts/zigux/check-phase1-rbtree-direct-anchors.py",
-    "scripts/zigux/check-phase1-rbtree-review-packet.py",
-    "scripts/zigux/check-phase1-string-review-packet.py",
+    "scripts\zigux/check_phase1_bitmap_direct_anchors.zig",
+    "scripts\zigux/check_phase1_find_bit_review_packet.zig",
+    "scripts\zigux/check_phase1_rbtree_direct_anchors.zig",
+    "scripts\zigux/check_phase1_rbtree_review_packet.zig",
+    "scripts\zigux/check_phase1_string_review_packet.zig",
 };
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {

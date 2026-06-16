@@ -1,16 +1,16 @@
 const std = @import("std");
 
 const phase2_closure_artifact_support =
-    \\- `scripts/zigux/artifact_diff.py` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair instead of falling back into repo-reality-gap wording.
-    \\- `python3 scripts/zigux/check-phase2-artifact-tools-manifest.py`
+    \\- `scripts/zigux/artifact_diff.zig` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair instead of falling back into repo-reality-gap wording.
+    \\- `zig run check_phase2_artifact_tools_manifest.zig`
 ;
 
 const artifact_diff_phase2_note =
-    \\Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep` and the kconfig bridge packet. The current `genksyms` bridge packet keeps its fixture comparisons local to `scripts/zigux/check-genksyms-bridge.py`.
+    \\Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep` and the kconfig bridge packet. The current `genksyms` bridge packet keeps its fixture comparisons local to `scripts\zigux/check_genksyms_bridge.zig`.
 ;
 
 const scripts_readme_phase2_packet =
-    \\`scripts/zigux/check-phase2-artifact-tools-manifest.py`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`
+    \\`scripts\zigux/check_phase2_artifact_tools_manifest.zig`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `scripts/zigux/install_zig.zig`, `zig run scripts/zigux/install_zig.zig --self-test`, `zig run check_phase2_cross.zig --self-test`, `zig run check_phase2_cross.zig`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`
 ;
 
 const bootstrap_ledger_lane25 =
@@ -22,8 +22,8 @@ const bootstrap_ledger_lane25 =
 ;
 
 const artifact_support_manifest = "zigux/tests/fixtures/phase2_artifact_tools_manifest.json";
-const artifact_diff_helper = "scripts/zigux/artifact_diff.py";
-const artifact_manifest_checker = "scripts/zigux/check-phase2-artifact-tools-manifest.py";
+const artifact_diff_helper = "scripts/zigux/artifact_diff.zig";
+const artifact_manifest_checker = "scripts\zigux/check_phase2_artifact_tools_manifest.zig";
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
@@ -45,7 +45,7 @@ test "artifact diff note keeps Phase 2 scope bounded to fixdep and kconfig compa
     try expectContains(artifact_diff_phase2_note, "Phase 2 still routes focused host-tool fixture comparisons");
     try expectContains(artifact_diff_phase2_note, "validating `fixdep` and the kconfig bridge packet");
     try expectContains(artifact_diff_phase2_note, "genksyms` bridge packet keeps its fixture comparisons local");
-    try expectContains(artifact_diff_phase2_note, "scripts/zigux/check-genksyms-bridge.py");
+    try expectContains(artifact_diff_phase2_note, "scripts\zigux/check_genksyms_bridge.zig");
     try expectNotContains(artifact_diff_phase2_note, "standalone artifact replay entrypoints");
 }
 

@@ -36,10 +36,10 @@ Current directly readable packet surfaces:
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
-- `scripts/zigux/check-phase11-build-inventory.py`
-- `scripts/zigux/check-phase11-header-boundary-packet.py`
-- `scripts/zigux/check-phase11-focused-direct-build-replays.py`
-- `scripts/zigux/validate-phase11.py`
+- `scripts\zigux/check_phase11_build_inventory.zig`
+- `scripts\zigux/check_phase11_header_boundary_packet.zig`
+- `scripts\zigux/check_phase11_focused_direct_build_replays.zig`
+- `scripts\zigux/validate_phase11.zig`
 - `drivers/tty/hvc/hvc_console.h`
 - `drivers/tty/hvc/hvc_console.zig`
 
@@ -59,16 +59,16 @@ The returned dedicated shared checker now exists, but it is still note-side
 evidence only.
 
 What current `master` machine-checks today is:
-- `scripts/zigux/check-phase11-header-boundary-packet.py` fail-closes on the
+- `scripts\zigux/check_phase11_header_boundary_packet.zig` fail-closes on the
   survey, validation matrix, this checker-coverage note, and the `hv_ops`
   follow-up note through
-  `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test`
-  and `python3 scripts/zigux/check-phase11-header-boundary-packet.py`
-- `scripts/zigux/check-phase11-build-inventory.py` fail-closes on the exact
+  `zig run check_phase11_header_boundary_packet.zig --self-test`
+  and `zig run check_phase11_header_boundary_packet.zig`
+- `scripts\zigux/check_phase11_build_inventory.zig` fail-closes on the exact
   current build inventory and the returned `phase11-validate` route
-- `scripts/zigux/check-phase11-focused-direct-build-replays.py` fail-closes on
+- `scripts\zigux/check_phase11_focused_direct_build_replays.zig` fail-closes on
   the current modem-control and targetless-unregister direct build replays
-- `scripts/zigux/validate-phase11.py` reruns those checker routes together with
+- `scripts\zigux/validate_phase11.zig` reruns those checker routes together with
   the shared matrix-gap checks and the focused proof-build fan-out
 
 So the active checker-coverage truth on current `master` is layered:
@@ -97,7 +97,7 @@ coverage alone:
   between their Phase 10 and Phase 12 packets even though
   `Documentation/zigux/phase11-uapi-header-parity-survey.md`,
   `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`,
-  `scripts/zigux/validate-phase11.py`, `zigux/Makefile`, and
+  `scripts\zigux/validate_phase11.zig`, `zigux/Makefile`, and
   `make -C zigux phase11-validate` are directly readable on current `master`
 
 This note therefore stays useful only if it records that the surviving machine
@@ -114,10 +114,10 @@ only if one of these changes on current `master`:
 - `Documentation/zigux/phase11-uapi-header-parity-checker-coverage-note.md`
 - `Documentation/zigux/phase11-uapi-header-parity-hv-ops-followup.md`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
-- `scripts/zigux/check-phase11-build-inventory.py`
-- `scripts/zigux/check-phase11-header-boundary-packet.py`
-- `scripts/zigux/check-phase11-focused-direct-build-replays.py`
-- `scripts/zigux/validate-phase11.py`
+- `scripts\zigux/check_phase11_build_inventory.zig`
+- `scripts\zigux/check_phase11_header_boundary_packet.zig`
+- `scripts\zigux/check_phase11_focused_direct_build_replays.zig`
+- `scripts\zigux/validate_phase11.zig`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - the retired shared replay anchors listed above rematerialize

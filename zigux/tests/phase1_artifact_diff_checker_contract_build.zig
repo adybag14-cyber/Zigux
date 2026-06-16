@@ -19,7 +19,7 @@ pub fn build(b: *std.Build) void {
     options.addOption(
         []const u8,
         "checker_source",
-        readRepoFile(b, "scripts/zigux/check-artifact-diff-contract.py"),
+        readRepoFile(b, "scripts\zigux/check_artifact_diff_contract.zig"),
     );
     options.addOption(
         []const u8,

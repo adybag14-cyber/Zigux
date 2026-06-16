@@ -2,10 +2,10 @@ const std = @import("std");
 const contract_options = @import("contract_options");
 
 const reminder_packet_marker =
-    "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-direct-anchor-manifest-gate.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_helpers_build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`";
+    "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts\zigux/check_phase1_string_review_packet.zig,scripts\zigux/check_phase1_direct_owner_markers.zig,scripts\zigux/check_phase1_direct_anchor_manifest_gate.zig,scripts\zigux/check_phase1_bench.zig,scripts\zigux/check_phase1_shared_reminder_packet.zig,scripts\zigux/validate_phase1_closure.zig,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_helpers_build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`";
 
 const gap_packet_marker =
-    "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c`";
+    "`PHASE1_CURRENT_GAP_PACKET=scripts\zigux/validate_phase1.zig,scripts\zigux/check_phase1_parity.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c`";
 
 const expected_reminder_entries = [_][]const u8{
     "Documentation/zigux/phase1-closure.md",
@@ -13,12 +13,12 @@ const expected_reminder_entries = [_][]const u8{
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
-    "scripts/zigux/check-phase1-string-review-packet.py",
-    "scripts/zigux/check-phase1-direct-owner-markers.py",
-    "scripts/zigux/check-phase1-direct-anchor-manifest-gate.py",
-    "scripts/zigux/check-phase1-bench.py",
-    "scripts/zigux/check-phase1-shared-reminder-packet.py",
-    "scripts/zigux/validate-phase1-closure.py",
+    "scripts\zigux/check_phase1_string_review_packet.zig",
+    "scripts\zigux/check_phase1_direct_owner_markers.zig",
+    "scripts\zigux/check_phase1_direct_anchor_manifest_gate.zig",
+    "scripts\zigux/check_phase1_bench.zig",
+    "scripts\zigux/check_phase1_shared_reminder_packet.zig",
+    "scripts\zigux/validate_phase1_closure.zig",
     "zigux/tests/README.md",
     "zigux/tests/build.zig",
     "zigux/tests/phase1_helpers.zig",
@@ -29,8 +29,8 @@ const expected_reminder_entries = [_][]const u8{
 };
 
 const expected_gap_entries = [_][]const u8{
-    "scripts/zigux/validate-phase1.py",
-    "scripts/zigux/check-phase1-parity.py",
+    "scripts\zigux/validate_phase1.zig",
+    "scripts\zigux/check_phase1_parity.zig",
     "zigux/tests/phase1_bench.zig",
     "zigux/tests/fixtures/phase1_bench_expectations.json",
     "zigux/tests/fixtures/phase1_helpers_c_harness.c",
@@ -78,7 +78,7 @@ test "closure note pins current reminder packet and parked gap packet exactly on
 
     try expectOnce(closure_text, reminder_packet_marker);
     try expectOnce(closure_text, gap_packet_marker);
-    try expectOnce(closure_text, "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`");
+    try expectOnce(closure_text, "`PHASE1_CLOSURE_VALIDATOR=zig run validate_phase1_closure.zig`");
     try expectOnce(closure_text, "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`");
     try expectAbsent(closure_text, "`PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master`");
     try expectAbsent(closure_text, "`PHASE1_NEXT_SAFE_STEP=restore the missing phase1 closure note first`");
@@ -128,6 +128,6 @@ test "bootstrap workflow runs Phase 1 closure after direct-anchor checks and bef
     try std.testing.expect(closure_self < closure_live);
     try std.testing.expect(closure_live < phase3_interop);
 
-    try expectOnce(workflow_text, "run: python3 scripts/zigux/validate-phase1-closure.py --self-test");
-    try expectOnce(workflow_text, "\n        run: python3 scripts/zigux/validate-phase1-closure.py\n");
+    try expectOnce(workflow_text, "run: zig run validate_phase1_closure.zig --self-test");
+    try expectOnce(workflow_text, "\n        run: zig run validate_phase1_closure.zig\n");
 }

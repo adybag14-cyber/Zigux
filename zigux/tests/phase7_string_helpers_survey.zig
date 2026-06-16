@@ -55,7 +55,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "the broader full-family packet that still leaves `parse_int_array_user()` and `devm_kasprintf_strarray()` outside the current `master` helper packet");
     try expectContains(slice_note, "Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
 
-    const checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-string-helpers-packet.py");
+    const checker = try readRepoFile(allocator, "scripts\zigux/check_phase7_string_helpers_packet.zig");
     defer allocator.free(checker);
     try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");
     try expectContains(checker, "the explicit `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*kasprintf*`, and `*strarray*` exclusions aligned");
@@ -69,7 +69,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(checker, "try expectContains(helper_tests, \\\"test \\\\\\\"phase 7 string helpers starter keeps termination checks bounded by the caller limit\\\\\\\" {\\\");");
     try expectContains(checker, "try expectContains(manifest, \\\"stringIsTerminated() and string_is_terminated() keep caller-provided bounds explicit and only scan inside the requested prefix\\\");");
 
-    const format_boundary_checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py");
+    const format_boundary_checker = try readRepoFile(allocator, "scripts\zigux/check_phase7_string_helpers_format_boundary_packet.zig");
     defer allocator.free(format_boundary_checker);
     try expectContains(format_boundary_checker, "PHASE7_STRING_HELPERS_FORMAT_BOUNDARY_PACKET_SELF_TEST=pass");
     try expectContains(format_boundary_checker, "\"zigux/tests/phase7_string_helpers_format_boundary.zig\",");
@@ -114,8 +114,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try std.testing.expectEqualStrings("expanded_starter_packet", manifest.current_master_state);
 
     try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-string-helpers-slice.md");
-    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-string-helpers-packet.py");
-    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts\zigux/check_phase7_string_helpers_packet.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts\zigux/check_phase7_string_helpers_format_boundary_packet.zig");
     try expectStringSliceContains(manifest.review_surfaces, "lib/string_helpers.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_string_helpers.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_string_helpers_survey.zig");
@@ -157,7 +157,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     defer allocator.free(sample_boundary);
     try expectContains(sample_boundary, "Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
-    try expectContains(sample_boundary, "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py");
+    try expectContains(sample_boundary, "scripts\zigux/check_phase7_string_helpers_format_boundary_packet.zig");
     try expectContains(sample_boundary, "zigux/tests/phase7_string_helpers_format_boundary.zig");
     try expectContains(sample_boundary, "the broader full-family packet that still leaves `parse_int_array_user()` and `devm_kasprintf_strarray()` outside the current `master` helper packet");
     try expectContains(sample_boundary, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");

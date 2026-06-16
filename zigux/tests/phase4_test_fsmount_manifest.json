@@ -47,7 +47,7 @@
       "id": "phase4-test-fsmount-shared-validator-promotion",
       "status": "starter_landed",
       "kind": "validator_promotion",
-      "zigux_destination": "scripts/zigux/validate-phase4.py",
+      "zigux_destination": "scripts\zigux/validate_phase4.zig",
       "why_now": "The broad validate-phase4 contract now fails closed on the manifest-backed test_fsmount survey packet, so the remaining Phase 4 gap stays sample-side rather than validator-side while the shared phase4-test-fsmount-survey-tests replay keeps the packet measurable."
     },
     {

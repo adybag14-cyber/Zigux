@@ -12,21 +12,21 @@ That makes the smallest honest same-lane improvement a validation-gap artifact r
 
 ### Live repo evidence inspected
 
-- `Documentation/zigux/phase7-rbtree-slice.md` currently lists `scripts/zigux/check-phase7-build-wiring.py` inside the active Phase 7 rbtree product boundary.
-- `scripts/zigux/validate-phase7.py` currently lists both `python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test` and `python3 scripts/zigux/check-phase7-build-wiring.py --self-test` inside the shared Phase 7 validation packet.
-- `scripts/zigux/check-phase7-rbtree-parity.py` currently exact-requires `scripts/zigux/check-phase7-build-wiring.py` from the surrounding review packet.
+- `Documentation/zigux/phase7-rbtree-slice.md` currently lists `scripts\zigux/check_phase7_build_wiring.zig` inside the active Phase 7 rbtree product boundary.
+- `scripts\zigux/validate_phase7.zig` currently lists both `zig run check_phase7_rbtree_parity.zig --self-test` and `zig run check_phase7_build_wiring.zig --self-test` inside the shared Phase 7 validation packet.
+- `scripts\zigux/check_phase7_rbtree_parity.zig` currently exact-requires `scripts\zigux/check_phase7_build_wiring.zig` from the surrounding review packet.
 - the same `check-phase7-rbtree-parity.py` self-test block still shows a narrower `missing_file_cases` list whose visible entries stop at:
   - `missing_manifest`
   - `missing_json_fixture`
   - `missing_c_harness`
-- that visible self-test list does not currently include a missing-file branch for `scripts/zigux/check-phase7-build-wiring.py`, even though the checker now depends on that surface.
+- that visible self-test list does not currently include a missing-file branch for `scripts\zigux/check_phase7_build_wiring.zig`, even though the checker now depends on that surface.
 
 ### Safest bounded repair when the checker body is writable
 
 Preferred one-file follow-up:
 
-1. update `scripts/zigux/check-phase7-rbtree-parity.py`
-2. add one missing-file self-test branch for `scripts/zigux/check-phase7-build-wiring.py`
+1. update `scripts\zigux/check_phase7_rbtree_parity.zig`
+2. add one missing-file self-test branch for `scripts\zigux/check_phase7_build_wiring.zig`
 3. bump `PHASE7_RBTREE_PARITY_SELF_TEST_CASE_COUNT` accordingly
 4. keep the change scoped to the checker self-test only
 

@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const checker_path = "scripts/zigux/check-phase1-rbtree-review-packet.py";
+const checker_path = "scripts\zigux/check_phase1_rbtree_review_packet.zig";
 
 const required_once_markers = [_][]const u8{
     "Guard the Phase 1 rbtree review packet against helper, fixture, smoke, and lane drift.",

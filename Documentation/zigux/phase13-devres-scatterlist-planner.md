@@ -28,14 +28,14 @@ The helper packet now consists of:
 - `zigux/tests/phase13_devres_scatterlist.zig`
 - `zigux/tests/phase13_devres_scatterlist_empty_table.zig`
 - `zigux/tests/phase13_devres_scatterlist_build.zig`
-- `scripts/zigux/check-phase13-devres-scatterlist-planner.py`
+- `scripts\zigux/check_phase13_devres_scatterlist_planner.zig`
 
 Fixture governance stays helper-local:
 - `zigux/tests/phase13_devres_scatterlist.zig` owns the retained-release-record, freed-release-record, impossible-overmapped-request, missing-release-record, exact-release-match, warn-on-release-miss, free-ready-teardown, uninitialized-table-hold, unmap-before-free, and overmapped-teardown-warning fixture coverage for `planManagedScatterlistMap(...)`, `scatterlistReleaseMatches(...)`, `planManagedScatterlistUnmap(...)`, and `planManagedScatterlistTableTeardown(...)`
 - `zigux/tests/phase13_devres_scatterlist_empty_table.zig` owns the initialized-empty-table warning fixture for `planManagedScatterlistTableTeardown(...)`
 - `Documentation/zigux/phase13-devres-scatterlist-slice.md` keeps the helper-local scope and non-goals aligned with this planner note, the manifest, and the replay
 - `zigux/tests/phase13_devres_scatterlist_build.zig` keeps the dedicated build shard aligned with the helper-first scatterlist replay
-- `scripts/zigux/check-phase13-devres-scatterlist-planner.py` is the packet-local validation guard for the helper, slice, note, manifest, build shard, and replay
+- `scripts\zigux/check_phase13_devres_scatterlist_planner.zig` is the packet-local validation guard for the helper, slice, note, manifest, build shard, and replay
 - `zigux/tests/phase13_devres_scatterlist_planner_manifest.json` is the packet-local owner map for that fixture set and should stay aligned with the helper, checker, slice, build shard, and scatterlist replay
 - `zigux/tests/phase13_devres_dma_coherent.zig` remains adjacent boundary evidence only and does not own the helper-local scatterlist fixture packet
 - `Documentation/zigux/phase13-devres-survey.md` remains adjacent boundary evidence only and does not own the helper-local scatterlist fixture packet
@@ -44,6 +44,6 @@ Standalone replay handles:
 - `zig test --dep devres_scatterlist -Mroot=zigux/tests/phase13_devres_scatterlist.zig -Mdevres_scatterlist=lib/devres_scatterlist.zig`
 - `zig test --dep devres_scatterlist -Mroot=zigux/tests/phase13_devres_scatterlist_empty_table.zig -Mdevres_scatterlist=lib/devres_scatterlist.zig`
 - `zig build test --build-file zigux/tests/phase13_devres_scatterlist_build.zig`
-- `python3 scripts/zigux/check-phase13-devres-scatterlist-planner.py`
-- `python3 scripts/zigux/check-phase13-devres-scatterlist-planner.py --self-test`
+- `zig run check_phase13_devres_scatterlist_planner.zig`
+- `zig run check_phase13_devres_scatterlist_planner.zig --self-test`
 - `zig test zigux/tests/phase13_devres_dma_coherent.zig`

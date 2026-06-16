@@ -55,9 +55,9 @@ const workflow_toolchain_markers = [_][]const u8{
     "curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"",
     "try_download \"$ZIGUX_ZIG_URL\"",
     "failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org",
-    "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
-    "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
-    "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: zig run check_zig_toolchain.zig --self-test",
+    "run: zig run check_zig_toolchain.zig --policy-only",
+    "run: zig run check_zig_toolchain.zig --archive-only --allow-missing",
 };
 
 const make_toolchain_markers = [_][]const u8{
@@ -69,11 +69,11 @@ const make_toolchain_markers = [_][]const u8{
     "ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)",
     ".PHONY: phase1-route-summary phase2-toolchain",
     "phase2-toolchain:",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --self-test",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pinning.py --self-test",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py",
+    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig --self-test",
+    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig --policy-only",
+    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig --archive-only --allow-missing",
+    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_toolchain_pinning.zig --self-test",
+    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_toolchain_pin_scope.zig",
 };
 
 fn contains(haystack: []const []const u8, needle: []const u8) bool {
@@ -143,7 +143,7 @@ test "Lane 03 workflow installs from the trusted local archive path before fallb
         "curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"",
         "try_download \"$ZIGUX_ZIG_URL\"",
     );
-    try std.testing.expect(contains(&workflow_toolchain_markers, "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing"));
+    try std.testing.expect(contains(&workflow_toolchain_markers, "run: zig run check_zig_toolchain.zig --archive-only --allow-missing"));
 }
 
 test "Lane 03 Makefile route mirrors the bootstrap toolchain checks" {
@@ -152,13 +152,13 @@ test "Lane 03 Makefile route mirrors the bootstrap toolchain checks" {
     try expectOrdered(
         &make_toolchain_markers,
         "phase2-toolchain:",
-        "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --self-test",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig --self-test",
     );
     try expectOrdered(
         &make_toolchain_markers,
-        "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --self-test",
-        "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig --self-test",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig --policy-only",
     );
-    try std.testing.expect(contains(&make_toolchain_markers, "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing"));
-    try std.testing.expect(contains(&make_toolchain_markers, "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py"));
+    try std.testing.expect(contains(&make_toolchain_markers, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig --archive-only --allow-missing"));
+    try std.testing.expect(contains(&make_toolchain_markers, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_toolchain_pin_scope.zig"));
 }

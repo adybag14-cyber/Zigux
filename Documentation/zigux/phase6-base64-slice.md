@@ -14,7 +14,7 @@ This document records a bounded Phase 6 leaf-helper validation slice for Zigux.
   - `zigux/tests/fixtures/phase6_base64_vectors.zig`
   - `zigux/tests/phase6_base64_c_parity.zig`
   - `zigux/tests/fixtures/phase6_base64_c_harness.c`
-  - `scripts/zigux/check-phase6-base64-c-parity.py`
+  - `scripts\zigux/check_phase6_base64_c_parity.zig`
 - shared helper-evidence row:
   - `Documentation/zigux/phase6-helper-evidence-catalog.md`
   - `zigux/tests/phase6_helper_evidence_manifest.json`
@@ -36,7 +36,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - local scratch validation in this run used a dedicated `zig build test` replay wired only to `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`
 
 2. keep the base64 slice note aligned with the shipped helper-local validation packet
-- `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, and `zigux/tests/phase6_helper_parity_manifest.json` should describe this slice as directly readable helper-local evidence plus the committed perf replay and the restored representative C-vs-Zig spot check in `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
+- `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, and `zigux/tests/phase6_helper_parity_manifest.json` should describe this slice as directly readable helper-local evidence plus the committed perf replay and the restored representative C-vs-Zig spot check in `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts\zigux/check_phase6_base64_c_parity.zig`
 
 ## Current parity surface
 
@@ -72,13 +72,13 @@ The current tests check:
 - shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig` and consumed directly by `zigux/tests/phase6_base64.zig`
 - exact fixture-owned corpus counts on current `master`: 22 standard encode cases, 18 variant encode cases, 22 standard decode cases, 18 variant decode cases, 16 invalid decode cases, and 6 perf replay cases, all centralized in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by `zigux/tests/phase6_base64.zig` or `zigux/tests/phase6_base64_perf.zig`
 - exact helper-local perf replay packet: ordered labels `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each with `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, owned once in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by the helper-local perf gate
-- helper-local corpus checker: `scripts/zigux/check-phase6-base64-corpus-determinism.py`
+- helper-local corpus checker: `scripts\zigux/check_phase6_base64_corpus_determinism.zig`
 - fixture-backed variant decode parity for std, URL-safe, and IMAP sample payloads, including one-byte and two-byte tails with and without padding
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
 - the committed slowdown replay in `zigux/tests/phase6_base64_perf.zig`, which keeps the helper tied to the shared Phase 6 build foothold without widening into broader runtime-core work
-- a representative external C-vs-Zig portability replay through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`, covering standard padded and unpadded cases plus URL-safe, IMAP, and malformed decode spot checks
-- the dedicated parity checker self-test contract in `scripts/zigux/check-phase6-base64-c-parity.py`, which still records `PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=5` separately from the broader replayed portability packet
+- a representative external C-vs-Zig portability replay through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts\zigux/check_phase6_base64_c_parity.zig`, covering standard padded and unpadded cases plus URL-safe, IMAP, and malformed decode spot checks
+- the dedicated parity checker self-test contract in `scripts\zigux/check_phase6_base64_c_parity.zig`, which still records `PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=5` separately from the broader replayed portability packet
 
 ## Non-goals
 

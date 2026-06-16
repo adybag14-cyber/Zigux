@@ -18,10 +18,10 @@ pub fn build(b: *std.Build) void {
 
     const contract_step = b.step(
         "artifact-diff-utf8-error-contract",
-        "Run the artifact_diff.py UTF-8 error contract",
+        "Run the artifact_diff.zig UTF-8 error contract",
     );
     contract_step.dependOn(&run_contract_tests.step);
 
-    const test_step = b.step("test", "Run artifact_diff.py UTF-8 error contract tests");
+    const test_step = b.step("test", "Run artifact_diff.zig UTF-8 error contract tests");
     test_step.dependOn(&run_contract_tests.step);
 }

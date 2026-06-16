@@ -8,8 +8,8 @@
   "current_master_state": "expanded_starter_packet",
   "review_surfaces": [
     "Documentation/zigux/phase7-string-helpers-slice.md",
-    "scripts/zigux/check-phase7-string-helpers-packet.py",
-    "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py",
+    "scripts\zigux/check_phase7_string_helpers_packet.zig",
+    "scripts\zigux/check_phase7_string_helpers_format_boundary_packet.zig",
     "lib/string_helpers.zig",
     "zigux/tests/phase7_string_helpers.zig",
     "zigux/tests/phase7_string_helpers_survey.zig",

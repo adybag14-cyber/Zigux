@@ -1,6 +1,6 @@
 # Phase 10 Virtio Input Slice
 
-This note records the current shared Phase 10 virtio input packet around `drivers/virtio/virtio_input.zig` and the bounded review surface guarded by `scripts/zigux/check-phase10-input-packet.py`.
+This note records the current shared Phase 10 virtio input packet around `drivers/virtio/virtio_input.zig` and the bounded review surface guarded by `scripts\zigux/check_phase10_input_packet.zig`.
 
 ## Packet Surface
 
@@ -22,4 +22,4 @@ The same packet keeps the queue-handling story explicit without widening into tr
 
 ## Review Reminder
 
-When this packet is reread, keep `scripts/zigux/check-phase10-input-packet.py`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_preflight.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `zigux/tests/build.zig`, and `zigux/tests/phase10_virtio_input_manifest.json` explicit in the same bounded Phase 10 story.
+When this packet is reread, keep `scripts\zigux/check_phase10_input_packet.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_preflight.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `zigux/tests/build.zig`, and `zigux/tests/phase10_virtio_input_manifest.json` explicit in the same bounded Phase 10 story.

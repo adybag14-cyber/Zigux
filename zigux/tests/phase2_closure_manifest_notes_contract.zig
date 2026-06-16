@@ -35,21 +35,21 @@ test "phase 2 closure manifest notes keep shared local archive and installer rem
     try expectContains(closure, "manifest: `zigux/tests/fixtures/phase2_tool_manifest.json`");
 
     try expectContains(manifest, "Keep the returned install-zig archive verification checker, staged pinned-archive helper, and the stage-helper contract plus selftest packet explicit beside the local-first archive workflow, archive README contract, and installer helper");
-    try expectContains(manifest, "scripts/zigux/check-lane05-local-first-archive-workflow.py");
-    try expectContains(manifest, "scripts/zigux/check-lane05-local-archive-readme.py");
-    try expectContains(manifest, "scripts/zigux/check-lane05-install-zig-archive-verification.py");
-    try expectContains(manifest, "scripts/zigux/check-lane05-stage-helper-contract.py");
-    try expectContains(manifest, "scripts/zigux/check-lane05-stage-helper-selftest.py");
-    try expectContains(manifest, "scripts/zigux/stage-pinned-zig-archive.py");
+    try expectContains(manifest, "scripts\zigux/check_lane05_local_first_archive_workflow.zig");
+    try expectContains(manifest, "scripts\zigux/check_lane05_local_archive_readme.zig");
+    try expectContains(manifest, "scripts\zigux/check_lane05_install_zig_archive_verification.zig");
+    try expectContains(manifest, "scripts\zigux/check_lane05_stage_helper_contract.zig");
+    try expectContains(manifest, "scripts\zigux/check_lane05_stage_helper_selftest.zig");
+    try expectContains(manifest, "scripts/zigux/stage_pinned_zig_archive.zig");
     try expectContains(manifest, "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz");
 
-    try expectContains(closure, "scripts/zigux/check-phase2-tool-manifest.py");
-    try expectContains(closure, "scripts/zigux/check-phase2-bootstrap-workflow-routes.py");
-    try expectContains(closure, "scripts/zigux/check-phase2-artifact-tools-manifest.py");
+    try expectContains(closure, "scripts\zigux/check_phase2_tool_manifest.zig");
+    try expectContains(closure, "scripts\zigux/check_phase2_bootstrap_workflow_routes.zig");
+    try expectContains(closure, "scripts\zigux/check_phase2_artifact_tools_manifest.zig");
     try expectOrder(
         closure,
-        "scripts/zigux/check-phase2-tool-manifest.py",
-        "PHASE2_SHARED_TOOLING_CHECKERS=python3 scripts/zigux/check-phase2-tool-manifest.py",
+        "scripts\zigux/check_phase2_tool_manifest.zig",
+        "PHASE2_SHARED_TOOLING_CHECKERS=zig run check_phase2_tool_manifest.zig",
     );
 }
 
@@ -74,16 +74,16 @@ test "phase 2 closure manifest notes keep genksyms process output and fixdep par
     try expectContains(closure, "PHASE2_CURRENT_GENKSYMS_PROCESS_OUTPUT_PACKET=");
     try expectContains(closure, "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json");
     try expectContains(closure, "zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json");
-    try expectContains(closure, "scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py");
+    try expectContains(closure, "scripts\zigux/check_phase2_genksyms_dual_implementation_survey.zig");
     try expectContains(closure, "zig test scripts/zigux/genksyms.zig");
 
     try expectContains(manifest, "full fixdep C-versus-Zig parity fixture packet");
-    try expectContains(manifest, "scripts/zigux/check-phase2-fixdep-gate.py");
-    try expectContains(manifest, "scripts/zigux/check-fixdep-diff.py");
+    try expectContains(manifest, "scripts\zigux/check_phase2_fixdep_gate.zig");
+    try expectContains(manifest, "scripts\zigux/check_fixdep_diff.zig");
     try expectContains(manifest, "zigux/tests/fixtures/fixdep/sample_concatenated_temp.c");
     try expectContains(closure, "make -C zigux phase2-fixdep");
-    try expectContains(closure, "scripts/zigux/check-phase2-fixdep-gate.py");
-    try expectContains(closure, "scripts/zigux/check-fixdep-diff.py");
+    try expectContains(closure, "scripts\zigux/check_phase2_fixdep_gate.zig");
+    try expectContains(closure, "scripts\zigux/check_fixdep_diff.zig");
 }
 
 test "phase 2 closure manifest notes keep artifact support and scripts-root reminder visible" {
@@ -94,18 +94,18 @@ test "phase 2 closure manifest notes keep artifact support and scripts-root remi
     defer std.testing.allocator.free(manifest);
 
     try expectContains(manifest, "Keep the dedicated manifest guards, the bootstrap workflow-routes guard, the primary artifact_diff helper, the helper-local kconfig allconfig guard, and the dedicated genksyms selftest-alignment guard explicit");
-    try expectContains(manifest, "scripts/zigux/artifact_diff.py");
+    try expectContains(manifest, "scripts/zigux/artifact_diff.zig");
     try expectContains(manifest, "zigux/tests/fixtures/phase2_artifact_tools_manifest.json");
-    try expectContains(manifest, "scripts/zigux/check-phase2-artifact-tools-manifest.py");
+    try expectContains(manifest, "scripts\zigux/check_phase2_artifact_tools_manifest.zig");
     try expectContains(manifest, "Keep scripts/zigux/README.md explicit as the shipped scripts-root reminder surface");
 
-    try expectContains(closure, "scripts/zigux/artifact_diff.py");
+    try expectContains(closure, "scripts/zigux/artifact_diff.zig");
     try expectContains(closure, "zigux/tests/fixtures/phase2_artifact_tools_manifest.json");
     try expectContains(closure, "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2");
-    try expectContains(closure, "PHASE2_CLOSURE_VALIDATORS=python3 scripts/zigux/validate-phase2.py,python3 scripts/zigux/validate-phase2-closure.py");
+    try expectContains(closure, "PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2.zig,zig run validate_phase2_closure.zig");
     try expectOrder(
         closure,
         "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain",
-        "PHASE2_CLOSURE_VALIDATORS=python3 scripts/zigux/validate-phase2.py",
+        "PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2.zig",
     );
 }

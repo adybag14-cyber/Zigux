@@ -5,9 +5,9 @@ const conf_survey_path = "Documentation/zigux/phase2-conf-bridge-survey.md";
 const kconfig_gap_path = "Documentation/zigux/phase2-kconfig-bridge-gap-survey.md";
 
 const closure_current_shared_tooling_packet =
-    \\- `scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`, `scripts/zigux/check-phase2-cross.py`, `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md`, `zigux/tests/fixtures/phase2_cross_targets.json`, `scripts/zigux/check-phase2-fixdep-gate.py`, and `scripts/zigux/check-fixdep-diff.py` keep the helper-local kconfig, direct cross-route, and fixdep governance/parity packet directly replayable beside the closure note.
+    \\- `scripts\zigux/check_phase2_kconfig_allconfig_helper_packet.zig`, `scripts\zigux/check_phase2_cross.zig`, `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md`, `zigux/tests/fixtures/phase2_cross_targets.json`, `scripts\zigux/check_phase2_fixdep_gate.zig`, and `scripts\zigux/check_fixdep_diff.zig` keep the helper-local kconfig, direct cross-route, and fixdep governance/parity packet directly replayable beside the closure note.
     \\- `Documentation/zigux/phase2-conf-bridge-survey.md` remains the dedicated conf bridge survey note for the live `conf_bridge.zig`, checker, fixture roster, manifest, and closure-reminder packet.
-    \\- `scripts/zigux/kconfig/confdata_bridge.zig`, `scripts/zigux/check-kconfig-bridge.py`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` keep the bounded `confdata.c` bridge replay packet directly readable at 16 committed fixture cases and 36 helper-local anchors.
+    \\- `scripts/zigux/kconfig/confdata_bridge.zig`, `scripts\zigux/check_kconfig_bridge.zig`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` keep the bounded `confdata.c` bridge replay packet directly readable at 16 committed fixture cases and 36 helper-local anchors.
 ;
 
 const closure_gap_packet =
@@ -36,7 +36,7 @@ fn expectBefore(haystack: []const u8, first: []const u8, second: []const u8) !vo
 test "phase2 closure names the dedicated conf bridge survey note" {
     try expectContains(closure_current_shared_tooling_packet, conf_survey_path);
     try expectContains(closure_current_shared_tooling_packet, "`scripts/zigux/kconfig/confdata_bridge.zig`");
-    try expectContains(closure_current_shared_tooling_packet, "`scripts/zigux/check-kconfig-bridge.py`");
+    try expectContains(closure_current_shared_tooling_packet, "`scripts\zigux/check_kconfig_bridge.zig`");
     try expectContains(closure_current_shared_tooling_packet, "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`");
 }
 

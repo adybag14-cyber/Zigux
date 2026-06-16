@@ -34,21 +34,21 @@ reminder surfaces:
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
 - `Documentation/zigux/review-checklist.md`
-- `scripts/zigux/check-phase11-build-inventory.py`
-- `scripts/zigux/check-phase11-validate-manifest-roster.py`
-- `scripts/zigux/check-phase11-validate-check-roster.py`
-- `scripts/zigux/check-phase11-validate-route-alignment.py`
-- `scripts/zigux/check-phase11-focused-direct-build-replays.py`
-- `scripts/zigux/check-phase11-shared-replay-contract-counts.py`
-- `scripts/zigux/check-phase11-matrix-gap-survey.py`
-- `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
-- `scripts/zigux/check-phase11-header-boundary-packet.py`
-- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
-- `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
-- `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`
-- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
-- `scripts/zigux/check-phase11-dw-wdt-build-route.py`
-- `scripts/zigux/validate-phase11.py`
+- `scripts\zigux/check_phase11_build_inventory.zig`
+- `scripts\zigux/check_phase11_validate_manifest_roster.zig`
+- `scripts\zigux/check_phase11_validate_check_roster.zig`
+- `scripts\zigux/check_phase11_validate_route_alignment.zig`
+- `scripts\zigux/check_phase11_focused_direct_build_replays.zig`
+- `scripts\zigux/check_phase11_shared_replay_contract_counts.zig`
+- `scripts\zigux/check_phase11_matrix_gap_survey.zig`
+- `scripts\zigux/check_phase11_validation_matrix_gap_survey.zig`
+- `scripts\zigux/check_phase11_header_boundary_packet.zig`
+- `scripts\zigux/check_phase11_hvc_cleanup_current_head.zig`
+- `scripts\zigux/check_phase11_hvc_targetless_unregister_witness.zig`
+- `scripts\zigux/check_phase11_dw_wdt_teardown_packet.zig`
+- `scripts\zigux/check_phase11_dw_wdt_verify_alignment.zig`
+- `scripts\zigux/check_phase11_dw_wdt_build_route.zig`
+- `scripts\zigux/validate_phase11.zig`
 - `scripts/zigux/README.md`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/fixtures/phase11_validate_checks.json`
@@ -86,13 +86,13 @@ tests-root reminder stack listed above.
   proof until a future same-lane repair restores explicit simple-driver
   coverage there
 - the shared packet now uses the validator-roster guards
-  `scripts/zigux/check-phase11-validate-manifest-roster.py`,
-  `scripts/zigux/check-phase11-validate-check-roster.py`, and
-  `scripts/zigux/check-phase11-validate-route-alignment.py`, the exact-check
+  `scripts\zigux/check_phase11_validate_manifest_roster.zig`,
+  `scripts\zigux/check_phase11_validate_check_roster.zig`, and
+  `scripts\zigux/check_phase11_validate_route_alignment.zig`, the exact-check
   fixture `zigux/tests/fixtures/phase11_validate_checks.json`, the shipped
   `check-phase11-*.py` reminder scripts, the validator self-test
-  `python3 scripts/zigux/validate-phase11.py --self-test`,
-  `scripts/zigux/validate-phase11.py`, the shared inventory fixture, and the
+  `zig run validate_phase11.zig --self-test`,
+  `scripts\zigux/validate_phase11.zig`, the shared inventory fixture, and the
   directly materialized proof-backed build routes rather than the older wrapper
   family
 - `zigux/tests/fixtures/phase11_build_inventory.json` now records the narrower
@@ -101,8 +101,8 @@ tests-root reminder stack listed above.
   `test_step.dependOn(...)` edges, 0 dedicated survey replays, 3 shared adjunct
   proof replays, 3 adjunct build replays, 2 focused direct build checker
   routes, 2 focused direct build replays, and 11 HVC current-head exact command
-  markers, while `python3 scripts/zigux/validate-phase11.py --self-test`,
-  `scripts/zigux/validate-phase11.py`, and `make -C zigux phase11-validate`
+  markers, while `zig run validate_phase11.zig --self-test`,
+  `scripts\zigux/validate_phase11.zig`, and `make -C zigux phase11-validate`
   keep the broader matrix-gap, cleanup-prerequisite, focused direct replay,
   targetless-unregister, DesignWare, bcm2835, and gpio checker chain explicit
   beside that narrower inventory packet.
@@ -123,7 +123,7 @@ tests-root reminder stack listed above.
   `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`, so keep that
   thirteen-proof-build packet explicit instead of reducing the current shared gate to
   the narrower HVC inventory alone.
-- the returned note-side `scripts/zigux/check-phase11-header-boundary-packet.py`
+- the returned note-side `scripts\zigux/check_phase11_header_boundary_packet.zig`
   route now sits beside that shared validator packet as reminder-surface
   truthfulness evidence for the narrower shared survey and validation-matrix
   notes; keep it explicit as returned note-side continuity without counting it
@@ -137,40 +137,40 @@ tests-root reminder stack listed above.
 These are the exact bounded checks that keep the current shared packet
 deterministic and reviewable:
 
-- shared validator self-test: `python3 scripts/zigux/validate-phase11.py --self-test`
+- shared validator self-test: `zig run validate_phase11.zig --self-test`
 - shared checker self-tests:
-  `python3 scripts/zigux/check-phase11-validate-manifest-roster.py --self-test`,
-  `python3 scripts/zigux/check-phase11-validate-check-roster.py --self-test`,
-  `python3 scripts/zigux/check-phase11-validate-route-alignment.py --self-test`,
-  `python3 scripts/zigux/check-phase11-build-inventory.py --self-test`,
-  `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test`,
-  `python3 scripts/zigux/check-phase11-shared-replay-contract-counts.py --self-test`,
-  `python3 scripts/zigux/check-phase11-matrix-gap-survey.py --self-test`,
-  `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py --self-test`,
-  `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test`,
-  `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test`,
-  `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py --self-test`,
-  `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test`,
-  `python3 scripts/zigux/check-phase11-dw-wdt-teardown-packet.py --self-test`,
-  `python3 scripts/zigux/check-phase11-dw-wdt-verify-alignment.py --self-test`,
-  and `python3 scripts/zigux/check-phase11-dw-wdt-build-route.py --self-test`
+  `zig run check_phase11_validate_manifest_roster.zig --self-test`,
+  `zig run check_phase11_validate_check_roster.zig --self-test`,
+  `zig run check_phase11_validate_route_alignment.zig --self-test`,
+  `zig run check_phase11_build_inventory.zig --self-test`,
+  `zig run check_phase11_focused_direct_build_replays.zig --self-test`,
+  `zig run check_phase11_shared_replay_contract_counts.zig --self-test`,
+  `zig run check_phase11_matrix_gap_survey.zig --self-test`,
+  `zig run check_phase11_validation_matrix_gap_survey.zig --self-test`,
+  `zig run check_phase11_header_boundary_packet.zig --self-test`,
+  `zig run check_phase11_hvc_cleanup_current_head.zig --self-test`,
+  `zig run check_phase11_hvc_cleanup_prerequisite_packet.zig --self-test`,
+  `zig run check_phase11_hvc_targetless_unregister_witness.zig --self-test`,
+  `zig run check_phase11_dw_wdt_teardown_packet.zig --self-test`,
+  `zig run check_phase11_dw_wdt_verify_alignment.zig --self-test`,
+  and `zig run check_phase11_dw_wdt_build_route.zig --self-test`
 - shared checker live routes:
-  `python3 scripts/zigux/check-phase11-validate-manifest-roster.py`,
-  `python3 scripts/zigux/check-phase11-validate-check-roster.py`,
-  `python3 scripts/zigux/check-phase11-validate-route-alignment.py`,
-  `python3 scripts/zigux/check-phase11-build-inventory.py`,
-  `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`,
-  `python3 scripts/zigux/check-phase11-shared-replay-contract-counts.py`,
-  `python3 scripts/zigux/check-phase11-matrix-gap-survey.py`,
-  `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`,
-  `python3 scripts/zigux/check-phase11-header-boundary-packet.py`,
-  `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
-  `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`,
-  `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,
-  `python3 scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
-  `python3 scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
-  and `python3 scripts/zigux/check-phase11-dw-wdt-build-route.py`
-- shared validator route: `python3 scripts/zigux/validate-phase11.py`
+  `zig run check_phase11_validate_manifest_roster.zig`,
+  `zig run check_phase11_validate_check_roster.zig`,
+  `zig run check_phase11_validate_route_alignment.zig`,
+  `zig run check_phase11_build_inventory.zig`,
+  `zig run check_phase11_focused_direct_build_replays.zig`,
+  `zig run check_phase11_shared_replay_contract_counts.zig`,
+  `zig run check_phase11_matrix_gap_survey.zig`,
+  `zig run check_phase11_validation_matrix_gap_survey.zig`,
+  `zig run check_phase11_header_boundary_packet.zig`,
+  `zig run check_phase11_hvc_cleanup_current_head.zig`,
+  `zig run check_phase11_hvc_cleanup_prerequisite_packet.zig`,
+  `zig run check_phase11_hvc_targetless_unregister_witness.zig`,
+  `zig run check_phase11_dw_wdt_teardown_packet.zig`,
+  `zig run check_phase11_dw_wdt_verify_alignment.zig`,
+  and `zig run check_phase11_dw_wdt_build_route.zig`
+- shared validator route: `zig run validate_phase11.zig`
 - shared validator fixture: `zigux/tests/fixtures/phase11_validate_checks.json`
 - shared Makefile route: `make -C zigux phase11-validate`
 - current `phase11-validate` proof fan-out:
@@ -205,9 +205,9 @@ route:
   `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`,
   `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,
   `Documentation/zigux/phase11-dw-wdt-survey.md`,
-  `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
-  `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
-  `scripts/zigux/check-phase11-dw-wdt-build-route.py`,
+  `scripts\zigux/check_phase11_dw_wdt_teardown_packet.zig`,
+  `scripts\zigux/check_phase11_dw_wdt_verify_alignment.zig`,
+  `scripts\zigux/check_phase11_dw_wdt_build_route.zig`,
   `zigux/tests/phase11_dw_wdt_manifest.json`,
   `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
   `zigux/tests/phase11_dw_wdt_survey.zig`,
@@ -221,7 +221,7 @@ route:
 - the shared header-boundary packet stays bounded to
   `Documentation/zigux/phase11-uapi-header-parity-survey.md`,
   `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`,
-  `scripts/zigux/check-phase11-header-boundary-packet.py`, and
+  `scripts\zigux/check_phase11_header_boundary_packet.zig`, and
   `drivers/tty/hvc/hvc_console.h`; keep that public-surface packet explicit in
   shared summaries without widening it into broader tty-core or watchdog-core
   closure
@@ -232,11 +232,11 @@ route:
   `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`,
   `Documentation/zigux/phase11-hvc-cleanup-prerequisite-parity-gap.md`,
   `drivers/tty/hvc/hvc_console.zig`,
-  `scripts/zigux/check-phase11-build-inventory.py`,
-  `scripts/zigux/check-phase11-focused-direct-build-replays.py`,
-  `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
-  `scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`,
-  `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,
+  `scripts\zigux/check_phase11_build_inventory.zig`,
+  `scripts\zigux/check_phase11_focused_direct_build_replays.zig`,
+  `scripts\zigux/check_phase11_hvc_cleanup_current_head.zig`,
+  `scripts\zigux/check_phase11_hvc_cleanup_prerequisite_packet.zig`,
+  `scripts\zigux/check_phase11_hvc_targetless_unregister_witness.zig`,
   `zigux/tests/fixtures/phase11_build_inventory.json`,
   `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`,
   `zigux/tests/phase11_hvc_export_surface_layout_build.zig`,
@@ -263,8 +263,8 @@ route:
   `make -C zigux phase11-hvc-survey` route on current `master`
 - no dedicated HVC survey workflow step on current `master`
 - no shared `zigux/tests/phase11_build.zig` replay route on current `master`
-- no `scripts/zigux/check-phase11-shared-replay-contract.py` or
-  `scripts/zigux/check-phase11-shared-summary-surfaces.py` route on current
+- no `scripts\zigux/check_phase11_shared_replay_contract.zig` or
+  `scripts\zigux/check_phase11_shared_summary_surfaces.zig` route on current
   `master`
 - no broader platform registration, PM plumbing, tty registration, notifier
   execution, khvcd execution, sysrq dispatch, or hardware-backed validation

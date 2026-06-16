@@ -12,7 +12,7 @@ A targeted authenticated current-master reread on 2026-05-27 directly reconfirme
 - `zigux/tests/phase6_checksum_c_parity.zig`
 - `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - `zigux/tests/fixtures/phase6_checksum_c_harness.c`
-- `scripts/zigux/check-phase6-checksum-c-parity.py`
+- `scripts\zigux/check_phase6_checksum_c_parity.zig`
 - `Documentation/zigux/phase6-checksum-slice.md`
 - `Documentation/zigux/phase6-helper-evidence-catalog.md`
 - `Documentation/zigux/phase6-helper-parity-catalog.md`
@@ -31,14 +31,14 @@ Leave the checksum helper parked unless fresh repo inspection finds checksum-loc
 - focused correctness replay in `zigux/tests/phase6_checksum.zig`
 - payload or IPv4 fast-path perf thresholds in `zigux/tests/phase6_checksum_perf.zig`
 - committed checksum fixtures in `zigux/tests/fixtures/phase6_checksum_vectors.zig`
-- direct C parity glue in `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, or `scripts/zigux/check-phase6-checksum-c-parity.py`
+- direct C parity glue in `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, or `scripts\zigux/check_phase6_checksum_c_parity.zig`
 
 If the helper reopens, start with the checksum-local rerun packet below before touching any shared Phase 6 note or another helper family:
 
 - `zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig`
 - `zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig`
 - `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`
-- `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
+- `zig run check_phase6_checksum_c_parity.zig`
 
 ## Lane boundary
 

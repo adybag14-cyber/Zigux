@@ -23,13 +23,13 @@ fn expectExactlyOnce(haystack: []const u8, needle: []const u8) !void {
 
 const phase1_closure_check =
     "      - name: Check current Phase 1 closure packet\n" ++
-    "        run: python3 scripts/zigux/validate-phase1-closure.py";
+    "        run: zig run validate_phase1_closure.zig";
 const phase3_interop_selftest =
     "      - name: Self-test current Phase 3 interop packet\n" ++
-    "        run: python3 scripts/zigux/validate_phase3_selftest.py";
+    "        run: zig run scripts/zigux/validate_phase3_selftest.zig";
 const phase3_interop_check =
     "      - name: Check current Phase 3 interop packet\n" ++
-    "        run: python3 scripts/zigux/run-phase3-checks.py";
+    "        run: zig run scripts/zigux/run_phase3_checks.zig";
 const phase3_shared_tests =
     "      - name: Run current Phase 3 shared tests-root packet\n" ++
     "        run: zig build phase3-test --build-file zigux/tests/build.zig";
@@ -49,9 +49,9 @@ test "closure check hands off to phase3 before the shared phase1 smoke tail" {
     try expectOrdered(workflow, phase3_shared_tests, phase3_abi_dump);
     try expectOrdered(workflow, phase3_abi_dump, phase1_shared_smoke);
 
-    try expectExactlyOnce(workflow, "run: python3 scripts/zigux/validate-phase1-closure.py\n");
-    try expectExactlyOnce(workflow, "run: python3 scripts/zigux/validate_phase3_selftest.py\n");
-    try expectExactlyOnce(workflow, "run: python3 scripts/zigux/run-phase3-checks.py\n");
+    try expectExactlyOnce(workflow, "run: zig run validate_phase1_closure.zig\n");
+    try expectExactlyOnce(workflow, "run: zig run scripts/zigux/validate_phase3_selftest.zig\n");
+    try expectExactlyOnce(workflow, "run: zig run scripts/zigux/run_phase3_checks.zig\n");
     try expectExactlyOnce(workflow, "run: zig build phase3-test --build-file zigux/tests/build.zig\n");
     try expectExactlyOnce(workflow, "run: zig build phase3-dump --build-file zigux/tests/build.zig\n");
     try expectExactlyOnce(workflow, "run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig\n");
@@ -76,7 +76,7 @@ test "phase1 smoke stays downstream of phase3 rather than inside the closure val
     try expectOrdered(
         workflow,
         "      - name: Self-test current Phase 1 closure validator\n" ++
-            "        run: python3 scripts/zigux/validate-phase1-closure.py --self-test",
+            "        run: zig run validate_phase1_closure.zig --self-test",
         phase1_closure_check,
     );
     try expectOrdered(workflow, phase1_closure_check, phase1_shared_smoke);

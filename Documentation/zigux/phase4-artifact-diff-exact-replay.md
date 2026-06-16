@@ -3,15 +3,15 @@
 This note records the current exact Phase 4 artifact-diff replay packet and the top-level pass markers that must stay aligned with the current helper and checker catalogs.
 
 ## Commands
-  * `python3 scripts/zigux/artifact_diff.py --self-test`
-  * `python3 scripts/zigux/check-artifact-diff-contract.py --self-test`
-  * `python3 scripts/zigux/check-artifact-diff-contract.py`
-  * `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test`
-  * `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py`
-  * `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test`
-  * `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py`
-  * `python3 scripts/zigux/check-phase4-artifact-diff-exact-replay.py --self-test`
-  * `python3 scripts/zigux/check-phase4-artifact-diff-exact-replay.py`
+  * `zig run scripts/zigux/artifact_diff.zig --self-test`
+  * `zig run check_artifact_diff_contract.zig --self-test`
+  * `zig run check_artifact_diff_contract.zig`
+  * `zig run check_phase4_artifact_diff_determinism.zig --self-test`
+  * `zig run check_phase4_artifact_diff_determinism.zig`
+  * `zig run check_phase4_artifact_diff_validator_replays.zig --self-test`
+  * `zig run check_phase4_artifact_diff_validator_replays.zig`
+  * `zig run check_phase4_artifact_diff_exact_replay.zig --self-test`
+  * `zig run check_phase4_artifact_diff_exact_replay.zig`
 
 ## Top-Level Pass Markers
 These are the exact top-level pass markers required by the current directly readable command packet in this run.

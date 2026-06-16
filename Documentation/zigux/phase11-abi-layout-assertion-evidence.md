@@ -22,7 +22,7 @@ Current authenticated readback of `master` showed these exact evidence paths and
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig` blob `b8a780989f1eb27740a7790d2c5a6f438768fa46`
 - `zigux/tests/phase11_hvc_export_surface_layout_build.zig` blob `3caa4744295cb6ba68166e58a6307825a6798c33`
 - `zigux/tests/fixtures/phase11_build_inventory.json` blob `3704ef70cc3e5adfb962ce3b3219f91be6674d37`
-- `scripts/zigux/check-phase11-build-inventory.py` blob `7476032db87e781131a06068b9e4e75830f18e62`
+- `scripts\zigux/check_phase11_build_inventory.zig` blob `7476032db87e781131a06068b9e4e75830f18e62`
 - `drivers/tty/hvc/hvc_console.zig` blob `69e534ffc0d183ee8e335f56142075f26ae375fc`
 - `drivers/tty/hvc/hvc_console.h` blob `57f1542b3e6f1901f444bc2d94b5e438f14eb9b3`
 - `zigux/tests/phase11_build.zig` blob `4a7fd056f2e246bc5c81c108ce3a304543441e02`

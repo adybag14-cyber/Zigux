@@ -25,9 +25,9 @@ This note records a fresh current-`master` readback for the bounded Phase 14 sha
 
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
-- `scripts/zigux/check-phase14-shared-smoke-route.py`
-- `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
-- `scripts/zigux/validate-phase14.py`
+- `scripts\zigux/check_phase14_shared_smoke_route.zig`
+- `scripts\zigux/check_phase14_release_boundary_exact_counts.zig`
+- `scripts\zigux/validate_phase14.zig`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json`

@@ -222,7 +222,7 @@ test "phase12 virtio scsi fallback catalog keeps archival replay distinct from c
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "because this runtime cannot fetch raw URLs or clone the repo directly") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "`zigux/tests/phase12_virtio_scsi_survey_build.zig` `2d502aad14ed244c614095060be986dd4514652e`") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "`zigux/tests/phase12_build.zig` `eacfc63df9670ba22fd1f88e4ee33212d1818e29`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "`scripts/zigux/validate-phase12.py` `8b64ad4545a1f4de35294a25d5ff01217d533394`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "`scripts\zigux/validate_phase12.zig` `8b64ad4545a1f4de35294a25d5ff01217d533394`") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "current `master` no longer serves `drivers/scsi/virtio_scsi.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "archival commit-pinned history only") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "matching current-master archival evidence for this path") != null);
@@ -260,7 +260,7 @@ test "phase12 virtio scsi survey gate keeps present files present and missing fi
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi_manifest.json"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi_survey_build.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi_survey.zig"));
-    try std.testing.expect(try pathExists("scripts/zigux/check-phase12-virtio-scsi-packet.py"));
+    try std.testing.expect(try pathExists("scripts\zigux/check_phase12_virtio_scsi_packet.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_build.zig"));
     try std.testing.expect(try pathExists("zigux/Makefile"));
     try std.testing.expect(!try pathExists("drivers/scsi/virtio_scsi.zig"));

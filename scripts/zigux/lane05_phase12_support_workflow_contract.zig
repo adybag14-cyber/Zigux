@@ -8,16 +8,16 @@ const ContractError = error{
 };
 
 const ordered_phase12_support_markers = [_][]const u8{
-    "run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test\n",
-    "run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py\n",
-    "run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test\n",
-    "run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py\n",
-    "run: python3 scripts/zigux/validate-phase12.py\n",
+    "run: zig run check_phase12_libbpf_snapshot.zig --self-test\n",
+    "run: zig run check_phase12_libbpf_snapshot.zig\n",
+    "run: zig run check_phase12_libbpf_heavy_consumer_packet.zig --self-test\n",
+    "run: zig run check_phase12_libbpf_heavy_consumer_packet.zig\n",
+    "run: zig run validate_phase12.zig\n",
     "run: make -C zigux phase12-smoke\n",
     "run: make -C zigux phase12-test\n",
     "run: make -C zigux phase12\n",
     "run: make -C zigux phase12-virtio-net-syntax-lab-test\n",
-    "run: python3 scripts/zigux/check-phase14-shared-smoke-route.py --self-test\n",
+    "run: zig run check_phase14_shared_smoke_route.zig --self-test\n",
 };
 
 const descriptive_step_markers = [_][]const u8{
@@ -72,19 +72,19 @@ pub fn main(init: std.process.Init) !void {
 test "accepts current phase12 support workflow cluster" {
     const workflow =
         \\      - name: Self-test current Phase 12 libbpf snapshot checker
-        \\        run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test
+        \\        run: zig run check_phase12_libbpf_snapshot.zig --self-test
         \\
         \\      - name: Check current Phase 12 libbpf snapshot packet
-        \\        run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py
+        \\        run: zig run check_phase12_libbpf_snapshot.zig
         \\
         \\      - name: Self-test current Phase 12 libbpf heavy-consumer packet checker
-        \\        run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test
+        \\        run: zig run check_phase12_libbpf_heavy_consumer_packet.zig --self-test
         \\
         \\      - name: Check current Phase 12 libbpf heavy-consumer packet
-        \\        run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py
+        \\        run: zig run check_phase12_libbpf_heavy_consumer_packet.zig
         \\
         \\      - name: Validate current Phase 12 support bundle
-        \\        run: python3 scripts/zigux/validate-phase12.py
+        \\        run: zig run validate_phase12.zig
         \\
         \\      - name: Run current Phase 12 smoke packet
         \\        run: make -C zigux phase12-smoke
@@ -99,7 +99,7 @@ test "accepts current phase12 support workflow cluster" {
         \\        run: make -C zigux phase12-virtio-net-syntax-lab-test
         \\
         \\      - name: Self-test current Phase 14 shared smoke route checker
-        \\        run: python3 scripts/zigux/check-phase14-shared-smoke-route.py --self-test
+        \\        run: zig run check_phase14_shared_smoke_route.zig --self-test
         \\
     ;
 
@@ -109,11 +109,11 @@ test "accepts current phase12 support workflow cluster" {
 test "rejects missing heavy consumer checker route" {
     const workflow =
         \\      - name: Self-test current Phase 12 libbpf snapshot checker
-        \\        run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test
+        \\        run: zig run check_phase12_libbpf_snapshot.zig --self-test
         \\      - name: Check current Phase 12 libbpf snapshot packet
-        \\        run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py
+        \\        run: zig run check_phase12_libbpf_snapshot.zig
         \\      - name: Validate current Phase 12 support bundle
-        \\        run: python3 scripts/zigux/validate-phase12.py
+        \\        run: zig run validate_phase12.zig
         \\      - name: Run current Phase 12 smoke packet
         \\        run: make -C zigux phase12-smoke
         \\      - name: Run current Phase 12 shared test packet
@@ -123,7 +123,7 @@ test "rejects missing heavy consumer checker route" {
         \\      - name: Run current Phase 12 virtio_net syntax-lab companion
         \\        run: make -C zigux phase12-virtio-net-syntax-lab-test
         \\      - name: Self-test current Phase 14 shared smoke route checker
-        \\        run: python3 scripts/zigux/check-phase14-shared-smoke-route.py --self-test
+        \\        run: zig run check_phase14_shared_smoke_route.zig --self-test
         \\
     ;
 
@@ -133,15 +133,15 @@ test "rejects missing heavy consumer checker route" {
 test "rejects aggregate before shared test route" {
     const workflow =
         \\      - name: Self-test current Phase 12 libbpf snapshot checker
-        \\        run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test
+        \\        run: zig run check_phase12_libbpf_snapshot.zig --self-test
         \\      - name: Check current Phase 12 libbpf snapshot packet
-        \\        run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py
+        \\        run: zig run check_phase12_libbpf_snapshot.zig
         \\      - name: Self-test current Phase 12 libbpf heavy-consumer packet checker
-        \\        run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test
+        \\        run: zig run check_phase12_libbpf_heavy_consumer_packet.zig --self-test
         \\      - name: Check current Phase 12 libbpf heavy-consumer packet
-        \\        run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py
+        \\        run: zig run check_phase12_libbpf_heavy_consumer_packet.zig
         \\      - name: Validate current Phase 12 support bundle
-        \\        run: python3 scripts/zigux/validate-phase12.py
+        \\        run: zig run validate_phase12.zig
         \\      - name: Run current Phase 12 smoke packet
         \\        run: make -C zigux phase12-smoke
         \\      - name: Run current Phase 12 aggregate route
@@ -151,7 +151,7 @@ test "rejects aggregate before shared test route" {
         \\      - name: Run current Phase 12 virtio_net syntax-lab companion
         \\        run: make -C zigux phase12-virtio-net-syntax-lab-test
         \\      - name: Self-test current Phase 14 shared smoke route checker
-        \\        run: python3 scripts/zigux/check-phase14-shared-smoke-route.py --self-test
+        \\        run: zig run check_phase14_shared_smoke_route.zig --self-test
         \\
     ;
 
@@ -161,15 +161,15 @@ test "rejects aggregate before shared test route" {
 test "rejects phase14 handoff before syntax lab companion" {
     const workflow =
         \\      - name: Self-test current Phase 12 libbpf snapshot checker
-        \\        run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test
+        \\        run: zig run check_phase12_libbpf_snapshot.zig --self-test
         \\      - name: Check current Phase 12 libbpf snapshot packet
-        \\        run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py
+        \\        run: zig run check_phase12_libbpf_snapshot.zig
         \\      - name: Self-test current Phase 12 libbpf heavy-consumer packet checker
-        \\        run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test
+        \\        run: zig run check_phase12_libbpf_heavy_consumer_packet.zig --self-test
         \\      - name: Check current Phase 12 libbpf heavy-consumer packet
-        \\        run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py
+        \\        run: zig run check_phase12_libbpf_heavy_consumer_packet.zig
         \\      - name: Validate current Phase 12 support bundle
-        \\        run: python3 scripts/zigux/validate-phase12.py
+        \\        run: zig run validate_phase12.zig
         \\      - name: Run current Phase 12 smoke packet
         \\        run: make -C zigux phase12-smoke
         \\      - name: Run current Phase 12 shared test packet
@@ -177,7 +177,7 @@ test "rejects phase14 handoff before syntax lab companion" {
         \\      - name: Run current Phase 12 aggregate route
         \\        run: make -C zigux phase12
         \\      - name: Self-test current Phase 14 shared smoke route checker
-        \\        run: python3 scripts/zigux/check-phase14-shared-smoke-route.py --self-test
+        \\        run: zig run check_phase14_shared_smoke_route.zig --self-test
         \\      - name: Run current Phase 12 virtio_net syntax-lab companion
         \\        run: make -C zigux phase12-virtio-net-syntax-lab-test
         \\

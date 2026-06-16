@@ -33,8 +33,8 @@ Current `master` still materializes a partial Phase 7 helper foothold.
   - `lib/string_helpers.zig`
 - missing helper or wrapper companions from the earlier Phase 7 packet:
   - `lib/rbtree.zig`
-  - `scripts/zigux/validate-phase7.py`
-  - `scripts/zigux/check-phase7-make-wrapper.py`
+  - `scripts\zigux/validate_phase7.zig`
+  - `scripts\zigux/check_phase7_make_wrapper.zig`
   - `zigux/tests/phase7_build.zig`
   - `Documentation/zigux/phase7-cmdline-slice.md`
   - `Documentation/zigux/phase7-argv-split-slice.md`
@@ -47,7 +47,7 @@ The current `zigux/Makefile` no longer exposes `phase7`, `phase7-validate`, or `
 
 1. Keep the surviving helper roots explicit without treating them as proof that the old wrapper packet still ships.
 2. Keep `zigux/Makefile` explicit as readable current-head evidence, but do not infer missing `phase7*` routes from the returned file.
-3. Keep `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_build.zig`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, and `make -C zigux phase7`, `make -C zigux phase7-validate`, `make -C zigux phase7-test` framed as missing-current-master companions unless a fresh reread proves they returned.
+3. Keep `scripts\zigux/validate_phase7.zig`, `scripts\zigux/check_phase7_make_wrapper.zig`, `zigux/tests/phase7_build.zig`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, and `make -C zigux phase7`, `make -C zigux phase7-validate`, `make -C zigux phase7-test` framed as missing-current-master companions unless a fresh reread proves they returned.
 4. Prefer one shared reminder repair at a time if Phase 7 reminder surfaces drift again.
 5. Do not reopen helper semantics from stale wrapper wording alone.
 

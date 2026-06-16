@@ -26,27 +26,27 @@ test "bootstrap runs closure validator as the phase1 handoff after shared remind
 
     try expectOrdered(
         workflow,
-        "      - name: Check current Phase 2 closure packet\n        run: python3 scripts/zigux/validate-phase2-closure.py",
-        "      - name: Self-test current Phase 1 direct-owner checker\n        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test",
+        "      - name: Check current Phase 2 closure packet\n        run: zig run validate_phase2_closure.zig",
+        "      - name: Self-test current Phase 1 direct-owner checker\n        run: zig run check_phase1_direct_owner_markers.zig --self-test",
     );
     try expectOrdered(
         workflow,
-        "      - name: Check current Phase 1 shared reminder packet\n        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
-        "      - name: Self-test current Phase 1 closure validator\n        run: python3 scripts/zigux/validate-phase1-closure.py --self-test",
+        "      - name: Check current Phase 1 shared reminder packet\n        run: zig run check_phase1_shared_reminder_packet.zig",
+        "      - name: Self-test current Phase 1 closure validator\n        run: zig run validate_phase1_closure.zig --self-test",
     );
     try expectOrdered(
         workflow,
-        "      - name: Self-test current Phase 1 closure validator\n        run: python3 scripts/zigux/validate-phase1-closure.py --self-test",
-        "      - name: Check current Phase 1 closure packet\n        run: python3 scripts/zigux/validate-phase1-closure.py",
+        "      - name: Self-test current Phase 1 closure validator\n        run: zig run validate_phase1_closure.zig --self-test",
+        "      - name: Check current Phase 1 closure packet\n        run: zig run validate_phase1_closure.zig",
     );
     try expectOrdered(
         workflow,
-        "      - name: Check current Phase 1 closure packet\n        run: python3 scripts/zigux/validate-phase1-closure.py",
-        "      - name: Self-test current Phase 3 interop packet\n        run: python3 scripts/zigux/validate_phase3_selftest.py",
+        "      - name: Check current Phase 1 closure packet\n        run: zig run validate_phase1_closure.zig",
+        "      - name: Self-test current Phase 3 interop packet\n        run: zig run scripts/zigux/validate_phase3_selftest.zig",
     );
 
-    try expectExactlyOnce(workflow, "run: python3 scripts/zigux/validate-phase1-closure.py --self-test");
-    try expectExactlyOnce(workflow, "run: python3 scripts/zigux/validate-phase1-closure.py\n");
+    try expectExactlyOnce(workflow, "run: zig run validate_phase1_closure.zig --self-test");
+    try expectExactlyOnce(workflow, "run: zig run validate_phase1_closure.zig\n");
     try expectNotContains(workflow, "run: make -C zigux phase1\n");
     try expectNotContains(workflow, "run: make -C zigux phase1-validate\n");
 }
@@ -57,14 +57,14 @@ test "closure note keeps validator and shared smoke as the narrow current route"
     try expectContains(closure, "`PHASE1_STATUS=parked`");
     try expectContains(closure, "`PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`");
     try expectContains(closure, "`PHASE1_HELPER_COUNT=13`");
-    try expectContains(closure, "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`");
+    try expectContains(closure, "`PHASE1_CLOSURE_VALIDATOR=zig run validate_phase1_closure.zig`");
     try expectContains(closure, "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`");
     try expectContains(closure, "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`");
     try expectContains(closure, "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface or one helper-family tie-breaker");
 
     try expectContains(closure, ".github/workflows/zigux-bootstrap.yml");
-    try expectContains(closure, "scripts/zigux/check-phase1-shared-reminder-packet.py");
-    try expectContains(closure, "scripts/zigux/validate-phase1-closure.py");
+    try expectContains(closure, "scripts\zigux/check_phase1_shared_reminder_packet.zig");
+    try expectContains(closure, "scripts\zigux/validate_phase1_closure.zig");
     try expectContains(closure, "zigux/tests/phase1_host_tools_smoke.zig");
 
     try expectNotContains(closure, "`PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master`");
@@ -76,9 +76,9 @@ test "validator source owns the same files and forbids stale phase1 make routes"
 
     try expectContains(validator, "PHASE1_CLOSURE_REL = Path(\"Documentation/zigux/phase1-closure.md\")");
     try expectContains(validator, "WORKFLOW_REL = Path(\".github/workflows/zigux-bootstrap.yml\")");
-    try expectContains(validator, "SHARED_REMINDER_CHECKER_REL = Path(\"scripts/zigux/check-phase1-shared-reminder-packet.py\")");
+    try expectContains(validator, "SHARED_REMINDER_CHECKER_REL = Path(\"scripts\zigux/check_phase1_shared_reminder_packet.zig\")");
     try expectContains(validator, "PHASE1_SMOKE_REL = Path(\"zigux/tests/phase1_host_tools_smoke.zig\")");
-    try expectContains(validator, "\"closure_validator\": \"`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`\"");
+    try expectContains(validator, "\"closure_validator\": \"`PHASE1_CLOSURE_VALIDATOR=zig run validate_phase1_closure.zig`\"");
     try expectContains(validator, "\"validator_state\": \"`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`\"");
     try expectContains(validator, "\"phase1-validate:\"");
     try expectContains(validator, "\"phase1-test:\"");

@@ -11,7 +11,7 @@ This note closes the missing closure-note record for the active Phase 5 non-runt
   - `samples/kobject/kobject-example.c`
   - `samples/kprobes/kretprobe_example.c`
   - `samples/trace_events/trace-events-sample.c`
-- current authority: this closure note, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-kfifo-sample-survey.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-kobject-sample-survey.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/phase5-trace-events-sample-survey.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/check-phase5-review-guide-surface.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `zigux/tests/phase5_build.zig` remain the trustworthy current-master packet for the bounded Phase 5 tranche.
+- current authority: this closure note, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-kfifo-sample-survey.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-kobject-sample-survey.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/phase5-trace-events-sample-survey.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts\zigux/check_phase5_review_guide_surface.zig`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `zigux/tests/phase5_build.zig` remain the trustworthy current-master packet for the bounded Phase 5 tranche.
 
 The active Phase 5 tranche is not a broad runtime or helper-family lane. It stays limited to the four approved non-runtime sample anchors plus the shared reminder surfaces that keep those anchors reviewable.
 
@@ -29,12 +29,12 @@ The currently reviewable Phase 5 closure packet is:
 - `Documentation/zigux/phase5-trace-events-sample-survey.md`
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
-- `scripts/zigux/check-phase5-review-guide-surface.py`
+- `scripts\zigux/check_phase5_review_guide_surface.zig`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `zigux/tests/phase5_build.zig`
 
-- `PHASE5_CURRENT_CLOSURE_PACKET=Documentation/zigux/phase5-closure.md,Documentation/zigux/phase5-sample-lane-sequencing.md,Documentation/zigux/phase5-sample-review-guide.md,Documentation/zigux/phase5-kfifo-sample-survey.md,Documentation/zigux/phase5-kretprobe-sample-survey.md,Documentation/zigux/phase5-kobject-sample-survey.md,Documentation/zigux/phase5-trace-events-approved-idiom-gap.md,Documentation/zigux/phase5-trace-events-sample-survey.md,Documentation/zigux/review-checklist.md,samples/zigux/README.md,scripts/zigux/check-phase5-review-guide-surface.py,scripts/zigux/README.md,zigux/tests/README.md,zigux/tests/phase5_build.zig`
+- `PHASE5_CURRENT_CLOSURE_PACKET=Documentation/zigux/phase5-closure.md,Documentation/zigux/phase5-sample-lane-sequencing.md,Documentation/zigux/phase5-sample-review-guide.md,Documentation/zigux/phase5-kfifo-sample-survey.md,Documentation/zigux/phase5-kretprobe-sample-survey.md,Documentation/zigux/phase5-kobject-sample-survey.md,Documentation/zigux/phase5-trace-events-approved-idiom-gap.md,Documentation/zigux/phase5-trace-events-sample-survey.md,Documentation/zigux/review-checklist.md,samples/zigux/README.md,scripts\zigux/check_phase5_review_guide_surface.zig,scripts/zigux/README.md,zigux/tests/README.md,zigux/tests/phase5_build.zig`
 
 ## Current Repo-Reality Split
 
@@ -96,7 +96,7 @@ Keep the no-extra-sample boundary explicit across this closure packet too:
 
 The current closure packet stays intentionally narrow. The shared Phase 5 guard and the landed sample-owned routes remain the honest replay surfaces that current `master` already names directly:
 
-- `python3 scripts/zigux/check-phase5-review-guide-surface.py --self-test`
+- `zig run check_phase5_review_guide_surface.zig --self-test`
 - `zig test samples/zigux/bytestream_fifo.zig`
 - `zig test samples/zigux/bytestream_fifo_window_contract.zig`
 - `zig test --dep bytestream_fifo_sample -Mroot=zigux/tests/phase5_bytestream_fifo.zig -Mbytestream_fifo_sample=samples/zigux/bytestream_fifo.zig`

@@ -4,9 +4,9 @@ This note keeps the next same-lane follow-through honest against the current dir
 
 ## Current Packet Boundary
 
-- current direct contents rereads now materialize `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`, `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`, `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`, `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_pm.zig`, `drivers/watchdog/dw_wdt_pm_scaffold.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, and `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
-- those same direct contents rereads do not currently rematerialize `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, or the older `scripts/zigux/check-phase11-dw-wdt-packet.py` handle, so keep that broader slice-note, teardown-note, and older packet-checker reminder stack framed as larger same-lane vocabulary until a future direct reread proves it returned through the same bridge
-- keep the older `scripts/zigux/check-phase11-dw-wdt-packet.py` handle framed as historical context until a future reread proves it returned
+- current direct contents rereads now materialize `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`, `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`, `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`, `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`, `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_pm.zig`, `drivers/watchdog/dw_wdt_pm_scaffold.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `scripts\zigux/check_phase11_dw_wdt_teardown_packet.zig`, and `scripts\zigux/check_phase11_dw_wdt_verify_alignment.zig`
+- those same direct contents rereads do not currently rematerialize `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, or the older `scripts\zigux/check_phase11_dw_wdt_packet.zig` handle, so keep that broader slice-note, teardown-note, and older packet-checker reminder stack framed as larger same-lane vocabulary until a future direct reread proves it returned through the same bridge
+- keep the older `scripts\zigux/check_phase11_dw_wdt_packet.zig` handle framed as historical context until a future reread proves it returned
 - `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` keeps named-`tclk`, shared-clock fallback, blocked-no-clock preflight, optional APB clock handling, optional reset-control absence, and registration-order intent explicit without claiming live platform execution
 - optional reset-control absence can still remain a ready-to-register scaffold branch while `reset_control_deassert` stays visible as an unrequested outcome rather than an implicit blocker
 
@@ -28,7 +28,7 @@ This note keeps the next same-lane follow-through honest against the current dir
 
 ## Validation Gate
 
-- keep `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py` aligned with the returned reminder, scaffold, helper, direct-driver, and checker packet before reopening any broader follow-through
+- keep `scripts\zigux/check_phase11_dw_wdt_teardown_packet.zig` aligned with the returned reminder, scaffold, helper, direct-driver, and checker packet before reopening any broader follow-through
 - keep optional reset-control absence explicit as a ready-to-register scaffold branch so the bounded packet does not overstate reset wiring as mandatory before host-free registration review
 - keep proof bounded to the checker self-test plus the narrowest truthful reminder or scaffold validation available for the next change
 
@@ -37,4 +37,4 @@ This note keeps the next same-lane follow-through honest against the current dir
 - this note keeps the directly readable owner, helper, and direct-driver packet explicit as current-head evidence instead of overclaiming only the still-missing slice note, teardown note, and older packet checker
 - the next substantive same-lane step remains one acquisition-facing scaffold or one coupled truthfulness surface only
 - the packet still refuses to claim reset ownership, IRQ ownership, watchdog-core registration, PM, debugfs, or live MMIO execution
-- the older `scripts/zigux/check-phase11-dw-wdt-packet.py` handle remains historical context until a fresh reread proves it returned
+- the older `scripts\zigux/check_phase11_dw_wdt_packet.zig` handle remains historical context until a fresh reread proves it returned

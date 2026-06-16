@@ -73,7 +73,7 @@ That means the current truthful repo posture is:
 
 - `zig test --build-file zigux/tests/phase3_low_level_wrappers_build.zig phase3-low-level-wrappers-test`
 - `zig test --dep devres -Mroot=zigux/tests/phase13_devres_iomap_planner.zig -Mdevres=lib/devres.zig`
-- `python3 scripts/zigux/check-phase13-devres-iomap-mmio-safety-survey.py`
+- `zig run check_phase13_devres_iomap_mmio_safety_survey.zig`
 
 ## Boundaries
 

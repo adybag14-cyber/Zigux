@@ -5,8 +5,8 @@ const checker_text = options.checker_text;
 
 const required_file_markers = [_][]const u8{
     "PHASE1_CLOSURE_REL = Path(\"Documentation/zigux/phase1-closure.md\")",
-    "CLOSURE_VALIDATOR_REL = Path(\"scripts/zigux/validate-phase1-closure.py\")",
-    "FIND_BIT_BENCH_ANCHORS_REL = Path(\"scripts/zigux/check-phase1-find-bit-bench-anchors.py\")",
+    "CLOSURE_VALIDATOR_REL = Path(\"scripts\zigux/validate_phase1_closure.zig\")",
+    "FIND_BIT_BENCH_ANCHORS_REL = Path(\"scripts\zigux/check_phase1_find_bit_bench_anchors.zig\")",
     "FIND_BIT_HELPER_REL = Path(\"tools/lib/find_bit.zig\")",
     "WORKFLOW_REL = Path(\".github/workflows/zigux-bootstrap.yml\")",
 };
@@ -25,8 +25,8 @@ const checker_surface_markers = [_][]const u8{
 };
 
 const closure_packet_markers = [_][]const u8{
-    "FIND_BIT_REVIEW_CHECKER_REL = Path(\"scripts/zigux/check-phase1-find-bit-review-packet.py\")",
-    "FIND_BIT_BENCH_ANCHOR_CHECKER_REL = Path(\"scripts/zigux/check-phase1-find-bit-bench-anchors.py\")",
+    "FIND_BIT_REVIEW_CHECKER_REL = Path(\"scripts\zigux/check_phase1_find_bit_review_packet.zig\")",
+    "FIND_BIT_BENCH_ANCHOR_CHECKER_REL = Path(\"scripts\zigux/check_phase1_find_bit_bench_anchors.zig\")",
     "\"find_bit_bench_anchor_guard\"",
     "(FIND_BIT_REVIEW_CHECKER_REL, \"phase1-find-bit-review-packet\")",
     "(FIND_BIT_BENCH_ANCHOR_CHECKER_REL, \"phase1-find-bit-bench-anchors\")",
@@ -42,16 +42,16 @@ const find_bit_anchor_markers = [_][]const u8{
 
 const workflow_markers = [_][]const u8{
     "Self-test current Phase 1 bench checker",
-    "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
+    "run: zig run check_phase1_bench.zig --self-test",
     "Self-test current Phase 1 shared reminder checker",
     "Check current Phase 1 shared reminder packet",
     "Self-test current Phase 1 closure validator",
 };
 
 const forbidden_workflow_lines = [_][]const u8{
-    "run: python3 scripts/zigux/check-phase1-bench.py",
-    "run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --self-test",
-    "run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py",
+    "run: zig run check_phase1_bench.zig",
+    "run: zig run check_phase1_find_bit_bench_anchors.zig --self-test",
+    "run: zig run check_phase1_find_bit_bench_anchors.zig",
 };
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {

@@ -7,10 +7,10 @@ pub fn build(b: *std.Build) void {
 
     const checker = cwd.readFileAlloc(
         b.graph.io,
-        "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+        "scripts\zigux/check_phase2_genksyms_selftest_alignment.zig",
         b.allocator,
         .limited(512 * 1024),
-    ) catch @panic("unable to read scripts/zigux/check-phase2-genksyms-selftest-alignment.py");
+    ) catch @panic("unable to read scripts\zigux/check_phase2_genksyms_selftest_alignment.zig");
     const manifest = cwd.readFileAlloc(
         b.graph.io,
         "zigux/tests/fixtures/genksyms_bridge/manifest.json",

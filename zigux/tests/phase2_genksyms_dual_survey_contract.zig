@@ -8,8 +8,8 @@ const survey_markers = [_][]const u8{
     "selected dual implementations",
     "wrapper-first",
     "scripts/zigux/genksyms_crc.zig",
-    "scripts/zigux/check-genksyms-crc-diff.py",
-    "scripts/zigux/check-genksyms-bridge.py",
+    "scripts\zigux/check_genksyms_crc_diff.zig",
+    "scripts\zigux/check_genksyms_bridge.zig",
     "wrapper bridge landed, deeper same-family dual-implementation evidence missing.",
     "restore the missing CRC-side tool-plus-checker evidence",
     "wire the dedicated survey checker into the shared `phase2-genksyms` replay surfaces",
@@ -17,9 +17,9 @@ const survey_markers = [_][]const u8{
 
 const current_repo_evidence = [_][]const u8{
     "scripts/zigux/genksyms.zig",
-    "scripts/zigux/check-genksyms-bridge.py",
-    "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
-    "scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py",
+    "scripts\zigux/check_genksyms_bridge.zig",
+    "scripts\zigux/check_phase2_genksyms_selftest_alignment.zig",
+    "scripts\zigux/check_phase2_genksyms_dual_implementation_survey.zig",
     "Documentation/zigux/phase2-closure.md",
     "Documentation/zigux/phase2-genksyms-dual-implementation-survey.md",
     "zigux/tests/fixtures/genksyms_bridge/manifest.json",
@@ -28,7 +28,7 @@ const current_repo_evidence = [_][]const u8{
 
 const missing_crc_packet = [_][]const u8{
     "scripts/zigux/genksyms_crc.zig",
-    "scripts/zigux/check-genksyms-crc-diff.py",
+    "scripts\zigux/check_genksyms_crc_diff.zig",
 };
 
 const survey_checker_markers = [_][]const u8{
@@ -49,7 +49,7 @@ test "phase2 genksyms survey marker packet stays complete" {
         \\Lane: `P2-L07`
         \\The roadmap keeps scripts/genksyms/genksyms.c and scripts/zigux/genksyms.zig in Phase 2.
         \\The lane still distinguishes selected dual implementations from a wrapper-first bridge.
-        \\The ledger records scripts/zigux/genksyms_crc.zig, scripts/zigux/check-genksyms-crc-diff.py, and scripts/zigux/check-genksyms-bridge.py.
+        \\The ledger records scripts/zigux/genksyms_crc.zig, scripts\zigux/check_genksyms_crc_diff.zig, and scripts\zigux/check_genksyms_bridge.zig.
         \\The result remains: wrapper bridge landed, deeper same-family dual-implementation evidence missing.
         \\Next implementation should restore the missing CRC-side tool-plus-checker evidence.
         \\Reminder upkeep may wire the dedicated survey checker into the shared `phase2-genksyms` replay surfaces.
@@ -63,7 +63,7 @@ test "phase2 genksyms survey marker packet stays complete" {
 test "phase2 genksyms survey keeps present and missing evidence distinct" {
     for (current_repo_evidence) |path| {
         try std.testing.expect(!std.mem.eql(u8, path, "scripts/zigux/genksyms_crc.zig"));
-        try std.testing.expect(!std.mem.eql(u8, path, "scripts/zigux/check-genksyms-crc-diff.py"));
+        try std.testing.expect(!std.mem.eql(u8, path, "scripts\zigux/check_genksyms_crc_diff.zig"));
     }
 
     for (missing_crc_packet) |path| {

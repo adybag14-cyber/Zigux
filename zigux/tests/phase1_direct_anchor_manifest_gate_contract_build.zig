@@ -8,7 +8,7 @@ pub fn build(b: *std.Build) void {
     options.addOption(
         []const u8,
         "direct_anchor_manifest_gate_py",
-        readRepoFile(b, "scripts/zigux/check-phase1-direct-anchor-manifest-gate.py"),
+        readRepoFile(b, "scripts\zigux/check_phase1_direct_anchor_manifest_gate.zig"),
     );
     options.addOption(
         []const u8,

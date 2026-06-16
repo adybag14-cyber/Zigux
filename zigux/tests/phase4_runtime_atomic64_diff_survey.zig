@@ -5,7 +5,7 @@ const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
 const phase4_runtime_atomic64_diff_survey_source = @embedFile("phase4_runtime_atomic64_diff_survey.zig");
 
-// Manifest source pins mirrored for scripts/zigux/check-phase4-runtime-atomic64-packet.py.
+// Manifest source pins mirrored for scripts\zigux/check_phase4_runtime_atomic64_packet.zig.
 // phase4_build_blob_sha=b544acbdc8e9302a18a3bdf5a9a4e5b163b34e99
 // phase4_validator_blob_sha=96f542c0b3c1c39d1c451713852172f26786f97f
 // phase4_validation_matrix_blob_sha=8d0405c0d75217663ea003c5c18a0c2cddd2953f
@@ -221,7 +221,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
     const validate_phase4_source = try readRepoFile(
         std.testing.allocator,
-        "scripts/zigux/validate-phase4.py",
+        "scripts\zigux/validate_phase4.zig",
     );
     defer std.testing.allocator.free(validate_phase4_source);
     try expectBlobShaMatchesSource(manifest.phase4_validator_blob_sha, validate_phase4_source);
@@ -259,7 +259,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/atomic64_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/runtime_atomic64_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "scripts/zigux/validate-phase4.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "scripts\zigux/validate_phase4.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "Documentation/zigux/phase4-validation-matrix.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "Documentation/zigux/phase4-gate-evidence.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "benchmark command") != null);
@@ -314,7 +314,7 @@ test "phase 4 atomic64 survey keeps reversible delivery and next-step evidence e
         std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_build.zig") != null,
     );
     try std.testing.expect(
-        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "scripts/zigux/validate-phase4.py") != null,
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "scripts\zigux/validate_phase4.zig") != null,
     );
     try std.testing.expect(
         std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "Documentation/zigux/phase4-gate-evidence.md") != null,
@@ -443,7 +443,7 @@ test "phase 4 atomic64 survey keeps the gate-evidence runtime survey blob pins e
 
     const validate_phase4_source = try readRepoFile(
         std.testing.allocator,
-        "scripts/zigux/validate-phase4.py",
+        "scripts\zigux/validate_phase4.zig",
     );
     defer std.testing.allocator.free(validate_phase4_source);
     const validator_blob_sha = try gitBlobShaHex(validate_phase4_source);

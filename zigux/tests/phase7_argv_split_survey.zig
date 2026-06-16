@@ -38,7 +38,7 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
 
 test "phase 7 argv split survey keeps the returned fixture-backed helper-local packet truthful" {
     const allocator = std.testing.allocator;
-    const checker_path = "scripts/zigux/check-phase7-argv-split-packet.py";
+    const checker_path = "scripts\zigux/check_phase7_argv_split_packet.zig";
     const fixture_path = "zigux/tests/fixtures/phase7_argv_split_vectors.zig";
 
     const manifest_json = try readRepoFile(allocator, "zigux/tests/phase7_argv_split_manifest.json");

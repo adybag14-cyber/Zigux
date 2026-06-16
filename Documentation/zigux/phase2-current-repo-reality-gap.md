@@ -11,11 +11,11 @@ Direct current-`master` reads in this slot still materialize these bounded Phase
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `zigux/tests/README.md`
-- `scripts/zigux/check-phase2-tests-readme-alignment.py`
-- `scripts/zigux/check-phase2-cross-selftest-alignment.py`
+- `scripts\zigux/check_phase2_tests_readme_alignment.zig`
+- `scripts\zigux/check_phase2_cross_selftest_alignment.zig`
 - `.github/workflows/zigux-bootstrap.yml`
 
-The surviving docs-root and checker surfaces already agree that the `phase2-cross` target-mode replay reaches the same live toolchain preflight through `python3 scripts/zigux/check-phase2-cross.py --target <matrix-zig-target>`, because that target-mode path reruns `python3 scripts/zigux/check-zig-toolchain.py --zig "<resolved-zig>"` before the cross-target Zig tests.
+The surviving docs-root and checker surfaces already agree that the `phase2-cross` target-mode replay reaches the same live toolchain preflight through `zig run check_phase2_cross.zig --target <matrix-zig-target>`, because that target-mode path reruns `zig run check_zig_toolchain.zig --zig "<resolved-zig>"` before the cross-target Zig tests.
 
 ## What Does Not Materialize
 
@@ -23,10 +23,10 @@ Direct current-`master` reads in this slot still return missing for these broade
 
 - `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
 - `Documentation/zigux/phase2-closure.md`
-- `scripts/zigux/validate-phase2.py`
-- `scripts/zigux/validate-phase2-closure.py`
-- `scripts/zigux/check-phase2-cross.py`
-- `scripts/zigux/check-phase2-toolchain-pin-scope.py`
+- `scripts\zigux/validate_phase2.zig`
+- `scripts\zigux/validate_phase2_closure.zig`
+- `scripts\zigux/check_phase2_cross.zig`
+- `scripts\zigux/check_phase2_toolchain_pin_scope.zig`
 - `zigux/tests/fixtures/phase2_cross_targets.json`
 - `zigux/Makefile`
 

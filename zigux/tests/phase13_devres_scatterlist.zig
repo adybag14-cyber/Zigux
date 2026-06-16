@@ -224,7 +224,7 @@ test "phase13 devres scatterlist planner manifest records the dedicated helper-f
     try requireContains(manifest, "Documentation/zigux/phase13-devres-scatterlist-slice.md");
     try requireContains(manifest, "zigux/tests/phase13_devres_scatterlist.zig");
     try requireContains(manifest, "zigux/tests/phase13_devres_scatterlist_build.zig");
-    try requireContains(manifest, "scripts/zigux/check-phase13-devres-scatterlist-planner.py");
+    try requireContains(manifest, "scripts\zigux/check_phase13_devres_scatterlist_planner.zig");
     try requireContains(manifest, "\"scatterlist_lifetime_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"");
     try requireContains(manifest, "\"release_match_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"");
     try requireContains(manifest, "\"overmapped_request_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"");
@@ -232,7 +232,7 @@ test "phase13 devres scatterlist planner manifest records the dedicated helper-f
     try requireContains(manifest, "\"scatterlist_table_teardown_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"");
     try requireContains(manifest, "\"slice_note_owner\": \"Documentation/zigux/phase13-devres-scatterlist-slice.md\"");
     try requireContains(manifest, "\"build_shard_owner\": \"zigux/tests/phase13_devres_scatterlist_build.zig\"");
-    try requireContains(manifest, "\"validation_guard\": \"scripts/zigux/check-phase13-devres-scatterlist-planner.py\"");
+    try requireContains(manifest, "\"validation_guard\": \"scripts\zigux/check_phase13_devres_scatterlist_planner.zig\"");
     try requireContains(manifest, "\"owner_map\": \"zigux/tests/phase13_devres_scatterlist_planner_manifest.json\"");
     try requireContains(manifest, "planManagedScatterlistMap");
     try requireContains(manifest, "scatterlistReleaseMatches");
@@ -272,7 +272,7 @@ test "phase13 devres scatterlist planner note keeps the helper-first scatterlist
     try requireContains(note, "`zigux/tests/phase13_devres_scatterlist.zig` owns the retained-release-record, freed-release-record, impossible-overmapped-request, missing-release-record, exact-release-match, warn-on-release-miss, free-ready-teardown, uninitialized-table-hold, unmap-before-free, and overmapped-teardown-warning fixture coverage");
     try requireContains(note, "`Documentation/zigux/phase13-devres-scatterlist-slice.md` keeps the helper-local scope and non-goals aligned with this planner note, the manifest, and the replay");
     try requireContains(note, "`zigux/tests/phase13_devres_scatterlist_build.zig` keeps the dedicated build shard aligned with the helper-first scatterlist replay");
-    try requireContains(note, "`scripts/zigux/check-phase13-devres-scatterlist-planner.py` is the packet-local validation guard");
+    try requireContains(note, "`scripts\zigux/check_phase13_devres_scatterlist_planner.zig` is the packet-local validation guard");
     try requireContains(note, "`zigux/tests/phase13_devres_scatterlist_planner_manifest.json` is the packet-local owner map");
     try requireContains(note, "`zigux/tests/phase13_devres_dma_coherent.zig` remains adjacent boundary evidence only");
     try requireContains(note, "`Documentation/zigux/phase13-devres-survey.md` remains adjacent boundary evidence only");
@@ -314,13 +314,13 @@ test "phase13 devres scatterlist planner note preserves standalone replay handle
 
     try requireContains(note, "zig test --dep devres_scatterlist -Mroot=zigux/tests/phase13_devres_scatterlist.zig -Mdevres_scatterlist=lib/devres_scatterlist.zig");
     try requireContains(note, "zig build test --build-file zigux/tests/phase13_devres_scatterlist_build.zig");
-    try requireContains(note, "python3 scripts/zigux/check-phase13-devres-scatterlist-planner.py");
-    try requireContains(note, "python3 scripts/zigux/check-phase13-devres-scatterlist-planner.py --self-test");
+    try requireContains(note, "zig run check_phase13_devres_scatterlist_planner.zig");
+    try requireContains(note, "zig run check_phase13_devres_scatterlist_planner.zig --self-test");
     try requireContains(note, "zig test zigux/tests/phase13_devres_dma_coherent.zig");
 }
 
 test "phase13 devres scatterlist planner checker stays packet-local" {
-    const checker = try readRepoFile(std.testing.allocator, "scripts/zigux/check-phase13-devres-scatterlist-planner.py");
+    const checker = try readRepoFile(std.testing.allocator, "scripts\zigux/check_phase13_devres_scatterlist_planner.zig");
     defer std.testing.allocator.free(checker);
 
     try requireContains(checker, "HELPER_PATH = Path(\"lib/devres_scatterlist.zig\")");

@@ -4,9 +4,9 @@ This note records the next bounded follow-up for the live Phase 11 DesignWare wa
 
 ## Why this step belongs next
 
-Current authenticated contents rereads on `master` now keep this owner note, `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`, `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`, `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`, `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_pm.zig`, `drivers/watchdog/dw_wdt_pm_scaffold.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, and `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` directly readable for the bounded DesignWare packet.
+Current authenticated contents rereads on `master` now keep this owner note, `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`, `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`, `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`, `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-driver-lane-sequencing.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_pm.zig`, `drivers/watchdog/dw_wdt_pm_scaffold.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `scripts\zigux/check_phase11_dw_wdt_teardown_packet.zig`, and `scripts\zigux/check_phase11_dw_wdt_verify_alignment.zig` directly readable for the bounded DesignWare packet.
 
-Current authenticated contents rereads in this run still do not rematerialize `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, or the older `scripts/zigux/check-phase11-dw-wdt-packet.py` handle, so keep that broader reminder stack framed as larger same-lane vocabulary until a future reread proves it returned through the same contents bridge.
+Current authenticated contents rereads in this run still do not rematerialize `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, or the older `scripts\zigux/check_phase11_dw_wdt_packet.zig` handle, so keep that broader reminder stack framed as larger same-lane vocabulary until a future reread proves it returned through the same contents bridge.
 
 The live DesignWare packet is therefore no longer just a docs-only owner stack, and it is no longer missing the direct driver or direct replay. It now truthfully centers the directly readable continuity notes, the returned survey note, the returned validation matrix, the returned survey gate, the direct driver-and-test pair, the manifest-backed registration scaffold, the returned restart helper, the returned verify helper, the bounded PM helper pair, and the two current DesignWare truthfulness checkers while leaving the wider slice-note and teardown-note reminder stack unpromoted.
 
@@ -19,7 +19,7 @@ The directly readable owner packet now keeps the bounded lane reviewable through
 - the returned restart helper `drivers/watchdog/dw_wdt_restart.zig`, which keeps missing-drvdata and missing-timeout-image restart blocks explicit beside restart-priority registration, timeout-range and control-register writes, and reset-pulse expectations without widening into live MMIO execution
 - the returned verify helper `drivers/watchdog/dw_wdt_verify.zig`, which keeps teardown and failure-mode parity reviewable through the same authenticated packet without promoting a broader reminder stack
 - the bounded PM helper pair `drivers/watchdog/dw_wdt_pm.zig` and `drivers/watchdog/dw_wdt_pm_scaffold.zig`
-- the dedicated fail-closed companions `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py` and `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
+- the dedicated fail-closed companions `scripts\zigux/check_phase11_dw_wdt_teardown_packet.zig` and `scripts\zigux/check_phase11_dw_wdt_verify_alignment.zig`
 - this owner note together with `Documentation/zigux/phase11-driver-lane-sequencing.md` as the continuity packet that keeps the surviving DesignWare platform-registration follow-through explicit without widening it into live platform-driver execution or broader hardware-backed closure
 
 The roadmap still keeps this family inside straightforward driver delivery with teardown and failure-mode parity under `drivers/watchdog/*.zig`. The current direct-readback packet is therefore strong enough to justify one bounded same-lane truthfulness or scaffold follow-through, but not strong enough to overclaim that the still-missing slice note, teardown note, or older packet checker are already back on this read path.
@@ -56,7 +56,7 @@ Do not widen this packet into:
 The next bounded packet should stay publishable with proof that matches what the current contents bridge actually returns:
 - keep missing timer-clock acquisition blocked as a distinct scaffold state so the bounded packet does not imply registration is ready before timer-clock acquisition succeeds
 - keep optional reset-control absence explicit as a ready-to-register scaffold branch so the bounded packet does not overstate reset wiring as mandatory before host-free registration review
-- update this plan note together with `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py` and `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` when the directly readable DesignWare packet meaning changes
+- update this plan note together with `scripts\zigux/check_phase11_dw_wdt_teardown_packet.zig` and `scripts\zigux/check_phase11_dw_wdt_verify_alignment.zig` when the directly readable DesignWare packet meaning changes
 - keep proof bounded to the checker self-test plus the narrowest truthful reminder or scaffold validation available for the next change
 - refresh the shared lane-sequencing note only when a future DesignWare owner-packet change materially changes the shared owner map, not just because the manifest-backed scaffold packet is being restated
 - keep the slice note, teardown note, and older packet-checker handle framed as larger same-lane vocabulary until a fresh reread restores those paths through the same authenticated contents bridge
@@ -80,8 +80,8 @@ The next bounded packet should stay publishable with proof that matches what the
 - `drivers/watchdog/dw_wdt_verify.zig`
 - `drivers/watchdog/dw_wdt_pm.zig`
 - `drivers/watchdog/dw_wdt_pm_scaffold.zig`
-- `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`
-- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
+- `scripts\zigux/check_phase11_dw_wdt_teardown_packet.zig`
+- `scripts\zigux/check_phase11_dw_wdt_verify_alignment.zig`
 
 ## Handoff
 

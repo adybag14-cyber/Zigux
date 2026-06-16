@@ -4,20 +4,20 @@ const repo_files = .{
     .docs_readme = "Documentation/zigux/README.md",
     .review_checklist = "Documentation/zigux/review-checklist.md",
     .freeze_map = "Documentation/zigux/freeze-map.md",
-    .validator = "scripts/zigux/validate-phase15.py",
-    .architecture_checker = "scripts/zigux/check-phase15-architecture-council-packet.py",
+    .validator = "scripts\zigux/validate_phase15.zig",
+    .architecture_checker = "scripts\zigux/check_phase15_architecture_council_packet.zig",
 };
 
 const expected_validator_checkers = [_][]const u8{
-    "scripts/zigux/check-phase15-docs-readme-alignment.py",
-    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "scripts/zigux/check-phase15-tests-readme-alignment.py",
-    "scripts/zigux/check-phase15-architecture-council-packet.py",
-    "scripts/zigux/check-phase15-review-process-handoff.py",
-    "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
-    "scripts/zigux/check-phase15-handoff-note-alignment.py",
-    "scripts/zigux/check-phase15-shared-summary-gap.py",
-    "scripts/zigux/check-phase15-readiness-gate-packet.py",
+    "scripts\zigux/check_phase15_docs_readme_alignment.zig",
+    "scripts\zigux/check_phase15_scripts_readme_alignment.zig",
+    "scripts\zigux/check_phase15_tests_readme_alignment.zig",
+    "scripts\zigux/check_phase15_architecture_council_packet.zig",
+    "scripts\zigux/check_phase15_review_process_handoff.zig",
+    "scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig",
+    "scripts\zigux/check_phase15_handoff_note_alignment.zig",
+    "scripts\zigux/check_phase15_shared_summary_gap.zig",
+    "scripts\zigux/check_phase15_readiness_gate_packet.zig",
 };
 
 fn readFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
@@ -63,16 +63,16 @@ test "shared documentation routes phase15 governance back to the validator-first
     defer allocator.free(freeze_map);
 
     try expectContains(docs_readme, "Phase 15 notes");
-    try expectContains(docs_readme, "scripts/zigux/check-phase15-docs-readme-alignment.py");
-    try expectContains(docs_readme, "scripts/zigux/check-phase15-architecture-council-packet.py");
-    try expectContains(docs_readme, "scripts/zigux/validate-phase15.py");
+    try expectContains(docs_readme, "scripts\zigux/check_phase15_docs_readme_alignment.zig");
+    try expectContains(docs_readme, "scripts\zigux/check_phase15_architecture_council_packet.zig");
+    try expectContains(docs_readme, "scripts\zigux/validate_phase15.zig");
     try expectContains(docs_readme, "no Architecture Council approval");
 
     try expectContains(review_checklist, "if a freeze-map anchor is entering Architecture Council status review");
     try expectContains(review_checklist, "Documentation/zigux/phase15-architecture-council-review-process.md");
     try expectContains(review_checklist, "Documentation/zigux/phase15-architecture-council-decision-record-template.md");
     try expectContains(review_checklist, "Documentation/zigux/phase15-indefinite-c-policy.md");
-    try expectContains(review_checklist, "scripts/zigux/validate-phase15.py");
+    try expectContains(review_checklist, "scripts\zigux/validate_phase15.zig");
 
     try expectContains(freeze_map, "freeze-map status-change requests must route through");
     try expectContains(freeze_map, "Documentation/zigux/phase15-architecture-council-review-process.md");
@@ -91,8 +91,8 @@ test "architecture council packet stays before validator aggregation" {
 
     try expectBefore(
         validator,
-        "scripts/zigux/check-phase15-architecture-council-packet.py",
-        "scripts/zigux/check-phase15-readiness-gate-packet.py",
+        "scripts\zigux/check_phase15_architecture_council_packet.zig",
+        "scripts\zigux/check_phase15_readiness_gate_packet.zig",
     );
     try expectContains(architecture_checker, "PHASE15_STATUS=architecture_council_review_process_landed");
     try expectContains(architecture_checker, "Documentation/zigux/phase15-architecture-council-decision-index.md");

@@ -70,8 +70,8 @@ manifest or shared Phase 11 build route has returned.
 
 The dedicated current-head manifest checker now keeps the recovered manifest
 packet aligned through
-`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`
-and `python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`, so the
+`zig run check_phase11_gpio_current_head_manifest.zig --self-test`
+and `zig run check_phase11_gpio_current_head_manifest.zig`, so the
 manifest, survey note, validation matrix, and dedicated survey build route have
 one direct truthfulness guard on current `master`.
 

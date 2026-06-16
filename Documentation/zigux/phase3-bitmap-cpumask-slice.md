@@ -13,7 +13,7 @@ On current `master`, that formerly missing slice is now present as a helper-loca
 - `zigux/tests/fixtures/phase3_bitmap_cpumask/phase3_bitmap_cpumask_c_harness.c`
 - `zigux/tests/fixtures/phase3_bitmap_cpumask/expected.json`
 - `zigux/tests/fixtures/phase3_bitmap_cpumask_manifest.json`
-- `scripts/zigux/check-phase3-bitmap-cpumask.py`
+- `scripts\zigux/check_phase3_bitmap_cpumask.zig`
 
 ## Bounded Contract
 
@@ -27,8 +27,8 @@ On current `master`, that formerly missing slice is now present as a helper-loca
 
 ## Replay Routes
 
-- `python3 scripts/zigux/check-phase3-bitmap-cpumask.py --self-test`
-- `python3 scripts/zigux/check-phase3-bitmap-cpumask.py --repo-root . --cc gcc`
+- `zig run check_phase3_bitmap_cpumask.zig --self-test`
+- `zig run check_phase3_bitmap_cpumask.zig --repo-root . --cc gcc`
 - `zig build phase3-bitmap-cpumask-starter-packet --build-file zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig`
 
 ## Scope

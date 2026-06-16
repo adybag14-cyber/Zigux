@@ -4,21 +4,21 @@ const testing = std.testing;
 const docs = struct {
     const bootstrap_note =
         \\# Phase 2 Toolchain Bootstrap Notes
-        \\scripts/zigux/check-phase2-bootstrap-workflow-routes.py
-        \\scripts/zigux/check-phase2-tests-readme-alignment.py
-        \\scripts/zigux/check-phase2-cross.py
-        \\python3 scripts/zigux/check-phase2-cross.py --self-test
-        \\scripts/zigux/check-lane05-local-first-archive-workflow.py
-        \\scripts/zigux/check-lane05-local-archive-readme.py
-        \\scripts/zigux/check-lane05-install-zig-archive-verification.py
-        \\scripts/zigux/stage-pinned-zig-archive.py
-        \\scripts/zigux/check-lane05-stage-helper-contract.py
-        \\scripts/zigux/check-lane05-stage-helper-selftest.py
-        \\scripts/zigux/check-phase2-genksyms-selftest-alignment.py
-        \\scripts/zigux/check-genksyms-bridge.py
+        \\scripts\zigux/check_phase2_bootstrap_workflow_routes.zig
+        \\scripts\zigux/check_phase2_tests_readme_alignment.zig
+        \\scripts\zigux/check_phase2_cross.zig
+        \\zig run check_phase2_cross.zig --self-test
+        \\scripts\zigux/check_lane05_local_first_archive_workflow.zig
+        \\scripts\zigux/check_lane05_local_archive_readme.zig
+        \\scripts\zigux/check_lane05_install_zig_archive_verification.zig
+        \\scripts/zigux/stage_pinned_zig_archive.zig
+        \\scripts\zigux/check_lane05_stage_helper_contract.zig
+        \\scripts\zigux/check_lane05_stage_helper_selftest.zig
+        \\scripts\zigux/check_phase2_genksyms_selftest_alignment.zig
+        \\scripts\zigux/check_genksyms_bridge.zig
         \\scripts/zigux/genksyms.zig
-        \\scripts/zigux/check-phase2-fixdep-gate.py
-        \\scripts/zigux/check-fixdep-diff.py
+        \\scripts\zigux/check_phase2_fixdep_gate.zig
+        \\scripts\zigux/check_fixdep_diff.zig
         \\scripts/zigux/fixdep.zig
         \\zigux/tests/fixtures/phase2_cross_targets.json
         \\zigux/tests/fixtures/genksyms_bridge/manifest.json
@@ -37,21 +37,21 @@ const docs = struct {
         \\# zigux/tests
         \\current direct-readback Phase 2 kconfig, genksyms, and fixdep packet
         \\Documentation/zigux/phase2-toolchain-bootstrap-notes.md
-        \\scripts/zigux/check-phase2-bootstrap-workflow-routes.py
-        \\scripts/zigux/check-phase2-tests-readme-alignment.py
-        \\scripts/zigux/check-phase2-cross.py
-        \\python3 scripts/zigux/check-phase2-cross.py --self-test
-        \\scripts/zigux/check-lane05-local-first-archive-workflow.py
-        \\scripts/zigux/check-lane05-local-archive-readme.py
-        \\scripts/zigux/check-lane05-install-zig-archive-verification.py
-        \\scripts/zigux/stage-pinned-zig-archive.py
-        \\scripts/zigux/check-lane05-stage-helper-contract.py
-        \\scripts/zigux/check-lane05-stage-helper-selftest.py
-        \\scripts/zigux/check-phase2-genksyms-selftest-alignment.py
-        \\scripts/zigux/check-genksyms-bridge.py
+        \\scripts\zigux/check_phase2_bootstrap_workflow_routes.zig
+        \\scripts\zigux/check_phase2_tests_readme_alignment.zig
+        \\scripts\zigux/check_phase2_cross.zig
+        \\zig run check_phase2_cross.zig --self-test
+        \\scripts\zigux/check_lane05_local_first_archive_workflow.zig
+        \\scripts\zigux/check_lane05_local_archive_readme.zig
+        \\scripts\zigux/check_lane05_install_zig_archive_verification.zig
+        \\scripts/zigux/stage_pinned_zig_archive.zig
+        \\scripts\zigux/check_lane05_stage_helper_contract.zig
+        \\scripts\zigux/check_lane05_stage_helper_selftest.zig
+        \\scripts\zigux/check_phase2_genksyms_selftest_alignment.zig
+        \\scripts\zigux/check_genksyms_bridge.zig
         \\scripts/zigux/genksyms.zig
-        \\scripts/zigux/check-phase2-fixdep-gate.py
-        \\scripts/zigux/check-fixdep-diff.py
+        \\scripts\zigux/check_phase2_fixdep_gate.zig
+        \\scripts\zigux/check_fixdep_diff.zig
         \\scripts/zigux/fixdep.zig
         \\zigux/tests/fixtures/phase2_cross_targets.json
         \\zigux/tests/fixtures/genksyms_bridge/manifest.json
@@ -73,21 +73,21 @@ const SharedMarker = struct {
 };
 
 const shared_markers = [_]SharedMarker{
-    .{ .marker = "scripts/zigux/check-phase2-bootstrap-workflow-routes.py", .reason = "bootstrap workflow-route guard" },
-    .{ .marker = "scripts/zigux/check-phase2-tests-readme-alignment.py", .reason = "tests-root reminder alignment guard" },
-    .{ .marker = "scripts/zigux/check-phase2-cross.py", .reason = "direct cross-route checker" },
-    .{ .marker = "python3 scripts/zigux/check-phase2-cross.py --self-test", .reason = "direct cross-route self-test" },
-    .{ .marker = "scripts/zigux/check-lane05-local-first-archive-workflow.py", .reason = "local-first archive workflow guard" },
-    .{ .marker = "scripts/zigux/check-lane05-local-archive-readme.py", .reason = "third_party archive README guard" },
-    .{ .marker = "scripts/zigux/check-lane05-install-zig-archive-verification.py", .reason = "archive-verification guard" },
-    .{ .marker = "scripts/zigux/stage-pinned-zig-archive.py", .reason = "staged archive helper" },
-    .{ .marker = "scripts/zigux/check-lane05-stage-helper-contract.py", .reason = "staged helper contract" },
-    .{ .marker = "scripts/zigux/check-lane05-stage-helper-selftest.py", .reason = "staged helper self-test" },
-    .{ .marker = "scripts/zigux/check-phase2-genksyms-selftest-alignment.py", .reason = "genksyms selftest alignment guard" },
-    .{ .marker = "scripts/zigux/check-genksyms-bridge.py", .reason = "genksyms bridge checker" },
+    .{ .marker = "scripts\zigux/check_phase2_bootstrap_workflow_routes.zig", .reason = "bootstrap workflow-route guard" },
+    .{ .marker = "scripts\zigux/check_phase2_tests_readme_alignment.zig", .reason = "tests-root reminder alignment guard" },
+    .{ .marker = "scripts\zigux/check_phase2_cross.zig", .reason = "direct cross-route checker" },
+    .{ .marker = "zig run check_phase2_cross.zig --self-test", .reason = "direct cross-route self-test" },
+    .{ .marker = "scripts\zigux/check_lane05_local_first_archive_workflow.zig", .reason = "local-first archive workflow guard" },
+    .{ .marker = "scripts\zigux/check_lane05_local_archive_readme.zig", .reason = "third_party archive README guard" },
+    .{ .marker = "scripts\zigux/check_lane05_install_zig_archive_verification.zig", .reason = "archive-verification guard" },
+    .{ .marker = "scripts/zigux/stage_pinned_zig_archive.zig", .reason = "staged archive helper" },
+    .{ .marker = "scripts\zigux/check_lane05_stage_helper_contract.zig", .reason = "staged helper contract" },
+    .{ .marker = "scripts\zigux/check_lane05_stage_helper_selftest.zig", .reason = "staged helper self-test" },
+    .{ .marker = "scripts\zigux/check_phase2_genksyms_selftest_alignment.zig", .reason = "genksyms selftest alignment guard" },
+    .{ .marker = "scripts\zigux/check_genksyms_bridge.zig", .reason = "genksyms bridge checker" },
     .{ .marker = "scripts/zigux/genksyms.zig", .reason = "genksyms Zig bridge helper" },
-    .{ .marker = "scripts/zigux/check-phase2-fixdep-gate.py", .reason = "fixdep governance gate" },
-    .{ .marker = "scripts/zigux/check-fixdep-diff.py", .reason = "fixdep parity checker" },
+    .{ .marker = "scripts\zigux/check_phase2_fixdep_gate.zig", .reason = "fixdep governance gate" },
+    .{ .marker = "scripts\zigux/check_fixdep_diff.zig", .reason = "fixdep parity checker" },
     .{ .marker = "scripts/zigux/fixdep.zig", .reason = "fixdep Zig helper" },
     .{ .marker = "zigux/tests/fixtures/phase2_cross_targets.json", .reason = "direct cross-route target fixture" },
     .{ .marker = "zigux/tests/fixtures/genksyms_bridge/manifest.json", .reason = "genksyms fixture manifest" },

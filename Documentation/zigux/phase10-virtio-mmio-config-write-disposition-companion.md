@@ -57,11 +57,11 @@ Current `master` readback keeps this narrower MMIO packet explicit through:
 - `zigux/tests/phase10_virtio_mmio_survey.zig` rereads the parked survey note together with the shared `zigux/tests/phase10_build.zig` gate and the standalone apply-observation replay shard
 - `zigux/tests/phase10_virtio_mmio_manifest.json` now rematerializes as the bounded MMIO manifest companion, keeping the lab gate, dedicated apply-observation replay, survey gate, config-write companion, and slice note explicit beside the helper-local packet
 - `Documentation/zigux/phase10-virtio-mmio-slice.md` now materializes as the packet-local slice companion, keeping the helper, dedicated apply-observation wrapper, dedicated apply-observation replay, survey, manifest, and blocked transport boundary aligned beside the config-write detail surface
-- `scripts/zigux/check-phase10-mmio-packet.py` keeps the survey note, config-write companion, slice companion, helper, apply-observation wrapper, verify wrapper, helper-local MMIO replay, dedicated apply-observation replay, survey gate, manifest companion, and shared `zigux/tests/phase10_build.zig` route fail-closed as the same bounded Phase 10 MMIO packet
+- `scripts\zigux/check_phase10_mmio_packet.zig` keeps the survey note, config-write companion, slice companion, helper, apply-observation wrapper, verify wrapper, helper-local MMIO replay, dedicated apply-observation replay, survey gate, manifest companion, and shared `zigux/tests/phase10_build.zig` route fail-closed as the same bounded Phase 10 MMIO packet
 
 ## Safe Reading
 
-Use this companion as the packet-local explanation for the MMIO config-write disposition helper together with `scripts/zigux/check-phase10-mmio-packet.py`, the live MMIO survey, the direct helper file, the direct apply-observation wrapper file, the verify wrapper, the helper-local MMIO tests, the dedicated apply-observation replay, the standalone apply-observation build shard, the dedicated MMIO survey gate, the MMIO manifest companion, the MMIO slice companion, and the shared Phase 10 build gate.
+Use this companion as the packet-local explanation for the MMIO config-write disposition helper together with `scripts\zigux/check_phase10_mmio_packet.zig`, the live MMIO survey, the direct helper file, the direct apply-observation wrapper file, the verify wrapper, the helper-local MMIO tests, the dedicated apply-observation replay, the standalone apply-observation build shard, the dedicated MMIO survey gate, the MMIO manifest companion, the MMIO slice companion, and the shared Phase 10 build gate.
 
 It should not be read as a claim that the MMIO lane has crossed into transport-backed writes, queue execution, IRQ delivery, DMA, or lifecycle closure.
 

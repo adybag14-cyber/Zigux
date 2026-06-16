@@ -2,8 +2,8 @@ const std = @import("std");
 const testing = std.testing;
 
 const validator_commands = [_][]const u8{
-    "python3 scripts/zigux/validate-phase2.py",
-    "python3 scripts/zigux/validate-phase2-closure.py",
+    "zig run validate_phase2.zig",
+    "zig run validate_phase2_closure.zig",
 };
 
 fn readText(path: []const u8) ![]u8 {
@@ -56,7 +56,7 @@ const expected_validator_line = joinedLine(
 );
 
 test "phase2 closure validator self-test guards manifest surface loss" {
-    const validator = try readText("scripts/zigux/validate-phase2-closure.py");
+    const validator = try readText("scripts\zigux/validate_phase2_closure.zig");
     defer testing.allocator.free(validator);
 
     try requireContains(validator, "PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass");
@@ -75,7 +75,7 @@ test "phase2 closure validator self-test guards manifest surface loss" {
 }
 
 test "phase2 closure validator pass output remains no-gap and parked" {
-    const validator = try readText("scripts/zigux/validate-phase2-closure.py");
+    const validator = try readText("scripts\zigux/validate_phase2_closure.zig");
     defer testing.allocator.free(validator);
 
     try requireContains(validator, "PHASE2_CLOSURE_VALIDATION=pass");
@@ -106,28 +106,28 @@ test "phase2 closure note, manifest, and workflow expose validator replay surfac
     for (validator_commands) |command| {
         try requireContains(closure, command);
     }
-    try requireContains(manifest, "\"scripts/zigux/validate-phase2.py\"");
-    try requireContains(manifest, "\"scripts/zigux/validate-phase2-closure.py\"");
+    try requireContains(manifest, "\"scripts\zigux/validate_phase2.zig\"");
+    try requireContains(manifest, "\"scripts\zigux/validate_phase2_closure.zig\"");
     try requireContains(manifest, "\"repo_reality_gaps\": []");
 
-    try requireContains(workflow, "run: python3 scripts/zigux/validate-phase2.py\n");
-    try requireContains(workflow, "run: python3 scripts/zigux/validate-phase2-closure.py --self-test\n");
-    try requireContains(workflow, "run: python3 scripts/zigux/validate-phase2-closure.py\n");
+    try requireContains(workflow, "run: zig run validate_phase2.zig\n");
+    try requireContains(workflow, "run: zig run validate_phase2_closure.zig --self-test\n");
+    try requireContains(workflow, "run: zig run validate_phase2_closure.zig\n");
     try requireOrdered(
         workflow,
-        "run: python3 scripts/zigux/validate-phase2.py\n",
-        "run: python3 scripts/zigux/validate-phase2-closure.py --self-test",
+        "run: zig run validate_phase2.zig\n",
+        "run: zig run validate_phase2_closure.zig --self-test",
     );
     try requireOrdered(
         workflow,
-        "run: python3 scripts/zigux/validate-phase2-closure.py --self-test\n",
-        "run: python3 scripts/zigux/validate-phase2-closure.py\n",
+        "run: zig run validate_phase2_closure.zig --self-test\n",
+        "run: zig run validate_phase2_closure.zig\n",
     );
 
     try requireOrdered(
         makefile,
         "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
-        "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase2_closure.zig",
     );
-    try requireMissing(closure, "PHASE2_CLOSURE_VALIDATORS=python3 scripts/zigux/validate-phase2-closure.py");
+    try requireMissing(closure, "PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2_closure.zig");
 }

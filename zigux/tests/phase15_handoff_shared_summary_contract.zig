@@ -38,16 +38,16 @@ test "phase 15 handoff note and shared-summary gap keep materialized governance 
     try expectContains(handoff, "zigux/tests/phase15_handoff_next_steps.zig");
     try expectContains(handoff, "zigux/tests/phase15_readiness_gap_matrix.json");
     try expectContains(handoff, "zigux/tests/phase15_build.zig");
-    try expectContains(handoff, "scripts/zigux/check-phase15-blocked-route-recovery.py");
-    try expectContains(handoff, "scripts/zigux/validate-phase15.py");
+    try expectContains(handoff, "scripts\zigux/check_phase15_blocked_route_recovery.zig");
+    try expectContains(handoff, "scripts\zigux/validate_phase15.zig");
 
     try expectContains(shared_summary, "PHASE15_STATUS=shared_summary_gap_recorded");
     try expectContains(shared_summary, "PHASE15_SLICE=materialized-governance-packet-truthfulness-refresh");
     try expectContains(shared_summary, "Materialized focused companions on current master");
     try expectContains(shared_summary, "zigux/tests/phase15_handoff_next_steps_manifest.json");
     try expectContains(shared_summary, "zigux/tests/phase15_handoff_next_steps.zig");
-    try expectContains(shared_summary, "scripts/zigux/check-phase15-handoff-note-alignment.py");
-    try expectContains(shared_summary, "scripts/zigux/check-phase15-shared-summary-gap.py");
+    try expectContains(shared_summary, "scripts\zigux/check_phase15_handoff_note_alignment.zig");
+    try expectContains(shared_summary, "scripts\zigux/check_phase15_shared_summary_gap.zig");
     try expectContains(shared_summary, "zigux/tests/phase15_build.zig");
 
     try expectOrdered(handoff, "Current handed-off packet on current master", "Roadmap-backed open handoff gaps");

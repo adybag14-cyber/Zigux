@@ -20,7 +20,7 @@ The scoreboard remains a starter parity packet, not a production transport claim
 
 ## Fresh Parity Evidence Recorded
 
-Current `master` now includes `scripts/zigux/check-phase10-ring-manifest-destinations.py`, a dedicated P10-L10 guard for the ring manifest. That checker is substantive parity evidence because it fails closed if `zigux/tests/phase10_virtio_ring_manifest.json` drifts back to the older shared `drivers/virtio/virtio_ring.zig` destinations for these dedicated queue-wrapper helpers:
+Current `master` now includes `scripts\zigux/check_phase10_ring_manifest_destinations.zig`, a dedicated P10-L10 guard for the ring manifest. That checker is substantive parity evidence because it fails closed if `zigux/tests/phase10_virtio_ring_manifest.json` drifts back to the older shared `drivers/virtio/virtio_ring.zig` destinations for these dedicated queue-wrapper helpers:
 
 - `phase10-callback-enable-helper` -> `drivers/virtio/virtio_ring_callback_enable.zig`
 - `phase10-queue-reset-readiness-helper` -> `drivers/virtio/virtio_ring_reset_readiness.zig`
@@ -34,14 +34,14 @@ The note was grounded in these live current-master surfaces:
 - `Documentation/zigux/phase10-closure-evidence.md`
 - `zigux/tests/phase10_closure_manifest.json`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
-- `scripts/zigux/check-phase10-ring-manifest-destinations.py`
+- `scripts\zigux/check_phase10_ring_manifest_destinations.zig`
 - `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`
 
 The narrow replay for the fresh guard is:
 
 ```sh
-python3 scripts/zigux/check-phase10-ring-manifest-destinations.py --self-test
-python3 scripts/zigux/check-phase10-ring-manifest-destinations.py
+zig run check_phase10_ring_manifest_destinations.zig --self-test
+zig run check_phase10_ring_manifest_destinations.zig
 ```
 
 ## Boundary

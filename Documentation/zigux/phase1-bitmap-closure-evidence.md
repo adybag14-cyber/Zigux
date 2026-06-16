@@ -18,7 +18,7 @@ The current bitmap helper remains a parked direct-anchor helper in the closed Ph
 
 The live bitmap helper now carries the zero-bit logical assertion in the corrected `std.testing.expect(...)` form, so the older one-argument `std.testing.expectEqual(...)` compile blocker is no longer present in the current closure packet. The same helper also keeps the boundary and alias tests named by the manifest-backed bitmap direct-anchor checker.
 
-The live `scripts/zigux/check-phase1-direct-anchor-manifest-gate.py` delegates the bitmap direct-anchor checker before the find_bit, rbtree, and string review guards. That keeps bitmap evidence anchored by executable marker checks rather than by this note alone.
+The live `scripts\zigux/check_phase1_direct_anchor_manifest_gate.zig` delegates the bitmap direct-anchor checker before the find_bit, rbtree, and string review guards. That keeps bitmap evidence anchored by executable marker checks rather than by this note alone.
 
 ## Lane Decision
 
@@ -27,8 +27,8 @@ No helper implementation, fixture, manifest, or closure-validator edit is requir
 - `tools/lib/bitmap.zig`
 - `Documentation/zigux/phase1-closure.md`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
-- `scripts/zigux/validate-phase1-closure.py`
-- `scripts/zigux/check-phase1-bitmap-direct-anchors.py`
-- `scripts/zigux/check-phase1-direct-anchor-manifest-gate.py`
+- `scripts\zigux/validate_phase1_closure.zig`
+- `scripts\zigux/check_phase1_bitmap_direct_anchors.zig`
+- `scripts\zigux/check_phase1_direct_anchor_manifest_gate.zig`
 
 If this lane reopens, the smallest useful next step is to rerun the same closure-packet comparison first, then edit only the stale evidence surface. Do not widen into helper behavior, shared Phase 1 replay, fixture expansion, or Phase 4 bitmap-drift scope unless the reread proves that the current bitmap closure evidence is no longer truthful.

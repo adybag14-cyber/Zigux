@@ -17,8 +17,8 @@ Authenticated current-`master` reads during the lane survey recovered these bitm
 - `zigux/tests/fixtures/phase1_helper_manifest.json` at blob `ed5e9de4344916c5288f37271da2772113d99e6c`
 - `Documentation/zigux/phase1-closure.md` at blob `78b2c440a409ef50bb245ad7a16f97b6454bab69`
 - `Documentation/zigux/phase1-host-helper-lane-sequencing.md` at blob `383e61f14129022e0bb9fc1f62de353547aee03f`
-- `scripts/zigux/check-phase1-bitmap-direct-anchors.py` at blob `0c1a206592e55ec9ca6f97ebd6fa097144f98b8d`
-- `scripts/zigux/validate-phase1-closure.py` at blob `951d9c723759bb433a68eef2e682604c3f3e0d77`
+- `scripts\zigux/check_phase1_bitmap_direct_anchors.zig` at blob `0c1a206592e55ec9ca6f97ebd6fa097144f98b8d`
+- `scripts\zigux/validate_phase1_closure.zig` at blob `951d9c723759bb433a68eef2e682604c3f3e0d77`
 
 ## Survey Result
 
@@ -40,6 +40,6 @@ No helper-local code change was justified by this survey. The direct-anchor surf
 
 - direct-anchor drift in the bitmap helper tests or Linux-style alias surface
 - committed shared replay drift in bitmap copy, logical, range, allocation, formatting, or partial-window parity fields
-- mismatch between the helper, the Phase 1 helper manifest, the closure note, the lane-sequencing note, or `scripts/zigux/check-phase1-bitmap-direct-anchors.py`
+- mismatch between the helper, the Phase 1 helper manifest, the closure note, the lane-sequencing note, or `scripts\zigux/check_phase1_bitmap_direct_anchors.zig`
 
 Do not reopen older closure-side or missing-validator cue names by default, and do not batch bitmap follow-up with `find_bit`, `rbtree`, `string`, runtime bitmap, or later-phase ABI work in the same lane.

@@ -2,13 +2,13 @@ const std = @import("std");
 const testing = std.testing;
 
 const shared_tooling_checkers = [_][]const u8{
-    "python3 scripts/zigux/check-phase2-tool-manifest.py",
-    "python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
-    "python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
-    "python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
-    "python3 scripts/zigux/check-phase2-cross.py",
-    "python3 scripts/zigux/check-phase2-fixdep-gate.py",
-    "python3 scripts/zigux/check-fixdep-diff.py",
+    "zig run check_phase2_tool_manifest.zig",
+    "zig run check_phase2_bootstrap_workflow_routes.zig",
+    "zig run check_phase2_artifact_tools_manifest.zig",
+    "zig run check_phase2_kconfig_allconfig_helper_packet.zig",
+    "zig run check_phase2_cross.zig",
+    "zig run check_phase2_fixdep_gate.zig",
+    "zig run check_fixdep_diff.zig",
 };
 
 const shared_make_routes = [_][]const u8{
@@ -94,15 +94,15 @@ test "phase2 closure note pins the shared tooling checker packet" {
     );
     try requireOrdered(
         closure,
-        "scripts/zigux/check-phase2-artifact-tools-manifest.py",
-        "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
+        "scripts\zigux/check_phase2_artifact_tools_manifest.zig",
+        "scripts\zigux/check_phase2_kconfig_allconfig_helper_packet.zig",
     );
     try requireOrdered(
         closure,
-        "scripts/zigux/check-phase2-cross.py",
-        "scripts/zigux/check-phase2-fixdep-gate.py",
+        "scripts\zigux/check_phase2_cross.zig",
+        "scripts\zigux/check_phase2_fixdep_gate.zig",
     );
-    try requireMissing(closure, "PHASE2_SHARED_TOOLING_CHECKERS=python3 scripts/zigux/check-phase2-tool-manifest.py,python3 scripts/zigux/check-phase2-cross.py");
+    try requireMissing(closure, "PHASE2_SHARED_TOOLING_CHECKERS=zig run check_phase2_tool_manifest.zig,zig run check_phase2_cross.zig");
 }
 
 test "phase2 manifest and workflow keep shared tooling surfaces live" {
@@ -115,22 +115,22 @@ test "phase2 manifest and workflow keep shared tooling surfaces live" {
         try requireContains(manifest, checker[8..]);
     }
 
-    try requireContains(manifest, "\"scripts/zigux/artifact_diff.py\"");
-    try requireContains(manifest, "\"scripts/zigux/check-phase2-artifact-tools-manifest.py\"");
-    try requireContains(manifest, "\"scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py\"");
-    try requireContains(manifest, "\"scripts/zigux/check-phase2-fixdep-gate.py\"");
-    try requireContains(manifest, "\"scripts/zigux/check-fixdep-diff.py\"");
+    try requireContains(manifest, "\"scripts/zigux/artifact_diff.zig\"");
+    try requireContains(manifest, "\"scripts\zigux/check_phase2_artifact_tools_manifest.zig\"");
+    try requireContains(manifest, "\"scripts\zigux/check_phase2_kconfig_allconfig_helper_packet.zig\"");
+    try requireContains(manifest, "\"scripts\zigux/check_phase2_fixdep_gate.zig\"");
+    try requireContains(manifest, "\"scripts\zigux/check_fixdep_diff.zig\"");
     try requireContains(manifest, "\"repo_reality_gaps\": []");
 
     try requireOrdered(
         workflow,
-        "run: python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
-        "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
+        "run: zig run check_phase2_bootstrap_workflow_routes.zig",
+        "run: zig run check_phase2_artifact_tools_manifest.zig",
     );
     try requireOrdered(
         workflow,
-        "run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
-        "run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
+        "run: zig run check_phase2_kconfig_allconfig_helper_packet.zig",
+        "run: zig run check_phase2_kbuild_routes.zig --self-test",
     );
 }
 

@@ -18,8 +18,8 @@ The current `idr_slot` packet qualifies as substantive interop progress rather t
 - `zigux/tests/fixtures/phase3_idr_slot/phase3_idr_slot_c_harness.c`
 - `zigux/tests/fixtures/phase3_idr_slot/expected.json`
 - `zigux/tests/fixtures/phase3_idr_slot_manifest.json`
-- `scripts/zigux/check-phase3-idr-slot-starter-packet.py`
-- `scripts/zigux/check-phase3-idr-slot.py`
+- `scripts\zigux/check_phase3_idr_slot_starter_packet.zig`
+- `scripts\zigux/check_phase3_idr_slot.zig`
 - `zigux/Makefile`
 
 ## Shared ABI Meaning
@@ -32,10 +32,10 @@ For the shared ABI lane, this means the honest repo-reality statement now includ
 
 The replay surface exposed by the landed packet is:
 
-- `python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --self-test`
-- `python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --repo-root .`
-- `python3 scripts/zigux/check-phase3-idr-slot.py --self-test`
-- `python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc`
+- `zig run check_phase3_idr_slot_starter_packet.zig --self-test`
+- `zig run check_phase3_idr_slot_starter_packet.zig --repo-root .`
+- `zig run check_phase3_idr_slot.zig --self-test`
+- `zig run check_phase3_idr_slot.zig --repo-root . --zig zig --cc gcc`
 - `zig build phase3-idr-slot --build-file zigux/tests/phase3_idr_slot_build.zig`
 - `zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig`
 - `zig build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig`

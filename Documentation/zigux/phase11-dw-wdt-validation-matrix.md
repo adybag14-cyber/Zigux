@@ -21,7 +21,7 @@ This matrix keeps the current bounded validation packet for the Zigux `dw_wdt` l
 
 ## Current Readback Boundary
 
-- Authenticated current-head rereads in this environment still do not rematerialize `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, or the older `scripts/zigux/check-phase11-dw-wdt-packet.py` handle.
+- Authenticated current-head rereads in this environment still do not rematerialize `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, or the older `scripts\zigux/check_phase11_dw_wdt_packet.zig` handle.
 - Treat that broader reminder stack as larger same-lane vocabulary or fallback-visible evidence until a future authenticated reread proves it returned through the same bridge.
 - Keep the direct driver-and-test pair explicit inside the authenticated packet rather than repeating older missing-file wording after those paths have already returned.
 

@@ -18,10 +18,10 @@ pub fn build(b: *std.Build) void {
     const run_tests = b.addRunArtifact(tests);
     const contract_step = b.step(
         "artifact-diff-cli-contract",
-        "Run the artifact_diff.py CLI parser and digest-mode Zig contract",
+        "Run the artifact_diff.zig CLI parser and digest-mode Zig contract",
     );
     contract_step.dependOn(&run_tests.step);
 
-    const test_step = b.step("test", "Run artifact_diff.py CLI contract tests");
+    const test_step = b.step("test", "Run artifact_diff.zig CLI contract tests");
     test_step.dependOn(&run_tests.step);
 }

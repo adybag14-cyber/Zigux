@@ -40,13 +40,13 @@ That is the compact release-planning surface for the parked early tranche.
 
 Keep broader historical closure companions recorded as repo-reality gaps instead of early-release proof:
 
-- `scripts/zigux/validate-phase1.py`
-- `scripts/zigux/check-phase1-parity.py`
+- `scripts\zigux/validate_phase1.zig`
+- `scripts\zigux/check_phase1_parity.zig`
 - `zigux/tests/phase1_helpers.zig`
 - `zigux/tests/phase1_bench.zig`
-- `scripts/zigux/validate-phase2-closure.py`
-- `scripts/zigux/install-zig.py`
-- `scripts/zigux/check-phase2-cross.py`
+- `scripts\zigux/validate_phase2_closure.zig`
+- `scripts/zigux/install_zig.zig`
+- `scripts\zigux/check_phase2_cross.zig`
 - `zigux/tests/fixtures/phase2_cross_targets.json`
 
 The ledger still records those earlier closure-train members as historical tranche context, but this release note should not treat them as current shipped evidence until fresh current-`master` readback restores them.

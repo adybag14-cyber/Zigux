@@ -6,7 +6,7 @@ This note records the current roadmap-backed `rbtree` gap inside the bounded Pha
 
 - `PHASE3_RBTREE_GAP_ROADMAP_ANCHOR=lib/rbtree.c`
 - `PHASE3_RBTREE_GAP_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md`
-- `PHASE3_RBTREE_GAP_CATALOG_PATH=scripts/zigux/phase3_catalog.py`
+- `PHASE3_RBTREE_GAP_CATALOG_PATH=scripts/zigux/phase3_catalog.zig`
 - this note is limited to current repo-reality reporting for the still-missing `rbtree` interop slice
 
 ## Current Repo Reality

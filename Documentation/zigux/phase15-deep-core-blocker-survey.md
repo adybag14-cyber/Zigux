@@ -56,7 +56,7 @@ Current `master` directly materializes the owner packet that governs these ancho
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - `Documentation/zigux/phase15-shared-summary-gap.md`
-- `scripts/zigux/validate-phase15.py`
+- `scripts\zigux/validate_phase15.zig`
 - `zigux/tests/phase15_freeze_map_governance.zig`
 - `zigux/tests/phase15_parity_scorecard.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
@@ -109,15 +109,15 @@ That means the honest posture is still blocker accounting and reminder-surface m
 
 - current lane posture: `maintenance_mode`
 - replay before trusting this survey:
-  - `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`
-  - `python3 scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
-  - `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
-  - `python3 scripts/zigux/check-phase15-tests-readme-alignment.py`
-  - `python3 scripts/zigux/check-phase15-review-process-handoff.py`
-  - `python3 scripts/zigux/check-phase15-handoff-note-alignment.py`
-  - `python3 scripts/zigux/check-phase15-shared-summary-gap.py`
-  - `python3 scripts/zigux/check-phase15-readiness-gate-packet.py`
-  - `python3 scripts/zigux/validate-phase15.py`
+  - `zig run check_phase15_docs_readme_alignment.zig`
+  - `zig run check_phase15_review_checklist_study_only_alignment.zig`
+  - `zig run check_phase15_scripts_readme_alignment.zig`
+  - `zig run check_phase15_tests_readme_alignment.zig`
+  - `zig run check_phase15_review_process_handoff.zig`
+  - `zig run check_phase15_handoff_note_alignment.zig`
+  - `zig run check_phase15_shared_summary_gap.zig`
+  - `zig run check_phase15_readiness_gate_packet.zig`
+  - `zig run validate_phase15.zig`
   - `zig test zigux/tests/phase15_freeze_map_governance.zig`
   - `zig test zigux/tests/phase15_parity_scorecard.zig`
   - `zig build test --build-file zigux/tests/phase15_build.zig`

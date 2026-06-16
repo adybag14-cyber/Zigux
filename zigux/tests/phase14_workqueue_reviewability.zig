@@ -29,18 +29,18 @@ const Manifest = struct {
 };
 
 const expected_productization_exact_checks = [_][]const u8{
-    "python3 scripts/zigux/check-phase14-shared-smoke-route.py --self-test",
-    "python3 scripts/zigux/check-phase14-shared-smoke-route.py",
-    "python3 scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test",
-    "python3 scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
-    "python3 scripts/zigux/validate-phase14.py --self-test",
-    "python3 scripts/zigux/validate-phase14.py",
-    "python3 scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
-    "python3 scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
-    "python3 scripts/zigux/check-phase14-workqueue-study-only-guardrail.py --self-test",
-    "python3 scripts/zigux/check-phase14-workqueue-study-only-guardrail.py",
-    "python3 scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
-    "python3 scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+    "zig run check_phase14_shared_smoke_route.zig --self-test",
+    "zig run check_phase14_shared_smoke_route.zig",
+    "zig run check_phase14_tests_readme_smoke_summary.zig --self-test",
+    "zig run check_phase14_tests_readme_smoke_summary.zig",
+    "zig run validate_phase14.zig --self-test",
+    "zig run validate_phase14.zig",
+    "zig run check_phase14_rollback_threshold_sequencing.zig --self-test",
+    "zig run check_phase14_rollback_threshold_sequencing.zig",
+    "zig run check_phase14_workqueue_study_only_guardrail.zig --self-test",
+    "zig run check_phase14_workqueue_study_only_guardrail.zig",
+    "zig run check_phase14_release_boundary_exact_counts.zig --self-test",
+    "zig run check_phase14_release_boundary_exact_counts.zig",
     "make -C zigux phase14-validate",
 };
 
@@ -174,8 +174,8 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase14-shared-smoke-current-master-gap.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase14-attached-toolchain-guidance-gap.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase15-study-only-anchor-accounting.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase14-shared-smoke-route.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase14-release-boundary-exact-counts.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts\zigux/check_phase14_shared_smoke_route.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts\zigux/check_phase14_release_boundary_exact_counts.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/Makefile") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "boundary-map-only submission routing through `queue_work_on()` and `__queue_work()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "boundary-map-only allocation and attribute shaping through `__alloc_workqueue()` and `devm_alloc_workqueue()`") != null);

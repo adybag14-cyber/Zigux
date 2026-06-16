@@ -29,7 +29,7 @@ Current public default-branch readback shows the parked command-and-help packet 
 - `zigux/tests/phase8_help.zig`
 - `zigux/tests/phase8_help_only_build.zig`
 - `zigux/tests/phase8_help_kallsyms_only_build.zig`
-- `scripts/zigux/check-phase8-help-kallsyms-packet.py`
+- `scripts\zigux/check_phase8_help_kallsyms_packet.zig`
 - `make -C zigux phase8-help-test`
 - `make -C zigux phase8-help-kallsyms-test`
 - `make -C zigux phase8-validate`
@@ -43,7 +43,7 @@ The same repo packet still keeps `kallsyms` ownership separate from this shared 
 The shared survey currently stops at the direct help file and focused help test shard. It does not yet name the returned:
 
 - `zigux/tests/phase8_help_kallsyms_only_build.zig` overlap shard
-- `scripts/zigux/check-phase8-help-kallsyms-packet.py` shared checker
+- `scripts\zigux/check_phase8_help_kallsyms_packet.zig` shared checker
 - `make -C zigux phase8-help-test` focused help wrapper
 - `make -C zigux phase8-help-kallsyms-test` shared overlap wrapper
 

@@ -8,7 +8,7 @@ const parts_path = archive_path ++ ".parts";
 const archive_sha = "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8";
 const archive_size = "59581484";
 const archive_replay_command =
-    "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive " ++
+    "zig run check_zig_toolchain.zig --archive-only --archive " ++
     archive_path ++ " --archive-target " ++ target;
 
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
@@ -61,14 +61,14 @@ test "third_party README keeps the local-first archive replay and duplicate boun
     defer allocator.free(third_party_readme);
 
     try requireContains(third_party_readme, "Lane 05 bootstrap first reuses and validates");
-    try requireContains(third_party_readme, "stages the same pinned payload locally with `scripts/zigux/stage-pinned-zig-archive.py`");
+    try requireContains(third_party_readme, "stages the same pinned payload locally with `scripts/zigux/stage_pinned_zig_archive.zig`");
     try requireContains(third_party_readme, "canonical release, mirror, or direct-download path");
     try requireContains(third_party_readme, "`community-mirrors.txt`");
-    try requireContains(third_party_readme, "`scripts/zigux/check-lane05-local-first-archive-workflow.py`");
-    try requireContains(third_party_readme, "`scripts/zigux/check-lane05-local-archive-readme.py`");
-    try requireContains(third_party_readme, "`scripts/zigux/check-lane05-install-zig-archive-verification.py`");
-    try requireContains(third_party_readme, "`scripts/zigux/check-lane05-stage-helper-contract.py`");
-    try requireContains(third_party_readme, "`scripts/zigux/check-lane05-stage-helper-selftest.py`");
+    try requireContains(third_party_readme, "`scripts\zigux/check_lane05_local_first_archive_workflow.zig`");
+    try requireContains(third_party_readme, "`scripts\zigux/check_lane05_local_archive_readme.zig`");
+    try requireContains(third_party_readme, "`scripts\zigux/check_lane05_install_zig_archive_verification.zig`");
+    try requireContains(third_party_readme, "`scripts\zigux/check_lane05_stage_helper_contract.zig`");
+    try requireContains(third_party_readme, "`scripts\zigux/check_lane05_stage_helper_selftest.zig`");
     try requireContains(third_party_readme, "duplicate-suffix archives are rejected before staging");
     try requireContains(third_party_readme, "`zig-x86_64-linux-0.17.0-dev.877+a3ae499dc (1).tar.xz`");
 
@@ -78,14 +78,14 @@ test "third_party README keeps the local-first archive replay and duplicate boun
 
 test "archive README checker consumes the same current README contract" {
     const allocator = std.testing.allocator;
-    const archive_readme_checker = try readRepoFile(allocator, "scripts/zigux/check-lane05-local-archive-readme.py");
+    const archive_readme_checker = try readRepoFile(allocator, "scripts\zigux/check_lane05_local_archive_readme.zig");
     defer allocator.free(archive_readme_checker);
 
     try requireContains(archive_readme_checker, "README_PATH = Path(\"third_party/README.md\")");
     try requireContains(archive_readme_checker, "POLICY_PATH = Path(\"scripts/zigux/zig-toolchain-policy.json\")");
     try requireContains(archive_readme_checker, "\"x86_64-linux\": 59_410_844");
     try requireContains(archive_readme_checker, "expected_archive_filename(target, channel)");
-    try requireContains(archive_readme_checker, "\"python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"");
+    try requireContains(archive_readme_checker, "\"zig run check_zig_toolchain.zig --archive-only --archive \"");
     try requireContains(archive_readme_checker, "expected_parts_path = f\"{expected_path}.parts\"");
     try requireContains(archive_readme_checker, "ARCHIVE_DUPLICATE_SUFFIX_RE");
     try requireContains(archive_readme_checker, "\"third_party contains duplicate-suffix archive copies\"");
@@ -110,6 +110,6 @@ test "shared Phase 2 documentation points reviewers back to the third_party arch
     try requireContains(review_checklist, "if the change touches the shared Phase 2 toolchain packet");
     try requireContains(review_checklist, "`third_party/README.md`");
     try requireContains(review_checklist, archive_replay_command);
-    try requireContains(review_checklist, "`python3 scripts/zigux/check-lane05-local-archive-readme.py`");
+    try requireContains(review_checklist, "`zig run check_lane05_local_archive_readme.zig`");
     try requireContains(review_checklist, "`make -C zigux phase2-toolchain`");
 }

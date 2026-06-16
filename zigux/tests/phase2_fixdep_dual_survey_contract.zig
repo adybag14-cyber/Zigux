@@ -4,8 +4,8 @@ const testing = std.testing;
 const max_file_bytes = 4 * 1024 * 1024;
 
 const survey_path = "Documentation/zigux/phase2-fixdep-dual-implementation-survey.md";
-const fixdep_gate_path = "scripts/zigux/check-phase2-fixdep-gate.py";
-const fixdep_diff_path = "scripts/zigux/check-fixdep-diff.py";
+const fixdep_gate_path = "scripts\zigux/check_phase2_fixdep_gate.zig";
+const fixdep_diff_path = "scripts\zigux/check_fixdep_diff.zig";
 const fixdep_helper_path = "scripts/zigux/fixdep.zig";
 const fixdep_cases_path = "zigux/tests/fixtures/fixdep/cases.json";
 const closure_path = "Documentation/zigux/phase2-closure.md";
@@ -52,7 +52,7 @@ test "fixdep dual survey records the current Phase 2 packet" {
     try expectContains(survey, "Exact-path authenticated contents reads still return missing for `scripts/basic/fixdep.c`");
     try expectContains(survey, "Current `master` now directly serves `Documentation/zigux/artifact-diff.md`");
     try expectContains(survey, "The shared closure note now enumerates `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md`");
-    try expectContains(survey, "Keep `scripts/zigux/check-phase2-fixdep-gate.py` aligned with the current helper-local test roster");
+    try expectContains(survey, "Keep `scripts\zigux/check_phase2_fixdep_gate.zig` aligned with the current helper-local test roster");
     try expectNotContains(survey, "bounded twelve-case external fixdep packet");
     try expectContains(survey, "The live repo no longer supports the older survey claim that the helper still omits `error.PermissionDenied`");
 }
@@ -98,14 +98,14 @@ test "fixdep helper and reminder surfaces keep the survey packet replayable" {
     try expectContains(helper, "test \"runFixdep preserves escaped colon dependencies through the public entry path\" {");
 
     try expectContains(closure, survey_path);
-    try expectContains(closure, "scripts/zigux/check-phase2-fixdep-gate.py");
-    try expectContains(closure, "scripts/zigux/check-fixdep-diff.py");
+    try expectContains(closure, "scripts\zigux/check_phase2_fixdep_gate.zig");
+    try expectContains(closure, "scripts\zigux/check_fixdep_diff.zig");
     try expectContains(closure, "make -C zigux phase2-fixdep");
 
-    try expectContains(tests_readme, "current `master` also directly materializes `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`");
+    try expectContains(tests_readme, "current `master` also directly materializes `scripts\zigux/check_phase2_fixdep_gate.zig`, `scripts\zigux/check_fixdep_diff.zig`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`");
     try expectContains(tests_readme, "zigux/tests/fixtures/fixdep/cases.json");
-    try expectContains(scripts_readme, "scripts/zigux/check-phase2-fixdep-gate.py");
-    try expectContains(scripts_readme, "python3 scripts/zigux/check-fixdep-diff.py --self-test");
+    try expectContains(scripts_readme, "scripts\zigux/check_phase2_fixdep_gate.zig");
+    try expectContains(scripts_readme, "zig run check_fixdep_diff.zig --self-test");
     try expectContains(makefile, "phase2-fixdep: phase2-toolchain");
     try expectContains(makefile, "check-phase2-fixdep-gate.py --self-test");
     try expectContains(makefile, "check-fixdep-diff.py --zig");

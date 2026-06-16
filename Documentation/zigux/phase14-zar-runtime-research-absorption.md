@@ -107,7 +107,7 @@ This note sharpens the meaning of the existing Phase 14 packet without changing 
 
 ## Validation surface
 
-The bounded checker for this note is `scripts/zigux/check-phase14-zar-runtime-research-absorption.py`. It fail-closes on the source marker, the four refreshed runtime lessons, the no-new-bridge posture, and forbidden parity or ownership claims.
+The bounded checker for this note is `scripts\zigux/check_phase14_zar_runtime_research_absorption.zig`. It fail-closes on the source marker, the four refreshed runtime lessons, the no-new-bridge posture, and forbidden parity or ownership claims.
 
 ## Non-goals
 

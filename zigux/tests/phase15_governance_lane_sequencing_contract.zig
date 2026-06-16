@@ -29,15 +29,15 @@ const reminder_surfaces = [_][]const u8{
 };
 
 const replay_commands = [_][]const u8{
-    "python3 scripts/zigux/check-phase15-docs-readme-alignment.py",
-    "python3 scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
-    "python3 scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "python3 scripts/zigux/check-phase15-tests-readme-alignment.py",
-    "python3 scripts/zigux/check-phase15-architecture-council-packet.py",
-    "python3 scripts/zigux/check-phase15-review-process-handoff.py",
-    "python3 scripts/zigux/check-phase15-handoff-note-alignment.py",
-    "python3 scripts/zigux/check-phase15-shared-summary-gap.py",
-    "python3 scripts/zigux/validate-phase15.py",
+    "zig run check_phase15_docs_readme_alignment.zig",
+    "zig run check_phase15_review_checklist_study_only_alignment.zig",
+    "zig run check_phase15_scripts_readme_alignment.zig",
+    "zig run check_phase15_tests_readme_alignment.zig",
+    "zig run check_phase15_architecture_council_packet.zig",
+    "zig run check_phase15_review_process_handoff.zig",
+    "zig run check_phase15_handoff_note_alignment.zig",
+    "zig run check_phase15_shared_summary_gap.zig",
+    "zig run validate_phase15.zig",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "zig test zigux/tests/phase15_governance_lane_sequencing.zig",
 };
@@ -146,14 +146,14 @@ test "adjacent freeze-map governance and validator surfaces agree on the sequenc
             .path = "Documentation/zigux/phase15-freeze-map-governance.md",
             .markers = &.{
                 "Documentation/zigux/phase15-governance-lane-sequencing.md",
-                "scripts/zigux/validate-phase15.py",
+                "scripts\zigux/validate_phase15.zig",
                 "zigux/tests/phase15_build.zig",
                 "zigux/Makefile` still carries no `phase15-validate`, `phase15-test`, or `phase15` routes",
                 "blocked_on_stay_in_c_evidence `phase15-deep-core-status-change-blocker`",
             },
         },
         .{
-            .path = "scripts/zigux/validate-phase15.py",
+            .path = "scripts\zigux/validate_phase15.zig",
             .markers = &.{
                 "\"Documentation/zigux/phase15-governance-lane-sequencing.md\"",
                 "\"phase15_governance_lane_manifest_present\": True",

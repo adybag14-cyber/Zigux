@@ -10,7 +10,7 @@ const FileSet = struct {
     fn load(allocator: std.mem.Allocator) !FileSet {
         return .{
             .closure = try readFile(allocator, "Documentation/zigux/phase2-closure.md"),
-            .validator = try readFile(allocator, "scripts/zigux/validate-phase2-closure.py"),
+            .validator = try readFile(allocator, "scripts\zigux/validate_phase2_closure.zig"),
             .manifest = try readFile(allocator, "zigux/tests/fixtures/phase2_tool_manifest.json"),
             .makefile = try readFile(allocator, "zigux/Makefile"),
             .workflow = try readFile(allocator, ".github/workflows/zigux-bootstrap.yml"),
@@ -59,11 +59,11 @@ test "Phase 2 closure keeps parked status and validator authority explicit" {
     try requireContains(files.closure, "`PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest`");
     try requireContains(files.closure, "manifest: `zigux/tests/fixtures/phase2_tool_manifest.json`");
     try requireContains(files.closure, "shared note: `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`");
-    try requireContains(files.closure, "`PHASE2_CLOSURE_VALIDATORS=python3 scripts/zigux/validate-phase2.py,python3 scripts/zigux/validate-phase2-closure.py`");
+    try requireContains(files.closure, "`PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2.zig,zig run validate_phase2_closure.zig`");
 
     try requireContains(files.validator, "VALIDATOR_COMMANDS = (");
-    try requireContains(files.validator, "\"python3 scripts/zigux/validate-phase2.py\"");
-    try requireContains(files.validator, "\"python3 scripts/zigux/validate-phase2-closure.py\"");
+    try requireContains(files.validator, "\"zig run validate_phase2.zig\"");
+    try requireContains(files.validator, "\"zig run validate_phase2_closure.zig\"");
     try requireContains(files.validator, "PHASE2_CLOSURE_VALIDATION=pass");
     try requireContains(files.validator, "PHASE2_CLOSURE_STATUS=parked");
     try requireContains(files.validator, "PHASE2_CLOSURE_PACKET=toolchain_cross_kconfig_genksyms_fixdep_closure");
@@ -93,15 +93,15 @@ test "Phase 2 closure status is wired through make and workflow after Phase 2 ro
     defer files.deinit(allocator);
 
     try requireContains(files.makefile, "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep");
-    try requireContains(files.makefile, "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py");
+    try requireContains(files.makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase2_closure.zig");
     try requireContains(files.makefile, "phase2: phase2-validate");
-    try requireExactCount(files.makefile, "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py", 1);
+    try requireExactCount(files.makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase2_closure.zig", 1);
 
     try requireBefore(files.workflow, "Run current Phase 2 aggregate make route", "Validate current Phase 2 tool packet");
     try requireBefore(files.workflow, "Validate current Phase 2 tool packet", "Self-test current Phase 2 closure validator");
     try requireBefore(files.workflow, "Self-test current Phase 2 closure validator", "Check current Phase 2 closure packet");
     try requireContains(files.workflow, "run: make -C zigux phase2");
-    try requireContains(files.workflow, "run: python3 scripts/zigux/validate-phase2.py");
-    try requireContains(files.workflow, "run: python3 scripts/zigux/validate-phase2-closure.py --self-test");
-    try requireContains(files.workflow, "run: python3 scripts/zigux/validate-phase2-closure.py");
+    try requireContains(files.workflow, "run: zig run validate_phase2.zig");
+    try requireContains(files.workflow, "run: zig run validate_phase2_closure.zig --self-test");
+    try requireContains(files.workflow, "run: zig run validate_phase2_closure.zig");
 }

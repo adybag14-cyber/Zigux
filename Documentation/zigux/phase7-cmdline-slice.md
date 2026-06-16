@@ -9,7 +9,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_LANE_KEY=P7-L08`
 - lane-key note: `P7-L08` keeps the dedicated cmdline packet separate from the broader Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate follow-ons
 - scope: keep the Phase 7 cmdline lane limited to the current helper-local sequencing note, slice anchor, dedicated replay, dedicated survey, dedicated manifest, dedicated checker, the dedicated survey build glue, and the no-standalone-cmdline-sample boundary
-- lane state: current `master` directly carries `Documentation/zigux/phase7-helper-lane-sequencing.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `zigux/tests/phase7_cmdline_survey_build.zig`, `scripts/zigux/check-phase7-cmdline-packet.py`, and `samples/zigux/README.md`. Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned survey-backed packet.
+- lane state: current `master` directly carries `Documentation/zigux/phase7-helper-lane-sequencing.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `zigux/tests/phase7_cmdline_survey_build.zig`, `scripts\zigux/check_phase7_cmdline_packet.zig`, and `samples/zigux/README.md`. Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned survey-backed packet.
 
 ## Why This Slice Exists
 
@@ -31,7 +31,7 @@ This is intentionally not a Phase 5 `samples/zigux/` delivery lane. Current `mas
 - `zigux/tests/phase7_cmdline_survey.zig`
 - `zigux/tests/phase7_cmdline_manifest.json`
 - `zigux/tests/phase7_cmdline_survey_build.zig`
-- `scripts/zigux/check-phase7-cmdline-packet.py`
+- `scripts\zigux/check_phase7_cmdline_packet.zig`
 
 3. keep the no-standalone-cmdline-sample boundary explicit
 - `samples/zigux/README.md`
@@ -59,7 +59,7 @@ The current helper-local replay keeps these proofs explicit:
 - dedicated `getOption()` and `get_option` cursor replay across leading-plus and range-style inputs so alias-only call sites stay reviewable beside the primary helper entry point
 - quoted and key-value argument splitting that preserves the remaining borrowed suffix without widening beyond the first exported C-string boundary
 - decimal, hexadecimal, octal, signed, and suffix-aware memory parsing with explicit no-conversion and signed-clamping behavior
-- dedicated helper-local replay, survey, manifest, checker, and build glue coverage rooted at `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `scripts/zigux/check-phase7-cmdline-packet.py`, and `zigux/tests/phase7_cmdline_survey_build.zig`
+- dedicated helper-local replay, survey, manifest, checker, and build glue coverage rooted at `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `scripts\zigux/check_phase7_cmdline_packet.zig`, and `zigux/tests/phase7_cmdline_survey_build.zig`
 
 The current helper-local replay also keeps these ownership and boundary rules explicit:
 
@@ -72,7 +72,7 @@ The current helper-local replay also keeps these ownership and boundary rules ex
 
 ## Replay Routes
 
-- `python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test`
+- `zig run check_phase7_cmdline_packet.zig --self-test`
 - `zig build phase7-cmdline-survey --build-file zigux/tests/phase7_cmdline_survey_build.zig`
 
 ## Non-goals

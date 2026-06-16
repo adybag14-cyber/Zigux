@@ -8,7 +8,7 @@ This note records one bounded Phase 3 helper-side `ida_bitmap` starter packet on
 - `zigux/tests/phase3_ida_bitmap_starter_packet.zig`
 - `zigux/tests/phase3_ida_bitmap_starter_packet_build.zig`
 - `zigux/tests/phase3_ida_bitmap_starter_packet_manifest.json`
-- `scripts/zigux/check-phase3-ida-bitmap-starter-packet.py`
+- `scripts\zigux/check_phase3_ida_bitmap_starter_packet.zig`
 
 ## Bounded Contract
 
@@ -26,9 +26,9 @@ The current helper-local packet now has one bounded replay layer:
 - `zigux/tests/phase3_ida_bitmap_starter_packet.zig`
 - `zigux/tests/phase3_ida_bitmap_starter_packet_build.zig`
 - `zigux/tests/phase3_ida_bitmap_starter_packet_manifest.json`
-- `scripts/zigux/check-phase3-ida-bitmap-starter-packet.py`
-- `python3 scripts/zigux/check-phase3-ida-bitmap-starter-packet.py --self-test`
-- `python3 scripts/zigux/check-phase3-ida-bitmap-starter-packet.py --repo-root .`
+- `scripts\zigux/check_phase3_ida_bitmap_starter_packet.zig`
+- `zig run check_phase3_ida_bitmap_starter_packet.zig --self-test`
+- `zig run check_phase3_ida_bitmap_starter_packet.zig --repo-root .`
 - `zig build phase3-ida-bitmap-starter-packet-test --build-file zigux/tests/phase3_ida_bitmap_starter_packet_build.zig`
 
 ## Current Gap

@@ -24,8 +24,8 @@ Current `master` already keeps the bounded deferred-exec review packet explicit 
 - `tools/lib/subcmd/exec-cmd.zig`
 - `zigux/tests/phase8_exec_cmd.zig`
 - `zigux/tests/phase8_exec_cmd_only_build.zig`
-- `scripts/zigux/check-phase8-exec-cmd-packet.py`
-- `scripts/zigux/validate-phase8.py`
+- `scripts\zigux/check_phase8_exec_cmd_packet.zig`
+- `scripts\zigux/validate_phase8.zig`
 - `make -C zigux phase8-exec-cmd-test`
 - `make -C zigux phase8-validate`
 

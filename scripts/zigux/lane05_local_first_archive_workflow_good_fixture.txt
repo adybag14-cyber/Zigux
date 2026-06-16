@@ -1,0 +1,140 @@
+name: zigux-bootstrap
+jobs:
+  bootstrap:
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Setup pinned Zig toolchain
+        run: |
+          paths:
+            - 'scripts/zigux/**'
+            - 'third_party/**'
+            - 'tools/lib/*.zig'
+          policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))
+          targets = policy["upgrade_policy"]["archive_target_scope"]
+          channel = policy["channel"]
+          filename = f"zig-{target}-{channel}.tar.xz"
+          canonical_repo = "adybag14-cyber/zig"
+          canonical_tag = "upstream-a3ae499dc297"
+          url = f"https://ziglang.org/builds/{filename}"
+          canonical_url = f"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}"
+          print(f"ZIGUX_ZIG_TARGET='{target}'")
+          print(f"ZIGUX_ZIG_CHANNEL='{channel}'")
+          print(f"ZIGUX_ZIG_FILENAME='{filename}'")
+          print(f"ZIGUX_ZIG_URL='{url}'")
+          print(f"ZIGUX_ZIG_CANONICAL_URL='{canonical_url}'")
+          archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"
+          extract_root="$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL"
+          repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"
+          repo_archive_parts_dir="${repo_archive_path}.parts"
+          verify_pinned_archive_sha256() {
+            true
+          }
+          ensure_bootstrap_zig() {
+            curl --fail \
+              --location \
+              --retry 5 \
+              --retry-all-errors \
+              --retry-delay 3 \
+              --connect-timeout 20 \
+              --speed-limit 1024 \
+              --speed-time 30 \
+              "$ZIGUX_ZIG_CANONICAL_URL" \
+              -o "$archive_path"
+          }
+          verify_and_activate_archive() {
+            tar -xJf "$archive" -C .zig-toolchain
+            export PATH="$extract_root:$PATH"
+          }
+          try_local_archive() {
+            if [ ! -f "$repo_archive_path" ]; then
+              if [ ! -d "$repo_archive_parts_dir" ]; then
+                return 1
+              fi
+              ensure_bootstrap_zig || return 1
+              zig run scripts/zigux/stage_pinned_zig_archive.zig -- --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1
+            fi
+            verify_and_activate_archive "$repo_archive_path" || return 1
+            if zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
+              true
+            fi
+          }
+          try_download() {
+            local url="$1"
+            if curl --fail \
+              --location \
+              --retry 5 \
+              --retry-all-errors \
+              --retry-delay 3 \
+              --connect-timeout 20 \
+              --speed-limit 1024 \
+              --speed-time 30 \
+              "$url" \
+              -o "$archive_path"; then
+              verify_and_activate_archive "$archive_path" || return 1
+              return 0
+            fi
+          }
+          download_success=0
+          if try_local_archive; then
+            download_success=1
+          elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then
+            download_success=1
+          elif curl --fail \
+            --location \
+            --retry 5 \
+            --retry-all-errors \
+            --retry-delay 3 \
+            --connect-timeout 20 \
+            --speed-limit 1024 \
+            --speed-time 30 \
+            https://ziglang.org/download/community-mirrors.txt \
+            -o "$mirror_file"; then
+            download_success=0
+          fi
+          if try_download "$ZIGUX_ZIG_URL"; then
+            download_success=1
+          fi
+          echo 'failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org' >&2
+      - name: Self-test current Zig toolchain checker
+        run: zig run scripts/zigux/check_zig_toolchain.zig -- --self-test
+      - name: Check current Zig toolchain policy packet
+        run: zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only
+      - name: Check current pinned Zig archive packet
+        run: zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing
+      - name: Self-test current Lane 05 local-first archive checker
+        run: zig run scripts/zigux/check_lane05_local_first_archive_workflow.zig -- --self-test
+      - name: Check current Lane 05 local-first archive packet
+        run: zig run scripts/zigux/check_lane05_local_first_archive_workflow.zig
+      - name: Self-test current Lane 05 local archive README checker
+        run: zig run scripts/zigux/check_lane05_local_archive_readme.zig -- --self-test
+      - name: Check current Lane 05 local archive README packet
+        run: zig run scripts/zigux/check_lane05_local_archive_readme.zig
+      - name: Self-test current staged pinned Zig archive helper
+        run: zig run scripts/zigux/stage_pinned_zig_archive.zig -- --self-test
+      - name: Self-test current Zig installer helper
+        run: zig run scripts/zigux/install_zig.zig -- --self-test
+      - name: Self-test current Phase 1 route summary checker
+        run: zig run check_phase1_route_summary_counts.zig --self-test
+      - name: Check current Phase 1 route summary packet
+        run: zig run check_phase1_route_summary_counts.zig
+      - name: Self-test current Phase 2 tool manifest checker
+        run: zig run check_phase2_tool_manifest.zig --self-test
+      - name: Check current Phase 2 tool manifest packet
+        run: zig run check_phase2_tool_manifest.zig
+      - name: Self-test current Phase 2 artifact tools manifest checker
+        run: zig run check_phase2_artifact_tools_manifest.zig --self-test
+      - name: Check current Phase 2 artifact tools manifest packet
+        run: zig run check_phase2_artifact_tools_manifest.zig
+      - name: Self-test current Phase 9 freeze-map study-boundaries checker
+        run: zig run check_phase9_freeze_map_study_boundaries.zig --self-test
+      - name: Check current Phase 9 freeze-map study-boundaries packet
+        run: zig run check_phase9_freeze_map_study_boundaries.zig
+      - name: Self-test current Phase 7 make-wrapper selftest alignment checker
+        run: zig run check_phase7_make_wrapper_selftest_alignment.zig --self-test
+      - name: Check current Phase 7 make-wrapper selftest alignment packet
+        run: zig run check_phase7_make_wrapper_selftest_alignment.zig
+      - name: Self-test current Phase 11 build inventory checker
+        run: zig run check_phase11_build_inventory.zig --self-test
+      - name: Check current Phase 11 build inventory packet
+        run: zig run check_phase11_build_inventory.zig

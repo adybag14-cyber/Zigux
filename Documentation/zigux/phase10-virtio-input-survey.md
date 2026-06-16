@@ -18,8 +18,8 @@ This document records the bounded Phase 10 survey lane around `drivers/virtio/vi
   - `Documentation/zigux/phase10-closure-evidence.md`
   - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
   - `Documentation/zigux/freeze-map.md`
-  - `scripts/zigux/check-phase10-input-packet.py`
-  - `scripts/zigux/check-phase10-harness-coverage.py`
+  - `scripts\zigux/check_phase10_input_packet.zig`
+  - `scripts\zigux/check_phase10_harness_coverage.zig`
   - `zigux/tests/build.zig`
   - `zigux/tests/phase10_build.zig`
   - `drivers/virtio/virtio_input.zig`
@@ -43,13 +43,13 @@ This document records the bounded Phase 10 survey lane around `drivers/virtio/vi
 
 The Phase 10 roadmap keeps `drivers/virtio/virtio_input.c` inside the VM-friendly lab-driver stage. In that stage, honest progress is bounded helper, queue-handling, teardown-reset parity, and lab-only driver validation work rather than transport-backed lifecycle delivery.
 
-Fresh repo-first inspection against the live Phase 10 manifest, the packet-local slice notes, the shared closure evidence, the shared tests-root companion, the shared tests-root survey route, and the shared build gate shows that the direct input packet is already present on current `master`: `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_preflight.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `scripts/zigux/check-phase10-input-packet.py`, `zigux/tests/build.zig`, and `zigux/tests/phase10_build.zig` remain part of the bounded input lane.
+Fresh repo-first inspection against the live Phase 10 manifest, the packet-local slice notes, the shared closure evidence, the shared tests-root companion, the shared tests-root survey route, and the shared build gate shows that the direct input packet is already present on current `master`: `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_preflight.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `scripts\zigux/check_phase10_input_packet.zig`, `zigux/tests/build.zig`, and `zigux/tests/phase10_build.zig` remain part of the bounded input lane.
 
 This survey exists to keep that queue-local, dedicated queue-callback-preflight, registration-preflight, teardown-preflight, and teardown-reset parity packet explicit and reviewable while the broader transport-backed bridge stays parked.
 
 ## Survey findings
 - `drivers/virtio/virtio_input.c` remains the Linux anchor for this lane, and `zigux/tests/phase10_virtio_input_manifest.json` still records `ee789f026f11a0c5c70ded9a868979cdf4f55393` as the surveyed Phase 10 input snapshot.
-- the shared Phase 10 packet still keeps the direct input helper packet explicit on current `master`: `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_preflight.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `scripts/zigux/check-phase10-input-packet.py`, `zigux/tests/build.zig`, and `zigux/tests/phase10_build.zig` remain the bounded queue-handling review surfaces that pair with this survey note.
+- the shared Phase 10 packet still keeps the direct input helper packet explicit on current `master`: `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_preflight.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `scripts\zigux/check_phase10_input_packet.zig`, `zigux/tests/build.zig`, and `zigux/tests/phase10_build.zig` remain the bounded queue-handling review surfaces that pair with this survey note.
 - the live manifest keeps the current input lane concrete: the shared build gate, the direct helper foothold, the direct gate, the slice note, the module-facing slice note, the dedicated survey gate, the probe-preflight helper and replay, the dedicated queue-callback-preflight helper and replay, the registration-preflight helper and replay, the status-drain helper and replay, the dedicated teardown-preflight helper and replay, the teardown-observation helper and replay, and the wrapper-facing verify replay now keep teardown-reset parity across reset explicit beside queue-callback ordering and registration prerequisites while freeze, restore, and remove lifecycle claims stay parked.
 - the dedicated teardown-preflight helper plus replay stays explicit as the reset-local ready-or-blocked gate beside status-drain and teardown-observation review.
 - current `master` now keeps `drivers/virtio/virtio_input_teardown_preflight.zig` beside the status-drain and teardown-observation shards, so teardown readiness stays grounded in a dedicated helper that reports pending status-drain blockers before the reset-local teardown path is treated as ready.
@@ -112,11 +112,11 @@ Do not reopen MMIO helper growth, IRQ delivery, DMA, freeze or restore behavior,
 ## Gates
 Current `master` keeps this input lane reviewable through the bounded helper packet:
 1. rerun the dedicated input checker
-- `python3 scripts/zigux/check-phase10-input-packet.py --self-test`
-- `python3 scripts/zigux/check-phase10-input-packet.py`
+- `zig run check_phase10_input_packet.zig --self-test`
+- `zig run check_phase10_input_packet.zig`
 2. rerun the shared Phase 10 harness guard
-- `python3 scripts/zigux/check-phase10-harness-coverage.py --self-test`
-- `python3 scripts/zigux/check-phase10-harness-coverage.py`
+- `zig run check_phase10_harness_coverage.zig --self-test`
+- `zig run check_phase10_harness_coverage.zig`
 3. rerun the shared Phase 10 build and Linux-style make routes when focused readback remains aligned
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 - `zig build phase10-virtio-input-survey --build-file zigux/tests/build.zig`

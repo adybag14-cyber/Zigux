@@ -7,8 +7,8 @@ This note records the current repo-backed gap between the Phase 2 roadmap target
 Lane scope for this survey:
 - `scripts/zigux/kconfig/conf_bridge.zig`
 - `scripts/zigux/kconfig/confdata_bridge.zig`
-- `scripts/zigux/check-kconfig-bridge.py`
-- `scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`
+- `scripts\zigux/check_kconfig_bridge.zig`
+- `scripts\zigux/check_phase2_kconfig_allconfig_helper_packet.zig`
 - `zigux/tests/fixtures/kconfig_bridge/`
 
 Roadmap anchor:
@@ -24,8 +24,8 @@ The current repo already carries meaningful bridge scaffolding instead of placeh
 Directly readable shipped surfaces:
 - `scripts/zigux/kconfig/conf_bridge.zig` covers the current 16-mode `conf` request-plan surface, explicit `allconfig` handling, `randconfig` tunables, `syncconfig` env shaping, and helper-local tests.
 - `scripts/zigux/kconfig/confdata_bridge.zig` covers bounded `.config` parsing plus `auto.conf` and autoconf-header export shaping with helper-local tests.
-- `scripts/zigux/check-kconfig-bridge.py` replays the fixture packet, manifest packet, determinism checks, and self-test packet.
-- `scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py` now keeps the helper-local `allconfig` packet aligned with the bridge checker, manifest, Phase 2 validators, closure note, and tool manifest.
+- `scripts\zigux/check_kconfig_bridge.zig` replays the fixture packet, manifest packet, determinism checks, and self-test packet.
+- `scripts\zigux/check_phase2_kconfig_allconfig_helper_packet.zig` now keeps the helper-local `allconfig` packet aligned with the bridge checker, manifest, Phase 2 validators, closure note, and tool manifest.
 - `zigux/tests/fixtures/kconfig_bridge/cases.json`, `conf_manifest.json`, and `confdata_manifest.json` keep the shipped replay packet explicit.
 
 This means the lane has already cleared the roadmap's anti-churn bar for bridge scaffolding.
@@ -63,7 +63,7 @@ The helper-local reminder packet still names the broader explicit-override guard
 - `alldefconfig`
 - `randconfig`
 
-That risk is now guarded rather than merely described: `scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py` parses the live bridge-checker constants, compares them to `conf_manifest.json`, requires the helper-local `conf_bridge.zig` anchors, and keeps the Phase 2 validation and closure surfaces wired to the same packet.
+That risk is now guarded rather than merely described: `scripts\zigux/check_phase2_kconfig_allconfig_helper_packet.zig` parses the live bridge-checker constants, compares them to `conf_manifest.json`, requires the helper-local `conf_bridge.zig` anchors, and keeps the Phase 2 validation and closure surfaces wired to the same packet.
 
 The remaining same-lane risk is therefore not a missing checker. It is future drift if one of those surfaces changes without moving the full packet together.
 

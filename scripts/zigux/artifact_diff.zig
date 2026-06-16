@@ -30,13 +30,13 @@ pub const ArtifactDiffError = error{
 };
 
 const missing_argument_error =
-    "usage: artifact_diff.py [-h] [--mode {text,json,bytes}] [--self-test] " ++
-    "[expected] [actual] artifact_diff.py: error: --mode, expected, and actual " ++
+    "usage: artifact_diff.zig [-h] [--mode {text,json,bytes}] [--self-test] " ++
+    "[expected] [actual] artifact_diff.zig: error: --mode, expected, and actual " ++
     "are required unless --self-test is set";
 
 const too_many_arguments_error =
-    "usage: artifact_diff.py [-h] [--mode {text,json,bytes}] [--self-test] " ++
-    "[expected] [actual] artifact_diff.py: error: expected exactly two positional " ++
+    "usage: artifact_diff.zig [-h] [--mode {text,json,bytes}] [--self-test] " ++
+    "[expected] [actual] artifact_diff.zig: error: expected exactly two positional " ++
     "arguments";
 
 fn pathExists(io: Io, path: []const u8) bool {
@@ -401,7 +401,7 @@ pub fn main(init: std.process.Init) !void {
 
     if (argv.len == 1 and (std.mem.eql(u8, argv[0], "--help") or std.mem.eql(u8, argv[0], "-h"))) {
         const help =
-            \\usage: artifact_diff.py [-h] [--mode {text,json,bytes}] [--self-test]
+            \\usage: artifact_diff.zig [-h] [--mode {text,json,bytes}] [--self-test]
             \\ [expected] [actual]
             \\
             \\Compare two artifacts in a stable mode.
@@ -441,7 +441,7 @@ pub fn main(init: std.process.Init) !void {
             }
             index += 1;
             mode = Mode.parse(argv[index]) orelse {
-                const msg = try std.fmt.allocPrint(allocator, "usage: artifact_diff.py [-h] [--mode {{text,json,bytes}}] [--self-test] [expected] [actual] artifact_diff.py: error: argument --mode: invalid choice: '{s}' (choose from text, json, bytes)", .{argv[index]});
+                const msg = try std.fmt.allocPrint(allocator, "usage: artifact_diff.zig [-h] [--mode {{text,json,bytes}}] [--self-test] [expected] [actual] artifact_diff.zig: error: argument --mode: invalid choice: '{s}' (choose from text, json, bytes)", .{argv[index]});
                 defer allocator.free(msg);
                 try emitStderrLine(io, msg);
                 std.process.exit(2);

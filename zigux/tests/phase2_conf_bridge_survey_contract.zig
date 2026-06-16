@@ -36,7 +36,7 @@ test "conf bridge survey matches manifest and checker allconfig split" {
     defer allocator.free(survey);
     const conf_manifest = try readRepoFile(allocator, "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json");
     defer allocator.free(conf_manifest);
-    const checker = try readRepoFile(allocator, "scripts/zigux/check-kconfig-bridge.py");
+    const checker = try readRepoFile(allocator, "scripts\zigux/check_kconfig_bridge.zig");
     defer allocator.free(checker);
     const conf_bridge = try readRepoFile(allocator, "scripts/zigux/kconfig/conf_bridge.zig");
     defer allocator.free(conf_bridge);
@@ -89,7 +89,7 @@ test "conf bridge fixture roster remains sixteen mode scoped" {
     defer allocator.free(cases);
     const conf_manifest = try readRepoFile(allocator, "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json");
     defer allocator.free(conf_manifest);
-    const checker = try readRepoFile(allocator, "scripts/zigux/check-kconfig-bridge.py");
+    const checker = try readRepoFile(allocator, "scripts\zigux/check_kconfig_bridge.zig");
     defer allocator.free(checker);
 
     const expected_modes = [_][]const u8{

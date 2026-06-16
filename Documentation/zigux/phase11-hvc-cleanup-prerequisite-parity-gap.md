@@ -34,8 +34,8 @@ replayed on current `master`.
 ## Route Posture
 
 - keep `make -C zigux phase11-validate` as the shared returned Phase 11 route
-- keep `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py --self-test`
-  and `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`
+- keep `zig run check_phase11_hvc_cleanup_prerequisite_packet.zig --self-test`
+  and `zig run check_phase11_hvc_cleanup_prerequisite_packet.zig`
   explicit as this note's fail-closed companion checker
 - keep `Documentation/zigux/phase11-hvc-console-teardown-note.md` framed as a
   repo-reality gap until a future reread proves it returned

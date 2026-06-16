@@ -35,7 +35,7 @@ test "phase 7 base64 survey keeps the returned helper-local packet truthful" {
     defer allocator.free(manifest_json);
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-base64-slice.md");
     defer allocator.free(slice_note);
-    const checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-base64-packet.py");
+    const checker = try readRepoFile(allocator, "scripts\zigux/check_phase7_base64_packet.zig");
     defer allocator.free(checker);
     const helper = try readRepoFile(allocator, "lib/base64.zig");
     defer allocator.free(helper);
@@ -56,7 +56,7 @@ test "phase 7 base64 survey keeps the returned helper-local packet truthful" {
     try std.testing.expect(manifest.verified_on_utc.len != 0);
 
     try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-base64-slice.md");
-    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-base64-packet.py");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts\zigux/check_phase7_base64_packet.zig");
     try expectStringSliceContains(manifest.review_surfaces, "lib/base64.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_base64.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_base64_build.zig");

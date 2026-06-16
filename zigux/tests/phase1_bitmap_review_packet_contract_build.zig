@@ -8,7 +8,7 @@ pub fn build(b: *std.Build) void {
 
     const checker_source = Io.Dir.cwd().readFileAlloc(
         io,
-        "scripts/zigux/check-phase1-bitmap-review-packet.py",
+        "scripts\zigux/check_phase1_bitmap_review_packet.zig",
         b.allocator,
         .limited(256 * 1024),
     ) catch |err| {

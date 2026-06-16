@@ -18,9 +18,9 @@ This document records the current Phase 14 boundary-study packet for `kernel/rcu
   - `zigux/tests/phase14_rcu_tree_survey.zig`
 - authenticated contents-path readback still stays partial for those executable companions, so this note keeps the freeze-in-C blocker and review-only bridge boundary map as the owner surfaces rather than claiming restored local replay or active ownership
 - dedicated compile-route guard surface:
-  - `scripts/zigux/check-phase14-rcu-compile-route.py`
+  - `scripts\zigux/check_phase14_rcu_compile_route.zig`
 - dedicated rollback guard surface:
-  - `scripts/zigux/check-phase14-rcu-rollback-guardrail.py`
+  - `scripts\zigux/check_phase14_rcu_rollback_guardrail.zig`
 
 ## Why this packet exists
 The Phase 14 roadmap treats `kernel/rcu/tree.c` as a freeze-in-C anchor even while it recommends `kernel/rcu/tree_bridge.zig` as a possible long-horizon destination.
@@ -47,9 +47,9 @@ This packet keeps that distinction honest: it records the current boundary evide
   - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
   - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
 - dedicated compile-route guard surface:
-  - `python3 scripts/zigux/check-phase14-rcu-compile-route.py`
+  - `zig run check_phase14_rcu_compile_route.zig`
 - dedicated rollback guard surface:
-  - `python3 scripts/zigux/check-phase14-rcu-rollback-guardrail.py`
+  - `zig run check_phase14_rcu_rollback_guardrail.zig`
 
 ## Boundary findings
 - grace-period sequence publication still stays in C because `rcu_start_this_gp`, `rcu_gp_init`, and `__note_gp_changes` remain coupled to the live `rcu_node` hierarchy and GP sequencing state
@@ -69,13 +69,13 @@ This packet keeps that distinction honest: it records the current boundary evide
 The current survey evidence still shows force-quiescent-state escalation, poll-cookie sequencing plus synchronize_rcu wait-head rollover and completion cleanup handoff, public wait and callback-barrier ownership, CPU hotplug callback migration, expedited waits, grace-period publication, NOCB offload, idle-watch re-entry, quiescent-state propagation, callback enqueue, and the memory-ordering lock network as one live deep-core ownership surface. That is still a freeze-in-C posture, not a review-ready bridge seam.
 
 ## Compile-route guard
-- machine-check surface: `scripts/zigux/check-phase14-rcu-compile-route.py` keeps the dedicated RCU compile row fail-closed on the shared-manifest entry, the focused `phase14_build` wiring, and this note's replay vocabulary.
+- machine-check surface: `scripts\zigux/check_phase14_rcu_compile_route.zig` keeps the dedicated RCU compile row fail-closed on the shared-manifest entry, the focused `phase14_build` wiring, and this note's replay vocabulary.
 - route posture: the checker treats `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all` and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` as packet-local review routes corroborated by public fallback, not as active ownership or parity claims.
 - freeze posture: the compile-route guard adds drift detection for the RCU matrix row without weakening the existing freeze-in-C blocker or the rollback threshold.
 
 ## Rollback guardrail
 - manifest-backed guardrail: `phase14-rcu-tree-rollback-threshold-guardrail` keeps this freeze-in-C packet fail-closed until the same review packet carries the required reopen evidence instead of a lighter status-review claim.
-- machine-check surface: `scripts/zigux/check-phase14-rcu-rollback-guardrail.py` keeps the dedicated note fail-closed on its lane key, blocked gap, companion-readback wording, rollback owner, and required reopen evidence.
+- machine-check surface: `scripts\zigux/check_phase14_rcu_rollback_guardrail.zig` keeps the dedicated note fail-closed on its lane key, blocked gap, companion-readback wording, rollback owner, and required reopen evidence.
 - rollback owner: `Repo Tooling Pod`
 - required evidence before any status review:
   - `Architecture Council` reopen record linked from the active review packet

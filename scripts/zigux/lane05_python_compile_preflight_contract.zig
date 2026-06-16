@@ -77,7 +77,7 @@ test "lane05 bootstrap helper validation rejects python compile preflight" {
         \\      - name: Setup pinned Zig toolchain
         \\      - name: Validate current Zig bootstrap helpers
         \\        run: |
-        \\          python3 -m py_compile scripts/zigux/check-zig-toolchain.py
+        \\          python3 -m py_compile scripts\zigux/check_zig_toolchain.zig
         \\      - name: Self-test current Zig toolchain checker
         \\      - name: Check current Zig toolchain policy packet
     ;

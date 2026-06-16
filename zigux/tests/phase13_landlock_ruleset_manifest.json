@@ -58,7 +58,7 @@
       "id": "phase13-landlock-ruleset-packet-checker",
       "status": "starter_landed",
       "kind": "validation",
-      "zigux_destination": "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
+      "zigux_destination": "scripts\zigux/check_phase13_landlock_ruleset_packet.zig",
       "why_now": "The current packet checker fail-closes on the helper, ownership note, survey, direct replay, and manifest so the ruleset lane stays truthful even while the older slice-note companion remains absent on current master."
     },
     {

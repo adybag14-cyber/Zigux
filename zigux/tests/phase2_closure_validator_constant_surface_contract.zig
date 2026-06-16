@@ -1,14 +1,14 @@
 const std = @import("std");
 
-const default_validator_path = "scripts/zigux/validate-phase2-closure.py";
+const default_validator_path = "scripts\zigux/validate_phase2_closure.zig";
 
 const required_file_constants = [_][]const u8{
     "WORKFLOW_REL = Path(\".github/workflows/zigux-bootstrap.yml\")",
     "MAKEFILE_REL = Path(\"zigux/Makefile\")",
     "PHASE2_CLOSURE_REL = Path(\"Documentation/zigux/phase2-closure.md\")",
     "PHASE2_BOOTSTRAP_NOTES_REL = Path(\"Documentation/zigux/phase2-toolchain-bootstrap-notes.md\")",
-    "PHASE2_VALIDATE_REL = Path(\"scripts/zigux/validate-phase2.py\")",
-    "PHASE2_CLOSURE_VALIDATE_REL = Path(\"scripts/zigux/validate-phase2-closure.py\")",
+    "PHASE2_VALIDATE_REL = Path(\"scripts\zigux/validate_phase2.zig\")",
+    "PHASE2_CLOSURE_VALIDATE_REL = Path(\"scripts\zigux/validate_phase2_closure.zig\")",
     "PHASE2_TOOL_MANIFEST_REL = Path(\"zigux/tests/fixtures/phase2_tool_manifest.json\")",
     "PHASE2_ARTIFACT_TOOLS_MANIFEST_REL = Path(\"zigux/tests/fixtures/phase2_artifact_tools_manifest.json\")",
     "PHASE2_CROSS_TARGETS_REL = Path(\"zigux/tests/fixtures/phase2_cross_targets.json\")",
@@ -33,24 +33,24 @@ const manifest_surface_keys = [_][]const u8{
 };
 
 const genksyms_commands = [_][]const u8{
-    "\"python3 scripts/zigux/check-genksyms-bridge.py --self-test\"",
-    "\"python3 scripts/zigux/check-genksyms-bridge.py\"",
-    "\"python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py --self-test\"",
-    "\"python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py\"",
-    "\"python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py --self-test\"",
-    "\"python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py\"",
+    "\"zig run check_genksyms_bridge.zig --self-test\"",
+    "\"zig run check_genksyms_bridge.zig\"",
+    "\"zig run check_phase2_genksyms_selftest_alignment.zig --self-test\"",
+    "\"zig run check_phase2_genksyms_selftest_alignment.zig\"",
+    "\"zig run check_phase2_genksyms_dual_implementation_survey.zig --self-test\"",
+    "\"zig run check_phase2_genksyms_dual_implementation_survey.zig\"",
     "\"zig test scripts/zigux/genksyms.zig\"",
     "\"make -C zigux phase2-genksyms\"",
 };
 
 const shared_tooling_commands = [_][]const u8{
-    "\"python3 scripts/zigux/check-phase2-tool-manifest.py\"",
-    "\"python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py\"",
-    "\"python3 scripts/zigux/check-phase2-artifact-tools-manifest.py\"",
-    "\"python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py\"",
-    "\"python3 scripts/zigux/check-phase2-cross.py\"",
-    "\"python3 scripts/zigux/check-phase2-fixdep-gate.py\"",
-    "\"python3 scripts/zigux/check-fixdep-diff.py\"",
+    "\"zig run check_phase2_tool_manifest.zig\"",
+    "\"zig run check_phase2_bootstrap_workflow_routes.zig\"",
+    "\"zig run check_phase2_artifact_tools_manifest.zig\"",
+    "\"zig run check_phase2_kconfig_allconfig_helper_packet.zig\"",
+    "\"zig run check_phase2_cross.zig\"",
+    "\"zig run check_phase2_fixdep_gate.zig\"",
+    "\"zig run check_fixdep_diff.zig\"",
 };
 
 fn readValidator(allocator: std.mem.Allocator) ![]u8 {
@@ -101,7 +101,7 @@ test "validator keeps manifest surface key order and marker groups visible" {
     try expectOrdered(validator, &manifest_surface_keys);
     try expectContains(validator, "GENKSYMS_REQUIRED_NOTE_MARKERS = (");
     try expectContains(validator, "SHARED_TOOLING_REQUIRED_NOTE_MARKERS = (");
-    try expectContains(validator, "\"scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py\"");
+    try expectContains(validator, "\"scripts\zigux/check_phase2_genksyms_dual_implementation_survey.zig\"");
     try expectContains(validator, "\"zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json\"");
     try expectContains(validator, "\"zigux/tests/fixtures/phase2_artifact_tools_manifest.json\"");
 }
@@ -116,9 +116,9 @@ test "validator keeps command groups plus workflow and makefile vocabularies ali
     try expectContains(validator, "SHARED_TOOLING_COMMANDS = (");
     try expectOrdered(validator, &shared_tooling_commands);
     try expectContains(validator, "VALIDATOR_COMMANDS = (");
-    try expectContains(validator, "\"python3 scripts/zigux/validate-phase2.py\"");
-    try expectContains(validator, "\"python3 scripts/zigux/validate-phase2-closure.py\"");
+    try expectContains(validator, "\"zig run validate_phase2.zig\"");
+    try expectContains(validator, "\"zig run validate_phase2_closure.zig\"");
     try expectContains(validator, "expected_workflow_lines = tuple(f\"run: {command}\" for command in GENKSYMS_COMMANDS)");
     try expectContains(validator, "\"phase2-genksyms: phase2-toolchain\"");
-    try expectContains(validator, "\"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py\"");
+    try expectContains(validator, "\"$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase2_closure.zig\"");
 }

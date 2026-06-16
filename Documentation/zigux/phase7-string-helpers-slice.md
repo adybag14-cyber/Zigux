@@ -9,7 +9,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_LANE_KEY=helper-local`
 - lane-key note: `helper-local` keeps the expanded string-helpers starter packet separate from the Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate shared-control lanes
 - scope: keep the Phase 7 string-helpers lane limited to the expanded starter packet and the no-sample review boundary
-- lane state: current `master` directly carries `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `zigux/tests/phase7_string_helpers_format_boundary.zig`, `scripts/zigux/check-phase7-string-helpers-packet.py`, `scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`, and `samples/zigux/README.md`. Treat those helper-local files as the direct review packet for this slice. Current `master` no longer carries a standalone `lib/string_helpers_parse_int_array.zig` sidecar, so keep parse-int-array reviewability anchored to `lib/string_helpers.zig` instead of reviving a duplicate helper-local file. Treat `lib/string_helpers.c` and `include/linux/string_helpers.h` as roadmap provenance only unless a fresh reread proves they are directly readable again on current `master`. Shared validator, Makefile, workflow, and shared-build-route reminders remain separate Phase 7 shared-control follow-up and should not be counted here as direct helper-local proof unless a fresh reread materializes them again on current `master`.
+- lane state: current `master` directly carries `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `zigux/tests/phase7_string_helpers_format_boundary.zig`, `scripts\zigux/check_phase7_string_helpers_packet.zig`, `scripts\zigux/check_phase7_string_helpers_format_boundary_packet.zig`, and `samples/zigux/README.md`. Treat those helper-local files as the direct review packet for this slice. Current `master` no longer carries a standalone `lib/string_helpers_parse_int_array.zig` sidecar, so keep parse-int-array reviewability anchored to `lib/string_helpers.zig` instead of reviving a duplicate helper-local file. Treat `lib/string_helpers.c` and `include/linux/string_helpers.h` as roadmap provenance only unless a fresh reread proves they are directly readable again on current `master`. Shared validator, Makefile, workflow, and shared-build-route reminders remain separate Phase 7 shared-control follow-up and should not be counted here as direct helper-local proof unless a fresh reread materializes them again on current `master`.
 
 ## Why This Slice Exists
 
@@ -28,8 +28,8 @@ This is intentionally not a standalone Phase 5 `samples/zigux/` string-helper re
 2. keep the helper-local survey, checker, and manifest packet explicit
 - `zigux/tests/phase7_string_helpers_survey.zig`
 - `zigux/tests/phase7_string_helpers_manifest.json`
-- `scripts/zigux/check-phase7-string-helpers-packet.py`
-- `scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`
+- `scripts\zigux/check_phase7_string_helpers_packet.zig`
+- `scripts\zigux/check_phase7_string_helpers_format_boundary_packet.zig`
 
 3. keep the dedicated no-standalone-string-helper-sample and format-boundary guards reviewable
 - `samples/zigux/README.md`
@@ -37,10 +37,10 @@ This is intentionally not a standalone Phase 5 `samples/zigux/` string-helper re
 - `zigux/tests/phase7_string_helpers_format_boundary.zig`
 
 4. keep shared-control drift out of this helper-local slice unless it rematerializes on current `master`
-- do not count `scripts/zigux/validate-phase7.py`
-- do not count `scripts/zigux/check-phase7-make-wrapper.py`
-- do not count `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
-- do not count `scripts/zigux/check-phase7-build-wiring.py`
+- do not count `scripts\zigux/validate_phase7.zig`
+- do not count `scripts\zigux/check_phase7_make_wrapper.zig`
+- do not count `scripts\zigux/check_phase7_make_wrapper_selftest_alignment.zig`
+- do not count `scripts\zigux/check_phase7_build_wiring.zig`
 - do not count `zigux/tests/phase7_build.zig`
 - do not count `make -C zigux phase7-validate`
 - do not count `make -C zigux phase7-test`

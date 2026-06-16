@@ -7,7 +7,7 @@ Keep this slice aligned with:
 - `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
 - `zigux/tests/phase10_virtio_core_manifest.json`
 - `zigux/tests/phase10_virtio_core_survey.zig`
-- `scripts/zigux/validate-phase10.py`
+- `scripts\zigux/validate_phase10.zig`
 - `zigux/tests/phase10_build.zig`
 - `drivers/virtio/virtio.zig`
 - `drivers/virtio/virtio_verify.zig`
@@ -22,7 +22,7 @@ Current `master` keeps the bounded core helper packet explicit through:
 - the direct `drivers/virtio/virtio_driver_id.zig` helper plus the focused `zigux/tests/phase10_virtio_driver_id.zig` replay for exact, wildcard, and unmatched driver-id coverage reviewable beside the same bounded core packet
 - the focused `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, and `zigux/tests/phase10_virtio_core_reset_queue.zig` replays
 - the dedicated survey packet through `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, and `Documentation/zigux/phase10-virtio-core-survey.md`
-- the shared `zigux/tests/phase10_build.zig`, `scripts/zigux/validate-phase10.py`, `make -C zigux phase10-test`, and `make -C zigux phase10` replay routes
+- the shared `zigux/tests/phase10_build.zig`, `scripts\zigux/validate_phase10.zig`, `make -C zigux phase10-test`, and `make -C zigux phase10` replay routes
 That keeps the Phase 10 roadmap destination family explicit through `drivers/virtio/*.zig` plus the justified support boundary in `zigux/kernel/` and `zigux/helpers/`.
 
 ## Boundary

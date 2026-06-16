@@ -56,7 +56,7 @@ const current_workflow =
     \\          "$zig_path" version
     \\
     \\      - name: Compile current scripts
-    \\        run: python3 -m py_compile scripts/zigux/check-zig-toolchain.py
+    \\        run: python3 -m py_compile scripts\zigux/check_zig_toolchain.zig
 ;
 
 test "lane05 checkout snapshot uses exact commit tarball before setup" {

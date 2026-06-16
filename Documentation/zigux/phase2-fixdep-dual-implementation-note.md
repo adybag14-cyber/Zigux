@@ -10,7 +10,7 @@ This note keeps the live `scripts/zigux/fixdep.zig` packet honest against the Ph
 
 ## Current repo-reality gaps
 
-- Repeated authenticated reads on current `master` still return missing for `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/check-phase2-fixdep-gate.py`, `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, and `scripts/zigux/validate-phase2-closure.py`.
+- Repeated authenticated reads on current `master` still return missing for `scripts\zigux/check_fixdep_diff.zig`, `scripts\zigux/check_phase2_fixdep_gate.zig`, `Documentation/zigux/phase2-closure.md`, `scripts\zigux/validate_phase2.zig`, and `scripts\zigux/validate_phase2_closure.zig`.
 - Treat those parity-checker, gate-checker, closure-side, and validator-first names as missing current packet companions rather than as directly readable shipped evidence.
 - `scripts/zigux/README.md`, `Documentation/zigux/README.md`, and `zigux/tests/README.md` currently summarize Phase 2 around the surviving toolchain, kbuild, and kconfig bridge packet, so they do not yet expose this live fixdep helper anchor from their shared reminder surfaces.
 

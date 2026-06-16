@@ -23,9 +23,9 @@ Current live `master` readback on `2026-05-29` showed these exact blob IDs for t
 - `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig` blob `1c6c6c667e79cb06578e786071ab35c009750503`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig` blob `b8a780989f1eb27740a7790d2c5a6f438768fa46`
 - `zigux/tests/fixtures/phase11_build_inventory.json` blob `86bdd83a4fc8544c09ba7f0f6cedb8685700f59c`
-- `scripts/zigux/check-phase11-build-inventory.py` blob `7476032db87e781131a06068b9e4e75830f18e62`
-- `scripts/zigux/check-phase11-header-boundary-packet.py` blob `a55e944f4678261951541746d6cc229dcb840929`
-- `scripts/zigux/validate-phase11.py` blob `29ce468f917ef8d1b8eeb8b6dccd928eceafc323`
+- `scripts\zigux/check_phase11_build_inventory.zig` blob `7476032db87e781131a06068b9e4e75830f18e62`
+- `scripts\zigux/check_phase11_header_boundary_packet.zig` blob `a55e944f4678261951541746d6cc229dcb840929`
+- `scripts\zigux/validate_phase11.zig` blob `29ce468f917ef8d1b8eeb8b6dccd928eceafc323`
 - `drivers/tty/hvc/hvc_console.h` blob `57f1542b3e6f1901f444bc2d94b5e438f14eb9b3`
 - `zigux/Makefile` blob `f49b44b6f70ce70b8f0c7b04b8fb88c805ba40c9`
 - `.github/workflows/zigux-bootstrap.yml` blob `5bdb136b8b6710c08c19566879d5a9da42b63445`
@@ -47,7 +47,7 @@ That means `zigux/tests/phase11_build.zig` should no longer be described as abse
 
 ### 1. The shared header-boundary checker is present, but it is note-side only.
 
-Direct readback of `scripts/zigux/check-phase11-header-boundary-packet.py` shows that the checker reads exactly these four note files:
+Direct readback of `scripts\zigux/check_phase11_header_boundary_packet.zig` shows that the checker reads exactly these four note files:
 
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
@@ -63,11 +63,11 @@ That confirms the returned checker fail-closes the four-note packet, but it does
 
 ### 2. The live validator route includes the header packet and the focused HVC proof routes.
 
-Direct readback of `scripts/zigux/validate-phase11.py` shows that the live validator requires all of these Phase 11 header-boundary surfaces to exist together:
+Direct readback of `scripts\zigux/validate_phase11.zig` shows that the live validator requires all of these Phase 11 header-boundary surfaces to exist together:
 
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
-- `scripts/zigux/check-phase11-header-boundary-packet.py`
+- `scripts\zigux/check_phase11_header_boundary_packet.zig`
 - `drivers/tty/hvc/hvc_console.h`
 - `drivers/tty/hvc/hvc_console.zig`
 - `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`

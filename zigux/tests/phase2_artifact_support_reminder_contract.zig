@@ -21,15 +21,15 @@ test "phase2 closure keeps artifact support paired with shared tooling evidence"
     defer std.testing.allocator.free(closure_note);
 
     try expectContains(closure_note, "## Current Shared Repo-Tooling Evidence");
-    try expectContains(closure_note, "scripts/zigux/artifact_diff.py");
+    try expectContains(closure_note, "scripts/zigux/artifact_diff.zig");
     try expectContains(closure_note, "zigux/tests/fixtures/phase2_artifact_tools_manifest.json");
-    try expectContains(closure_note, "scripts/zigux/check-phase2-artifact-tools-manifest.py");
+    try expectContains(closure_note, "scripts\zigux/check_phase2_artifact_tools_manifest.zig");
     try expectContains(closure_note, "remain the current artifact-support reminder pair");
-    try expectContains(closure_note, "PHASE2_SHARED_TOOLING_CHECKERS=python3 scripts/zigux/check-phase2-tool-manifest.py,python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py,python3 scripts/zigux/check-phase2-artifact-tools-manifest.py");
+    try expectContains(closure_note, "PHASE2_SHARED_TOOLING_CHECKERS=zig run check_phase2_tool_manifest.zig,zig run check_phase2_bootstrap_workflow_routes.zig,zig run check_phase2_artifact_tools_manifest.zig");
 
     try expectOrder(
         closure_note,
-        "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+        "scripts\zigux/check_phase2_artifact_tools_manifest.zig",
         "PHASE2_SHARED_TOOLING_CHECKERS=",
     );
     try expectOrder(
@@ -45,7 +45,7 @@ test "artifact diff note keeps phase2 consumer scope narrow and mode surface exp
 
     try expectContains(artifact_note, "## Current Phase 2 use");
     try expectContains(artifact_note, "Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep` and the kconfig bridge packet.");
-    try expectContains(artifact_note, "The current `genksyms` bridge packet keeps its fixture comparisons local to `scripts/zigux/check-genksyms-bridge.py`.");
+    try expectContains(artifact_note, "The current `genksyms` bridge packet keeps its fixture comparisons local to `scripts\zigux/check_genksyms_bridge.zig`.");
     try expectContains(artifact_note, "The helper now compares `text`, `json`, and `bytes` artifacts");
     try expectContains(artifact_note, "keeps the legacy `sha256 -> bytes` alias for compatibility");
     try expectContains(artifact_note, "ARTIFACT_DIFF_RESULT_LINES=ARTIFACT_DIFF,MODE,EXPECTED,ACTUAL[,SHA256|EXPECTED_EXISTS|ACTUAL_EXISTS|EXPECTED_JSON_ERROR|ACTUAL_JSON_ERROR|EXPECTED_UTF8_ERROR|ACTUAL_UTF8_ERROR]");
@@ -70,7 +70,7 @@ test "scripts readme and bootstrap ledger keep broadened phase2 tranche bounded"
     defer std.testing.allocator.free(ledger);
 
     try expectContains(scripts_readme, "## Phase 2");
-    try expectContains(scripts_readme, "scripts/zigux/check-phase2-artifact-tools-manifest.py");
+    try expectContains(scripts_readme, "scripts\zigux/check_phase2_artifact_tools_manifest.zig");
     try expectContains(scripts_readme, "zigux/tests/fixtures/phase2_artifact_tools_manifest.json");
     try expectContains(scripts_readme, "keep those installer, tool-manifest, artifact-support, direct cross-route, genksyms bridge, and fixdep surfaces explicit");
     try expectContains(scripts_readme, "make -C zigux phase2-toolchain");
@@ -86,29 +86,29 @@ test "scripts readme and bootstrap ledger keep broadened phase2 tranche bounded"
 }
 
 test "artifact tools checker and manifest keep phase2 artifact support details aligned" {
-    const checker = try readRepoFile("scripts/zigux/check-phase2-artifact-tools-manifest.py", 128 * 1024);
+    const checker = try readRepoFile("scripts\zigux/check_phase2_artifact_tools_manifest.zig", 128 * 1024);
     defer std.testing.allocator.free(checker);
 
     const manifest = try readRepoFile("zigux/tests/fixtures/phase2_artifact_tools_manifest.json", 64 * 1024);
     defer std.testing.allocator.free(manifest);
 
-    try expectContains(checker, "PRIMARY_TOOL = Path(\"scripts/zigux/artifact_diff.py\")");
+    try expectContains(checker, "PRIMARY_TOOL = Path(\"scripts/zigux/artifact_diff.zig\")");
     try expectContains(checker, "\"supported_modes\": [\"text\", \"json\", \"bytes\"]");
-    try expectContains(checker, "\"scripts/zigux/check-kconfig-bridge.py\"");
-    try expectContains(checker, "\"scripts/zigux/check-fixdep-diff.py\"");
+    try expectContains(checker, "\"scripts\zigux/check_kconfig_bridge.zig\"");
+    try expectContains(checker, "\"scripts\zigux/check_fixdep_diff.zig\"");
     try expectContains(checker, "\"PHASE2_ARTIFACT_TOOLS_MANIFEST=pass\"");
     try expectContains(checker, "\"PHASE2_ARTIFACT_TOOLS_MANIFEST_SELF_TEST_CASE_COUNT={checks_run}\"");
 
     try expectContains(manifest, "\"phase\": \"Phase 2\"");
     try expectContains(manifest, "\"status\": \"active\"");
     try expectContains(manifest, "\"scope\": \"artifact-diff support for fixture-backed scripts/zigux validation\"");
-    try expectContains(manifest, "\"scripts/zigux/artifact_diff.py\"");
-    try expectContains(manifest, "\"scripts/zigux/check-kconfig-bridge.py\"");
-    try expectContains(manifest, "\"scripts/zigux/check-fixdep-diff.py\"");
-    try expectContains(manifest, "\"scripts/zigux/check-phase2-artifact-tools-manifest.py\"");
+    try expectContains(manifest, "\"scripts/zigux/artifact_diff.zig\"");
+    try expectContains(manifest, "\"scripts\zigux/check_kconfig_bridge.zig\"");
+    try expectContains(manifest, "\"scripts\zigux/check_fixdep_diff.zig\"");
+    try expectContains(manifest, "\"scripts\zigux/check_phase2_artifact_tools_manifest.zig\"");
     try expectContains(manifest, "\"text\"");
     try expectContains(manifest, "\"json\"");
     try expectContains(manifest, "\"bytes\"");
-    try expectContains(manifest, "Keep future Phase 2 artifact-diff follow-up bounded to live consumers like `scripts/zigux/check-kconfig-bridge.py` and `scripts/zigux/check-fixdep-diff.py`");
+    try expectContains(manifest, "Keep future Phase 2 artifact-diff follow-up bounded to live consumers like `scripts\zigux/check_kconfig_bridge.zig` and `scripts\zigux/check_fixdep_diff.zig`");
     try expectContains(manifest, "Keep the legacy `sha256` compatibility alias explicit");
 }

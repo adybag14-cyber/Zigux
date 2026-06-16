@@ -24,16 +24,16 @@ packet than the older validator-route story:
   `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and
   `make -C zigux phase15` as blocked route vocabulary rather than directly
   readable shipped replay paths.
-- `zigux/Makefile` and `scripts/zigux/validate-phase15.py` still return missing
+- `zigux/Makefile` and `scripts\zigux/validate_phase15.zig` still return missing
   on direct current-`master` reads, so there is no directly materialized shared
   `phase15-validate` route packet to compare against a validator-side route
   inventory.
 - `zigux/tests/phase15_readiness_gate_manifest.json` now carries the
   four-checker inventory:
-  - `scripts/zigux/check-phase15-docs-readme-alignment.py`
-  - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
-  - `scripts/zigux/check-phase15-review-process-handoff.py`
-  - `scripts/zigux/check-phase15-shared-summary-gap.py`
+  - `scripts\zigux/check_phase15_docs_readme_alignment.zig`
+  - `scripts\zigux/check_phase15_scripts_readme_alignment.zig`
+  - `scripts\zigux/check_phase15_review_process_handoff.zig`
+  - `scripts\zigux/check_phase15_shared_summary_gap.zig`
 
 That means the older three-packet route-mismatch story is no longer the honest
 current gap. The real bounded task is to keep this note from restating a retired
@@ -52,7 +52,7 @@ replay assumptions that the current tree no longer supports.
 
 ## Machine-checkable guard
 
-`scripts/zigux/check-phase15-readiness-route-exactness.py` keeps this parked
+`scripts\zigux/check_phase15_readiness_route_exactness.zig` keeps this parked
 blocked-route posture explicit and fail-closed.
 
 The checker currently passes only when repo reality still matches the bounded
@@ -60,7 +60,7 @@ truthfulness state described here:
 
 - current `master` no longer materializes the shared `phase15-validate` route
   packet directly
-- `zigux/Makefile` and `scripts/zigux/validate-phase15.py` still return missing
+- `zigux/Makefile` and `scripts\zigux/validate_phase15.zig` still return missing
   on direct current-`master` reads
 - `zigux/tests/phase15_readiness_gate_manifest.json` now carries the
   four-checker inventory
@@ -78,22 +78,22 @@ This note does not claim:
 
 - any Architecture Council approval for a freeze-map status change
 - a change to the freeze-in-C or study-only anchor sets
-- that `zigux/Makefile` or `scripts/zigux/validate-phase15.py` have been
+- that `zigux/Makefile` or `scripts\zigux/validate_phase15.zig` have been
   rematerialized on current `master`
 - a repair to the broader missing Phase 15 build, validator, or lane-owner
   companion packet
 
 ## Replay
 
-- `python3 scripts/zigux/check-phase15-readiness-route-exactness.py --self-test`
-- `python3 scripts/zigux/check-phase15-readiness-route-exactness.py`
+- `zig run check_phase15_readiness_route_exactness.zig --self-test`
+- `zig run check_phase15_readiness_route_exactness.zig`
 
 ## Next bounded step
 
 Keep this note parked until one of two things happens:
 
 - direct current-`master` reads recover `zigux/Makefile` plus
-  `scripts/zigux/validate-phase15.py`, which would justify replacing this
+  `scripts\zigux/validate_phase15.zig`, which would justify replacing this
   blocked-route posture with a smaller live route exactness reread
 - one of the broad reminder surfaces drifts away from the blocked-route
   readiness posture already recorded by

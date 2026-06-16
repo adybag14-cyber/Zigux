@@ -10,7 +10,7 @@
     "Documentation/zigux/phase13-devres-iomap-planner.md",
     "zigux/tests/phase13_devres_iomap_planner_manifest.json",
     "zigux/tests/phase13_devres_iomap_planner.zig",
-    "scripts/zigux/check-phase13-devres-iomap-planner.py"
+    "scripts\zigux/check_phase13_devres_iomap_planner.zig"
   ],
   "fixture_governance": {
     "translation_miss_owner": "zigux/tests/phase13_devres_iomap_planner.zig",
@@ -19,7 +19,7 @@
     "remap_failure_owner": "zigux/tests/phase13_devres_iomap_planner.zig",
     "cleanup_handoff_owner": "zigux/tests/phase13_devres_iomap_planner.zig",
     "cleanup_release_miss_owner": "zigux/tests/phase13_devres_iomap_planner.zig",
-    "validation_guard": "scripts/zigux/check-phase13-devres-iomap-planner.py",
+    "validation_guard": "scripts\zigux/check_phase13_devres_iomap_planner.zig",
     "owner_map": "zigux/tests/phase13_devres_iomap_planner_manifest.json",
     "adjacent_boundary_evidence_only": [
       "Documentation/zigux/phase13-devres-survey.md"

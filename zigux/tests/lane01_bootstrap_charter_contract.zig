@@ -35,7 +35,7 @@ test "zigux-alpha README keeps the bootstrap workspace charter narrow" {
             "Move actual product code into the native Linux locations or the small `zigux/` support root once a slice is approved.",
             "Do not create `zigux-alpha/ports/` or any mirror-tree equivalent.",
             "`Documentation/zigux/README.md` is the live product documentation root once a slice has moved beyond bootstrap planning.",
-            "`scripts/zigux/check-lane01-bootstrap-charter-alignment.py` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet.",
+            "`scripts\zigux/check_lane01_bootstrap_charter_alignment.zig` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet.",
             "[ZAR to Zigux Product Roadmap](./ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md)",
             "[Bootstrap Commit Ledger](./BOOTSTRAP_COMMIT_LEDGER.md)",
             "[Freeze Governance Companion](../Documentation/zigux/phase15-freeze-map-governance.md)",

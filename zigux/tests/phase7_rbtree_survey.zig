@@ -20,7 +20,7 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     try std.testing.expect(std.mem.indexOf(u8, c_harness, ".root_stays_black = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, helper_companion, "phase 7 rbtree companion preserves red-black invariants across cached churn") != null);
 
-    // Returned readback contract retained by scripts/zigux/check-phase7-rbtree-parity.py:
+    // Returned readback contract retained by scripts\zigux/check_phase7_rbtree_parity.zig:
     // try expectSliceContains(manifest.visible_paths, "zigux/tests/fixtures/phase7_rbtree.json");
     // try expectSliceContains(manifest.visible_paths, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
     // try expectSliceContains(manifest.readable_non_owner_paths, "zigux/tests/phase7_build.zig");

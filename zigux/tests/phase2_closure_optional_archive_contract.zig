@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const validator_path = "scripts/zigux/validate-phase2-closure.py";
+const validator_path = "scripts\zigux/validate_phase2_closure.zig";
 const manifest_path = "zigux/tests/fixtures/phase2_tool_manifest.json";
 const closure_path = "Documentation/zigux/phase2-closure.md";
 

@@ -53,7 +53,7 @@ The same 2026-05-19 repo-first inspection also confirmed a narrower current non-
 * `Documentation/zigux/phase5-sample-review-guide.md`
 * `Documentation/zigux/review-checklist.md`
 * `samples/zigux/README.md`
-* `scripts/zigux/check-phase5-review-guide-surface.py`
+* `scripts\zigux/check_phase5_review_guide_surface.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
 * `samples/zigux/trace_events_callback_focus_contract.zig`
 * `samples/zigux/trace_events_payload_preview_contract.zig`
@@ -83,12 +83,12 @@ For the shared tracing and probe lane, ground reviewer guidance in the restored 
 * `Documentation/zigux/phase5-sample-review-guide.md`
 * `Documentation/zigux/review-checklist.md`
 * `samples/zigux/README.md`
-* `scripts/zigux/check-phase5-review-guide-surface.py`
+* `scripts\zigux/check_phase5_review_guide_surface.zig`
 * `scripts/zigux/README.md`
 * `zigux/tests/README.md`
 
 Keep those shared surfaces honest about the restored direct kretprobe packet, the bounded kretprobe instance-budget companion, the bounded kretprobe probe-spec companion, the bounded trace-events formatting companion, the bounded trace-events callback-focus companion, the bounded trace-events payload-preview companion, the directly readable trace-events survey note, the broader trace-events sample-local companions that are still visible through public-tree-backed reread but not yet returned as direct authenticated proof in this runtime, and the returned shared-build rerun handle instead of treating the trace-events anchor as either fully absent or fully restored authenticated proof.
-Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/check-phase5-review-guide-surface.py` should stay aligned with those same shared surfaces instead of being treated as an optional companion.
+Keep the dedicated scripts-side review-guide guard explicit too: `scripts\zigux/check_phase5_review_guide_surface.zig` should stay aligned with those same shared surfaces instead of being treated as an optional companion.
 
 ## Bytestream posture
 

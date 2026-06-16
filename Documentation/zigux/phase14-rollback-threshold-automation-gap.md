@@ -21,15 +21,15 @@ docs-absence claim. Current exact contents reads still recover
 `Documentation/zigux/phase14-end-to-end-smoke-survey.md`,
 `Documentation/zigux/phase14-productization-gap-survey.md`,
 `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`, and
-`scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, so rollback
+`scripts\zigux/check_phase14_rollback_threshold_sequencing.zig`, so rollback
 owner, threshold, fallback path, and automatic return-to-blocked triggers
 remain directly reviewable.
 
 But the executable rollback-threshold packet members still return missing-path
 results on the same exact contents path:
 
-- `scripts/zigux/validate-phase14.py`
-- `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
+- `scripts\zigux/validate_phase14.zig`
+- `scripts\zigux/check_phase14_release_boundary_exact_counts.zig`
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
 - `zigux/tests/phase14_end_to_end_smoke_survey.zig`
@@ -38,7 +38,7 @@ results on the same exact contents path:
 
 The remaining same-lane gap is no longer a smaller Makefile-self-test
 inventory mismatch inside
-`scripts/zigux/check-phase14-rollback-threshold-sequencing.py`.
+`scripts\zigux/check_phase14_rollback_threshold_sequencing.zig`.
 
 It is the narrower split between directly readable rollback-threshold
 note/checker evidence and the still-unrecovered validator, build, manifest,

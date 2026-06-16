@@ -27,16 +27,16 @@ The current scripts-root gap is narrower than a missing Phase 14 implementation.
 
 When `scripts/zigux/README.md` is repaired, keep the Phase 14 entry bounded around these current surfaces:
 
-- `scripts/zigux/check-phase14-shared-smoke-route.py`
-- `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`
-- `scripts/zigux/validate-phase14.py`
-- `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`
-- `scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py`
-- `scripts/zigux/check-phase14-skbuff-compile-route.py`
-- `scripts/zigux/check-phase14-ring-buffer-compile-route.py`
-- `scripts/zigux/check-phase14-rcu-compile-route.py`
-- `scripts/zigux/check-phase14-rcu-rollback-guardrail.py`
-- `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
+- `scripts\zigux/check_phase14_shared_smoke_route.zig`
+- `scripts\zigux/check_phase14_tests_readme_smoke_summary.zig`
+- `scripts\zigux/validate_phase14.zig`
+- `scripts\zigux/check_phase14_rollback_threshold_sequencing.zig`
+- `scripts\zigux/check_phase14_skbuff_stay_in_c_guardrail.zig`
+- `scripts\zigux/check_phase14_skbuff_compile_route.zig`
+- `scripts\zigux/check_phase14_ring_buffer_compile_route.zig`
+- `scripts\zigux/check_phase14_rcu_compile_route.zig`
+- `scripts\zigux/check_phase14_rcu_rollback_guardrail.zig`
+- `scripts\zigux/check_phase14_release_boundary_exact_counts.zig`
 - `Documentation/zigux/phase14-productization-gap-survey.md`
 - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
 - `Documentation/zigux/phase14-release-boundary-survey.md`
@@ -52,7 +52,7 @@ The scripts-root reminder should preserve the single live shared gate and should
 
 ## Guardrail
 
-`scripts/zigux/check-phase14-scripts-root-productization-gap.py` records this as a current gap rather than pretending the README has already been repaired.
+`scripts\zigux/check_phase14_scripts_root_productization_gap.zig` records this as a current gap rather than pretending the README has already been repaired.
 
 The checker should pass while the scripts-root README still lacks a dedicated Phase 14 section and this note keeps the bounded productization markers above. When a later lane intentionally adds `## Phase 14` to `scripts/zigux/README.md`, update or retire the checker in the same change so the project does not keep a stale gap marker after the reminder surface is fixed.
 

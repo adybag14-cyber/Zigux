@@ -10,8 +10,8 @@ This note records the current `master` rollback-threshold automation boundary af
 
 ## Current Readback
 
-- `scripts/zigux/check-phase14-rollback-guardrail-coverage.py`: blob `0188132746cb51b3bbfa39526af8f73915f21af6`
-- `scripts/zigux/validate-phase14.py`: blob `c1f45e1b6029c5435c0bcc13b1e45dff9d86d246`
+- `scripts\zigux/check_phase14_rollback_guardrail_coverage.zig`: blob `0188132746cb51b3bbfa39526af8f73915f21af6`
+- `scripts\zigux/validate_phase14.zig`: blob `c1f45e1b6029c5435c0bcc13b1e45dff9d86d246`
 - `zigux/Makefile`: blob `b590ef1bb4a3ddd6a817734ee2241442e8935927`
 - `.github/workflows/zigux-bootstrap.yml`: blob `5bdb136b8b6710c08c19566879d5a9da42b63445`
 
@@ -23,9 +23,9 @@ The dedicated rollback/guardrail coverage checker is present and self-testable, 
 
 A future validation-tightening commit may claim this gap closed only when all of these are true on current `master`:
 
-- `zigux/Makefile` runs `scripts/zigux/check-phase14-rollback-guardrail-coverage.py --self-test` from `phase14-validate`.
-- `zigux/Makefile` runs `scripts/zigux/check-phase14-rollback-guardrail-coverage.py` from `phase14-validate`.
-- `scripts/zigux/validate-phase14.py` includes the coverage checker in its required files or subchecker coverage, with fixture-backed self-test evidence.
+- `zigux/Makefile` runs `scripts\zigux/check_phase14_rollback_guardrail_coverage.zig --self-test` from `phase14-validate`.
+- `zigux/Makefile` runs `scripts\zigux/check_phase14_rollback_guardrail_coverage.zig` from `phase14-validate`.
+- `scripts\zigux/validate_phase14.zig` includes the coverage checker in its required files or subchecker coverage, with fixture-backed self-test evidence.
 - The single returned shared gate remains `make -C zigux phase14-validate`.
 - The broader `phase14-smoke`, `phase14-test`, and aggregate `phase14` Makefile targets remain absent unless a separate roadmap-backed lane proves they are ready.
 

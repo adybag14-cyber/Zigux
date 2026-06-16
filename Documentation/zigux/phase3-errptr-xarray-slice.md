@@ -10,16 +10,16 @@ This note records one bounded Phase 3 helper-side interop slice on current `mast
 - `zigux/tests/phase3_errptr_xarray_starter_packet.zig`
 - `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
 - `zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json`
-- `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+- `scripts\zigux/check_phase3_errptr_xarray_starter_packet.zig`
 - `zigux/tests/phase3_xarray_slot_starter_packet.zig`
 - `zigux/tests/build.zig`
-- `scripts/zigux/check-phase3-xarray-slot-starter-packet.py`
+- `scripts\zigux/check_phase3_xarray_slot_starter_packet.zig`
 - `zigux/tests/phase3_errptr_xarray_dump.zig`
 - `zigux/tests/phase3_errptr_xarray_dump_build.zig`
 - `zigux/tests/fixtures/phase3_errptr_xarray/phase3_errptr_xarray_c_harness.c`
 - `zigux/tests/fixtures/phase3_errptr_xarray/expected.json`
 - `zigux/tests/fixtures/phase3_errptr_xarray_manifest.json`
-- `scripts/zigux/check-phase3-errptr-xarray.py`
+- `scripts\zigux/check_phase3_errptr_xarray.zig`
 
 ## Bounded Contract
 
@@ -37,17 +37,17 @@ The current helper-local packet now has three bounded replay layers:
 
 - one manifest-backed starter packet:
   - `zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json`
-  - `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
-  - `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test`
-  - `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+  - `scripts\zigux/check_phase3_errptr_xarray_starter_packet.zig`
+  - `zig run check_phase3_errptr_xarray_starter_packet.zig --self-test`
+  - `zig run check_phase3_errptr_xarray_starter_packet.zig`
   - `zig build phase3-errptr-xarray-starter-packet-test --build-file zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
 - one shared tests-root xarray-slot starter packet:
   - `zigux/helpers/xarray_slot_view.zig`
   - `zigux/tests/phase3_xarray_slot_starter_packet.zig`
   - `zigux/tests/build.zig`
-  - `scripts/zigux/check-phase3-xarray-slot-starter-packet.py`
-  - `python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --self-test`
-  - `python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py`
+  - `scripts\zigux/check_phase3_xarray_slot_starter_packet.zig`
+  - `zig run check_phase3_xarray_slot_starter_packet.zig --self-test`
+  - `zig run check_phase3_xarray_slot_starter_packet.zig`
   - `zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig`
 - one fixture-backed parity packet:
   - `zigux/tests/phase3_errptr_xarray_dump.zig`
@@ -55,9 +55,9 @@ The current helper-local packet now has three bounded replay layers:
   - `zigux/tests/fixtures/phase3_errptr_xarray/phase3_errptr_xarray_c_harness.c`
   - `zigux/tests/fixtures/phase3_errptr_xarray/expected.json`
   - `zigux/tests/fixtures/phase3_errptr_xarray_manifest.json`
-  - `scripts/zigux/check-phase3-errptr-xarray.py`
-  - `python3 scripts/zigux/check-phase3-errptr-xarray.py --self-test`
-  - `python3 scripts/zigux/check-phase3-errptr-xarray.py --repo-root . --zig zig --cc gcc`
+  - `scripts\zigux/check_phase3_errptr_xarray.zig`
+  - `zig run check_phase3_errptr_xarray.zig --self-test`
+  - `zig run check_phase3_errptr_xarray.zig --repo-root . --zig zig --cc gcc`
   - `zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig`
 
 That keeps one helper-local tagged-value starter packet, one xarray-slot lane classifier starter packet, and one tiny C-vs-Zig parity packet explicit without reopening the broader shared tests root.

@@ -9,13 +9,13 @@ This note records one bounded shared-helper starter-plus-dump packet for the exi
 - `zigux/bindings/notifier_list_shape.zig`
 - `zigux/tests/phase3_list_hlist_starter_packet.zig`
 - `zigux/tests/phase3_list_hlist_starter_packet_build.zig`
-- `scripts/zigux/check-phase3-list-hlist-starter-packet.py`
+- `scripts\zigux/check_phase3_list_hlist_starter_packet.zig`
 - `zigux/tests/phase3_list_hlist_dump.zig`
 - `zigux/tests/phase3_list_hlist_dump_build.zig`
 - `zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c`
 - `zigux/tests/fixtures/phase3_list_hlist/expected.json`
 - `zigux/tests/fixtures/phase3_list_hlist_manifest.json`
-- `scripts/zigux/check-phase3-list-hlist.py`
+- `scripts\zigux/check_phase3_list_hlist.zig`
 - `zigux/Makefile`
 
 ## Bounded Contract
@@ -28,17 +28,17 @@ This note records one bounded shared-helper starter-plus-dump packet for the exi
 - `expected.json` keeps the tiny parity packet directly readable through stable node-index and backlink-label summaries instead of address-specific dumps.
 - `zigux/tests/fixtures/phase3_list_hlist_manifest.json` keeps the bounded starter-plus-dump packet machine-readable through its packet files, replay routes, and explicit next safe step.
 - `zigux/Makefile` exposes bounded `phase3-list-hlist-starter-packet` and `phase3-list-hlist-dump` wrappers so the helper-local packet stays reachable through the shared Zigux rerun surface without widening into the aggregate Phase 3 lane.
-- `scripts/zigux/check-phase3-list-hlist.py` fail-closes the helper-local packet so the slice note, helper files, starter replay, dump replay, C harness, expected fixture, manifest, and wrapper surface stay aligned.
+- `scripts\zigux/check_phase3_list_hlist.zig` fail-closes the helper-local packet so the slice note, helper files, starter replay, dump replay, C harness, expected fixture, manifest, and wrapper surface stay aligned.
 
 ## Replay Route
 
 - `zig test zigux/bindings/notifier_list_shape.zig`
-- `python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test`
-- `python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py`
+- `zig run check_phase3_list_hlist_starter_packet.zig --self-test`
+- `zig run check_phase3_list_hlist_starter_packet.zig`
 - `zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig`
 - `make -C zigux phase3-list-hlist-starter-packet`
-- `python3 scripts/zigux/check-phase3-list-hlist.py --self-test`
-- `python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc`
+- `zig run check_phase3_list_hlist.zig --self-test`
+- `zig run check_phase3_list_hlist.zig --repo-root . --zig zig --cc gcc`
 - `zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig`
 - `make -C zigux phase3-list-hlist-dump`
 

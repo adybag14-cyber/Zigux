@@ -9,8 +9,8 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 - scope: roadmap-backed help-lane reminder truthfulness, helper-first output-stable tooling wording, focused build-route verification, and one future help-local reopen cue only
 - current directly readable packet in this scheduled environment:
   - `Documentation/zigux/phase8-help-slice.md`
-  - `scripts/zigux/validate-phase8.py`
-  - `scripts/zigux/check-phase8-help-kallsyms-packet.py` through authenticated GitHub contents readback
+  - `scripts\zigux/validate_phase8.zig`
+  - `scripts\zigux/check_phase8_help_kallsyms_packet.zig` through authenticated GitHub contents readback
   - `tools/lib/subcmd/help.zig` through authenticated GitHub contents readback
   - `zigux/tests/phase8_help_only_build.zig` and `zigux/tests/phase8_help.zig` through authenticated GitHub contents readback on current `master`
   - `zigux/Makefile` through authenticated GitHub contents readback
@@ -50,8 +50,8 @@ The current readable packet now covers:
 
 - the roadmap-backed claim that `help` remains a valid Phase 8 repo-hosted tooling lane
 - one directly readable helper-local source in `tools/lib/subcmd/help.zig`
-- one directly readable validator entrypoint in `scripts/zigux/validate-phase8.py`
-- one directly readable shared Phase 8 checker in `scripts/zigux/check-phase8-help-kallsyms-packet.py`
+- one directly readable validator entrypoint in `scripts\zigux/validate_phase8.zig`
+- one directly readable shared Phase 8 checker in `scripts\zigux/check_phase8_help_kallsyms_packet.zig`
 - one directly readable dedicated replay in `zigux/tests/phase8_help.zig`
 - one directly readable dedicated build shard in `zigux/tests/phase8_help_only_build.zig`
 - one shared-overlap build shard in `zigux/tests/phase8_help_kallsyms_only_build.zig` through the public raw fallback

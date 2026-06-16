@@ -229,7 +229,7 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
         if (std.mem.eql(u8, gap.id, "phase4-kprobe-example-shared-validator-promotion")) {
             saw_validator_promotion_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("scripts/zigux/validate-phase4.py", gap.zigux_destination);
+            try std.testing.expectEqualStrings("scripts\zigux/validate_phase4.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase4-kprobe-example-survey-tests") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validate-phase4.py") != null);
         }

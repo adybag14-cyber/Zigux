@@ -11,11 +11,11 @@
     "zigux/tests/phase3_rbtree_root_starter_packet.zig",
     "zigux/tests/phase3_rbtree_root_starter_packet_build.zig",
     "zigux/tests/fixtures/phase3_rbtree_root_manifest.json",
-    "scripts/zigux/check-phase3-rbtree-root-starter-packet.py"
+    "scripts\zigux/check_phase3_rbtree_root_starter_packet.zig"
   ],
   "replay_routes": [
-    "python3 scripts/zigux/check-phase3-rbtree-root-starter-packet.py --self-test",
-    "python3 scripts/zigux/check-phase3-rbtree-root-starter-packet.py",
+    "zig run check_phase3_rbtree_root_starter_packet.zig --self-test",
+    "zig run check_phase3_rbtree_root_starter_packet.zig",
     "zig build phase3-rbtree-root-starter-packet --build-file zigux/tests/phase3_rbtree_root_starter_packet_build.zig"
   ],
   "repo_reality_gaps": [

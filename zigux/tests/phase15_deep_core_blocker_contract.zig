@@ -92,7 +92,7 @@ test "freeze map and shared summaries keep the blocker survey below status-chang
 }
 
 test "blocked-route recovery checker keeps wrapper and shared-CI gaps fail-closed" {
-    const checker = try readRepoFile("scripts/zigux/check-phase15-blocked-route-recovery.py", 32 * 1024);
+    const checker = try readRepoFile("scripts\zigux/check_phase15_blocked_route_recovery.zig", 32 * 1024);
     defer std.testing.allocator.free(checker);
 
     try expectContains(checker, "BLOCKED_MAKE_TARGETS");

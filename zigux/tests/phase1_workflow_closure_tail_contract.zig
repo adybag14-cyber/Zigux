@@ -12,54 +12,54 @@ const RequiredStep = struct {
 const phase1_tail_steps = [_]RequiredStep{
     .{
         .name = "- name: Self-test current Phase 1 bench checker",
-        .run = "\n        run: python3 scripts/zigux/check-phase1-bench.py --self-test\n",
+        .run = "\n        run: zig run check_phase1_bench.zig --self-test\n",
     },
     .{
         .name = "- name: Check current Phase 1 bench packet",
-        .run = "\n        run: python3 scripts/zigux/check-phase1-bench.py\n",
+        .run = "\n        run: zig run check_phase1_bench.zig\n",
     },
     .{
         .name = "- name: Self-test current Phase 1 bench live-check workflow guard",
-        .run = "\n        run: python3 scripts/zigux/check-phase1-bench-live-check-workflow.py --self-test\n",
+        .run = "\n        run: zig run check_phase1_bench_live_check_workflow.zig --self-test\n",
     },
     .{
         .name = "- name: Check current Phase 1 bench live-check workflow guard packet",
-        .run = "\n        run: python3 scripts/zigux/check-phase1-bench-live-check-workflow.py\n",
+        .run = "\n        run: zig run check_phase1_bench_live_check_workflow.zig\n",
     },
     .{
         .name = "- name: Self-test current Phase 1 find-bit bench anchor checker",
-        .run = "\n        run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --self-test\n",
+        .run = "\n        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test\n",
     },
     .{
         .name = "- name: Check current Phase 1 find-bit bench anchor packet",
-        .run = "\n        run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py\n",
+        .run = "\n        run: zig run check_phase1_find_bit_bench_anchors.zig\n",
     },
     .{
         .name = "- name: Self-test current Phase 1 shared reminder checker",
-        .run = "\n        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test\n",
+        .run = "\n        run: zig run check_phase1_shared_reminder_packet.zig --self-test\n",
     },
     .{
         .name = "- name: Check current Phase 1 shared reminder packet",
-        .run = "\n        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py\n",
+        .run = "\n        run: zig run check_phase1_shared_reminder_packet.zig\n",
     },
     .{
         .name = "- name: Self-test current Phase 1 closure validator",
-        .run = "\n        run: python3 scripts/zigux/validate-phase1-closure.py --self-test\n",
+        .run = "\n        run: zig run validate_phase1_closure.zig --self-test\n",
     },
     .{
         .name = "- name: Check current Phase 1 closure packet",
-        .run = "\n        run: python3 scripts/zigux/validate-phase1-closure.py\n",
+        .run = "\n        run: zig run validate_phase1_closure.zig\n",
     },
 };
 
 const handoff_steps = [_]RequiredStep{
     .{
         .name = "- name: Self-test current Phase 3 interop packet",
-        .run = "\n        run: python3 scripts/zigux/validate_phase3_selftest.py\n",
+        .run = "\n        run: zig run scripts/zigux/validate_phase3_selftest.zig\n",
     },
     .{
         .name = "- name: Check current Phase 3 interop packet",
-        .run = "\n        run: python3 scripts/zigux/run-phase3-checks.py\n",
+        .run = "\n        run: zig run scripts/zigux/run_phase3_checks.zig\n",
     },
     .{
         .name = "- name: Run current Phase 3 shared tests-root packet",
@@ -127,7 +127,7 @@ test "phase1 closure packet hands off through phase3 before shared phase1 smoke"
 }
 
 test "phase1 closure workflow tail keeps stale route spellings out" {
-    try requireAbsent(workflow_text, "run: python3 scripts/zigux/validate-phase1.py");
+    try requireAbsent(workflow_text, "run: zig run validate_phase1.zig");
     try requireAbsent(workflow_text, "\n        run: make -C zigux phase1\n");
     try requireAbsent(workflow_text, "run: zig build phase1-bench --build-file zigux/tests/build.zig");
 }

@@ -1,7 +1,7 @@
 const std = @import("std");
 
-const validator_path = "scripts/zigux/validate-phase2.py";
-const direct_cross_checker_path = "scripts/zigux/check-phase2-cross.py";
+const validator_path = "scripts\zigux/validate_phase2.zig";
+const direct_cross_checker_path = "scripts\zigux/check_phase2_cross.zig";
 const cross_targets_path = "zigux/tests/fixtures/phase2_cross_targets.json";
 
 fn readRepoFile(path: []const u8) ![]u8 {
@@ -43,8 +43,8 @@ test "aggregate validator keeps cross matrix files in required path roster" {
     const validator_text = try readRepoFile(validator_path);
     defer std.testing.allocator.free(validator_text);
 
-    try requireContains(validator_text, "\"scripts/zigux/check-phase2-cross.py\"");
-    try requireContains(validator_text, "\"scripts/zigux/check-phase2-cross-selftest-alignment.py\"");
+    try requireContains(validator_text, "\"scripts\zigux/check_phase2_cross.zig\"");
+    try requireContains(validator_text, "\"scripts\zigux/check_phase2_cross_selftest_alignment.zig\"");
     try requireContains(validator_text, "\"zigux/tests/fixtures/phase2_cross_targets.json\"");
     try requireContains(validator_text, "\"scripts/zigux/zig-toolchain-policy.json\"");
     try requireContains(validator_text, "ARCHIVE_SUPPORT_ALTERNATIVES");
@@ -70,18 +70,18 @@ test "aggregate validator routes direct cross before later Phase 2 closure check
 
     try requireInOrder(
         validator_text,
-        "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
-        "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+        "run: zig run check_phase2_cross.zig --self-test",
+        "run: zig run check_phase2_cross_selftest_alignment.zig --self-test",
     );
     try requireInOrder(
         validator_text,
-        "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
-        "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test",
+        "run: zig run check_phase2_cross_selftest_alignment.zig",
+        "run: zig run check_phase2_docs_shared_reminder.zig --self-test",
     );
     try requireInOrder(
         validator_text,
-        "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
-        "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig",
     );
 }
 

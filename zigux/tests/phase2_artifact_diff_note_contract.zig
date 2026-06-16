@@ -1,22 +1,22 @@
 const std = @import("std");
 
 const note_path = "Documentation/zigux/artifact-diff.md";
-const helper_path = "scripts/zigux/artifact_diff.py";
-const phase2_fixdep_checker = "scripts/zigux/check-fixdep-diff.py";
-const phase2_kconfig_checker = "scripts/zigux/check-kconfig-bridge.py";
-const phase2_genksyms_checker = "scripts/zigux/check-genksyms-bridge.py";
+const helper_path = "scripts/zigux/artifact_diff.zig";
+const phase2_fixdep_checker = "scripts\zigux/check_fixdep_diff.zig";
+const phase2_kconfig_checker = "scripts\zigux/check_kconfig_bridge.zig";
+const phase2_genksyms_checker = "scripts\zigux/check_genksyms_bridge.zig";
 
 const phase2_note_markers = [_][]const u8{
     "## Current Phase 2 use",
     "Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep` and the kconfig bridge packet.",
-    "The current `genksyms` bridge packet keeps its fixture comparisons local to `scripts/zigux/check-genksyms-bridge.py`.",
+    "The current `genksyms` bridge packet keeps its fixture comparisons local to `scripts\zigux/check_genksyms_bridge.zig`.",
 };
 
 const companion_surface_markers = [_][]const u8{
-    "scripts/zigux/artifact_diff.py",
-    "scripts/zigux/check-fixdep-diff.py",
-    "scripts/zigux/check-genksyms-bridge.py",
-    "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "scripts/zigux/artifact_diff.zig",
+    "scripts\zigux/check_fixdep_diff.zig",
+    "scripts\zigux/check_genksyms_bridge.zig",
+    "scripts\zigux/check_phase2_artifact_tools_manifest.zig",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
 };
 
@@ -56,7 +56,7 @@ test "phase2 artifact-diff note keeps focused host-tool comparison wording" {
 }
 
 test "phase2 artifact-diff contract keeps companion surfaces distinct" {
-    try expectContains(helper_path, "artifact_diff.py");
+    try expectContains(helper_path, "artifact_diff.zig");
     try expectContains(phase2_fixdep_checker, "fixdep");
     try expectContains(phase2_kconfig_checker, "kconfig");
     try expectContains(phase2_genksyms_checker, "genksyms");

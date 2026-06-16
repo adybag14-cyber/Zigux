@@ -27,7 +27,7 @@ Current `master` keeps this narrow direct trace-events runtime packet:
 
 The direct sample still exposes `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking.
 Those cues are still sample-local pilot-module reviewability, not promoted family-local runtime-loader parity.
-The shared `scripts/zigux/check-phase9-trace-events-runtime-packet.py` guard keeps that initialized, selftest_complete, and exited sample-local lifecycle tracking anchored alongside the slice packet.
+The shared `scripts\zigux/check_phase9_trace_events_runtime_packet.zig` guard keeps that initialized, selftest_complete, and exited sample-local lifecycle tracking anchored alongside the slice packet.
 The direct initialized-stage exit proof in `test "trace-events sample preserves initialized summary across direct exit without selftest"` keeps zero selftest runs explicit, preserves the initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.
 The direct sample also keeps rejected re-selftest rollback explicit: `test "trace-events sample keeps rejected re-selftest rollback explicit"` proves `runSelftest()` stays rejected after both the selftest_complete and exited summaries without drift.
 The shipped cold-stage guard in `test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity"` also keeps pre-init `runSelftest()` and `exit()` rejection explicit before the module ever reaches `.initialized`, so the packet distinguishes cold-stage fail-closed behavior from the later initialized-stage clean-exit path.

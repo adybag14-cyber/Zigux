@@ -23,8 +23,8 @@ The authenticated GitHub contents route directly returns these shared reminder a
 - `scripts/zigux/README.md`
 - `samples/zigux/README.md`
 - `zigux/tests/README.md`
-- `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`
-- `scripts/zigux/check-phase9-trace-events-runtime-packet.py`
+- `scripts\zigux/check_phase9_review_checklist_phase_boundaries.zig`
+- `scripts\zigux/check_phase9_trace_events_runtime_packet.zig`
 - `zigux/tests/phase9_build.zig`
 - `zigux/tests/runtime_atomic64_diff.zig`
 

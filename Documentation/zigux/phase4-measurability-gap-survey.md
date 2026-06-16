@@ -16,7 +16,7 @@ This note keeps the remaining Phase 4 roadmap-backed measurability gaps reviewab
 Current `master` already keeps the roadmap-named landed rollback gates measurable through:
   * `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`
   * `zigux/tests/bitmap_diff.zig`, `zigux/tests/phase4_bitmap_diff_manifest.json`, `zigux/tests/phase4_bitmap_diff_survey.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`
-  * `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-reversible-delivery-evidence.md`, and `scripts/zigux/validate-phase4.py`
+  * `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-reversible-delivery-evidence.md`, and `scripts\zigux/validate_phase4.zig`
   * `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig` for the current local-only perf posture
 
 Those surfaces already satisfy the roadmap requirement that the landed atomic64 and bitmap gates stay measurable and reversible.
@@ -40,7 +40,7 @@ Those surfaces already satisfy the roadmap requirement that the landed atomic64 
   * next bounded step: land `samples/zigux/test_fsmount.zig` only in a later dedicated starter or validator lane with an updated rollback-readiness contract
 
 ### Shared CI Perf Promotion
-  * current measurable surface: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, and `scripts/zigux/check-phase4-perf-threshold-matrix.py`
+  * current measurable surface: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, `scripts\zigux/check_phase4_perf_baseline_packet.zig`, and `scripts\zigux/check_phase4_perf_threshold_matrix.zig`
   * decision owner: `Validation and Perf Team`
   * coordination owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
   * rollback owner: `Validation and Perf Team`

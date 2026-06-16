@@ -8,10 +8,10 @@ pub fn build(b: *std.Build) void {
 
     const checker = std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
-        "scripts/zigux/check-phase1-direct-owner-markers.py",
+        "scripts\zigux/check_phase1_direct_owner_markers.zig",
         b.allocator,
         .limited(1024 * 1024),
-    ) catch @panic("unable to read scripts/zigux/check-phase1-direct-owner-markers.py");
+    ) catch @panic("unable to read scripts\zigux/check_phase1_direct_owner_markers.zig");
     const lane_note = std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase1-host-helper-lane-sequencing.md",

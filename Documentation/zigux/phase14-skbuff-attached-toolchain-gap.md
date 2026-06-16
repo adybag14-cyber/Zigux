@@ -38,7 +38,7 @@ compile wording before the bounded skbuff packet itself returns.
 
 ## Current guardrail
 
-`scripts/zigux/check-phase14-skbuff-toolchain-gap.py` keeps this gap note and
+`scripts\zigux/check_phase14_skbuff_toolchain_gap.zig` keeps this gap note and
 the live skbuff survey aligned on one narrow rule: no attached-toolchain or
 compile-route claim is allowed while the skbuff anchor packet files remain
 absent on current `master`.

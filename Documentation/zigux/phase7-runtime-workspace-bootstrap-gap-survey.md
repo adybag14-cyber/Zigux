@@ -13,11 +13,11 @@ This note keeps the Phase 7 shared-control workspace bootstrap glue reviewable a
 - the Phase 7 roadmap anchors remain `lib/string_helpers.c`, `lib/cmdline.c`, `lib/argv_split.c`, and `lib/rbtree.c`
 - current Zigux product paths now carry those anchors through `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, and `lib/rbtree.zig`
 - `zigux/tests/phase7_build.zig` wires all four returned helpers into the shared Phase 7 build graph
-- `scripts/zigux/validate-phase7.py` plus `make -C zigux phase7-validate` keep one returned shared validation foothold explicit on current `master`
+- `scripts\zigux/validate_phase7.zig` plus `make -C zigux phase7-validate` keep one returned shared validation foothold explicit on current `master`
 
 ## Current Workspace Bootstrap Glue
 
-- `.github/workflows/zigux-bootstrap.yml` self-tests `scripts/zigux/check-phase7-shared-control-gap.py` and `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
+- `.github/workflows/zigux-bootstrap.yml` self-tests `scripts\zigux/check_phase7_shared_control_gap.zig` and `scripts\zigux/check_phase7_make_wrapper_selftest_alignment.zig`
 - the readable `zigux/Makefile` still exposes `phase7-validate` as the shared Phase 7 foothold
 - the readable `zigux/Makefile` now also exposes `phase7-rbtree-test:` and `phase7-rbtree-survey:` as dedicated helper-local wrappers, not as returned aggregate shared-control routes
 - `zigux/tests/phase7_build.zig` remains readable non-owner build evidence rather than a returned shared workspace route by itself
@@ -33,4 +33,4 @@ This note keeps the Phase 7 shared-control workspace bootstrap glue reviewable a
 
 ## Next Bounded Step
 
-- if a future shared-control lane widens bootstrap glue, reread `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zigux/tests/phase7_build.zig`, and `scripts/zigux/validate-phase7.py` together before promoting any broader Phase 7 route as returned current-`master` evidence
+- if a future shared-control lane widens bootstrap glue, reread `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zigux/tests/phase7_build.zig`, and `scripts\zigux/validate_phase7.zig` together before promoting any broader Phase 7 route as returned current-`master` evidence

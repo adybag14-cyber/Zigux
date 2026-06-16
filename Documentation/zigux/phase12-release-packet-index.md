@@ -30,13 +30,13 @@ The shared release-planning packet is currently anchored by:
 
 The directly readable validator-first support bundle is currently:
 
-- `scripts/zigux/validate-phase12.py`
-- `scripts/zigux/check-build-only-phase12-surface.py`
-- `scripts/zigux/check-phase12-release-readiness-packet.py`
-- `scripts/zigux/check-phase12-complex-driver-lane-packet.py`
-- `scripts/zigux/check-phase12-libbpf-snapshot.py`
-- `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`
-- `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py`
+- `scripts\zigux/validate_phase12.zig`
+- `scripts\zigux/check_build_only_phase12_surface.zig`
+- `scripts\zigux/check_phase12_release_readiness_packet.zig`
+- `scripts\zigux/check_phase12_complex_driver_lane_packet.zig`
+- `scripts\zigux/check_phase12_libbpf_snapshot.zig`
+- `scripts\zigux/check_phase12_libbpf_heavy_consumer_packet.zig`
+- `scripts\zigux/check_phase12_virtio_scsi_libbpf_boundary.zig`
 - `scripts/zigux/README.md`
 
 ### Tests-root and workflow packet
@@ -83,7 +83,7 @@ The degraded-read fallback split remains:
 - commit-pinned direct replay catalog: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
 - driver-local current-master gap-inventory companion: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
 - shared-tree-only anchors: `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md`
-- shared-tree raw-read anchors during degraded contents reads: `zigux/tests/phase12_build.zig` and `scripts/zigux/check-build-only-phase12-surface.py`
+- shared-tree raw-read anchors during degraded contents reads: `zigux/tests/phase12_build.zig` and `scripts\zigux/check_build_only_phase12_surface.zig`
 
 ## Release Boundaries
 

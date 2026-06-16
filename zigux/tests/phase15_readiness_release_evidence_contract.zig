@@ -4,8 +4,8 @@ const release_evidence = [_]struct {
     name: []const u8,
     path: []const u8,
 }{
-    .{ .name = "validator_first_replay", .path = "scripts/zigux/validate-phase15.py" },
-    .{ .name = "readiness_packet_checker", .path = "scripts/zigux/check-phase15-readiness-gate-packet.py" },
+    .{ .name = "validator_first_replay", .path = "scripts\zigux/validate_phase15.zig" },
+    .{ .name = "readiness_packet_checker", .path = "scripts\zigux/check_phase15_readiness_gate_packet.zig" },
     .{ .name = "shared_build_companion", .path = "zigux/tests/phase15_build.zig" },
     .{ .name = "readiness_gap_matrix", .path = "zigux/tests/phase15_readiness_gap_matrix.json" },
 };
@@ -24,8 +24,8 @@ const readiness_survey_markers =
     \\current-master-readback-2026-05-27
     \\## Release Evidence Quartet
     \\release_evidence_count=4
-    \\`scripts/zigux/validate-phase15.py` is the validator-first replay for the current maintenance gate
-    \\`scripts/zigux/check-phase15-readiness-gate-packet.py` keeps the readiness note, manifest, gap matrix, blocked-route posture, and repo evidence aligned
+    \\`scripts\zigux/validate_phase15.zig` is the validator-first replay for the current maintenance gate
+    \\`scripts\zigux/check_phase15_readiness_gate_packet.zig` keeps the readiness note, manifest, gap matrix, blocked-route posture, and repo evidence aligned
     \\`zigux/tests/phase15_build.zig` is directly readable shared-build companion evidence, not proof that the missing wrappers exist
     \\`zigux/tests/phase15_readiness_gap_matrix.json` keeps the roadmap-versus-ledger blockers explicit as data rather than relying on prose-only handoff notes
     \\`make -C zigux phase15-validate` remains blocked route vocabulary rather than a directly readable shipped replay path
@@ -88,9 +88,9 @@ fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
 test "phase 15 release-evidence quartet stays exactly scoped" {
     try std.testing.expectEqual(@as(usize, 4), release_evidence.len);
     try std.testing.expectEqualStrings("validator_first_replay", release_evidence[0].name);
-    try std.testing.expectEqualStrings("scripts/zigux/validate-phase15.py", release_evidence[0].path);
+    try std.testing.expectEqualStrings("scripts\zigux/validate_phase15.zig", release_evidence[0].path);
     try std.testing.expectEqualStrings("readiness_packet_checker", release_evidence[1].name);
-    try std.testing.expectEqualStrings("scripts/zigux/check-phase15-readiness-gate-packet.py", release_evidence[1].path);
+    try std.testing.expectEqualStrings("scripts\zigux/check_phase15_readiness_gate_packet.zig", release_evidence[1].path);
     try std.testing.expectEqualStrings("shared_build_companion", release_evidence[2].name);
     try std.testing.expectEqualStrings("zigux/tests/phase15_build.zig", release_evidence[2].path);
     try std.testing.expectEqualStrings("readiness_gap_matrix", release_evidence[3].name);

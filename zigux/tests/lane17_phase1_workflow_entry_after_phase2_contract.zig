@@ -15,34 +15,34 @@ const phase2_tail_gates = [_]Gate{
     },
     .{
         .name = "Validate current Phase 2 tool packet",
-        .command = "python3 scripts/zigux/validate-phase2.py",
+        .command = "zig run validate_phase2.zig",
     },
     .{
         .name = "Self-test current Phase 2 closure validator",
-        .command = "python3 scripts/zigux/validate-phase2-closure.py --self-test",
+        .command = "zig run validate_phase2_closure.zig --self-test",
     },
     .{
         .name = "Check current Phase 2 closure packet",
-        .command = "python3 scripts/zigux/validate-phase2-closure.py",
+        .command = "zig run validate_phase2_closure.zig",
     },
 };
 
 const phase1_entry_gates = [_]Gate{
     .{
         .name = "Self-test current Phase 1 direct-owner checker",
-        .command = "python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test",
+        .command = "zig run check_phase1_direct_owner_markers.zig --self-test",
     },
     .{
         .name = "Check current Phase 1 direct-owner markers",
-        .command = "python3 scripts/zigux/check-phase1-direct-owner-markers.py",
+        .command = "zig run check_phase1_direct_owner_markers.zig",
     },
     .{
         .name = "Self-test current Phase 1 direct-anchor manifest gate",
-        .command = "python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py --self-test",
+        .command = "zig run check_phase1_direct_anchor_manifest_gate.zig --self-test",
     },
     .{
         .name = "Check current Phase 1 direct-anchor manifest gate",
-        .command = "python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py",
+        .command = "zig run check_phase1_direct_anchor_manifest_gate.zig",
     },
 };
 

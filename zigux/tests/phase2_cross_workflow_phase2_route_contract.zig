@@ -61,19 +61,19 @@ test "workflow carries direct cross checks into later phase2 make routes" {
     defer testing.allocator.free(workflow);
 
     const ordered_markers = [_][]const u8{
-        "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
-        "run: python3 scripts/zigux/check-phase2-cross.py",
-        "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
-        "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+        "run: zig run check_phase2_cross.zig --self-test",
+        "run: zig run check_phase2_cross.zig",
+        "run: zig run check_phase2_cross_selftest_alignment.zig --self-test",
+        "run: zig run check_phase2_cross_selftest_alignment.zig",
         "run: make -C zigux phase2-cross",
-        "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
-        "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
+        "run: zig run check_phase2_required_make_routes.zig --self-test",
+        "run: zig run check_phase2_required_make_routes.zig",
         "run: make -C zigux phase2-genksyms",
         "run: make -C zigux phase2-validate",
         "run: make -C zigux phase2",
-        "run: python3 scripts/zigux/validate-phase2.py",
-        "run: python3 scripts/zigux/validate-phase2-closure.py --self-test",
-        "run: python3 scripts/zigux/validate-phase2-closure.py",
+        "run: zig run validate_phase2.zig",
+        "run: zig run validate_phase2_closure.zig --self-test",
+        "run: zig run validate_phase2_closure.zig",
     };
     try requireOrderedTrimmedLines(workflow, &ordered_markers);
 
@@ -88,10 +88,10 @@ test "makefile keeps phase2 cross inside the aggregate phase2 route" {
 
     const ordered_markers = [_][]const u8{
         "phase2-cross:",
-        "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py --self-test",
-        "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
-        "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py --self-test",
-        "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig --self-test",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig --self-test",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig",
         "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
         "phase2: phase2-validate",
     };

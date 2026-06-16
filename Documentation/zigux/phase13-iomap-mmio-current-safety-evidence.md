@@ -18,9 +18,9 @@ This `P13-L03` evidence note records the current `master` behavior for the Phase
 - `Documentation/zigux/phase13-devres-iomap-planner.md` blob `e39973b8b47d2b4d8e432fd080509e21d7d6a4f8`
 - `zigux/tests/phase13_devres_iomap_planner_manifest.json` blob `ecdb25acee029bfac70f47bb2de2704ea211120f`
 - `zigux/tests/phase13_devres_iomap_planner.zig` blob `9915878b36ea85825b863c0da4c421874d76ef0d`
-- `scripts/zigux/check-phase13-devres-iomap-planner.py` blob `5e51e36b858c865ff04936a790647f06ac7b1c7a`
-- `scripts/zigux/check-phase13-devres-mmio-packet.py` blob `81bca7a47f83347c9931d6508e43bee65034025e`
-- `scripts/zigux/check-phase13-devres-current-packet.py` blob `4f2d8ad430088676e26b6b28bf1153b7f5e768ea`
+- `scripts\zigux/check_phase13_devres_iomap_planner.zig` blob `5e51e36b858c865ff04936a790647f06ac7b1c7a`
+- `scripts\zigux/check_phase13_devres_mmio_packet.zig` blob `81bca7a47f83347c9931d6508e43bee65034025e`
+- `scripts\zigux/check_phase13_devres_current_packet.zig` blob `4f2d8ad430088676e26b6b28bf1153b7f5e768ea`
 
 ## Current Safety Behavior
 

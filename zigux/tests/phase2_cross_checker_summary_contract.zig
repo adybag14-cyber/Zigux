@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const checker_path = "scripts/zigux/check-phase2-cross.py";
+const checker_path = "scripts\zigux/check_phase2_cross.zig";
 const fixture_path = "zigux/tests/fixtures/phase2_cross_targets.json";
 
 const pass_label = "PHASE2_DIRECT_CROSS_ROUTE=pass";

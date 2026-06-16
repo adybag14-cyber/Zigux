@@ -13,7 +13,7 @@
     "zigux/tests/phase13_devres_scatterlist.zig",
     "zigux/tests/phase13_devres_scatterlist_empty_table.zig",
     "zigux/tests/phase13_devres_scatterlist_build.zig",
-    "scripts/zigux/check-phase13-devres-scatterlist-planner.py"
+    "scripts\zigux/check_phase13_devres_scatterlist_planner.zig"
   ],
   "fixture_governance": {
     "scatterlist_lifetime_owner": "zigux/tests/phase13_devres_scatterlist.zig",
@@ -24,7 +24,7 @@
     "empty_table_warning_owner": "zigux/tests/phase13_devres_scatterlist_empty_table.zig",
     "slice_note_owner": "Documentation/zigux/phase13-devres-scatterlist-slice.md",
     "build_shard_owner": "zigux/tests/phase13_devres_scatterlist_build.zig",
-    "validation_guard": "scripts/zigux/check-phase13-devres-scatterlist-planner.py",
+    "validation_guard": "scripts\zigux/check_phase13_devres_scatterlist_planner.zig",
     "owner_map": "zigux/tests/phase13_devres_scatterlist_planner_manifest.json",
     "adjacent_boundary_evidence_only": [
       "zigux/tests/phase13_devres_dma_coherent.zig",

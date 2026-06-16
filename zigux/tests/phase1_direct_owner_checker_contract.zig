@@ -69,7 +69,7 @@ test "direct-owner checker keeps the Phase 1 helper lane split explicit" {
 
 test "direct-owner checker and lane note retain one marker per direct helper" {
     try expectContains(lane_note, "These four helper-specific owner markers are now exact-checked");
-    try expectContains(lane_note, "scripts/zigux/check-phase1-direct-owner-markers.py");
+    try expectContains(lane_note, "scripts\zigux/check_phase1_direct_owner_markers.zig");
 
     for (direct_owner_prefixes) |prefix| {
         try expectContainsOnce(checker, prefix);

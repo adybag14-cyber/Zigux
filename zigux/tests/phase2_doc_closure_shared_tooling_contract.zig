@@ -15,9 +15,9 @@ test "phase 2 closure note keeps the shared tooling checker packet explicit" {
     defer std.testing.allocator.free(closure_note);
 
     try expectContains(closure_note, "PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest");
-    try expectContains(closure_note, "PHASE2_SHARED_TOOLING_CHECKERS=python3 scripts/zigux/check-phase2-tool-manifest.py,python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py,python3 scripts/zigux/check-phase2-artifact-tools-manifest.py,python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py,python3 scripts/zigux/check-phase2-cross.py,python3 scripts/zigux/check-phase2-fixdep-gate.py,python3 scripts/zigux/check-fixdep-diff.py");
+    try expectContains(closure_note, "PHASE2_SHARED_TOOLING_CHECKERS=zig run check_phase2_tool_manifest.zig,zig run check_phase2_bootstrap_workflow_routes.zig,zig run check_phase2_artifact_tools_manifest.zig,zig run check_phase2_kconfig_allconfig_helper_packet.zig,zig run check_phase2_cross.zig,zig run check_phase2_fixdep_gate.zig,zig run check_fixdep_diff.zig");
     try expectContains(closure_note, "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2");
-    try expectContains(closure_note, "PHASE2_CLOSURE_VALIDATORS=python3 scripts/zigux/validate-phase2.py,python3 scripts/zigux/validate-phase2-closure.py");
+    try expectContains(closure_note, "PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2.zig,zig run validate_phase2_closure.zig");
     try expectContains(closure_note, "PHASE2_CURRENT_GAP_PACKET=Documentation/zigux/phase2-kconfig-bridge-gap-survey.md");
 }
 
@@ -39,9 +39,9 @@ test "phase 2 closure packet is reconciled across scripts root, artifact note, a
     const bootstrap_ledger = try readRepoFile("zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md", 256 * 1024);
     defer std.testing.allocator.free(bootstrap_ledger);
 
-    try expectContains(scripts_readme, "Phase 2 flow - the current scripts-root bridge packet stays reviewable through the live toolchain checker, installer helper, direct cross-route packet, tool-manifest packet, artifact-support packet, `scripts/zigux/check-genksyms-bridge.py`, fixdep packet, and returned make wrappers");
-    try expectContains(scripts_readme, "`scripts/zigux/check-phase2-docs-shared-reminder.py`, `scripts/zigux/check-phase2-required-make-routes.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-fixdep`, `make -C zigux phase2-validate`, and `make -C zigux phase2` keep the required wrapper route packet explicit");
-    try expectContains(artifact_note, "Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep` and the kconfig bridge packet. The current `genksyms` bridge packet keeps its fixture comparisons local to `scripts/zigux/check-genksyms-bridge.py`.");
+    try expectContains(scripts_readme, "Phase 2 flow - the current scripts-root bridge packet stays reviewable through the live toolchain checker, installer helper, direct cross-route packet, tool-manifest packet, artifact-support packet, `scripts\zigux/check_genksyms_bridge.zig`, fixdep packet, and returned make wrappers");
+    try expectContains(scripts_readme, "`scripts\zigux/check_phase2_docs_shared_reminder.zig`, `scripts\zigux/check_phase2_required_make_routes.zig`, `scripts\zigux/validate_phase2_closure.zig`, `zigux/Makefile`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-fixdep`, `make -C zigux phase2-validate`, and `make -C zigux phase2` keep the required wrapper route packet explicit");
+    try expectContains(artifact_note, "Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep` and the kconfig bridge packet. The current `genksyms` bridge packet keeps its fixture comparisons local to `scripts\zigux/check_genksyms_bridge.zig`.");
     try expectContains(bootstrap_ledger, "25. `docs(zigux): reopen and close broadened Phase 2 tranche`");
     try expectContains(bootstrap_ledger, "- `Documentation/zigux/phase2-closure.md`");
     try expectContains(bootstrap_ledger, "- `Documentation/zigux/artifact-diff.md`");

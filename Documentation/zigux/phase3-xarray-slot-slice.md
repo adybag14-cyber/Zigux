@@ -9,14 +9,14 @@ This note records one bounded Phase 3 helper-side xarray-slot packet on current 
 - `zigux/helpers/xarray_slot_view.zig`
 - `zigux/tests/phase3_xarray_slot_starter_packet.zig`
 - `zigux/tests/phase3_xarray_slot_starter_packet_build.zig`
-- `scripts/zigux/check-phase3-xarray-slot-starter-packet.py`
+- `scripts\zigux/check_phase3_xarray_slot_starter_packet.zig`
 - `zigux/tests/build.zig`
 - `zigux/tests/phase3_xarray_slot_dump.zig`
 - `zigux/tests/phase3_xarray_slot_dump_build.zig`
 - `zigux/tests/fixtures/phase3_xarray_slot/phase3_xarray_slot_c_harness.c`
 - `zigux/tests/fixtures/phase3_xarray_slot/expected.json`
 - `zigux/tests/fixtures/phase3_xarray_slot_manifest.json`
-- `scripts/zigux/check-phase3-xarray-slot.py`
+- `scripts\zigux/check_phase3_xarray_slot.zig`
 
 ## Bounded Contract
 
@@ -35,9 +35,9 @@ The current helper-local packet now has two bounded replay layers:
   - `zigux/helpers/xarray_slot_view.zig`
   - `zigux/tests/phase3_xarray_slot_starter_packet.zig`
   - `zigux/tests/phase3_xarray_slot_starter_packet_build.zig`
-  - `scripts/zigux/check-phase3-xarray-slot-starter-packet.py`
-  - `python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --self-test`
-  - `python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --repo-root .`
+  - `scripts\zigux/check_phase3_xarray_slot_starter_packet.zig`
+  - `zig run check_phase3_xarray_slot_starter_packet.zig --self-test`
+  - `zig run check_phase3_xarray_slot_starter_packet.zig --repo-root .`
   - `zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig`
   - `zigux/tests/build.zig`
   - `zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig`
@@ -47,16 +47,16 @@ The current helper-local packet now has two bounded replay layers:
   - `zigux/tests/fixtures/phase3_xarray_slot/phase3_xarray_slot_c_harness.c`
   - `zigux/tests/fixtures/phase3_xarray_slot/expected.json`
   - `zigux/tests/fixtures/phase3_xarray_slot_manifest.json`
-  - `scripts/zigux/check-phase3-xarray-slot.py`
-  - `python3 scripts/zigux/check-phase3-xarray-slot.py --self-test`
-  - `python3 scripts/zigux/check-phase3-xarray-slot.py --repo-root . --zig zig --cc gcc`
+  - `scripts\zigux/check_phase3_xarray_slot.zig`
+  - `zig run check_phase3_xarray_slot.zig --self-test`
+  - `zig run check_phase3_xarray_slot.zig --repo-root . --zig zig --cc gcc`
   - `zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig`
 
 That keeps one shared-tests-root starter hook and one tiny C-vs-Zig parity replay explicit without reopening the broader shared validator, export/UAPI survey, or catalog packet.
 
 ## Current Gap
 
-This is still not the broader Phase 3 shared validator-support packet. The docs-root xarray-slot slice note is now landed, and `zigux/tests/fixtures/phase3_xarray_slot_manifest.json` keeps the remaining nearby repo-reality follow-up narrowed to `Documentation/zigux/phase3-validator-support-surface.md` and `scripts/zigux/validate-phase3.py`.
+This is still not the broader Phase 3 shared validator-support packet. The docs-root xarray-slot slice note is now landed, and `zigux/tests/fixtures/phase3_xarray_slot_manifest.json` keeps the remaining nearby repo-reality follow-up narrowed to `Documentation/zigux/phase3-validator-support-surface.md` and `scripts\zigux/validate_phase3.zig`.
 
 That means the landed `xarray_slot` helper, starter checker, dump checker, fixture-backed parity packet, and this docs-root note are real current-`master` evidence, but they should stay helper-local until a fresh same-lane reread decides whether the broader validator-support note or shared validator entrypoint should absorb them. This note should not be used to imply that the broader Phase 3 export/UAPI survey, shared replay packet, catalog wiring, IDR family, or IDA family has returned.
 

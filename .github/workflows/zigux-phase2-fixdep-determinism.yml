@@ -4,13 +4,13 @@ on:
   push:
     branches: [ master ]
     paths:
-      - 'scripts/zigux/check-fixdep-diff.py'
-      - 'scripts/zigux/check-phase2-fixdep-determinism-contract.py'
+      - 'scripts\zigux/check_fixdep_diff.zig'
+      - 'scripts\zigux/check_phase2_fixdep_determinism_contract.zig'
       - '.github/workflows/zigux-phase2-fixdep-determinism.yml'
   pull_request:
     paths:
-      - 'scripts/zigux/check-fixdep-diff.py'
-      - 'scripts/zigux/check-phase2-fixdep-determinism-contract.py'
+      - 'scripts\zigux/check_fixdep_diff.zig'
+      - 'scripts\zigux/check_phase2_fixdep_determinism_contract.zig'
       - '.github/workflows/zigux-phase2-fixdep-determinism.yml'
   workflow_dispatch:
 
@@ -38,7 +38,7 @@ jobs:
           mv "$src_dir"/* "$GITHUB_WORKSPACE"/
 
       - name: Self-test Phase 2 fixdep determinism contract
-        run: python3 scripts/zigux/check-phase2-fixdep-determinism-contract.py --self-test
+        run: zig run check_phase2_fixdep_determinism_contract.zig --self-test
 
       - name: Check Phase 2 fixdep determinism contract
-        run: python3 scripts/zigux/check-phase2-fixdep-determinism-contract.py
+        run: zig run check_phase2_fixdep_determinism_contract.zig

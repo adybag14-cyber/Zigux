@@ -59,10 +59,10 @@ Each anchor still carries explicit lane owner, phase, current status bucket, req
 
 The exact handoff reread now shows the dedicated parity-scorecard packet itself aligned on current `master`:
 
-- `Documentation/zigux/phase15-parity-scorecard.md` now records the validator-first reminder route as directly readable through `python3 scripts/zigux/validate-phase15.py`
+- `Documentation/zigux/phase15-parity-scorecard.md` now records the validator-first reminder route as directly readable through `zig run validate_phase15.zig`
 - `zigux/tests/phase15_parity_scorecard.zig` now expects that same directly-readable validator wording and the dedicated shared-build companion as directly readable current-master evidence
-- `Documentation/zigux/phase15-readiness-gate-survey.md` also records `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig` as present and directly readable on current `master`
-- direct current-`master` readback on 2026-05-25 confirms `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig` are both present
+- `Documentation/zigux/phase15-readiness-gate-survey.md` also records `scripts\zigux/validate_phase15.zig` and `zigux/tests/phase15_build.zig` as present and directly readable on current `master`
+- direct current-`master` readback on 2026-05-25 confirms `scripts\zigux/validate_phase15.zig` and `zigux/tests/phase15_build.zig` are both present
 - `Documentation/zigux/phase15-governance-lane-sequencing.md` still carries the older dedicated-build-gap wording, so that neighboring packet now owns the next broader reminder refresh rather than the dedicated parity-scorecard owner packet
 
 ## Exact checks
@@ -72,8 +72,8 @@ The exact 2026-05-25 checks for this bounded survey step were:
 - read `Documentation/zigux/phase15-parity-scorecard.md` and confirmed its status block still advertises `PHASE15_LANE_KEY=P15-L03`, `PHASE15_PROVENANCE_MODE=dated_master_readback`, and `current-master-readback-2026-05-25`
 - read `zigux/tests/phase15_parity_scorecard.json` and confirmed the same lane key, slice, dated-readback marker, posture role, four-anchor inventory, and `0` Architecture Council approvals
 - read `zigux/tests/phase15_parity_scorecard.zig` and confirmed the dedicated Zig guard now checks for `P15-L03`, `current-master-readback-2026-05-25`, the same aggregate metrics, the directly-readable validator-first reminder-route wording, and the directly-readable shared-build companion wording
-- read `Documentation/zigux/phase15-readiness-gate-survey.md` and confirmed that the broader readiness packet now treats both `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig` as present and directly readable on current `master`
-- attempted direct current-`master` readback for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`; both read cleanly on 2026-05-25
+- read `Documentation/zigux/phase15-readiness-gate-survey.md` and confirmed that the broader readiness packet now treats both `scripts\zigux/validate_phase15.zig` and `zigux/tests/phase15_build.zig` as present and directly readable on current `master`
+- attempted direct current-`master` readback for `scripts\zigux/validate_phase15.zig` and `zigux/tests/phase15_build.zig`; both read cleanly on 2026-05-25
 - read `Documentation/zigux/phase15-governance-lane-sequencing.md` and confirmed it still frames `zigux/tests/phase15_build.zig` as the remaining missing dedicated-build gap even though direct readback now materializes that file
 - read `zigux/Makefile` and confirmed it still lacks `phase15-validate`, `phase15-test`, and `phase15` targets, so the parked wrapper routes remain blocked even though the dedicated validator and dedicated shared-build companion are both materialized
 
@@ -97,7 +97,7 @@ The honest bounded Phase 15 statement on current `master` is:
 - no Architecture Council approval is recorded for any freeze-map status change
 - all four freeze-in-C anchors remain blocked from a direct Zigux port claim
 - the dedicated parity-scorecard packet belongs to `P15-L03`
-- `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig` are now present on current `master`
+- `scripts\zigux/validate_phase15.zig` and `zigux/tests/phase15_build.zig` are now present on current `master`
 - the parked `make -C zigux phase15{,-validate,-test}` wrapper routes still remain broader repo-reality gaps
 - the current same-lane parity-tracking drift was the stale survey wording itself; the neighboring governance-lane-sequencing packet now needs its own separate truthfulness refresh if it is to stop treating the dedicated shared-build companion as missing
 

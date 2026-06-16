@@ -85,7 +85,7 @@ test "phase 8 bridge boundary survey keeps the mixed-source helper packet and de
     try expectContains(note, "`zigux/tests/phase8_file_path_handle_bridge.zig`");
     try expectContains(note, "`zigux/tests/phase8_file_path_handle_boundary_guard.zig`");
     try expectContains(note, "`zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`");
-    try expectContains(note, "`scripts/zigux/validate-phase8.py`");
+    try expectContains(note, "`scripts\zigux/validate_phase8.zig`");
     try expectContains(note, "buildCurrentProcessFdinfoPath()");
     try expectContains(note, "applyFdinfoMapInfoLine()");
     try expectContains(note, "parseFdinfoMapInfo()");
@@ -100,7 +100,7 @@ test "phase 8 bridge boundary survey keeps the mixed-source helper packet and de
 test "phase 8 bridge manifest sync keeps the shared validator bridge packet explicit" {
     const validate_phase8 = try readWorkspaceFile(
         std.testing.allocator,
-        "scripts/zigux/validate-phase8.py",
+        "scripts\zigux/validate_phase8.zig",
         96 * 1024,
     );
     defer std.testing.allocator.free(validate_phase8);

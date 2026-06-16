@@ -29,4 +29,4 @@ Keep the next repair inside the lane-owned slice note only:
 
 ## Guardrail
 
-`scripts/zigux/check-phase13-landlock-syscalls-slice-alignment.py` exists to fail closed when the slice note drops the current release-side or reviewability markers, or when the old path-beneath next-step wording comes back.
+`scripts\zigux/check_phase13_landlock_syscalls_slice_alignment.zig` exists to fail closed when the slice note drops the current release-side or reviewability markers, or when the old path-beneath next-step wording comes back.

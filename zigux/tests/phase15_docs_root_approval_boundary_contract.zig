@@ -36,7 +36,7 @@ test "docs root keeps Phase 15 approval boundary routed through decision owners"
     try expectContains(docs_root, "`Documentation/zigux/phase15-architecture-council-decision-index.md`");
     try expectContains(docs_root, "`Documentation/zigux/phase15-freeze-map-governance.md`");
     try expectContains(docs_root, "`Documentation/zigux/phase15-parity-scorecard.md`");
-    try expectContains(docs_root, "`scripts/zigux/validate-phase15.py`");
+    try expectContains(docs_root, "`scripts\zigux/validate_phase15.zig`");
     try expectContains(docs_root, "no Architecture Council approval is currently recorded for a freeze-map status change");
     try expectContains(docs_root, "below any Architecture Council approval claim");
     try expectContains(docs_root, "below any freeze-map status change");
@@ -65,7 +65,7 @@ test "docs root keeps Phase 15 shared build evidence separate from blocked route
 
     try expectContains(docs_root, "`zigux/tests/phase15_build.zig` stays the directly readable shared build companion");
     try expectContains(docs_root, "`make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` remain blocked route vocabulary");
-    try expectContains(docs_root, "`scripts/zigux/check-phase15-docs-readme-alignment.py`");
-    try expectContains(docs_root, "`scripts/zigux/check-phase15-architecture-council-packet.py`");
-    try expectContains(docs_root, "`scripts/zigux/validate-phase15.py`");
+    try expectContains(docs_root, "`scripts\zigux/check_phase15_docs_readme_alignment.zig`");
+    try expectContains(docs_root, "`scripts\zigux/check_phase15_architecture_council_packet.zig`");
+    try expectContains(docs_root, "`scripts\zigux/validate_phase15.zig`");
 }

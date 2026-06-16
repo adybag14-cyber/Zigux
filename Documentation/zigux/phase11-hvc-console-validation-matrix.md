@@ -26,16 +26,16 @@ Treat the current matrix packet as:
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
 - `Documentation/zigux/phase11-hvc-cleanup-prerequisite-parity-gap.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
-- `scripts/zigux/check-phase11-build-inventory.py`
-- `scripts/zigux/check-phase11-validate-manifest-roster.py`
-- `scripts/zigux/check-phase11-validate-check-roster.py`
-- `scripts/zigux/check-phase11-validate-route-alignment.py`
-- `scripts/zigux/check-phase11-focused-direct-build-replays.py`
-- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
-- `scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`
-- `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
-- `scripts/zigux/check-phase11-hvc-current-head-manifest.py`
-- `scripts/zigux/validate-phase11.py`
+- `scripts\zigux/check_phase11_build_inventory.zig`
+- `scripts\zigux/check_phase11_validate_manifest_roster.zig`
+- `scripts\zigux/check_phase11_validate_check_roster.zig`
+- `scripts\zigux/check_phase11_validate_route_alignment.zig`
+- `scripts\zigux/check_phase11_focused_direct_build_replays.zig`
+- `scripts\zigux/check_phase11_hvc_cleanup_current_head.zig`
+- `scripts\zigux/check_phase11_hvc_cleanup_prerequisite_packet.zig`
+- `scripts\zigux/check_phase11_hvc_targetless_unregister_witness.zig`
+- `scripts\zigux/check_phase11_hvc_current_head_manifest.zig`
+- `scripts\zigux/validate_phase11.zig`
 - `zigux/Makefile`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/fixtures/phase11_validate_checks.json`
@@ -69,7 +69,7 @@ plus checker explicit as a helper-local teardown reminder rather than a claim
 that live cleanup execution has returned. The same matrix packet now keeps
 `zigux/tests/phase11_hvc_current_head_manifest.json` explicit as a
 machine-readable current-head manifest packet, and
-`scripts/zigux/check-phase11-hvc-current-head-manifest.py` fail-closes on its
+`scripts\zigux/check_phase11_hvc_current_head_manifest.zig` fail-closes on its
 lane key, packet surface roster, direct checks, and bounded repo-reality gaps.
 The witness shard now rereads the live starter and the boundary note together.
 keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet.
@@ -108,19 +108,19 @@ modem-control helper summaries reviewable on current `master`.
   `zigux/tests/phase11_hvc_console.zig`,
   `zigux/tests/phase11_hvc_cleanup.zig`,
   `zigux/tests/phase11_hvc_console_survey.zig`, and
-  `scripts/zigux/check-phase11-hvc-survey-packet.py` explicit as repo-reality
+  `scripts\zigux/check_phase11_hvc_survey_packet.zig` explicit as repo-reality
   gaps instead of returned fallback evidence.
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md` keeps helper-local
   failure-mode edges reviewable through the verify helper boundary note.
 - `Documentation/zigux/phase11-hvc-cleanup-prerequisite-parity-gap.md` and
-  `scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py` keep
+  `scripts\zigux/check_phase11_hvc_cleanup_prerequisite_packet.zig` keep
   `summarizeCleanupPrerequisite()`, its trigger split, and
   `error.CleanupRequiresFinalCloseOrHangup` explicit as teardown-parity reminder
   surfaces without claiming that the missing teardown note or live cleanup
   replay have returned.
-- `scripts/zigux/check-phase11-validate-manifest-roster.py`,
-  `scripts/zigux/check-phase11-validate-check-roster.py`,
-  `scripts/zigux/check-phase11-validate-route-alignment.py`, and
+- `scripts\zigux/check_phase11_validate_manifest_roster.zig`,
+  `scripts\zigux/check_phase11_validate_check_roster.zig`,
+  `scripts\zigux/check_phase11_validate_route_alignment.zig`, and
   `zigux/tests/fixtures/phase11_validate_checks.json` keep the returned shared
   validator-side manifest, exact-check, and route fan-out evidence explicit for
   the current HVC-facing packet without claiming a dedicated HVC-only validator.
@@ -143,19 +143,19 @@ modem-control helper summaries reviewable on current `master`.
 - keep helper-local failure-mode edges reviewable through the returned verify
   helper source, the verify boundary note, the cleanup-prerequisite parity
   note, and the current companion stack
-- keep `scripts/zigux/check-phase11-validate-manifest-roster.py`,
-  `scripts/zigux/check-phase11-validate-check-roster.py`,
-  `scripts/zigux/check-phase11-validate-route-alignment.py`, and
+- keep `scripts\zigux/check_phase11_validate_manifest_roster.zig`,
+  `scripts\zigux/check_phase11_validate_check_roster.zig`,
+  `scripts\zigux/check_phase11_validate_route_alignment.zig`, and
   `zigux/tests/fixtures/phase11_validate_checks.json` explicit as the shared
   validator-side golden-output packet
-- keep `scripts/zigux/check-phase11-focused-direct-build-replays.py` explicit as
+- keep `scripts\zigux/check_phase11_focused_direct_build_replays.zig` explicit as
   the guard for the dedicated modem-control and targetless-unregister build
   routes while those proofs stay outside the shared three-entry build inventory
-- keep `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py --self-test`
-  and `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`
+- keep `zig run check_phase11_hvc_cleanup_prerequisite_packet.zig --self-test`
+  and `zig run check_phase11_hvc_cleanup_prerequisite_packet.zig`
   explicit as the dedicated teardown-prerequisite reminder guard
-- keep `python3 scripts/zigux/check-phase11-hvc-current-head-manifest.py --self-test`
-  and `python3 scripts/zigux/check-phase11-hvc-current-head-manifest.py`
+- keep `zig run check_phase11_hvc_current_head_manifest.zig --self-test`
+  and `zig run check_phase11_hvc_current_head_manifest.zig`
   explicit as the machine-readable current-head manifest guard
 - keep `zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig`
   explicit as a focused direct-readback proof route outside the shared
@@ -166,5 +166,5 @@ modem-control helper summaries reviewable on current `master`.
   `zigux/tests/phase11_hvc_console_survey.zig`,
   `zigux/tests/phase11_hvc_console_manifest.json`,
   `Documentation/zigux/phase11-hvc-console-teardown-note.md`, and
-  `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as repo-reality
+  `scripts\zigux/check_phase11_hvc_survey_packet.zig` framed as repo-reality
   gaps or archival vocabulary until a future reread proves they returned

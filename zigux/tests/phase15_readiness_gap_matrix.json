@@ -16,13 +16,13 @@
     {
       "evidence": "validator_first_replay",
       "status": "materialized",
-      "path": "scripts/zigux/validate-phase15.py",
+      "path": "scripts\zigux/validate_phase15.zig",
       "why_it_matters": "keeps the readiness packet replayable as a direct maintenance gate while broader make and workflow routes remain absent"
     },
     {
       "evidence": "readiness_packet_checker",
       "status": "materialized",
-      "path": "scripts/zigux/check-phase15-readiness-gate-packet.py",
+      "path": "scripts\zigux/check_phase15_readiness_gate_packet.zig",
       "why_it_matters": "keeps the readiness survey, manifest, gap matrix, blocked-route posture, and repo evidence aligned"
     },
     {

@@ -11,27 +11,27 @@ const Step = struct {
 const bench_guard_steps = [_]Step{
     .{
         .name = "Self-test current Phase 1 bench checker",
-        .command = "python3 scripts/zigux/check-phase1-bench.py --self-test",
+        .command = "zig run check_phase1_bench.zig --self-test",
     },
     .{
         .name = "Check current Phase 1 bench packet",
-        .command = "python3 scripts/zigux/check-phase1-bench.py",
+        .command = "zig run check_phase1_bench.zig",
     },
     .{
         .name = "Self-test current Phase 1 bench live-check workflow guard",
-        .command = "python3 scripts/zigux/check-phase1-bench-live-check-workflow.py --self-test",
+        .command = "zig run check_phase1_bench_live_check_workflow.zig --self-test",
     },
     .{
         .name = "Check current Phase 1 bench live-check workflow guard packet",
-        .command = "python3 scripts/zigux/check-phase1-bench-live-check-workflow.py",
+        .command = "zig run check_phase1_bench_live_check_workflow.zig",
     },
     .{
         .name = "Self-test current Phase 1 find-bit bench anchor checker",
-        .command = "python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --self-test",
+        .command = "zig run check_phase1_find_bit_bench_anchors.zig --self-test",
     },
     .{
         .name = "Check current Phase 1 find-bit bench anchor packet",
-        .command = "python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py",
+        .command = "zig run check_phase1_find_bit_bench_anchors.zig",
     },
 };
 
@@ -81,9 +81,9 @@ test "phase1 bench live-check workflow guard commands stay unique" {
 }
 
 test "phase1 bench live-check guard is not a substitute for the live bench packet" {
-    const bench_live_check = try expectUnique("run: python3 scripts/zigux/check-phase1-bench.py\n");
-    const guard_self_test = try expectUnique("run: python3 scripts/zigux/check-phase1-bench-live-check-workflow.py --self-test\n");
-    const guard_live_check = try expectUnique("run: python3 scripts/zigux/check-phase1-bench-live-check-workflow.py\n");
+    const bench_live_check = try expectUnique("run: zig run check_phase1_bench.zig\n");
+    const guard_self_test = try expectUnique("run: zig run check_phase1_bench_live_check_workflow.zig --self-test\n");
+    const guard_live_check = try expectUnique("run: zig run check_phase1_bench_live_check_workflow.zig\n");
 
     try std.testing.expect(bench_live_check < guard_self_test);
     try std.testing.expect(guard_self_test < guard_live_check);

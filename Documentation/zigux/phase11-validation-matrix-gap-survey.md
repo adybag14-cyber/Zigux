@@ -30,7 +30,7 @@ The shared build inventory now carries 3 HVC proof-backed build tests, 0 shared 
 
 `zigux/tests/phase11_hvc_modem_control_proof_build.zig`, `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`, `zigux/tests/phase11_dw_wdt_restart_build.zig`, and `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` are the current focused teardown-or-failure-mode proof builds directly named by the shared packet.
 
-`make -C zigux phase11-validate` remains the returned shared validation route, and `scripts/zigux/validate-phase11.py` keeps the current shared packet build-proof-first.
+`make -C zigux phase11-validate` remains the returned shared validation route, and `scripts\zigux/validate_phase11.zig` keeps the current shared packet build-proof-first.
 
 The same narrower inventory also records 3 adjunct build replays through `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig`.
 
@@ -38,13 +38,13 @@ The same narrower continuity packet also stays `layout_assert`-backed through `z
 
 The directly readable HVC current-head packet also now includes `zigux/tests/phase11_hvc_modem_control_proof.zig`, `zigux/tests/phase11_hvc_modem_control_proof_build.zig`, the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness, and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard.
 
-The same directly readable HVC current-head packet also keeps `Documentation/zigux/phase11-hvc-cleanup-prerequisite-parity-gap.md`, `scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`, `zigux/tests/phase11_hvc_current_head_manifest.json`, and `scripts/zigux/check-phase11-hvc-current-head-manifest.py` explicit so the cleanup-trigger split and machine-readable packet roster stay reviewable beside those focused HVC failure-mode builds.
+The same directly readable HVC current-head packet also keeps `Documentation/zigux/phase11-hvc-cleanup-prerequisite-parity-gap.md`, `scripts\zigux/check_phase11_hvc_cleanup_prerequisite_packet.zig`, `zigux/tests/phase11_hvc_current_head_manifest.json`, and `scripts\zigux/check_phase11_hvc_current_head_manifest.zig` explicit so the cleanup-trigger split and machine-readable packet roster stay reviewable beside those focused HVC failure-mode builds.
 
-The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-cleanup-current-head.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`.
+The same narrower continuity packet also keeps the dedicated `scripts\zigux/check_phase11_hvc_cleanup_current_head.zig` guard explicit through `zig run check_phase11_hvc_cleanup_current_head.zig --self-test` and `zig run check_phase11_hvc_cleanup_current_head.zig`.
 
-The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`.
+The same narrower continuity packet also keeps the dedicated `scripts\zigux/check_phase11_hvc_targetless_unregister_witness.zig` guard explicit through `zig run check_phase11_hvc_targetless_unregister_witness.zig --self-test` and `zig run check_phase11_hvc_targetless_unregister_witness.zig`.
 
-The same narrower continuity packet now also records 2 focused direct build checker routes through `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test` and `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`, together with 2 focused direct build replays through `zigux/tests/phase11_hvc_modem_control_proof_build.zig` and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`.
+The same narrower continuity packet now also records 2 focused direct build checker routes through `zig run check_phase11_focused_direct_build_replays.zig --self-test` and `zig run check_phase11_focused_direct_build_replays.zig`, together with 2 focused direct build replays through `zigux/tests/phase11_hvc_modem_control_proof_build.zig` and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`.
 
 The shared current-head packet also now keeps `zigux/tests/phase11_dw_wdt_restart_build.zig` and `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` directly readable beside the returned driver-local matrices, so the watchdog teardown-or-failure-mode proof pair stays explicit even while the narrower shared inventory remains HVC-centered.
 
@@ -52,7 +52,7 @@ The shared `phase11-validate` route also now carries `zigux/tests/phase11_hvc_mo
 
 The shared `phase11-validate` route also now carries `zigux/tests/phase11_dw_wdt_restart_build.zig` and `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` as focused watchdog teardown-or-failure-mode proofs outside the narrower three-entry HVC build inventory, so keep those shared watchdog replay routes explicit beside the returned driver-local matrices instead of reducing the shared gate to HVC-only proof coverage.
 
-Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`.
+Current `master` also materializes `scripts\zigux/validate_phase11.zig` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`.
 
 `bcm2835_wdt`: authenticated GitHub contents rereads now rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`.
 
@@ -64,11 +64,11 @@ The returned bcm2835 matrix also keeps its bounded timeout, probe-summary owners
 
 ## Deterministic Tooling Gap
 
-The shared Phase 11 packet now rematerializes a dedicated golden-output fixture roster through `zigux/tests/fixtures/phase11_validate_checks.json`, the shared aggregate tooling manifest `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`, plus fail-closed `scripts/zigux/check-phase11-validate-check-roster.py`, `scripts/zigux/check-phase11-validate-route-alignment.py`, `scripts/zigux/check-phase11-deterministic-fixture-golden-output.py`, and `scripts/zigux/check-phase11-dw-wdt-build-route.py` guards while keeping `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`, and `zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json` inside the deterministic validator packet.
+The shared Phase 11 packet now rematerializes a dedicated golden-output fixture roster through `zigux/tests/fixtures/phase11_validate_checks.json`, the shared aggregate tooling manifest `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`, plus fail-closed `scripts\zigux/check_phase11_validate_check_roster.zig`, `scripts\zigux/check_phase11_validate_route_alignment.zig`, `scripts\zigux/check_phase11_deterministic_fixture_golden_output.zig`, and `scripts\zigux/check_phase11_dw_wdt_build_route.zig` guards while keeping `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`, and `zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json` inside the deterministic validator packet.
 
 It still does not rematerialize a refresh helper route or an artifact-diff-style deterministic output guard for the driver-local proof builds.
 
-`scripts/zigux/validate-phase11.py` and `make -C zigux phase11-validate` therefore stay build-proof-first rather than expected-output-refresh-first.
+`scripts\zigux/validate_phase11.zig` and `make -C zigux phase11-validate` therefore stay build-proof-first rather than expected-output-refresh-first.
 
 The current machine-readable fixtures now capture route inventory, validate-check coverage, and manifest coverage, but they still do not refresh or compare stable expected-output artifacts for the shared Phase 11 proof fan-out.
 
@@ -81,4 +81,4 @@ That leaves a narrower roadmap-facing deterministic tooling gap: the repo can pr
 - Keep the machine-readable deterministic packet explicit through `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/fixtures/phase11_validate_checks.json`, `zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json`, and `zigux/tests/phase11_dw_wdt_manifest.json`.
 - Keep the focused teardown-or-failure-mode proof builds explicit through `zigux/tests/phase11_hvc_modem_control_proof_build.zig`, `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`, `zigux/tests/phase11_dw_wdt_restart_build.zig`, and `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` rather than silently collapsing them into the narrower three-entry HVC inventory.
 - Do not claim that golden-output refresh tooling already exists just because the shared validate route and focused proof builds returned.
-- If a dedicated refresh helper route or artifact-diff guard lands later, update this survey, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/fixtures/phase11_validate_checks.json`, and `scripts/zigux/check-phase11-validation-matrix-gap-survey.py` in the same bounded pass.
+- If a dedicated refresh helper route or artifact-diff guard lands later, update this survey, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/fixtures/phase11_validate_checks.json`, and `scripts\zigux/check_phase11_validation_matrix_gap_survey.zig` in the same bounded pass.

@@ -23,11 +23,11 @@ This document records the bounded Phase 15 governance lane around `Documentation
   - `Documentation/zigux/phase15-readiness-gate-survey.md`
   - `Documentation/zigux/phase15-governance-lane-sequencing.md`
   - `zigux/tests/README.md`
-  - `scripts/zigux/check-phase15-docs-readme-alignment.py`
-  - `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
-  - `scripts/zigux/check-phase15-tests-readme-alignment.py`
-  - `scripts/zigux/check-phase15-readiness-gate-packet.py`
-  - `scripts/zigux/validate-phase15.py`
+  - `scripts\zigux/check_phase15_docs_readme_alignment.zig`
+  - `scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig`
+  - `scripts\zigux/check_phase15_tests_readme_alignment.zig`
+  - `scripts\zigux/check_phase15_readiness_gate_packet.zig`
+  - `scripts\zigux/validate_phase15.zig`
   - `zigux/tests/phase15_build.zig`
   - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
   - `zigux/Makefile`
@@ -39,7 +39,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 
 The roadmap's Phase 15 work is about governance, not another burst of deep-core implementation.
 
-Current repo reality narrowed again inside this packet. Direct contents readback now resolves `Documentation/zigux/README.md`, the focused docs-root alignment checker `scripts/zigux/check-phase15-docs-readme-alignment.py`, `Documentation/zigux/phase15-readiness-gate-survey.md`, the focused readiness-packet checker `scripts/zigux/check-phase15-readiness-gate-packet.py`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, the checklist-specific study-only boundary checker `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`, the tests-root Phase 15 alignment checker `scripts/zigux/check-phase15-tests-readme-alignment.py`, `scripts/zigux/validate-phase15.py`, and the shared Phase 15 governance build companion `zigux/tests/phase15_build.zig`. The directly materialized docs-root reminder, focused docs-root alignment guard, validator-first companion, tests-root reminder guard, lane-owner replay, readiness checker, and shared build companion now belong in the same adjacent evidence packet, while `zigux/Makefile` still carries no `phase15-validate`, `phase15-test`, or `phase15` routes.
+Current repo reality narrowed again inside this packet. Direct contents readback now resolves `Documentation/zigux/README.md`, the focused docs-root alignment checker `scripts\zigux/check_phase15_docs_readme_alignment.zig`, `Documentation/zigux/phase15-readiness-gate-survey.md`, the focused readiness-packet checker `scripts\zigux/check_phase15_readiness_gate_packet.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, the checklist-specific study-only boundary checker `scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig`, the tests-root Phase 15 alignment checker `scripts\zigux/check_phase15_tests_readme_alignment.zig`, `scripts\zigux/validate_phase15.zig`, and the shared Phase 15 governance build companion `zigux/tests/phase15_build.zig`. The directly materialized docs-root reminder, focused docs-root alignment guard, validator-first companion, tests-root reminder guard, lane-owner replay, readiness checker, and shared build companion now belong in the same adjacent evidence packet, while `zigux/Makefile` still carries no `phase15-validate`, `phase15-test`, or `phase15` routes.
 
 The honest bounded step is therefore truthfulness maintenance, not expansion: keep the docs-root Phase 15 reminder, the focused docs-root alignment guard, the readiness-gate survey, the focused readiness-packet checker, the tests-root alignment guard, the lane-owner replay, the validator-first companion, the shared build companion, and the checklist-specific study-only routing guard visible as adjacent direct-readback evidence, keep the current freeze anchor set and blocker posture explicit, and keep the remaining make-wrapper route names in adjacent repo-reality-gap vocabulary instead of treating any of them as freeze-map-local landed evidence.
 
@@ -79,30 +79,30 @@ The honest bounded step is therefore truthfulness maintenance, not expansion: ke
 
 - current lane posture: `maintenance_mode`
 - replay before trusting this packet:
-  - `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`
-  - `python3 scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
-  - `python3 scripts/zigux/check-phase15-tests-readme-alignment.py`
-  - `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
-  - `python3 scripts/zigux/check-phase15-review-process-handoff.py`
-  - `python3 scripts/zigux/check-phase15-shared-summary-gap.py`
-  - `python3 scripts/zigux/check-phase15-readiness-gate-packet.py`
+  - `zig run check_phase15_docs_readme_alignment.zig`
+  - `zig run check_phase15_review_checklist_study_only_alignment.zig`
+  - `zig run check_phase15_tests_readme_alignment.zig`
+  - `zig run check_phase15_scripts_readme_alignment.zig`
+  - `zig run check_phase15_review_process_handoff.zig`
+  - `zig run check_phase15_shared_summary_gap.zig`
+  - `zig run check_phase15_readiness_gate_packet.zig`
   - `zig test zigux/tests/phase15_freeze_map_governance.zig`
 - adjacent route state:
-  - direct contents readback resolves `Documentation/zigux/README.md`, so the broad docs-root Phase 15 reminder stays adjacent direct-readback evidence with `scripts/zigux/check-phase15-docs-readme-alignment.py`
-  - direct contents readback resolves `scripts/zigux/check-phase15-docs-readme-alignment.py`, so the focused docs-root alignment guard stays adjacent direct-readback evidence with `Documentation/zigux/README.md`
+  - direct contents readback resolves `Documentation/zigux/README.md`, so the broad docs-root Phase 15 reminder stays adjacent direct-readback evidence with `scripts\zigux/check_phase15_docs_readme_alignment.zig`
+  - direct contents readback resolves `scripts\zigux/check_phase15_docs_readme_alignment.zig`, so the focused docs-root alignment guard stays adjacent direct-readback evidence with `Documentation/zigux/README.md`
   - direct contents readback resolves `Documentation/zigux/phase15-readiness-gate-survey.md`, so the validator-first readiness survey stays adjacent direct-readback evidence
-  - direct contents readback resolves `scripts/zigux/check-phase15-readiness-gate-packet.py`, so the focused readiness-gate checker stays adjacent direct-readback evidence
+  - direct contents readback resolves `scripts\zigux/check_phase15_readiness_gate_packet.zig`, so the focused readiness-gate checker stays adjacent direct-readback evidence
   - direct contents readback resolves `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so the lane-owner replay stays adjacent direct-readback evidence
-  - direct contents readback resolves `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`, so the checklist-specific study-only routing guard stays adjacent direct-readback evidence with `Documentation/zigux/review-checklist.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`
-  - direct contents readback resolves `scripts/zigux/check-phase15-tests-readme-alignment.py`, so the tests-root Phase 15 reminder guard stays adjacent direct-readback evidence with `zigux/tests/README.md`
-  - direct contents readback resolves `scripts/zigux/validate-phase15.py`, so the validator-first companion stays adjacent direct-readback evidence
+  - direct contents readback resolves `scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig`, so the checklist-specific study-only routing guard stays adjacent direct-readback evidence with `Documentation/zigux/review-checklist.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+  - direct contents readback resolves `scripts\zigux/check_phase15_tests_readme_alignment.zig`, so the tests-root Phase 15 reminder guard stays adjacent direct-readback evidence with `zigux/tests/README.md`
+  - direct contents readback resolves `scripts\zigux/validate_phase15.zig`, so the validator-first companion stays adjacent direct-readback evidence
   - direct contents readback resolves `zigux/tests/phase15_build.zig`, so the shared Phase 15 build companion stays adjacent direct-readback evidence
   - `zigux/Makefile` still carries no `phase15-validate`, `phase15-test`, or `phase15`, so the wrapper-route names stay in the same adjacent repo-reality-gap bucket
 - reopen only when one of these packet-local conditions becomes true:
   - a freeze-map anchor changes status bucket, blocker disposition, or required approver set
   - the freeze-in-C or study-only anchor set changes in `Documentation/zigux/freeze-map.md`
   - the checker-backed shared reminder packet or an adjacent Phase 15 governance packet drifts enough to change the per-anchor evidence archive, replay command, stay-in-C, or no-silent-exception posture recorded here
-- next future target: stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread `Documentation/zigux/freeze-map.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `zigux/tests/README.md`, `zigux/tests/phase15_freeze_map_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`, `scripts/zigux/check-phase15-tests-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-readiness-gate-packet.py` together, then re-check whether current direct reads still materialize `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and whether `zigux/Makefile` still lacks `phase15-validate`, `phase15-test`, and `phase15` before keeping the repair inside this dedicated freeze-map packet
+- next future target: stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread `Documentation/zigux/freeze-map.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `zigux/tests/README.md`, `zigux/tests/phase15_freeze_map_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `scripts\zigux/check_phase15_docs_readme_alignment.zig`, `scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig`, `scripts\zigux/check_phase15_tests_readme_alignment.zig`, `scripts\zigux/check_phase15_scripts_readme_alignment.zig`, `scripts\zigux/check_phase15_review_process_handoff.zig`, `scripts\zigux/check_phase15_shared_summary_gap.zig`, and `scripts\zigux/check_phase15_readiness_gate_packet.zig` together, then re-check whether current direct reads still materialize `scripts\zigux/validate_phase15.zig`, `zigux/tests/phase15_build.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and whether `zigux/Makefile` still lacks `phase15-validate`, `phase15-test`, and `phase15` before keeping the repair inside this dedicated freeze-map packet
 
 ## Recorded Gaps
 
@@ -144,13 +144,13 @@ This slice does not claim:
 ## Gates
 
 1. run the checker-backed shared reminder packet
-   - `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`
-   - `python3 scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
-   - `python3 scripts/zigux/check-phase15-tests-readme-alignment.py`
-   - `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
-   - `python3 scripts/zigux/check-phase15-review-process-handoff.py`
-   - `python3 scripts/zigux/check-phase15-shared-summary-gap.py`
-   - `python3 scripts/zigux/check-phase15-readiness-gate-packet.py`
+   - `zig run check_phase15_docs_readme_alignment.zig`
+   - `zig run check_phase15_review_checklist_study_only_alignment.zig`
+   - `zig run check_phase15_tests_readme_alignment.zig`
+   - `zig run check_phase15_scripts_readme_alignment.zig`
+   - `zig run check_phase15_review_process_handoff.zig`
+   - `zig run check_phase15_shared_summary_gap.zig`
+   - `zig run check_phase15_readiness_gate_packet.zig`
 2. run the dedicated freeze-map governance gate
    - `zig test zigux/tests/phase15_freeze_map_governance.zig`
 

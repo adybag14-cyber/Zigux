@@ -18,7 +18,7 @@ test "docs README keeps the landed Phase 15 reminder roster aligned with its che
     const docs_readme = try readRepoFile("Documentation/zigux/README.md", 128 * 1024);
     defer std.testing.allocator.free(docs_readme);
 
-    const checker = try readRepoFile("scripts/zigux/check-phase15-docs-readme-alignment.py", 24 * 1024);
+    const checker = try readRepoFile("scripts\zigux/check_phase15_docs_readme_alignment.zig", 24 * 1024);
     defer std.testing.allocator.free(checker);
 
     const required_markers = [_][]const u8{
@@ -34,9 +34,9 @@ test "docs README keeps the landed Phase 15 reminder roster aligned with its che
         "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
         "`Documentation/zigux/phase15-shared-summary-gap.md`",
         "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
-        "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
-        "`scripts/zigux/check-phase15-architecture-council-packet.py`",
-        "`scripts/zigux/validate-phase15.py`",
+        "`scripts\zigux/check_phase15_docs_readme_alignment.zig`",
+        "`scripts\zigux/check_phase15_architecture_council_packet.zig`",
+        "`scripts\zigux/validate_phase15.zig`",
     };
 
     for (required_markers) |marker| {
@@ -57,9 +57,9 @@ test "handoff and shared-gap notes describe README as landed alignment follow-th
     defer std.testing.allocator.free(shared_gap_note);
 
     const landed_handoff_marker =
-        "`Documentation/zigux/README.md`, which now carries a dedicated Phase 15 reminder packet and should be reread with `scripts/zigux/check-phase15-docs-readme-alignment.py` whenever that shared docs-root wording drifts away from the directly materialized governance packet";
+        "`Documentation/zigux/README.md`, which now carries a dedicated Phase 15 reminder packet and should be reread with `scripts\zigux/check_phase15_docs_readme_alignment.zig` whenever that shared docs-root wording drifts away from the directly materialized governance packet";
     const landed_shared_gap_marker =
-        "`Documentation/zigux/README.md` now keeps a dedicated Phase 15 reminder packet explicit, so reread it with `scripts/zigux/check-phase15-docs-readme-alignment.py` whenever that shared docs-root wording drifts away from the directly materialized governance packet";
+        "`Documentation/zigux/README.md` now keeps a dedicated Phase 15 reminder packet explicit, so reread it with `scripts\zigux/check_phase15_docs_readme_alignment.zig` whenever that shared docs-root wording drifts away from the directly materialized governance packet";
 
     try expectContains(handoff_note, landed_handoff_marker);
     try expectContains(shared_gap_note, landed_shared_gap_marker);
@@ -72,7 +72,7 @@ test "lane sequencing keeps shared README/checklist/scripts/tests surfaces non-o
     const lane_seq_note = try readRepoFile("Documentation/zigux/phase15-governance-lane-sequencing.md", 48 * 1024);
     defer std.testing.allocator.free(lane_seq_note);
 
-    const checker = try readRepoFile("scripts/zigux/check-phase15-docs-readme-alignment.py", 24 * 1024);
+    const checker = try readRepoFile("scripts\zigux/check_phase15_docs_readme_alignment.zig", 24 * 1024);
     defer std.testing.allocator.free(checker);
 
     try expectContains(lane_seq_note, "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` are shared reminder surfaces that may summarize the parked packet, but they do not own freeze-map status decisions themselves");

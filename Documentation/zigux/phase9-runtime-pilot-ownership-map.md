@@ -5,9 +5,9 @@ This note keeps the shared Phase 9 delivery packet explicit without widening cur
 ## Status
 
 - `PHASE9_RUNTIME_PILOT_MANIFEST=zigux/tests/runtime_pilot_manifest.json`
-- `PHASE9_RUNTIME_PILOT_CATALOG=scripts/zigux/phase9_catalog.py`
-- `PHASE9_RUNTIME_PILOT_CATALOG_SELFTEST=scripts/zigux/check-phase9-catalog-selftest.py`
-- `PHASE9_RUNTIME_PILOT_VALIDATOR=scripts/zigux/validate-phase9.py`
+- `PHASE9_RUNTIME_PILOT_CATALOG=scripts/zigux/phase9_catalog.zig`
+- `PHASE9_RUNTIME_PILOT_CATALOG_SELFTEST=scripts\zigux/check_phase9_catalog_selftest.zig`
+- `PHASE9_RUNTIME_PILOT_VALIDATOR=scripts\zigux/validate_phase9.zig`
 - `PHASE9_RUNTIME_PILOT_SCRIPTS_ROOT=scripts/zigux/README.md`
 - `PHASE9_RUNTIME_PILOT_SHARED_NOTE=Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 - `PHASE9_RUNTIME_PILOT_SHARED_BUILD=zigux/tests/phase9_build.zig`
@@ -24,11 +24,11 @@ These files describe the shared reminder, review, rerun, and validation surfaces
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
-- `scripts/zigux/phase9_catalog.py`
-- `scripts/zigux/check-phase9-catalog-selftest.py`
-- `scripts/zigux/validate-phase9.py`
-- `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`
-- `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`
+- `scripts/zigux/phase9_catalog.zig`
+- `scripts\zigux/check_phase9_catalog_selftest.zig`
+- `scripts\zigux/validate_phase9.zig`
+- `scripts\zigux/check_phase9_review_checklist_phase_boundaries.zig`
+- `scripts\zigux/check_phase9_freeze_map_study_boundaries.zig`
 - `zigux/tests/runtime_pilot_manifest.json`
 - `zigux/tests/README.md`
 - `zigux/tests/phase9_build.zig`
@@ -85,9 +85,9 @@ These files are the shipped direct runtime pilot packet for the trace-events fam
 - `zigux/tests/runtime_trace_events_manifest.json`
 - `zigux/tests/runtime_trace_events_survey.zig`
 - `zigux/tests/runtime_trace_events_module.zig`
-- `scripts/zigux/check-phase9-trace-events-runtime-packet.py`
-- `scripts/zigux/check-phase9-trace-events-direct-summary.py`
-- `scripts/zigux/check-phase9-trace-events-summary-preservation.py`
+- `scripts\zigux/check_phase9_trace_events_runtime_packet.zig`
+- `scripts\zigux/check_phase9_trace_events_direct_summary.zig`
+- `scripts\zigux/check_phase9_trace_events_summary_preservation.zig`
 
 ## Runtime Bitmap Family Owner
 
@@ -117,7 +117,7 @@ These files are the returned family-local kretprobe packet and should not be pro
 - `zigux/tests/runtime_kretprobe_survey.zig`
 - `zigux/tests/runtime_kretprobe_module.zig`
 - `zigux/tests/runtime_first_loadable_parity_behavior.zig`
-- `scripts/zigux/check-phase9-kretprobe-runtime-packet.py`
+- `scripts\zigux/check_phase9_kretprobe_runtime_packet.zig`
 - bounded `phase9-runtime-kretprobe-sample-tests`
 - bounded `phase9-runtime-kretprobe-loader-tests`
 - bounded `phase9-runtime-kretprobe-initialized-snapshot-guard-tests`

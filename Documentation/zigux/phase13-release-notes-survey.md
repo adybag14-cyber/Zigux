@@ -34,19 +34,19 @@ Direct current-`master` readback in this run materialized these shared reminder 
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
 - `Documentation/zigux/phase13-notifier-summary-gap.md`
-- `scripts/zigux/check-phase13-tests-readme-alignment.py`
-- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- `scripts\zigux/check_phase13_tests_readme_alignment.zig`
+- `scripts\zigux/check_phase13_shared_summary_surfaces.zig`
 - `scripts/zigux/README.md`
-- shipped release-discipline support through `scripts/zigux/validate-phase13-release.py`
+- shipped release-discipline support through `scripts\zigux/validate_phase13_release.zig`
 - `zigux/tests/README.md`
 
-Those files keep the shared Phase 13 packet active and still not closed. Current `master` now also keeps the old missing-checker gap closed through `Documentation/zigux/phase13-shared-summary-guard-gap.md` and `scripts/zigux/check-phase13-shared-summary-surfaces.py`, and the broader docs-root `devres` reminder repair remains landed as a separate same-lane follow-through rather than an open shared-summary gap.
+Those files keep the shared Phase 13 packet active and still not closed. Current `master` now also keeps the old missing-checker gap closed through `Documentation/zigux/phase13-shared-summary-guard-gap.md` and `scripts\zigux/check_phase13_shared_summary_surfaces.zig`, and the broader docs-root `devres` reminder repair remains landed as a separate same-lane follow-through rather than an open shared-summary gap.
 
 ## Release-Facing Devres Packet
 
-Direct current-`master` rereads in this run show that this survey keeps the release-facing `devres` packet narrowed to `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py`, `Documentation/zigux/phase13-devres-iounmap-planner.md`, `Documentation/zigux/phase13-devres-iomap-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-iounmap-planner.py`, `scripts/zigux/check-phase13-devres-iomap-planner.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `scripts/zigux/check-phase13-devres-current-packet.py`, `scripts/zigux/check-phase13-devres-scatterlist-planner.py`, `lib/devres.zig`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig`, `zigux/tests/phase13_devres_iounmap_planner.zig`, `zigux/tests/phase13_devres_iounmap_planner_manifest.json`, `zigux/tests/phase13_devres_iomap_planner.zig`, `zigux/tests/phase13_devres_iomap_planner_manifest.json`, `zigux/tests/phase13_devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist_build.zig`, and `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`.
+Direct current-`master` rereads in this run show that this survey keeps the release-facing `devres` packet narrowed to `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `scripts\zigux/check_phase13_devres_dmam_alloc_coherent_planner.zig`, `Documentation/zigux/phase13-devres-iounmap-planner.md`, `Documentation/zigux/phase13-devres-iomap-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `scripts\zigux/check_phase13_devres_dma_boundary.zig`, `scripts\zigux/check_phase13_devres_iounmap_planner.zig`, `scripts\zigux/check_phase13_devres_iomap_planner.zig`, `scripts\zigux/check_phase13_devres_mmio_packet.zig`, `scripts\zigux/check_phase13_devres_current_packet.zig`, `scripts\zigux/check_phase13_devres_scatterlist_planner.zig`, `lib/devres.zig`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig`, `zigux/tests/phase13_devres_iounmap_planner.zig`, `zigux/tests/phase13_devres_iounmap_planner_manifest.json`, `zigux/tests/phase13_devres_iomap_planner.zig`, `zigux/tests/phase13_devres_iomap_planner_manifest.json`, `zigux/tests/phase13_devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist_build.zig`, and `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`.
 
-The lane-owned devres wording now also stays explicit about the newer helper-local footholds that are visible through `lib/devres.zig`, `Documentation/zigux/phase13-devres-survey.md`, and `scripts/zigux/check-phase13-devres-current-packet.py`: helper-local ioport unmap planning, helper-local arch-WC add and detach-cleanup planning, `planManagedIoportUnmap(...)`, `planManagedArchPhysWcAdd(...)`, and `planManagedArchPhysWcDetachCleanup(...)`. These remain planning surfaces only; the survey still keeps live ioport-unmap execution, live MMIO mapping state, live device-tree walks, and arch memtype mutation recorded as blocked repo-reality gaps.
+The lane-owned devres wording now also stays explicit about the newer helper-local footholds that are visible through `lib/devres.zig`, `Documentation/zigux/phase13-devres-survey.md`, and `scripts\zigux/check_phase13_devres_current_packet.zig`: helper-local ioport unmap planning, helper-local arch-WC add and detach-cleanup planning, `planManagedIoportUnmap(...)`, `planManagedArchPhysWcAdd(...)`, and `planManagedArchPhysWcDetachCleanup(...)`. These remain planning surfaces only; the survey still keeps live ioport-unmap execution, live MMIO mapping state, live device-tree walks, and arch memtype mutation recorded as blocked repo-reality gaps.
 
 Fresh direct readback now shows the broader reminder packet is no longer split across the shared reminder surfaces. `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase13-release-packet-index.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now all mirror the wider planner-expanded `devres` packet, including the dedicated `dmam_alloc_coherent()` planner checker, the dedicated current-packet checker, the helper-first `devm_iounmap()` and `devm_of_iomap()` planner note-and-manifest pairings, the helper-first scatterlist packet, and the helper-local ioport-unmap plus arch-WC planning footholds.
 
@@ -55,16 +55,16 @@ Fresh direct readback now shows the broader reminder packet is no longer split a
 Current `master` also keeps the helper-local packet split visible from the release surface:
 
 - `libfs` stays roadmap-owned, and current `master` now materializes the helper-first slice, survey, and tests-root packet through `Documentation/zigux/phase13-libfs-slice.md`, `Documentation/zigux/phase13-libfs-survey.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`, while `zigux/tests/phase13_libfs_addressability.zig` remains a separate repo-reality gap and `zigux/tests/phase13_build.zig` still remains absent on current `master`.
-- `devres` stays anchored through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `scripts/zigux/check-phase13-devres-current-packet.py`, `scripts/zigux/check-phase13-devres-scatterlist-planner.py`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py`, `Documentation/zigux/phase13-devres-iounmap-planner.md`, `Documentation/zigux/phase13-devres-iomap-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `scripts/zigux/check-phase13-devres-iounmap-planner.py`, `scripts/zigux/check-phase13-devres-iomap-planner.py`, `lib/devres.zig`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig`, `zigux/tests/phase13_devres_iounmap_planner.zig`, `zigux/tests/phase13_devres_iounmap_planner_manifest.json`, `zigux/tests/phase13_devres_iomap_planner.zig`, `zigux/tests/phase13_devres_iomap_planner_manifest.json`, `zigux/tests/phase13_devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist_build.zig`, and `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`; the same live packet also keeps helper-local ioport-unmap planning and arch-WC add/detach cleanup planning visible through `lib/devres.zig` and the current-packet checker, while older `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` stay explicit repo-reality gaps.
+- `devres` stays anchored through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `scripts\zigux/check_phase13_devres_dma_boundary.zig`, `scripts\zigux/check_phase13_devres_mmio_packet.zig`, `scripts\zigux/check_phase13_devres_current_packet.zig`, `scripts\zigux/check_phase13_devres_scatterlist_planner.zig`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `scripts\zigux/check_phase13_devres_dmam_alloc_coherent_planner.zig`, `Documentation/zigux/phase13-devres-iounmap-planner.md`, `Documentation/zigux/phase13-devres-iomap-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `scripts\zigux/check_phase13_devres_iounmap_planner.zig`, `scripts\zigux/check_phase13_devres_iomap_planner.zig`, `lib/devres.zig`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig`, `zigux/tests/phase13_devres_iounmap_planner.zig`, `zigux/tests/phase13_devres_iounmap_planner_manifest.json`, `zigux/tests/phase13_devres_iomap_planner.zig`, `zigux/tests/phase13_devres_iomap_planner_manifest.json`, `zigux/tests/phase13_devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist_build.zig`, and `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`; the same live packet also keeps helper-local ioport-unmap planning and arch-WC add/detach cleanup planning visible through `lib/devres.zig` and the current-packet checker, while older `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts\zigux/check_phase13_devres_packet.zig`, and `scripts\zigux/check_phase13_devres_packet_alignment.zig` stay explicit repo-reality gaps.
 - `landlock/ruleset` stays helper-local through its ownership note, survey, source, manifest-backed replay surfaces, and dedicated packet checker, while the direct `Documentation/zigux/phase13-landlock-ruleset-slice.md` note and the shared `zigux/tests/phase13_build.zig` route still remain repo-reality gaps.
 - `landlock/syscalls` stays helper-local through its governance note, slice, survey, historical `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md` breadcrumb, packet checker, and source starter without collapsing into docs-only governance metadata. Current `master` now also materializes the direct `landlock/syscalls` replay pair through `zigux/tests/phase13_landlock_syscalls.zig` and `zigux/tests/phase13_landlock_syscalls_reviewability.zig`. Keep `zigux/tests/phase13_landlock_syscalls_manifest.json` recorded as the remaining direct repo-reality gap instead of promoting the helper-local packet into a closed shared build handle.
-- Adjacent notifier evidence remains support material rather than a fifth roadmap anchor. Current `master` now materializes `zigux/helpers/notifier_chain_view.zig` and `include/zigux/notifier_abi.h` beside `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`; `scripts/zigux/check-phase13-notifier-priority-signal.py` remains the direct notifier companion gap.
+- Adjacent notifier evidence remains support material rather than a fifth roadmap anchor. Current `master` now materializes `zigux/helpers/notifier_chain_view.zig` and `include/zigux/notifier_abi.h` beside `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts\zigux/check_phase13_notifier_packet.zig`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`; `scripts\zigux/check_phase13_notifier_priority_signal.zig` remains the direct notifier companion gap.
 
-Current `master` now materializes `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md`, and `scripts/zigux/check-phase13-landlock-syscalls-packet.py`, so keep that helper-local survey, breadcrumb, checker, and shipped replay pair explicit beside the still-missing direct manifest companion.
+Current `master` now materializes `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md`, and `scripts\zigux/check_phase13_landlock_syscalls_packet.zig`, so keep that helper-local survey, breadcrumb, checker, and shipped replay pair explicit beside the still-missing direct manifest companion.
 
-Current `master` now also materializes `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md`, and `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, so keep the returned Landlock ruleset survey, syscall breadcrumb, and checker surfaces explicit beside the still-missing direct ruleset ownership and slice notes plus the remaining direct syscall manifest companion rather than listing those returned helper-local surfaces as release-facing gaps.
+Current `master` now also materializes `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md`, and `scripts\zigux/check_phase13_landlock_ruleset_packet.zig`, so keep the returned Landlock ruleset survey, syscall breadcrumb, and checker surfaces explicit beside the still-missing direct ruleset ownership and slice notes plus the remaining direct syscall manifest companion rather than listing those returned helper-local surfaces as release-facing gaps.
 
-Current `master` also now materializes `scripts/zigux/validate-phase13-release.py`, so keep that shared release-discipline validator explicit beside the shipped shared-summary guard, the stable contributor-facing handle, and the compact packet index while the remaining same-lane follow-through stays narrowed to still-missing direct companions or any future broader reminder drift.
+Current `master` also now materializes `scripts\zigux/validate_phase13_release.zig`, so keep that shared release-discipline validator explicit beside the shipped shared-summary guard, the stable contributor-facing handle, and the compact packet index while the remaining same-lane follow-through stays narrowed to still-missing direct companions or any future broader reminder drift.
 
 ## Current Shared Release Handle
 
@@ -81,9 +81,9 @@ The release-planning handle that is directly supportable from this run stays anc
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
 - `Documentation/zigux/phase13-notifier-summary-gap.md`
-- `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
-- `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
-- `python3 scripts/zigux/validate-phase13-release.py`
+- `zig run check_phase13_shared_summary_surfaces.zig`
+- `zig run check_phase13_tests_readme_alignment.zig`
+- `zig run validate_phase13_release.zig`
 
 Keep broad release wording tied to that reminder packet while the missing validator-first helpers, adjacent notifier companion, and route surfaces stay explicit as repo-reality gaps.
 
@@ -91,9 +91,9 @@ Keep broad release wording tied to that reminder packet while the missing valida
 
 For this bounded reminder-surface step, verify documentation behavior with these exact checks before treating a release-note refresh as truthful current-`master` evidence:
 
-- `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
-- `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
-- `python3 scripts/zigux/validate-phase13-release.py`
+- `zig run check_phase13_shared_summary_surfaces.zig`
+- `zig run check_phase13_tests_readme_alignment.zig`
+- `zig run validate_phase13_release.zig`
 
 Those checks confirm the shared-summary surfaces, the tests-root reminder packet, and the release-discipline packet only. They do not turn `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, or `zigux/tests/phase13_build.zig` into shipped Phase 13 route evidence.
 
@@ -105,11 +105,11 @@ Direct current-`master` readback in this run still returned missing for:
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 - `zigux/tests/phase13_build.zig`
-- `scripts/zigux/check-phase13-devres-packet.py`
-- `scripts/zigux/check-phase13-devres-packet-alignment.py`
+- `scripts\zigux/check_phase13_devres_packet.zig`
+- `scripts\zigux/check_phase13_devres_packet_alignment.zig`
 - `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
-- `scripts/zigux/check-phase13-notifier-priority-signal.py`
+- `scripts\zigux/check_phase13_notifier_priority_signal.zig`
 
 Keep those missing validator-first helper, adjacent notifier companion, and route surfaces framed as repo-reality gaps instead of presenting them as a stable shared Phase 13 release handle.
 
@@ -147,9 +147,9 @@ When this survey changes, reread these shared reminder surfaces together first:
 - `Documentation/zigux/phase13-notifier-summary-gap.md`
 - `Documentation/zigux/phase12-phase13-release-handoff.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
-- `scripts/zigux/check-phase13-tests-readme-alignment.py`
-- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
-- `scripts/zigux/validate-phase13-release.py`
+- `scripts\zigux/check_phase13_tests_readme_alignment.zig`
+- `scripts\zigux/check_phase13_shared_summary_surfaces.zig`
+- `scripts\zigux/validate_phase13_release.zig`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
@@ -158,17 +158,17 @@ If the release-facing `devres` packet is what moved, reread these same-lane pack
 - `Documentation/zigux/phase13-devres-slice.md`
 - `Documentation/zigux/phase13-devres-survey.md`
 - `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`
-- `scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py`
+- `scripts\zigux/check_phase13_devres_dmam_alloc_coherent_planner.zig`
 - `Documentation/zigux/phase13-devres-iounmap-planner.md`
 - `Documentation/zigux/phase13-devres-iomap-planner.md`
 - `Documentation/zigux/phase13-devres-scatterlist-slice.md`
 - `Documentation/zigux/phase13-devres-scatterlist-planner.md`
-- `scripts/zigux/check-phase13-devres-dma-boundary.py`
-- `scripts/zigux/check-phase13-devres-iounmap-planner.py`
-- `scripts/zigux/check-phase13-devres-iomap-planner.py`
-- `scripts/zigux/check-phase13-devres-mmio-packet.py`
-- `scripts/zigux/check-phase13-devres-current-packet.py`
-- `scripts/zigux/check-phase13-devres-scatterlist-planner.py`
+- `scripts\zigux/check_phase13_devres_dma_boundary.zig`
+- `scripts\zigux/check_phase13_devres_iounmap_planner.zig`
+- `scripts\zigux/check_phase13_devres_iomap_planner.zig`
+- `scripts\zigux/check_phase13_devres_mmio_packet.zig`
+- `scripts\zigux/check_phase13_devres_current_packet.zig`
+- `scripts\zigux/check_phase13_devres_scatterlist_planner.zig`
 - `lib/devres.zig`
 - `lib/devres_scatterlist.zig`
 - `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`
@@ -182,7 +182,7 @@ If the release-facing `devres` packet is what moved, reread these same-lane pack
 - `zigux/tests/phase13_devres_scatterlist.zig`
 - `zigux/tests/phase13_devres_scatterlist_build.zig`
 - `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`
-- the helper-local ioport-unmap and arch-WC planning markers in `lib/devres.zig` plus `scripts/zigux/check-phase13-devres-current-packet.py`
+- the helper-local ioport-unmap and arch-WC planning markers in `lib/devres.zig` plus `scripts\zigux/check_phase13_devres_current_packet.zig`
 
 Only widen beyond this survey if a fresh current-`master` reread shows that one of those coupled reminder surfaces cannot stay truthful without the adjacent same-lane follow-through.
 

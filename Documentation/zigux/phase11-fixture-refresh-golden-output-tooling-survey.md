@@ -28,8 +28,8 @@ tooling gap for the current shared Phase 11 simple-driver packet on `master`.
 
 - `make -C zigux phase11-validate` is the surviving shared Makefile route on
   current `master`.
-- `scripts/zigux/validate-phase11.py`,
-  `scripts/zigux/check-phase11-build-inventory.py`,
+- `scripts\zigux/validate_phase11.zig`,
+  `scripts\zigux/check_phase11_build_inventory.zig`,
   `Documentation/zigux/phase11-shared-replay-contract.md`, and
   `Documentation/zigux/phase11-validation-matrix-gap-survey.md` are the shared
   reminder and checker surfaces that still describe the shipped Phase 11 packet.

@@ -59,7 +59,7 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
         std.mem.indexOf(
             u8,
             survey,
-            "The timing-adjacent poll boundary is already explicit through `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and `make -C zigux phase8-perf-buffer-poll-test`; those reminder surfaces keep the packet honest about no standalone timer or clockevent helper behavior and about no broader timeout-sensitive routing behavior.",
+            "The timing-adjacent poll boundary is already explicit through `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `scripts\zigux/check_phase8_perf_buffer_poll_gate.zig`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and `make -C zigux phase8-perf-buffer-poll-test`; those reminder surfaces keep the packet honest about no standalone timer or clockevent helper behavior and about no broader timeout-sensitive routing behavior.",
         ) != null,
     );
 
@@ -72,7 +72,7 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
         std.mem.indexOf(u8, bridge_boundary, "`Documentation/zigux/phase8-perf-buffer-poll-slice.md`") != null,
     );
     try std.testing.expect(
-        std.mem.indexOf(u8, bridge_boundary, "`python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`") != null,
+        std.mem.indexOf(u8, bridge_boundary, "`zig run check_phase8_perf_buffer_poll_gate.zig`") != null,
     );
     try std.testing.expect(
         std.mem.indexOf(u8, bridge_boundary, "`make -C zigux phase8-perf-buffer-poll-test`") != null,
@@ -89,7 +89,7 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
 
     try expectContains(
         tests_readme,
-        "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`scripts\zigux/check_phase8_perf_buffer_poll_gate.zig`",
     );
     try expectContains(
         tests_readme,
@@ -109,7 +109,7 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
 
     try expectContains(
         scripts_readme,
-        "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`scripts\zigux/check_phase8_perf_buffer_poll_gate.zig`",
     );
     try expectContains(
         scripts_readme,
@@ -170,7 +170,7 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
         "phase8 ready-buffer fd lookup helper keeps errno-shaped outputs stable",
     );
 
-    const poll_gate = try readRepoFile("scripts/zigux/check-phase8-perf-buffer-poll-gate.py");
+    const poll_gate = try readRepoFile("scripts\zigux/check_phase8_perf_buffer_poll_gate.zig");
     defer std.testing.allocator.free(poll_gate);
 
     try expectContains(poll_gate, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
@@ -187,12 +187,12 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
         "phase8 perf-buffer wait budget normalizes bounded waits into ms and ns budgets",
     );
 
-    const validator = try readRepoFile("scripts/zigux/validate-phase8.py");
+    const validator = try readRepoFile("scripts\zigux/validate_phase8.zig");
     defer std.testing.allocator.free(validator);
 
     try expectContains(
         validator,
-        "PERF_BUFFER_POLL_GATE_CHECKER = Path(\"scripts/zigux/check-phase8-perf-buffer-poll-gate.py\")",
+        "PERF_BUFFER_POLL_GATE_CHECKER = Path(\"scripts\zigux/check_phase8_perf_buffer_poll_gate.zig\")",
     );
     try expectContains(
         validator,

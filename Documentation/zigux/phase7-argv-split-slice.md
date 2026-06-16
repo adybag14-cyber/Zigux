@@ -9,7 +9,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_LANE_KEY=P7-L09`
 - lane-key note: `P7-L09` keeps the dedicated argv-split packet separate from the broader Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate follow-ons
 - scope: keep the Phase 7 argv-split lane limited to the current helper-local helper, slice anchor, dedicated replay, dedicated survey, dedicated manifest, dedicated checker, dedicated fixture vectors, and the no-standalone-argv-sample boundary
-- lane state: current `master` directly carries `Documentation/zigux/phase7-argv-split-slice.md`, `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `scripts/zigux/check-phase7-argv-split-packet.py`, and `samples/zigux/README.md`. Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned fixture-backed packet.
+- lane state: current `master` directly carries `Documentation/zigux/phase7-argv-split-slice.md`, `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `scripts\zigux/check_phase7_argv_split_packet.zig`, and `samples/zigux/README.md`. Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned fixture-backed packet.
 
 ## Why This Slice Exists
 
@@ -30,7 +30,7 @@ This is intentionally not a Phase 5 `samples/zigux/` delivery lane. Current `mas
 - `zigux/tests/phase7_argv_split_survey.zig`
 - `zigux/tests/phase7_argv_split_manifest.json`
 - `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
-- `scripts/zigux/check-phase7-argv-split-packet.py`
+- `scripts\zigux/check_phase7_argv_split_packet.zig`
 
 3. keep the no-standalone-argv-sample boundary explicit
 - `samples/zigux/README.md`
@@ -64,7 +64,7 @@ The current helper-local replay keeps these proofs explicit:
 - first-NUL truncation that keeps ignored tails outside the owned storage copy and sentinel-terminated argv view
 - caller-owned teardown, idempotent release behavior, and argc-preservation on allocation failure
 - exported snake-case alias parity that keeps `count_argc`, `argv_split`, `argv_split_with_argc`, and `argv_free` matched to the same count, split, and teardown behavior as the canonical helper exports
-- dedicated helper-local replay, fixture-vector, survey, and checker coverage rooted at `zigux/tests/phase7_argv_split.zig`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `scripts/zigux/check-phase7-argv-split-packet.py`
+- dedicated helper-local replay, fixture-vector, survey, and checker coverage rooted at `zigux/tests/phase7_argv_split.zig`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `scripts\zigux/check_phase7_argv_split_packet.zig`
 
 The current helper-local replay also keeps these ownership and boundary rules explicit:
 

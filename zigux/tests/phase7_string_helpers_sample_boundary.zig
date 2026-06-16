@@ -67,8 +67,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     const io = std.testing.io;
 
     try std.Io.Dir.cwd().access(io, "lib/string_helpers.zig", .{});
-    try std.Io.Dir.cwd().access(io, "scripts/zigux/check-phase7-string-helpers-packet.py", .{});
-    try std.Io.Dir.cwd().access(io, "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py", .{});
+    try std.Io.Dir.cwd().access(io, "scripts\zigux/check_phase7_string_helpers_packet.zig", .{});
+    try std.Io.Dir.cwd().access(io, "scripts\zigux/check_phase7_string_helpers_format_boundary_packet.zig", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers.zig", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_survey.zig", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_sample_boundary.zig", .{});
@@ -98,10 +98,10 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectNotContains(slice_note, "restored starter packet");
     try expectNotContains(slice_note, "missing both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`");
 
-    const checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-string-helpers-packet.py");
+    const checker = try readRepoFile(allocator, "scripts\zigux/check_phase7_string_helpers_packet.zig");
     defer allocator.free(checker);
     try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");
-    try expectContains(checker, "\"scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py\"");
+    try expectContains(checker, "\"scripts\zigux/check_phase7_string_helpers_format_boundary_packet.zig\"");
     try expectContains(checker, "\"zigux/tests/phase7_string_helpers_sample_boundary.zig\"");
     try expectContains(checker, "\"zigux/tests/phase7_string_helpers_format_boundary.zig\"");
     try expectContains(checker, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
@@ -251,7 +251,7 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     defer allocator.free(sample_boundary);
     try expectContains(sample_boundary, "phase 7 string helper boundary keeps the no-standalone-string-helper-sample policy lane-local");
     try expectContains(sample_boundary, "phase 7 string helper boundary stays on sample-boundary surfaces only");
-    try expectContains(sample_boundary, "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py");
+    try expectContains(sample_boundary, "scripts\zigux/check_phase7_string_helpers_format_boundary_packet.zig");
     try expectContains(sample_boundary, "zigux/tests/phase7_string_helpers_format_boundary.zig");
     try expectContains(sample_boundary, "Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
 }

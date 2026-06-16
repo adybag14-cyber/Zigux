@@ -59,9 +59,9 @@ test "shared reminder surfaces name the standalone genksyms proof packet" {
         try requireContains(tests_readme, proof);
     }
 
-    try requireContains(scripts_readme, "scripts/zigux/check-genksyms-bridge.py");
+    try requireContains(scripts_readme, "scripts\zigux/check_genksyms_bridge.zig");
     try requireContains(scripts_readme, "make -C zigux phase2-genksyms");
-    try requireContains(tests_readme, "scripts/zigux/check-phase2-genksyms-selftest-alignment.py");
+    try requireContains(tests_readme, "scripts\zigux/check_phase2_genksyms_selftest_alignment.zig");
     try requireContains(tests_readme, "zigux/tests/fixtures/genksyms_bridge/manifest.json");
     try requireContains(tests_readme, "current directly readable Phase 2 packet");
 }

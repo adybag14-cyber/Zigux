@@ -1,22 +1,22 @@
 # Zigux Artifact-Diff Notes
 
-This note records how the shared `scripts/zigux/artifact_diff.py` helper is used by the current Zigux validation packet and which exact catalog markers downstream checks rely on.
+This note records how the shared `scripts/zigux/artifact_diff.zig` helper is used by the current Zigux validation packet and which exact catalog markers downstream checks rely on.
 
 ## Current Phase 1 use
 
-Phase 1 still uses `scripts/zigux/artifact_diff.py` as the shared host-side comparison helper behind the committed helper parity fixtures, including `phase1_helpers.json` and the Phase 1 parity reminder packet.
+Phase 1 still uses `scripts/zigux/artifact_diff.zig` as the shared host-side comparison helper behind the committed helper parity fixtures, including `phase1_helpers.json` and the Phase 1 parity reminder packet.
 
 ## Current Phase 2 use
 
-Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep` and the kconfig bridge packet. The current `genksyms` bridge packet keeps its fixture comparisons local to `scripts/zigux/check-genksyms-bridge.py`.
+Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep` and the kconfig bridge packet. The current `genksyms` bridge packet keeps its fixture comparisons local to `scripts\zigux/check_genksyms_bridge.zig`.
 
 ## Current Phase 3 use
 
-Phase 3 still treats `scripts/zigux/artifact_diff.py` as the stable comparison entrypoint behind the bounded helper and manifest-backed validation surfaces published under `scripts/zigux/` and `zigux/tests/fixtures/`.
+Phase 3 still treats `scripts/zigux/artifact_diff.zig` as the stable comparison entrypoint behind the bounded helper and manifest-backed validation surfaces published under `scripts/zigux/` and `zigux/tests/fixtures/`.
 
 ## Current Phase 4 use
 
-Phase 4 keeps the host-side artifact-diff packet explicit through `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, `scripts/zigux/check-phase4-artifact-diff-validator-replays.py`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/validate-phase4.py`, `Documentation/zigux/phase4-validation-matrix.md`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/bitmap_diff.zig`, `zigux/tests/phase4_bitmap_diff_survey.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`.
+Phase 4 keeps the host-side artifact-diff packet explicit through `scripts/zigux/artifact_diff.zig`, `scripts\zigux/check_artifact_diff_contract.zig`, `scripts\zigux/check_phase4_artifact_diff_determinism.zig`, `scripts\zigux/check_phase4_artifact_diff_validator_replays.zig`, `scripts\zigux/check_phase4_gate_evidence.zig`, `scripts\zigux/validate_phase4.zig`, `Documentation/zigux/phase4-validation-matrix.md`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/bitmap_diff.zig`, `zigux/tests/phase4_bitmap_diff_survey.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`.
 
 The helper now compares `text`, `json`, and `bytes` artifacts, keeps the legacy `sha256 -> bytes` alias for compatibility, and publishes a stable result surface with `ARTIFACT_DIFF_RESULT_LINES=ARTIFACT_DIFF,MODE,EXPECTED,ACTUAL[,SHA256|EXPECTED_EXISTS|ACTUAL_EXISTS|EXPECTED_JSON_ERROR|ACTUAL_JSON_ERROR|EXPECTED_UTF8_ERROR|ACTUAL_UTF8_ERROR]`; the bytes-drift fail path also emits `EXPECTED_SHA256=...` and `ACTUAL_SHA256=...` so the mismatch-side digest pair stays explicit instead of being folded into the pass-path `SHA256=...` marker.
 
@@ -30,11 +30,11 @@ The current helper self-test packet keeps malformed JSON and invalid UTF-8 fail-
 
 The current helper self-test packet keeps the exact bytes-path and CLI parser coverage explicit through `bytes_pass`, `bytes_drift`, `legacy_sha256_alias`, `missing_mode_value_rejected`, `missing_positional_arguments_rejected`, `invalid_mode_rejected`, and `extra_positional_rejected`.
 
-`scripts/zigux/check-artifact-diff-contract.py` reruns the bounded helper self-test, CLI help output, missing-required-args, missing-mode-value, missing-actual-operand, invalid-mode, and extra-positional parser coverage plus the text, JSON, bytes, missing-path, malformed-input, and repeat-run cases so the helper's outward contract stays deterministic before the broader Phase 4 validator and Zig gates run.
+`scripts\zigux/check_artifact_diff_contract.zig` reruns the bounded helper self-test, CLI help output, missing-required-args, missing-mode-value, missing-actual-operand, invalid-mode, and extra-positional parser coverage plus the text, JSON, bytes, missing-path, malformed-input, and repeat-run cases so the helper's outward contract stays deterministic before the broader Phase 4 validator and Zig gates run.
 
-`scripts/zigux/check-phase4-artifact-diff-determinism.py` rechecks the helper and contract summary catalogs together so case-count, case-order, and repeat-case drift fail closed before the shared Phase 4 validator and Zig gates run.
+`scripts\zigux/check_phase4_artifact_diff_determinism.zig` rechecks the helper and contract summary catalogs together so case-count, case-order, and repeat-case drift fail closed before the shared Phase 4 validator and Zig gates run.
 
-`scripts/zigux/check-phase4-artifact-diff-validator-replays.py` rechecks that the current Phase 4 artifact-diff packet either keeps the shipped validator hook set explicit or falls back to the narrower repo-reality handoff markers when exact validator readback is unavailable, so validator-route and workflow drift fail closed before the shared Phase 4 validator and Zig gates run.
+`scripts\zigux/check_phase4_artifact_diff_validator_replays.zig` rechecks that the current Phase 4 artifact-diff packet either keeps the shipped validator hook set explicit or falls back to the narrower repo-reality handoff markers when exact validator readback is unavailable, so validator-route and workflow drift fail closed before the shared Phase 4 validator and Zig gates run.
 
 ## Phase 4 Exact Check Packet
 
@@ -67,10 +67,10 @@ Current exact Phase 4 validator replay markers are:
 
 ## Phase 4 Tooling Review Note
 
-`Tooling and Validation Team` owns the shared Phase 4 artifact-diff note packet for `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, and `scripts/zigux/check-phase4-artifact-diff-validator-replays.py`.
+`Tooling and Validation Team` owns the shared Phase 4 artifact-diff note packet for `scripts/zigux/artifact_diff.zig`, `scripts\zigux/check_artifact_diff_contract.zig`, `scripts\zigux/check_phase4_artifact_diff_determinism.zig`, and `scripts\zigux/check_phase4_artifact_diff_validator_replays.zig`.
 
 The note stays intentionally narrower than a full Phase 4 closure claim: it documents the current host-side artifact-diff helper, the current exact contract replay, the determinism guard, the validator-replay guard, and the Phase 4 validator touchpoints without claiming that every broader validator, bitmap, or build companion is authenticated-readable in this runtime.
 
 Near-term follow-through should stay limited to truthful catalog refreshes, helper-contract guard alignment, validator-replay guard alignment, and direct replay evidence for the current host-side packet rather than widening into unrelated validator, perf, bitmap, atomic64, or starter-gap work.
 
-Keep this owner note parked unless a fresh same-family drift appears between `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, `scripts/zigux/check-phase4-artifact-diff-validator-replays.py`, or the direct Phase 4 workflow replay surface. The remaining shared artifact-diff catalog-marker follow-through in `scripts/zigux/validate-phase4.py` belongs to the neighboring validator packet rather than to this note-only lane.
+Keep this owner note parked unless a fresh same-family drift appears between `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.zig`, `scripts\zigux/check_artifact_diff_contract.zig`, `scripts\zigux/check_phase4_artifact_diff_determinism.zig`, `scripts\zigux/check_phase4_artifact_diff_validator_replays.zig`, or the direct Phase 4 workflow replay surface. The remaining shared artifact-diff catalog-marker follow-through in `scripts\zigux/validate_phase4.zig` belongs to the neighboring validator packet rather than to this note-only lane.

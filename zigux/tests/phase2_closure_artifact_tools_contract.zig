@@ -2,8 +2,8 @@ const std = @import("std");
 const testing = std.testing;
 
 const artifact_tool_manifest = "zigux/tests/fixtures/phase2_artifact_tools_manifest.json";
-const artifact_tool_checker = "scripts/zigux/check-phase2-artifact-tools-manifest.py";
-const artifact_diff_helper = "scripts/zigux/artifact_diff.py";
+const artifact_tool_checker = "scripts\zigux/check_phase2_artifact_tools_manifest.zig";
+const artifact_diff_helper = "scripts/zigux/artifact_diff.zig";
 
 const artifact_tool_modes = [_][]const u8{
     "\"text\"",
@@ -51,15 +51,15 @@ test "phase2 closure note keeps artifact tools out of repo-reality gaps" {
     try requireContains(closure, "## Current Shared Repo-Tooling Evidence");
     try requireContains(
         closure,
-        "`scripts/zigux/artifact_diff.py` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair instead of falling back into repo-reality-gap wording.",
+        "`scripts/zigux/artifact_diff.zig` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair instead of falling back into repo-reality-gap wording.",
     );
     try requireContains(closure, artifact_tool_checker);
-    try requireContains(closure, "python3 scripts/zigux/check-phase2-artifact-tools-manifest.py");
+    try requireContains(closure, "zig run check_phase2_artifact_tools_manifest.zig");
     try requireContains(closure, artifact_tool_manifest);
     try requireContains(closure, artifact_diff_helper);
-    try requireExactOnce(closure, "`scripts/zigux/artifact_diff.py` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair");
-    try requireOrdered(closure, "scripts/zigux/check-phase2-tool-manifest.py", artifact_tool_checker);
-    try requireOrdered(closure, artifact_tool_checker, "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py");
+    try requireExactOnce(closure, "`scripts/zigux/artifact_diff.zig` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair");
+    try requireOrdered(closure, "scripts\zigux/check_phase2_tool_manifest.zig", artifact_tool_checker);
+    try requireOrdered(closure, artifact_tool_checker, "scripts\zigux/check_phase2_kconfig_allconfig_helper_packet.zig");
     try requireMissing(closure, "artifact-tools packet remains missing");
 }
 
@@ -76,15 +76,15 @@ test "phase2 artifact tools manifest and checker agree on helper surface" {
     try requireContains(manifest, "\"scope\": \"artifact-diff support for fixture-backed scripts/zigux validation\"");
     try requireContains(manifest, artifact_diff_helper);
     try requireContains(manifest, artifact_tool_checker);
-    try requireContains(manifest, "scripts/zigux/check-kconfig-bridge.py");
-    try requireContains(manifest, "scripts/zigux/check-fixdep-diff.py");
+    try requireContains(manifest, "scripts\zigux/check_kconfig_bridge.zig");
+    try requireContains(manifest, "scripts\zigux/check_fixdep_diff.zig");
     for (artifact_tool_modes) |mode| {
         try requireContains(manifest, mode);
     }
     try requireContains(manifest, "Keep the legacy `sha256` compatibility alias explicit");
 
     try requireContains(checker, "MANIFEST = Path(\"zigux/tests/fixtures/phase2_artifact_tools_manifest.json\")");
-    try requireContains(checker, "PRIMARY_TOOL = Path(\"scripts/zigux/artifact_diff.py\")");
+    try requireContains(checker, "PRIMARY_TOOL = Path(\"scripts/zigux/artifact_diff.zig\")");
     try requireContains(checker, "\"supported_modes\": [\"text\", \"json\", \"bytes\"]");
     try requireContains(checker, "PHASE2_ARTIFACT_TOOLS_MANIFEST=pass");
     try requireContains(checker, "PHASE2_ARTIFACT_TOOLS_MANIFEST_REQUIRED_TOOL_PATH_COUNT=");
@@ -107,8 +107,8 @@ test "phase2 tests readme mirrors the closure artifact tools packet" {
     try requireContains(tests_readme, artifact_tool_manifest);
     try requireContains(tests_readme, "fixture-backed tool-manifest and artifact-tools-manifest guards");
     try requireContains(tests_readme, "keep the fixture-backed tool-manifest and artifact-tools-manifest guards");
-    try requireOrdered(tests_readme, "scripts/zigux/check-phase2-tool-manifest.py", artifact_tool_checker);
-    try requireOrdered(tests_readme, artifact_tool_checker, "scripts/zigux/check-phase2-required-make-routes.py");
+    try requireOrdered(tests_readme, "scripts\zigux/check_phase2_tool_manifest.zig", artifact_tool_checker);
+    try requireOrdered(tests_readme, artifact_tool_checker, "scripts\zigux/check_phase2_required_make_routes.zig");
 
     try requireContains(closure, artifact_tool_checker);
     try requireContains(closure, artifact_tool_manifest);

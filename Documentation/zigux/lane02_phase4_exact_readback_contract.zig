@@ -11,7 +11,7 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
 
 test "docs root keeps the phase4 exact-readback split explicit" {
     try expectContains(docs_readme, "## Phase 4 Exact-Readback Reminder");
-    try expectContains(docs_readme, "scripts/zigux/validate-phase4.py");
+    try expectContains(docs_readme, "scripts\zigux/validate_phase4.zig");
     try expectContains(docs_readme, "zigux/tests/phase4_build.zig");
     try expectContains(docs_readme, "zigux/tests/bitmap_diff.zig");
     try expectContains(docs_readme, "zigux/tests/phase4_bitmap_live_helper_replay.zig");
@@ -23,8 +23,8 @@ test "docs root keeps the phase4 exact-readback split explicit" {
 test "review checklist preserves phase4 rollback and exact-readback prompts" {
     try expectContains(review_checklist, "if the change touches the shared Phase 4 rollback-ownership and lab-matrix packet");
     try expectContains(review_checklist, "Documentation/zigux/phase4-reversible-delivery-evidence.md");
-    try expectContains(review_checklist, "scripts/zigux/check-phase4-repo-reality-warning.py");
-    try expectContains(review_checklist, "scripts/zigux/check-phase4-reversible-delivery-pins.py");
+    try expectContains(review_checklist, "scripts\zigux/check_phase4_repo_reality_warning.zig");
+    try expectContains(review_checklist, "scripts\zigux/check_phase4_reversible_delivery_pins.zig");
     try expectContains(review_checklist, "Phase 4 Exact-Readback Reminder");
     try expectContains(review_checklist, "keep the directly readable local-only perf packet explicit");
     try expectContains(review_checklist, "keep the recovered broader note-and-checker companions explicit");

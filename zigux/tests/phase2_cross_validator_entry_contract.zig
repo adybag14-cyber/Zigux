@@ -1,26 +1,26 @@
 const std = @import("std");
 
-const VALIDATOR = "scripts/zigux/validate-phase2.py";
+const VALIDATOR = "scripts\zigux/validate_phase2.zig";
 
 const REQUIRED_PATH_MARKERS = [_][]const u8{
-    "\"scripts/zigux/check-phase2-cross.py\",",
-    "\"scripts/zigux/check-phase2-cross-selftest-alignment.py\",",
+    "\"scripts\zigux/check_phase2_cross.zig\",",
+    "\"scripts\zigux/check_phase2_cross_selftest_alignment.zig\",",
     "\"zigux/tests/fixtures/phase2_cross_targets.json\",",
     "TOOLCHAIN_POLICY = \"scripts/zigux/zig-toolchain-policy.json\"",
     "MAKEFILE = \"zigux/Makefile\"",
 };
 
 const REQUIRED_WORKFLOW_LINES = [_][]const u8{
-    "\"run: python3 scripts/zigux/check-phase2-cross.py --self-test\",",
-    "\"run: python3 scripts/zigux/check-phase2-cross.py\",",
-    "\"run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\",",
-    "\"run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py\",",
+    "\"run: zig run check_phase2_cross.zig --self-test\",",
+    "\"run: zig run check_phase2_cross.zig\",",
+    "\"run: zig run check_phase2_cross_selftest_alignment.zig --self-test\",",
+    "\"run: zig run check_phase2_cross_selftest_alignment.zig\",",
 };
 
 const REQUIRED_MAKEFILE_LINES = [_][]const u8{
     "\"phase2-cross:\",",
-    "\"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py\",",
-    "\"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py\",",
+    "\"$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig\",",
+    "\"$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig\",",
 };
 
 fn readValidator(allocator: std.mem.Allocator) ![]u8 {
@@ -60,18 +60,18 @@ test "bootstrap workflow roster keeps the direct cross checks paired" {
     }
     try expectOrdered(
         source,
-        "\"run: python3 scripts/zigux/check-phase2-cross.py --self-test\",",
-        "\"run: python3 scripts/zigux/check-phase2-cross.py\",",
+        "\"run: zig run check_phase2_cross.zig --self-test\",",
+        "\"run: zig run check_phase2_cross.zig\",",
     );
     try expectOrdered(
         source,
-        "\"run: python3 scripts/zigux/check-phase2-cross.py\",",
-        "\"run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\",",
+        "\"run: zig run check_phase2_cross.zig\",",
+        "\"run: zig run check_phase2_cross_selftest_alignment.zig --self-test\",",
     );
     try expectOrdered(
         source,
-        "\"run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\",",
-        "\"run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py\",",
+        "\"run: zig run check_phase2_cross_selftest_alignment.zig --self-test\",",
+        "\"run: zig run check_phase2_cross_selftest_alignment.zig\",",
     );
 }
 
@@ -85,11 +85,11 @@ test "Makefile validation roster keeps phase2-cross checker body visible" {
     try expectOrdered(
         source,
         "\"phase2-cross:\",",
-        "\"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py\",",
+        "\"$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig\",",
     );
     try expectOrdered(
         source,
-        "\"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py\",",
-        "\"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py\",",
+        "\"$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig\",",
+        "\"$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig\",",
     );
 }

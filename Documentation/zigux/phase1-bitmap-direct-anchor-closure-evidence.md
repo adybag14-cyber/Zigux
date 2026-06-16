@@ -17,7 +17,7 @@ Current `master` exposes the bitmap closure packet through these directly readab
 - `tools/lib/bitmap.zig` at blob `eb8e8cffd3d62e730ade1ede5ebe9324916ad781`
 - `zigux/tests/fixtures/phase1_helper_manifest.json` at blob `ed5e9de4344916c5288f37271da2772113d99e6c`
 - `Documentation/zigux/phase1-closure.md` at blob `78b2c440a409ef50bb245ad7a16f97b6454bab69`
-- `scripts/zigux/check-phase1-bitmap-direct-anchors.py` at blob `db01679ab42c7afb984a4b39b7e0ecaad426241d`
+- `scripts\zigux/check_phase1_bitmap_direct_anchors.zig` at blob `db01679ab42c7afb984a4b39b7e0ecaad426241d`
 - `.github/workflows/zigux-bootstrap.yml` at blob `5bdb136b8b6710c08c19566879d5a9da42b63445`
 - `scripts/zigux/README.md` at blob `91e603865057d10f27f37fef5bb314d3f807acb1`
 
@@ -25,10 +25,10 @@ Current `master` exposes the bitmap closure packet through these directly readab
 
 The helper surface now keeps the bitmap direct anchors explicit in `tools/lib/bitmap.zig`, including copy alias behavior, copy-clear-tail and copy-and-extend semantics, zero-sized destination-view no-op behavior, zero-bit logical short-circuit behavior, caller-window xor/or clamping, weighted tail-count clamping, complement tail clamping, cross-word `scnprintf()` range merging, empty-buffer preservation, Linux-style alias mirrors, and allocator optional-reset coverage.
 
-The dedicated checker `scripts/zigux/check-phase1-bitmap-direct-anchors.py` exact-checks those bitmap-local source and test markers. The bootstrap workflow runs both the self-test and live checker steps:
+The dedicated checker `scripts\zigux/check_phase1_bitmap_direct_anchors.zig` exact-checks those bitmap-local source and test markers. The bootstrap workflow runs both the self-test and live checker steps:
 
-- `python3 scripts/zigux/check-phase1-bitmap-direct-anchors.py --self-test`
-- `python3 scripts/zigux/check-phase1-bitmap-direct-anchors.py`
+- `zig run check_phase1_bitmap_direct_anchors.zig --self-test`
+- `zig run check_phase1_bitmap_direct_anchors.zig`
 
 The scripts-root reminder note also records that the bitmap checker is directly readable on current `master` and should stay wired into the scripts-root reminder packet and bootstrap workflow rather than being treated as lane-note-only context.
 

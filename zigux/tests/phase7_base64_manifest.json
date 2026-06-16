@@ -9,7 +9,7 @@
   "current_master_state": "helper_slice_test_build_survey_manifest_checker_anchor",
   "review_surfaces": [
     "Documentation/zigux/phase7-base64-slice.md",
-    "scripts/zigux/check-phase7-base64-packet.py",
+    "scripts\zigux/check_phase7_base64_packet.zig",
     "lib/base64.zig",
     "zigux/tests/phase7_base64.zig",
     "zigux/tests/phase7_base64_build.zig",

@@ -18,10 +18,10 @@ pub fn build(b: *std.Build) void {
 
     const contract_step = b.step(
         "artifact-diff-json-contract",
-        "Run the artifact_diff.py JSON canonicalization contract",
+        "Run the artifact_diff.zig JSON canonicalization contract",
     );
     contract_step.dependOn(&run_tests.step);
 
-    const test_step = b.step("test", "Run the artifact_diff.py JSON canonicalization contract");
+    const test_step = b.step("test", "Run the artifact_diff.zig JSON canonicalization contract");
     test_step.dependOn(&run_tests.step);
 }

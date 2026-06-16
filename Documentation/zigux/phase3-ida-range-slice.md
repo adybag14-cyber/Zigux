@@ -9,13 +9,13 @@ This note records one bounded Phase 3 helper-local ida range packet on current w
 - `zigux/helpers/ida_range_view.zig`
 - `zigux/tests/phase3_ida_range_starter_packet.zig`
 - `zigux/tests/phase3_ida_range_starter_packet_build.zig`
-- `scripts/zigux/check-phase3-ida-range-starter-packet.py`
+- `scripts\zigux/check_phase3_ida_range_starter_packet.zig`
 - `zigux/tests/phase3_ida_range_dump.zig`
 - `zigux/tests/phase3_ida_range_dump_build.zig`
 - `zigux/tests/fixtures/phase3_ida_range/phase3_ida_range_c_harness.c`
 - `zigux/tests/fixtures/phase3_ida_range/expected.json`
 - `zigux/tests/fixtures/phase3_ida_range_manifest.json`
-- `scripts/zigux/check-phase3-ida-range.py`
+- `scripts\zigux/check_phase3_ida_range.zig`
 
 ## Bounded Contract
 
@@ -33,9 +33,9 @@ The current helper-local ida range packet now has two bounded replay layers:
 - one starter packet:
   `zigux/tests/phase3_ida_range_starter_packet.zig`
   `zigux/tests/phase3_ida_range_starter_packet_build.zig`
-  `scripts/zigux/check-phase3-ida-range-starter-packet.py`
-  `python3 scripts/zigux/check-phase3-ida-range-starter-packet.py --self-test`
-  `python3 scripts/zigux/check-phase3-ida-range-starter-packet.py`
+  `scripts\zigux/check_phase3_ida_range_starter_packet.zig`
+  `zig run check_phase3_ida_range_starter_packet.zig --self-test`
+  `zig run check_phase3_ida_range_starter_packet.zig`
   `zig build phase3-ida-range-starter-packet-test --build-file zigux/tests/phase3_ida_range_starter_packet_build.zig`
 - one fixture-backed dump parity packet:
   `zigux/tests/phase3_ida_range_dump.zig`
@@ -43,9 +43,9 @@ The current helper-local ida range packet now has two bounded replay layers:
   `zigux/tests/fixtures/phase3_ida_range/phase3_ida_range_c_harness.c`
   `zigux/tests/fixtures/phase3_ida_range/expected.json`
   `zigux/tests/fixtures/phase3_ida_range_manifest.json`
-  `scripts/zigux/check-phase3-ida-range.py`
-  `python3 scripts/zigux/check-phase3-ida-range.py --self-test`
-  `python3 scripts/zigux/check-phase3-ida-range.py --repo-root . --zig zig --cc gcc`
+  `scripts\zigux/check_phase3_ida_range.zig`
+  `zig run check_phase3_ida_range.zig --self-test`
+  `zig run check_phase3_ida_range.zig --repo-root . --zig zig --cc gcc`
   `zig build phase3-ida-range-dump --build-file zigux/tests/phase3_ida_range_dump_build.zig`
 
 ## Current Gap

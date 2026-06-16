@@ -1,7 +1,7 @@
 # Phase 6 Hexdump Perf Refresh Evidence
 
 * owner lane: `P6-Y09`
-* packet anchor: `Documentation/zigux/phase6-hexdump-slice.md` plus `scripts/zigux/check-phase6-hexdump-packet.py`
+* packet anchor: `Documentation/zigux/phase6-hexdump-slice.md` plus `scripts\zigux/check_phase6_hexdump_packet.zig`
 * current perf sources: `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_hexdump_perf_matrix.zig`, `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile`
 
 ## Threshold Packet
@@ -19,8 +19,8 @@ The plain formatter path only serializes hex bytes, while the grouped ASCII pack
 
 ## Replay Routes
 
-- `python3 scripts/zigux/check-phase6-hexdump-packet.py`
-- `python3 scripts/zigux/check-phase6-hexdump-route.py`
+- `zig run check_phase6_hexdump_packet.zig`
+- `zig run check_phase6_hexdump_route.zig`
 - `zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-hexdump-review`
 - `zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig`

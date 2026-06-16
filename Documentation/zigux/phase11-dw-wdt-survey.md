@@ -19,13 +19,13 @@ now keep the bounded DesignWare continuity packet explicit through
 `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_pm.zig`,
 `drivers/watchdog/dw_wdt_pm_scaffold.zig`,
 `drivers/watchdog/dw_wdt_verify.zig`,
-`scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, and
-`scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`.
+`scripts\zigux/check_phase11_dw_wdt_teardown_packet.zig`, and
+`scripts\zigux/check_phase11_dw_wdt_verify_alignment.zig`.
 
 Those same authenticated contents rereads still do not rematerialize
 `Documentation/zigux/phase11-dw-wdt-slice.md`,
 `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, or the older
-`scripts/zigux/check-phase11-dw-wdt-packet.py` handle, so keep that broader
+`scripts\zigux/check_phase11_dw_wdt_packet.zig` handle, so keep that broader
 reminder stack framed as larger same-lane vocabulary and fallback-visible
 evidence rather than as part of the same direct current-head packet.
 

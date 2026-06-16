@@ -14,12 +14,12 @@ const closure_notes = [_][]const u8{
 };
 
 const validators = [_][]const u8{
-    "scripts/zigux/validate-phase2.py",
-    "scripts/zigux/validate-phase2-closure.py",
+    "scripts\zigux/validate_phase2.zig",
+    "scripts\zigux/validate_phase2_closure.zig",
 };
 
 const manifest_note_markers = [_][]const u8{
-    "Keep the directly readable validator pair explicit through scripts/zigux/validate-phase2.py and scripts/zigux/validate-phase2-closure.py instead of leaving the closure-side replay packet implied only in prose.",
+    "Keep the directly readable validator pair explicit through scripts\zigux/validate_phase2.zig and scripts\zigux/validate_phase2_closure.zig instead of leaving the closure-side replay packet implied only in prose.",
     "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-fixdep, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
     "Keep scripts/zigux/README.md explicit as the shipped scripts-root reminder surface for the same current Phase 2 toolchain, kbuild, installer, cross-route, bootstrap workflow-route, and make-wrapper packet that the docs-root, tests-root, and checklist surfaces summarize.",
 };
@@ -29,7 +29,7 @@ const closure_status_markers = [_][]const u8{
     "PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest",
     "manifest: `zigux/tests/fixtures/phase2_tool_manifest.json`",
     "shared note: `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
-    "shared validator pair: `python3 scripts/zigux/validate-phase2.py` and `python3 scripts/zigux/validate-phase2-closure.py`",
+    "shared validator pair: `zig run validate_phase2.zig` and `zig run validate_phase2_closure.zig`",
 };
 
 fn readFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
@@ -120,6 +120,6 @@ test "phase2 closure note pins status and validator replay markers" {
     }
 
     try expectContains(closure, "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2");
-    try expectContains(closure, "PHASE2_CLOSURE_VALIDATORS=python3 scripts/zigux/validate-phase2.py,python3 scripts/zigux/validate-phase2-closure.py");
+    try expectContains(closure, "PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2.zig,zig run validate_phase2_closure.zig");
     try expectMissing(closure, "PHASE2_STATUS=active");
 }

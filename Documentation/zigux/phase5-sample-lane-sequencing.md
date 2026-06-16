@@ -37,7 +37,7 @@ Fresh repo-first inspection in this run confirmed that current `master` still ke
 - `Documentation/zigux/phase5-trace-events-sample-survey.md`
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
-- `scripts/zigux/check-phase5-review-guide-surface.py`
+- `scripts\zigux/check_phase5_review_guide_surface.zig`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `zigux/tests/phase5_build.zig`
@@ -46,7 +46,7 @@ The same reread also confirmed that current `master` still keeps the restored di
 
 Keep this shared note truthful about that current packet instead of repeating older missing-sample wording for bytestream, older broader direct-sample wording for trace-events, or collapsing the still-visible kobject packet into repo absence.
 Keep the directly readable `zigux/tests/phase5_build.zig` route explicit too: it is current shared rerun evidence for the restored bytestream and kretprobe reminder packet, but it still should not be described as sample-local proof.
-Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/check-phase5-review-guide-surface.py` is the shipped checker for the guide's direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording, so same-lane follow-through should not describe the shared Phase 5 packet as guide-only reminder prose anymore.
+Keep the dedicated scripts-side review-guide guard explicit too: `scripts\zigux/check_phase5_review_guide_surface.zig` is the shipped checker for the guide's direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording, so same-lane follow-through should not describe the shared Phase 5 packet as guide-only reminder prose anymore.
 
 ## Current sample-root reality
 
@@ -150,4 +150,4 @@ Keep the no-extra-sample helper-family boundaries explicit too:
 
 ## Next-step posture
 
-The next honest Phase 5 step is another one-file reminder-surface repair that keeps the approved anchors explicit without flattening the narrower trace-events formatting packet, callback-focus companion, or payload-preview companion, collapsing the still-visible kobject packet into repo absence, or collapsing the returned shared `zigux/tests/phase5_build.zig` route back into either repo absence or sample-local proof. If the lane reopens soon, compare `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/check-phase5-review-guide-surface.py`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together before widening any sample behavior.
+The next honest Phase 5 step is another one-file reminder-surface repair that keeps the approved anchors explicit without flattening the narrower trace-events formatting packet, callback-focus companion, or payload-preview companion, collapsing the still-visible kobject packet into repo absence, or collapsing the returned shared `zigux/tests/phase5_build.zig` route back into either repo absence or sample-local proof. If the lane reopens soon, compare `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts\zigux/check_phase5_review_guide_surface.zig`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together before widening any sample behavior.

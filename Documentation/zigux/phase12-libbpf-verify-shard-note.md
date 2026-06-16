@@ -15,9 +15,9 @@ It keeps a bounded verify-shard boundary visible without turning the shared rele
 - shared fallback overview: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - shared heavy-consumer anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
 - shared complex-driver anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
-- build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
-- snapshot checker: `scripts/zigux/check-phase12-libbpf-snapshot.py`
-- lane-marker guard: `scripts/zigux/check-phase12-libbpf-lane-marker.py`
+- build-only contract checker: `scripts\zigux/check_build_only_phase12_surface.zig`
+- snapshot checker: `scripts\zigux/check_phase12_libbpf_snapshot.zig`
+- lane-marker guard: `scripts\zigux/check_phase12_libbpf_lane_marker.zig`
 - snapshot anchor: `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
 - focused reviewability-lab build route: `zig build test --build-file zigux/tests/phase12_libbpf_reviewability_build.zig --summary all`
 
@@ -30,7 +30,7 @@ It keeps a bounded verify-shard boundary visible without turning the shared rele
 - `tools/lib/bpf/zigux_segments/manifest.json` remains directly readable on current `master` as the helper-first packet catalog, but it still is not proof that the shared release packet adopted a shipped libbpf replay route
 - the snapshot anchor remains the truthful bounded signal here while those direct replay files stay absent from the shipped checkout
 - the snapshot checker and lane-marker guard keep that parked note-owned packet fail-closed around `Documentation/zigux/phase12-libbpf-segment-survey.md`, this verify-shard note, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` without promoting the parked replay files into the shipped smoke-first route
-- the current validator-first support bundle remains separate: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and the returned wrapper `make -C zigux phase12-validate` keep the shared release packet fail-closed without turning this parked note into a second direct replay route, while the returned `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` wrappers stay evidence for the broader shared smoke-first packet rather than proof for this parked note by themselves
+- the current validator-first support bundle remains separate: `zig run check_build_only_phase12_surface.zig --self-test`, `zig run check_phase12_libbpf_snapshot.zig --self-test`, `zig run check_phase12_libbpf_snapshot.zig`, `zig run check_phase12_release_readiness_packet.zig --self-test`, and the returned wrapper `make -C zigux phase12-validate` keep the shared release packet fail-closed without turning this parked note into a second direct replay route, while the returned `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` wrappers stay evidence for the broader shared smoke-first packet rather than proof for this parked note by themselves
 
 ## Boundaries
 
@@ -40,4 +40,4 @@ It keeps a bounded verify-shard boundary visible without turning the shared rele
 
 ## Next Bounded Step
 
-If the shared Phase 12 libbpf packet moves again, reread this note beside `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `zigux/tests/phase12_libbpf_reviewability_build.zig`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, then refresh only the narrowest shared wording or checker surface that drifts next before widening helper-local or loader-facing claims.
+If the shared Phase 12 libbpf packet moves again, reread this note beside `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts\zigux/check_phase12_libbpf_snapshot.zig`, `zigux/tests/phase12_libbpf_reviewability_build.zig`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, then refresh only the narrowest shared wording or checker surface that drifts next before widening helper-local or loader-facing claims.

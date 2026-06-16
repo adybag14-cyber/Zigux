@@ -22,11 +22,11 @@ The current repo already carries a broad Phase 15 packet through:
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
-- `scripts/zigux/validate-phase15.py`
-- `scripts/zigux/check-phase15-docs-readme-alignment.py`
-- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
-- `scripts/zigux/check-phase15-review-process-handoff.py`
-- `scripts/zigux/check-phase15-shared-summary-gap.py`
+- `scripts\zigux/validate_phase15.zig`
+- `scripts\zigux/check_phase15_docs_readme_alignment.zig`
+- `scripts\zigux/check_phase15_scripts_readme_alignment.zig`
+- `scripts\zigux/check_phase15_review_process_handoff.zig`
+- `scripts\zigux/check_phase15_shared_summary_gap.zig`
 - `zigux/tests/phase15_build.zig`
 - `zigux/Makefile`
 
@@ -36,11 +36,11 @@ The current shared replay route is already broader than a single review-process 
 
 `make -C zigux phase15-validate` currently reruns:
 
-1. `python3 scripts/zigux/validate-phase15.py`
-2. `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`
-3. `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
-4. `python3 scripts/zigux/check-phase15-review-process-handoff.py`
-5. `python3 scripts/zigux/check-phase15-shared-summary-gap.py`
+1. `zig run validate_phase15.zig`
+2. `zig run check_phase15_docs_readme_alignment.zig`
+3. `zig run check_phase15_scripts_readme_alignment.zig`
+4. `zig run check_phase15_review_process_handoff.zig`
+5. `zig run check_phase15_shared_summary_gap.zig`
 
 `zigux/tests/phase15_build.zig` also still wires the parked test packet through these Zig test modules:
 
@@ -62,13 +62,13 @@ Current repo readback shows that `scripts/zigux/README.md` already mentions the 
 
 But the earlier Phase 15 packet inventory in that same file still undercounts the parked validator-first route by naming:
 
-- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
-- `scripts/zigux/check-phase15-review-process-handoff.py`
+- `scripts\zigux/check_phase15_scripts_readme_alignment.zig`
+- `scripts\zigux/check_phase15_review_process_handoff.zig`
 
 while omitting:
 
-- `scripts/zigux/check-phase15-docs-readme-alignment.py`
-- `scripts/zigux/check-phase15-shared-summary-gap.py`
+- `scripts\zigux/check_phase15_docs_readme_alignment.zig`
+- `scripts\zigux/check_phase15_shared_summary_gap.zig`
 
 This is a truthfulness gap, not a new implementation blocker. It matters because Phase 15 is supposed to keep the validator-first route and the parked-governance packet aligned in human-readable form.
 
@@ -90,7 +90,7 @@ Keep the follow-up tight.
 Update only:
 
 - `scripts/zigux/README.md`
-- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
+- `scripts\zigux/check_phase15_scripts_readme_alignment.zig`
 
 The goal of that follow-up should be simple:
 
@@ -102,8 +102,8 @@ The goal of that follow-up should be simple:
 
 Use the existing parked route, not a new one:
 
-1. `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test`
-2. `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
+1. `zig run check_phase15_scripts_readme_alignment.zig --self-test`
+2. `zig run check_phase15_scripts_readme_alignment.zig`
 3. `make -C zigux phase15-validate`
 4. `zig build test --build-file zigux/tests/phase15_build.zig`
 5. `make -C zigux phase15`

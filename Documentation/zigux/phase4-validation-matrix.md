@@ -4,19 +4,19 @@
   * `PHASE4_STATUS=differential_validation_matrix_landed`
   * scope: keep the currently shipped Phase 4 rollback-readiness gates, the host-side artifact-diff contract replay, the dedicated artifact-diff determinism checker, the dedicated artifact-diff validator-replay checker, the dedicated exact-readback gate-evidence packet, the dedicated validation-lane sequencing note and checker, the direct-readback repo-reality warning and tests-readme packet checkers, the dedicated remaining-gap matrix checker, the dedicated workflow-route-count checker, the manifest-backed runtime atomic64 and bitmap rollback survey packets, and the dedicated local perf-baseline posture survey reviewable, name the rollback owners for each bounded gate or survey, and make the current CI and local replay paths explicit
   * current repo reality:
-    * `scripts/zigux/artifact_diff.py`
-    * `scripts/zigux/check-artifact-diff-contract.py`
-    * `scripts/zigux/check-phase4-artifact-diff-determinism.py`
-    * `scripts/zigux/check-phase4-artifact-diff-validator-replays.py`
-    * `scripts/zigux/check-phase4-gate-evidence.py`
-    * `scripts/zigux/check-phase4-validation-lane-sequencing.py`
-    * `scripts/zigux/check-phase4-perf-baseline-packet.py`
-    * `scripts/zigux/check-phase4-perf-threshold-matrix.py`
-    * `scripts/zigux/check-phase4-remaining-gap-matrix.py`
-    * `scripts/zigux/check-phase4-repo-reality-warning.py`
-    * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
-    * `scripts/zigux/check-phase4-tests-readme-packet.py`
-    * `scripts/zigux/check-phase4-workflow-route-counts.py`
+    * `scripts/zigux/artifact_diff.zig`
+    * `scripts\zigux/check_artifact_diff_contract.zig`
+    * `scripts\zigux/check_phase4_artifact_diff_determinism.zig`
+    * `scripts\zigux/check_phase4_artifact_diff_validator_replays.zig`
+    * `scripts\zigux/check_phase4_gate_evidence.zig`
+    * `scripts\zigux/check_phase4_validation_lane_sequencing.zig`
+    * `scripts\zigux/check_phase4_perf_baseline_packet.zig`
+    * `scripts\zigux/check_phase4_perf_threshold_matrix.zig`
+    * `scripts\zigux/check_phase4_remaining_gap_matrix.zig`
+    * `scripts\zigux/check_phase4_repo_reality_warning.zig`
+    * `scripts\zigux/check_phase4_reversible_delivery_pins.zig`
+    * `scripts\zigux/check_phase4_tests_readme_packet.zig`
+    * `scripts\zigux/check_phase4_workflow_route_counts.zig`
     * `Documentation/zigux/artifact-diff.md`
     * `Documentation/zigux/phase4-gate-evidence.md`
     * `Documentation/zigux/phase4-kprobe-example-gap-survey.md`
@@ -45,16 +45,16 @@
     * `zigux/tests/phase4_test_fsmount_survey.zig`
     * `zigux/tests/phase4_build.zig`
     * `zigux/Makefile`
-    * `scripts/zigux/validate-phase4.py`
+    * `scripts\zigux/validate_phase4.zig`
     * `.github/workflows/zigux-bootstrap.yml`
-  * direct-readback split: this broader matrix packet is still live on current `master`, but the smaller current direct-readback packet stays intentionally narrower until authenticated contents reads recover for the broader build and bitmap companions again; today that direct-readback packet already includes `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig`
+  * direct-readback split: this broader matrix packet is still live on current `master`, but the smaller current direct-readback packet stays intentionally narrower until authenticated contents reads recover for the broader build and bitmap companions again; today that direct-readback packet already includes `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts\zigux/check_phase4_repo_reality_warning.zig`, `scripts\zigux/check_phase4_tests_readme_packet.zig`, `scripts\zigux/check_phase4_reversible_delivery_pins.zig`, `scripts\zigux/check_phase4_perf_baseline_packet.zig`, `scripts\zigux/validate_phase4.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig`
   * roadmap note: live `master` now carries the roadmap-named Phase 4 entrypoints at `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`, while the manifest-backed `phase4_runtime_atomic64_diff` and `phase4_bitmap_diff` survey packets keep the wrapper-to-runtime atomic64 handoff and the bounded bitmap rollback packet measurable until the still-absent `samples/zigux/kprobe_example.zig` and `samples/zigux/test_fsmount.zig` starters are intentionally opened, the dedicated `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig` packet now keeps the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates measurable through a direct local survey route plus the matching Linux-style wrapper without promoting shared CI perf coverage yet, the dedicated validation-lane sequencing note plus checker keep the current shared matrix-side reminder lane split explicit beside the dedicated remaining-gap checker, the dedicated workflow-route-count checker now keeps that same wrapper inventory reviewable beside `zigux/Makefile` instead of leaving the local replay surface implicit, and `Documentation/zigux/phase4-measurability-gap-survey.md` now keeps the three remaining roadmap-backed measurability gaps explicit in one dedicated companion note.
 
 ## Why this exists
 
 The roadmap says Phase 4 must make future Zigux ports measurable and reversible.
 
-The repo already had the shared Phase 4 build entrypoint, validator wiring, and the bounded host-side `artifact_diff.py` contract replay, but it still needed one reviewable record that names:
+The repo already had the shared Phase 4 build entrypoint, validator wiring, and the bounded host-side `artifact_diff.zig` contract replay, but it still needed one reviewable record that names:
   * the bounded rollback owner for each live Phase 4 gate
   * the current perf threshold status for those gates
   * the manifest-backed survey packets that keep the atomic64 wrapper-to-runtime handoff and the bitmap rollback packet measurable
@@ -77,7 +77,7 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
 - fallback path: keep the current C anchor plus the existing Phase 9 runtime atomic64 starter surface as the source of truth if the Zig replay gate regresses
 - perf threshold status: correctness-only gate today; no hard timing threshold is approved until the lane widens beyond the current bounded exchange, cmpxchg, add_unless, bitwise, and selftest-family replay set
 - survey packet: `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` keep the wrapper-to-runtime handoff, the shared build wiring, and the matrix wording reviewable beside the executable replay
-- bootstrap validation entrypoint: `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml`
+- bootstrap validation entrypoint: `zig run validate_phase4.zig` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml`
 - local replay path: `zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig`
 - current measurable replay: `zigux/tests/atomic64_diff.zig` bounded atomic64 exchange, cmpxchg, add_unless, bitwise, and selftest-family replay via the shared runtime-backed gate
 
@@ -98,8 +98,8 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
 
 ## Lab And CI Matrix
   * lane surface purpose owner rollback owner bootstrap CI replay local lab replay threshold posture
-  * `zigux/tests/atomic64_diff.zig` bounded runtime atomic64 rollback-readiness replay covering arithmetic, exchange, cmpxchg, add_unless, `inc_not_zero`, `dec_if_positive`, bitwise expectations, and the checksum-backed threshold-replay route shared with `zigux/tests/runtime_atomic64_diff.zig` `ABI and Runtime Team` `ABI and Runtime Team` `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` `zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` `threshold_pending_until_runtime_atomic64_scope_widens`
-  * `zigux/tests/bitmap_diff.zig` bounded broad bitmap rollback-readiness replay covering exact range and prefix cases, zero-length range and prefix no-op rollback checks, copy-tail and zero-length copy invariants, exact `find_nth_bit`, out-of-bounds rejection, manifest-backed source inventory, and checksum-pinned threshold-replay checkpoints `Shared Subsystems Pod` `Shared Subsystems Pod` `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` `zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks`
+  * `zigux/tests/atomic64_diff.zig` bounded runtime atomic64 rollback-readiness replay covering arithmetic, exchange, cmpxchg, add_unless, `inc_not_zero`, `dec_if_positive`, bitwise expectations, and the checksum-backed threshold-replay route shared with `zigux/tests/runtime_atomic64_diff.zig` `ABI and Runtime Team` `ABI and Runtime Team` `zig run validate_phase4.zig` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` `zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` `threshold_pending_until_runtime_atomic64_scope_widens`
+  * `zigux/tests/bitmap_diff.zig` bounded broad bitmap rollback-readiness replay covering exact range and prefix cases, zero-length range and prefix no-op rollback checks, copy-tail and zero-length copy invariants, exact `find_nth_bit`, out-of-bounds rejection, manifest-backed source inventory, and checksum-pinned threshold-replay checkpoints `Shared Subsystems Pod` `Shared Subsystems Pod` `zig run validate_phase4.zig` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` `zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks`
   * `Documentation/zigux/phase4-kprobe-example-gap-survey.md` plus `zigux/tests/phase4_kprobe_example_manifest.json` and `zigux/tests/phase4_kprobe_example_survey.zig` parked sample-gap packet keeping the current C-anchor replay, dedicated local survey wrapper, direct validation entrypoint, and absent-Zig-starter boundary explicit `Validation and Perf Team` `Validation and Perf Team` reviewability only; must stay outside the shared `phase4-test` entrypoint and bootstrap workflow until a later bounded starter lane lands `samples/zigux/kprobe_example.zig` `make -C zigux phase4-kprobe-example-survey` and `zig test zigux/tests/phase4_kprobe_example_survey.zig` `c_anchor_only_until_kprobe_example_starter_lands`
   * `Documentation/zigux/phase4-test-fsmount-gap-survey.md` plus `zigux/tests/phase4_test_fsmount_manifest.json` and `zigux/tests/phase4_test_fsmount_survey.zig` parked sample-gap packet keeping the roadmap-backed C-anchor replay, both local survey wrappers, direct validation entrypoint, explicit no-perf-threshold posture, and absent-Zig-starter boundary explicit `Validation and Perf Team` `Validation and Perf Team` reviewability only; must stay outside the shared `phase4-test` entrypoint and bootstrap workflow until a later bounded validator or starter lane lands `samples/zigux/test_fsmount.zig` `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-test-fsmount-survey` `reviewability_only_no_perf_threshold`
   * `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig` dedicated local-only perf-baseline survey keeping the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates machine-checked without promoting shared CI perf approval `Validation and Perf Team` `Validation and Perf Team` reviewability only; must stay outside the shared `phase4-test` entrypoint until any shared CI perf promotion is intentionally approved `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey` `approved_local_only_for_atomic64_and_bitmap_commands_shared_ci_perf_promotion_pending`
@@ -122,9 +122,9 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
   * rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
   * `zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 8192` over `4` iterations with `7` monotonic samples
   * `zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 12288` over `4` iterations with `7` monotonic samples
-  * `python3 scripts/zigux/check-phase4-perf-threshold-matrix.py --self-test` then `python3 scripts/zigux/check-phase4-perf-threshold-matrix.py` keeps those exact local-only acceptable-limit lines fail-closed against the manifest-backed perf packet
+  * `zig run check_phase4_perf_threshold_matrix.zig --self-test` then `zig run check_phase4_perf_threshold_matrix.zig` keeps those exact local-only acceptable-limit lines fail-closed against the manifest-backed perf packet
   * the dedicated local perf-baseline survey may keep the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates machine-checked while the shared promotion decision stays parked in `zigux/tests/phase4_perf_baseline_manifest.json`
-  * `python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py` keeps this owner, wrapper, and threshold packet fail-closed against the matrix, the review checklist, the reversible-delivery note, and the scripts-root reminder surface
+  * `zig run check_phase4_perf_baseline_packet.zig --self-test` then `zig run check_phase4_perf_baseline_packet.zig` keeps this owner, wrapper, and threshold packet fail-closed against the matrix, the review checklist, the reversible-delivery note, and the scripts-root reminder surface
   * shared CI perf promotion pending remains the correct roadmap-facing posture until a later bounded lane widens this local-only survey packet into broader shared-lab evidence
 
 ## Exact-Readback Parked Starter Surveys

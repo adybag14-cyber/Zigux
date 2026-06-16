@@ -15,13 +15,13 @@ It is a release-planning artifact, not a release-closure claim and not a second 
 - release-closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`
 - tests-root companion: `zigux/tests/README.md`
 - scripts-root companion: `scripts/zigux/README.md`
-- support-bundle checkers: `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-cross.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py`
-- shared validator route: `scripts/zigux/validate-phase12.py` and `make -C zigux phase12-validate`
+- support-bundle checkers: `scripts\zigux/check_build_only_phase12_surface.zig`, `scripts\zigux/check_phase12_cross.zig`, and `scripts\zigux/check_phase12_release_readiness_packet.zig`
+- shared validator route: `scripts\zigux/validate_phase12.zig` and `make -C zigux phase12-validate`
 
 ## Shared Order
 
 - keep the validator-first support bundle explicit before the smoke-first replay order: `make -C zigux phase12-validate`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`
-- treat `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-cross.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py` as support-bundle evidence rather than as a second direct replay route
+- treat `scripts\zigux/check_build_only_phase12_surface.zig`, `scripts\zigux/check_phase12_cross.zig`, `scripts\zigux/check_phase12_release_readiness_packet.zig`, and `scripts\zigux/validate_phase12.zig` as support-bundle evidence rather than as a second direct replay route
 - keep the support bundle aligned with `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md`
 
 ## Fallback Boundaries

@@ -20,7 +20,7 @@ focused-direct-build replay checker, cleanup-current-head checker,
 targetless-unregister witness checker, shared build inventory, and the current
 proof-backed adjunct stack.
 The verify boundary path is `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`.
-The cleanup and targetless witness checkers are `scripts/zigux/check-phase11-hvc-cleanup-current-head.py` and `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`.
+The cleanup and targetless witness checkers are `scripts\zigux/check_phase11_hvc_cleanup_current_head.zig` and `scripts\zigux/check_phase11_hvc_targetless_unregister_witness.zig`.
 
 Current authenticated contents readback still does not rematerialize
 `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`,
@@ -28,7 +28,7 @@ Current authenticated contents readback still does not rematerialize
 `zigux/tests/phase11_hvc_console_survey.zig`,
 `zigux/tests/phase11_hvc_console_manifest.json`,
 `Documentation/zigux/phase11-hvc-console-teardown-note.md`, or
-`scripts/zigux/check-phase11-hvc-survey-packet.py`; keep those older helper,
+`scripts\zigux/check_phase11_hvc_survey_packet.zig`; keep those older helper,
 replay, manifest, note, and checker anchors framed as repo-reality gaps or
 archival vocabulary instead of returned fallback evidence.
 Those anchors remain repo-reality gaps or archival vocabulary for current-head
@@ -45,13 +45,13 @@ witness likewise stays directly readable through
 `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` as a separate
 failure-mode replay, while the dedicated modem-control proof pair and the
 targetless-unregister witness build routes stay jointly fail-closed by
-`scripts/zigux/check-phase11-focused-direct-build-replays.py` without
+`scripts\zigux/check_phase11_focused_direct_build_replays.zig` without
 promoting either pair into the shared three-entry build inventory, and the
 proof-backed HVC continuity packet remains reviewable through the shared
 inventory-backed proof routes. The same packet now keeps
 `zigux/tests/phase11_hvc_current_head_manifest.json` explicit as a
 machine-readable current-head manifest packet, with
-`scripts/zigux/check-phase11-hvc-current-head-manifest.py` guarding the lane
+`scripts\zigux/check_phase11_hvc_current_head_manifest.zig` guarding the lane
 key, current packet roster, direct checks, and bounded repo-reality gaps.
 
 ## Drift Kept Explicit
@@ -62,7 +62,7 @@ verify helper back into missing-helper wording while the sysrq helper, focused
 replay, and dedicated survey-checker anchors still remain absent on current
 `master`.
 
-Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` explicit as a current
+Keep `scripts\zigux/check_phase11_hvc_survey_packet.zig` explicit as a current
 repo-reality gap, but keep the dedicated `make -C zigux phase11-hvc-survey`
 route absent until `zigux/Makefile` grows it.
 

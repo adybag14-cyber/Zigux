@@ -82,9 +82,9 @@ test "make phase2 toolchain route preserves the same checker and helper order" {
 
     try expectBefore(route, "check_zig_toolchain.zig -- --self-test", "check_zig_toolchain.zig -- --policy-only");
     try expectBefore(route, "check_zig_toolchain.zig -- --policy-only", "check_zig_toolchain.zig -- --archive-only --allow-missing");
-    try expectBefore(route, "check_zig_toolchain.zig -- --archive-only --allow-missing", "check-lane05-local-first-archive-workflow.py --self-test");
-    try expectBefore(route, "check-lane05-install-zig-archive-verification.py", "install_zig.zig -- --self-test");
+    try expectBefore(route, "check_zig_toolchain.zig -- --archive-only --allow-missing", "check_lane05_local_first_archive_workflow.zig -- --self-test");
+    try expectBefore(route, "check_lane05_install_zig_archive_verification.zig", "install_zig.zig -- --self-test");
     try expectBefore(route, "install_zig.zig -- --self-test", "stage_pinned_zig_archive.zig -- --self-test");
-    try expectBefore(route, "stage_pinned_zig_archive.zig -- --self-test", "check-lane05-stage-helper-contract.py --self-test");
+    try expectBefore(route, "stage_pinned_zig_archive.zig -- --self-test", "check_lane05_stage_helper_contract.zig -- --self-test");
     try expectBefore(route, "check-phase2-toolchain-pinning.py --self-test", "check-phase2-toolchain-pin-scope.py --self-test");
 }

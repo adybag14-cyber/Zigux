@@ -16,7 +16,7 @@ test "Lane 01 checker keeps the charter file roster and CLI surface explicit" {
     const allocator = std.testing.allocator;
     const checker = try readRepoFile(
         allocator,
-        "scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
+        "scripts\zigux/check_lane01_bootstrap_charter_alignment.zig",
     );
     defer allocator.free(checker);
 
@@ -34,7 +34,7 @@ test "Lane 01 checker guards truth-preserving scope notes instead of phase-compl
     const allocator = std.testing.allocator;
     const checker = try readRepoFile(
         allocator,
-        "scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
+        "scripts\zigux/check_lane01_bootstrap_charter_alignment.zig",
     );
     defer allocator.free(checker);
 
@@ -50,7 +50,7 @@ test "Lane 01 checker keeps live product surface markers in its guarded roster" 
     const allocator = std.testing.allocator;
     const checker = try readRepoFile(
         allocator,
-        "scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
+        "scripts\zigux/check_lane01_bootstrap_charter_alignment.zig",
     );
     defer allocator.free(checker);
 

@@ -17,9 +17,9 @@ pub fn build(b: *std.Build) void {
     const run_contract_tests = b.addRunArtifact(contract_tests);
     run_contract_tests.setCwd(b.path("../.."));
 
-    const contract_step = b.step("artifact-diff-bytes-contract", "Run artifact_diff.py bytes-mode contract");
+    const contract_step = b.step("artifact-diff-bytes-contract", "Run artifact_diff.zig bytes-mode contract");
     contract_step.dependOn(&run_contract_tests.step);
 
-    const test_step = b.step("test", "Run artifact_diff.py bytes-mode contract");
+    const test_step = b.step("test", "Run artifact_diff.zig bytes-mode contract");
     test_step.dependOn(&run_contract_tests.step);
 }

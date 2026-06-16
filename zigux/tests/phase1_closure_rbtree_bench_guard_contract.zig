@@ -1,13 +1,13 @@
 const std = @import("std");
 
 const closure_path = "Documentation/zigux/phase1-closure.md";
-const bench_checker_path = "scripts/zigux/check-phase1-bench.py";
+const bench_checker_path = "scripts\zigux/check_phase1_bench.zig";
 const workflow_path = ".github/workflows/zigux-bootstrap.yml";
 const manifest_path = "zigux/tests/fixtures/phase1_helper_manifest.json";
 const smoke_path = "zigux/tests/phase1_host_tools_smoke.zig";
 
 const rbtree_bench_guard_marker =
-    \\PHASE1_RBTREE_BENCH_GUARD=scripts/zigux/check-phase1-bench.py now hard-codes PHASE1_BENCH_RBTREE_ITERATIONS=4000 and exact-checks PHASE1_BENCH_RBTREE_CHECKSUM, PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM, PHASE1_BENCH_FIND_ADD_CHECKSUM, PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM, and PHASE1_BENCH_RBTREE_CACHED_CHECKSUM when the broader expectations packet returns
+    \\PHASE1_RBTREE_BENCH_GUARD=scripts\zigux/check_phase1_bench.zig now hard-codes PHASE1_BENCH_RBTREE_ITERATIONS=4000 and exact-checks PHASE1_BENCH_RBTREE_CHECKSUM, PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM, PHASE1_BENCH_FIND_ADD_CHECKSUM, PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM, and PHASE1_BENCH_RBTREE_CACHED_CHECKSUM when the broader expectations packet returns
 ;
 
 const rbtree_bench_checksum_markers = [_][]const u8{
@@ -29,13 +29,13 @@ const rbtree_bench_source_markers = [_][]const u8{
 
 const workflow_markers = [_][]const u8{
     "Self-test current Phase 1 bench checker",
-    "python3 scripts/zigux/check-phase1-bench.py --self-test",
+    "zig run check_phase1_bench.zig --self-test",
     "Check current Phase 1 bench packet",
-    "python3 scripts/zigux/check-phase1-bench.py",
+    "zig run check_phase1_bench.zig",
     "Self-test current Phase 1 closure validator",
-    "python3 scripts/zigux/validate-phase1-closure.py --self-test",
+    "zig run validate_phase1_closure.zig --self-test",
     "Check current Phase 1 closure packet",
-    "python3 scripts/zigux/validate-phase1-closure.py",
+    "zig run validate_phase1_closure.zig",
 };
 
 const manifest_markers = [_][]const u8{
@@ -83,9 +83,9 @@ test "closure note keeps rbtree bench guard tied to the current closure packet" 
     defer allocator.free(closure);
 
     try expectContains(closure, rbtree_bench_guard_marker);
-    try expectContains(closure, "PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py");
+    try expectContains(closure, "PHASE1_CLOSURE_VALIDATOR=zig run validate_phase1_closure.zig");
     try expectContains(closure, "PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig");
-    try expectContains(closure, "PHASE1_RBTREE_REVIEW_GUARD=python3 scripts/zigux/check-phase1-rbtree-review-packet.py");
+    try expectContains(closure, "PHASE1_RBTREE_REVIEW_GUARD=zig run check_phase1_rbtree_review_packet.zig");
     try expectContains(closure, "cached_root_transition_serials");
 }
 

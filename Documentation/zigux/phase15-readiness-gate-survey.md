@@ -17,7 +17,7 @@ Phase 15 is a governance tranche. The work here is about freeze-map discipline, 
 
 Compared against the roadmap's four required governance features and the bootstrap ledger's original docs-root and freeze-map anchor, current `master` still shows the same bounded readiness posture: the required Phase 15 governance packet is landed and reviewable, the dedicated validator is materialized, the shared build companion is now directly readable, the roadmap-versus-ledger gap matrix now keeps the remaining requirements explicit, and the remaining gaps are still the absent `phase15*` wrapper and workflow routes.
 
-Current `master` already carries the freeze map, the freeze-map governance note, the parity scorecard, the parity-scorecard survey, the Architecture Council review-process note, the Architecture Council decision-record template, the Architecture Council decision index, the indefinite-C policy note, the deep-core blocker survey, the study-only anchor accounting note, the governance-lane sequencing note, the handoff note plus focused replay, the shared-summary gap note, the review checklist, the focused freeze-map governance replay, the dedicated review-process manifest plus focused replay plus focused build replay, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated indefinite-C policy manifest plus focused replay, the focused parity-scorecard machine-readable companion plus focused replay, the focused review-checklist study-only alignment checker, the focused Phase 15 tests-readme alignment checker, the dedicated Architecture Council packet checker, the focused handoff-note checker, the dedicated readiness-packet checker, the focused indefinite-C lane-owner replay, the newly materialized `scripts/zigux/validate-phase15.py` validator, the new `zigux/tests/phase15_build.zig` shared build companion, and the new `zigux/tests/phase15_readiness_gap_matrix.json` roadmap-versus-ledger gap matrix. At the same time, direct reads still show no dedicated `phase15-validate`, `phase15-test`, or `phase15` Makefile wrapper route, and no dedicated workflow route that would make the larger Phase 15 replay packet one-command or shared-CI ready.
+Current `master` already carries the freeze map, the freeze-map governance note, the parity scorecard, the parity-scorecard survey, the Architecture Council review-process note, the Architecture Council decision-record template, the Architecture Council decision index, the indefinite-C policy note, the deep-core blocker survey, the study-only anchor accounting note, the governance-lane sequencing note, the handoff note plus focused replay, the shared-summary gap note, the review checklist, the focused freeze-map governance replay, the dedicated review-process manifest plus focused replay plus focused build replay, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated indefinite-C policy manifest plus focused replay, the focused parity-scorecard machine-readable companion plus focused replay, the focused review-checklist study-only alignment checker, the focused Phase 15 tests-readme alignment checker, the dedicated Architecture Council packet checker, the focused handoff-note checker, the dedicated readiness-packet checker, the focused indefinite-C lane-owner replay, the newly materialized `scripts\zigux/validate_phase15.zig` validator, the new `zigux/tests/phase15_build.zig` shared build companion, and the new `zigux/tests/phase15_readiness_gap_matrix.json` roadmap-versus-ledger gap matrix. At the same time, direct reads still show no dedicated `phase15-validate`, `phase15-test`, or `phase15` Makefile wrapper route, and no dedicated workflow route that would make the larger Phase 15 replay packet one-command or shared-CI ready.
 
 This survey keeps those six truths together:
 
@@ -44,16 +44,16 @@ This survey keeps those six truths together:
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - `Documentation/zigux/phase15-shared-summary-gap.md`
 - `Documentation/zigux/review-checklist.md`
-- `scripts/zigux/check-phase15-docs-readme-alignment.py`
-- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
-- `scripts/zigux/check-phase15-tests-readme-alignment.py`
-- `scripts/zigux/check-phase15-architecture-council-packet.py`
-- `scripts/zigux/check-phase15-review-process-handoff.py`
-- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
-- `scripts/zigux/check-phase15-handoff-note-alignment.py`
-- `scripts/zigux/check-phase15-shared-summary-gap.py`
-- `scripts/zigux/check-phase15-readiness-gate-packet.py`
-- `scripts/zigux/validate-phase15.py`
+- `scripts\zigux/check_phase15_docs_readme_alignment.zig`
+- `scripts\zigux/check_phase15_scripts_readme_alignment.zig`
+- `scripts\zigux/check_phase15_tests_readme_alignment.zig`
+- `scripts\zigux/check_phase15_architecture_council_packet.zig`
+- `scripts\zigux/check_phase15_review_process_handoff.zig`
+- `scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig`
+- `scripts\zigux/check_phase15_handoff_note_alignment.zig`
+- `scripts\zigux/check_phase15_shared_summary_gap.zig`
+- `scripts\zigux/check_phase15_readiness_gate_packet.zig`
+- `scripts\zigux/validate_phase15.zig`
 - `zigux/tests/README.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_architecture_council_review_process.zig`
@@ -74,14 +74,14 @@ This survey keeps those six truths together:
 
 Current `master` does materialize both `zigux/tests/phase15_architecture_council_review_process_build.zig` and `zigux/tests/phase15_freeze_map_governance.zig`, so keep both the focused build-file replay and the focused freeze-map governance replay explicit in this readiness packet instead of undercounting the already-landed governance evidence. The dedicated deep-core blocker survey, the study-only anchor accounting note, and the Architecture Council decision index are also directly readable on current `master`, so keep those governance-only accounting surfaces explicit in this readiness packet instead of leaving the handoff support packet narrower than current repo reality. Current `master` now also materializes `zigux/tests/phase15_build.zig`, so keep the shared build companion explicit in this readiness packet instead of continuing to model that broader build surface as missing. Current `master` now also materializes `zigux/tests/phase15_readiness_gap_matrix.json`, so keep the roadmap-versus-ledger gap accounting explicit in this readiness packet instead of leaving the remaining blockers implied only by prose.
 
-These directly readable paths are enough to support maintenance-mode truthfulness work on the core readiness packet, and `python3 scripts/zigux/validate-phase15.py` now gives that packet a direct validator-first replay that also keeps the dedicated Architecture Council packet checker and the roadmap-versus-ledger gap matrix inside the same bounded maintenance family.
+These directly readable paths are enough to support maintenance-mode truthfulness work on the core readiness packet, and `zig run validate_phase15.zig` now gives that packet a direct validator-first replay that also keeps the dedicated Architecture Council packet checker and the roadmap-versus-ledger gap matrix inside the same bounded maintenance family.
 
 ## Release Evidence Quartet
 
 The current readiness note is intentionally narrower than a release claim. It now tracks a four-item release-evidence packet because substantive Phase 15 readiness infrastructure has landed since the older prose-only posture:
 
-- `scripts/zigux/validate-phase15.py` is the validator-first replay for the current maintenance gate
-- `scripts/zigux/check-phase15-readiness-gate-packet.py` keeps the readiness note, manifest, gap matrix, blocked-route posture, and repo evidence aligned
+- `scripts\zigux/validate_phase15.zig` is the validator-first replay for the current maintenance gate
+- `scripts\zigux/check_phase15_readiness_gate_packet.zig` keeps the readiness note, manifest, gap matrix, blocked-route posture, and repo evidence aligned
 - `zigux/tests/phase15_build.zig` is directly readable shared-build companion evidence, not proof that the missing wrappers exist
 - `zigux/tests/phase15_readiness_gap_matrix.json` keeps the roadmap-versus-ledger blockers explicit as data rather than relying on prose-only handoff notes
 
@@ -93,8 +93,8 @@ Keep this quartet tied to `release_evidence_count=4` in `zigux/tests/phase15_rea
 
 The matrix now also carries a `release_evidence` section and `release_evidence_count=4`, tying the readiness claim to these directly readable release surfaces:
 
-- `scripts/zigux/validate-phase15.py`
-- `scripts/zigux/check-phase15-readiness-gate-packet.py`
+- `scripts\zigux/validate_phase15.zig`
+- `scripts\zigux/check_phase15_readiness_gate_packet.zig`
 - `zigux/tests/phase15_build.zig`
 - `zigux/tests/phase15_readiness_gap_matrix.json`
 

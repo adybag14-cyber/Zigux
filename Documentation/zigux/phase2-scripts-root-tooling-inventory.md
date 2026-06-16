@@ -12,32 +12,32 @@ This note keeps the current Phase 2 repo-tooling packet explicit from the script
 
 ## Tooling Surfaces
 
-- `scripts/zigux/check-zig-toolchain.py`
-- `scripts/zigux/check-lane05-local-first-archive-workflow.py`
-- `scripts/zigux/check-lane05-local-archive-readme.py`
-- `scripts/zigux/check-lane05-install-zig-archive-verification.py`
-- `scripts/zigux/check-lane05-stage-helper-contract.py`
-- `scripts/zigux/check-lane05-stage-helper-selftest.py`
-- `scripts/zigux/install-zig.py`
-- `scripts/zigux/stage-pinned-zig-archive.py`
-- `scripts/zigux/check-phase2-kbuild-routes.py`
-- `scripts/zigux/check-phase2-docs-shared-reminder.py`
-- `scripts/zigux/check-phase2-required-make-routes.py`
-- `scripts/zigux/check-phase2-toolchain-pinning.py`
-- `scripts/zigux/check-phase2-toolchain-pin-scope.py`
-- `scripts/zigux/check-phase2-cross.py`
-- `scripts/zigux/check-phase2-cross-selftest-alignment.py`
-- `scripts/zigux/check-kconfig-bridge.py`
-- `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
-- `scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`
-- `scripts/zigux/check-genksyms-bridge.py`
-- `scripts/zigux/check-phase2-genksyms-selftest-alignment.py`
-- `scripts/zigux/check-phase2-fixdep-gate.py`
-- `scripts/zigux/check-fixdep-diff.py`
-- `scripts/zigux/check-phase2-tool-manifest.py`
-- `scripts/zigux/check-phase2-artifact-tools-manifest.py`
-- `scripts/zigux/validate-phase2.py`
-- `scripts/zigux/validate-phase2-closure.py`
+- `scripts\zigux/check_zig_toolchain.zig`
+- `scripts\zigux/check_lane05_local_first_archive_workflow.zig`
+- `scripts\zigux/check_lane05_local_archive_readme.zig`
+- `scripts\zigux/check_lane05_install_zig_archive_verification.zig`
+- `scripts\zigux/check_lane05_stage_helper_contract.zig`
+- `scripts\zigux/check_lane05_stage_helper_selftest.zig`
+- `scripts/zigux/install_zig.zig`
+- `scripts/zigux/stage_pinned_zig_archive.zig`
+- `scripts\zigux/check_phase2_kbuild_routes.zig`
+- `scripts\zigux/check_phase2_docs_shared_reminder.zig`
+- `scripts\zigux/check_phase2_required_make_routes.zig`
+- `scripts\zigux/check_phase2_toolchain_pinning.zig`
+- `scripts\zigux/check_phase2_toolchain_pin_scope.zig`
+- `scripts\zigux/check_phase2_cross.zig`
+- `scripts\zigux/check_phase2_cross_selftest_alignment.zig`
+- `scripts\zigux/check_kconfig_bridge.zig`
+- `scripts\zigux/check_phase2_kconfig_selftest_alignment.zig`
+- `scripts\zigux/check_phase2_kconfig_allconfig_helper_packet.zig`
+- `scripts\zigux/check_genksyms_bridge.zig`
+- `scripts\zigux/check_phase2_genksyms_selftest_alignment.zig`
+- `scripts\zigux/check_phase2_fixdep_gate.zig`
+- `scripts\zigux/check_fixdep_diff.zig`
+- `scripts\zigux/check_phase2_tool_manifest.zig`
+- `scripts\zigux/check_phase2_artifact_tools_manifest.zig`
+- `scripts\zigux/validate_phase2.zig`
+- `scripts\zigux/validate_phase2_closure.zig`
 - `scripts/zigux/kconfig/conf_bridge.zig`
 - `scripts/zigux/kconfig/confdata_bridge.zig`
 - `scripts/zigux/genksyms.zig`
@@ -45,7 +45,7 @@ This note keeps the current Phase 2 repo-tooling packet explicit from the script
 - `scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig`
 - `scripts/zigux/fixdep.zig`
 - `scripts/zigux/zig-toolchain-policy.json`
-- `scripts/zigux/artifact_diff.py`
+- `scripts/zigux/artifact_diff.zig`
 
 ## Fixtures And Manifests
 
@@ -64,8 +64,8 @@ This note keeps the current Phase 2 repo-tooling packet explicit from the script
 
 ## Replay Commands
 
-- `python3 scripts/zigux/check-phase2-scripts-root-tooling-inventory.py --self-test`
-- `python3 scripts/zigux/check-phase2-scripts-root-tooling-inventory.py`
+- `zig run check_phase2_scripts_root_tooling_inventory.zig --self-test`
+- `zig run check_phase2_scripts_root_tooling_inventory.zig`
 - `make -C zigux phase2-toolchain`
 - `make -C zigux phase2-tools`
 - `make -C zigux phase2-kconfig`

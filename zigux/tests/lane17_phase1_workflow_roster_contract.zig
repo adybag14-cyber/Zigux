@@ -17,99 +17,99 @@ const Step = struct {
 const phase1_steps = [_]Step{
     .{
         .name = "      - name: Self-test current Phase 1 direct-owner checker",
-        .run = "        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test",
+        .run = "        run: zig run check_phase1_direct_owner_markers.zig --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 direct-owner markers",
-        .run = "        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py",
+        .run = "        run: zig run check_phase1_direct_owner_markers.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 direct-anchor manifest gate",
-        .run = "        run: python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py --self-test",
+        .run = "        run: zig run check_phase1_direct_anchor_manifest_gate.zig --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 direct-anchor manifest gate",
-        .run = "        run: python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py",
+        .run = "        run: zig run check_phase1_direct_anchor_manifest_gate.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 string review checker",
-        .run = "        run: python3 scripts/zigux/check-phase1-string-review-packet.py --self-test",
+        .run = "        run: zig run check_phase1_string_review_packet.zig --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 string review packet",
-        .run = "        run: python3 scripts/zigux/check-phase1-string-review-packet.py",
+        .run = "        run: zig run check_phase1_string_review_packet.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 find-bit review checker",
-        .run = "        run: python3 scripts/zigux/check-phase1-find-bit-review-packet.py --self-test",
+        .run = "        run: zig run check_phase1_find_bit_review_packet.zig --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 find-bit review packet",
-        .run = "        run: python3 scripts/zigux/check-phase1-find-bit-review-packet.py",
+        .run = "        run: zig run check_phase1_find_bit_review_packet.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 bitmap direct-anchor checker",
-        .run = "        run: python3 scripts/zigux/check-phase1-bitmap-direct-anchors.py --self-test",
+        .run = "        run: zig run check_phase1_bitmap_direct_anchors.zig --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 bitmap direct-anchor packet",
-        .run = "        run: python3 scripts/zigux/check-phase1-bitmap-direct-anchors.py",
+        .run = "        run: zig run check_phase1_bitmap_direct_anchors.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 rbtree review checker",
-        .run = "        run: python3 scripts/zigux/check-phase1-rbtree-review-packet.py --self-test",
+        .run = "        run: zig run check_phase1_rbtree_review_packet.zig --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 rbtree review packet",
-        .run = "        run: python3 scripts/zigux/check-phase1-rbtree-review-packet.py",
+        .run = "        run: zig run check_phase1_rbtree_review_packet.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 route summary checker",
-        .run = "        run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
+        .run = "        run: zig run check_phase1_route_summary_counts.zig --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 route summary packet",
-        .run = "        run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
+        .run = "        run: zig run check_phase1_route_summary_counts.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 bench checker",
-        .run = "        run: python3 scripts/zigux/check-phase1-bench.py --self-test",
+        .run = "        run: zig run check_phase1_bench.zig --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 bench packet",
-        .run = "        run: python3 scripts/zigux/check-phase1-bench.py",
+        .run = "        run: zig run check_phase1_bench.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 bench live-check workflow guard",
-        .run = "        run: python3 scripts/zigux/check-phase1-bench-live-check-workflow.py --self-test",
+        .run = "        run: zig run check_phase1_bench_live_check_workflow.zig --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 bench live-check workflow guard packet",
-        .run = "        run: python3 scripts/zigux/check-phase1-bench-live-check-workflow.py",
+        .run = "        run: zig run check_phase1_bench_live_check_workflow.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 find-bit bench anchor checker",
-        .run = "        run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --self-test",
+        .run = "        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 find-bit bench anchor packet",
-        .run = "        run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py",
+        .run = "        run: zig run check_phase1_find_bit_bench_anchors.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 shared reminder checker",
-        .run = "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test",
+        .run = "        run: zig run check_phase1_shared_reminder_packet.zig --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 shared reminder packet",
-        .run = "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
+        .run = "        run: zig run check_phase1_shared_reminder_packet.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 closure validator",
-        .run = "        run: python3 scripts/zigux/validate-phase1-closure.py --self-test",
+        .run = "        run: zig run validate_phase1_closure.zig --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 closure packet",
-        .run = "        run: python3 scripts/zigux/validate-phase1-closure.py",
+        .run = "        run: zig run validate_phase1_closure.zig",
     },
 };
 
@@ -163,7 +163,7 @@ fn requireAfter(previous: *?usize, haystack: []const u8, needle: []const u8) Wor
 fn validatePhase1Roster(workflow: []const u8) WorkflowError!void {
     var previous: ?usize = null;
     try requireAfter(&previous, workflow, "      - name: Check current Phase 2 closure packet");
-    try requireAfter(&previous, workflow, "        run: python3 scripts/zigux/validate-phase2-closure.py");
+    try requireAfter(&previous, workflow, "        run: zig run validate_phase2_closure.zig");
 
     for (phase1_steps) |step| {
         try requireAfter(&previous, workflow, step.name);
@@ -171,7 +171,7 @@ fn validatePhase1Roster(workflow: []const u8) WorkflowError!void {
     }
 
     try requireAfter(&previous, workflow, "      - name: Self-test current Phase 3 interop packet");
-    try requireAfter(&previous, workflow, "        run: python3 scripts/zigux/validate_phase3_selftest.py");
+    try requireAfter(&previous, workflow, "        run: zig run scripts/zigux/validate_phase3_selftest.zig");
 
     if (countPhase1Names(workflow) != phase1_steps.len) {
         return error.UnexpectedPhase1StepCount;
@@ -200,9 +200,9 @@ test "current bootstrap workflow keeps the complete Phase 1 roster between Phase
 test "roster contract rejects a missing live bench packet" {
     const workflow =
         \\      - name: Check current Phase 2 closure packet
-        \\        run: python3 scripts/zigux/validate-phase2-closure.py
+        \\        run: zig run validate_phase2_closure.zig
         \\      - name: Self-test current Phase 1 direct-owner checker
-        \\        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test
+        \\        run: zig run check_phase1_direct_owner_markers.zig --self-test
     ;
 
     try std.testing.expectError(error.MissingMarker, validatePhase1Roster(workflow));
@@ -214,7 +214,7 @@ test "roster contract rejects duplicate Phase 1 workflow step names" {
 
     const duplicate = try std.mem.concat(std.testing.allocator, u8, &.{
         workflow,
-        "\n      - name: Check current Phase 1 bench packet\n        run: python3 scripts/zigux/check-phase1-bench.py\n",
+        "\n      - name: Check current Phase 1 bench packet\n        run: zig run check_phase1_bench.zig\n",
     });
     defer std.testing.allocator.free(duplicate);
 

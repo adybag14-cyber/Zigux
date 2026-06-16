@@ -11,11 +11,11 @@
     "zigux/tests/phase3_notifier_starter_packet.zig",
     "zigux/tests/phase3_notifier_starter_packet_build.zig",
     "zigux/tests/phase3_notifier_starter_packet_manifest.json",
-    "scripts/zigux/check-phase3-notifier-starter-packet.py"
+    "scripts\zigux/check_phase3_notifier_starter_packet.zig"
   ],
   "replay_routes": [
-    "python3 scripts/zigux/check-phase3-notifier-starter-packet.py --self-test",
-    "python3 scripts/zigux/check-phase3-notifier-starter-packet.py --repo-root .",
+    "zig run check_phase3_notifier_starter_packet.zig --self-test",
+    "zig run check_phase3_notifier_starter_packet.zig --repo-root .",
     "zig build phase3-notifier-starter-packet-test --build-file zigux/tests/phase3_notifier_starter_packet_build.zig"
   ],
   "repo_reality_gaps": [],

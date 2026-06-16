@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const validator_path = "scripts/zigux/validate-phase2-closure.py";
+const validator_path = "scripts\zigux/validate_phase2_closure.zig";
 
 fn readValidator() ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(

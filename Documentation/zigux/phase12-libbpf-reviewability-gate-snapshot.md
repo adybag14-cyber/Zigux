@@ -14,7 +14,7 @@ This note records the bounded `P12-L18` follow-up for the Phase 12 libbpf determ
 The bounded product gap was not a new libbpf helper or a broader Phase 12 replay claim. It was a deterministic snapshot evidence gap: the fixture could name the reviewability gate while a future edit loosened the gate, changed the referenced path, or let the recorded gate blob drift without an immediate fail-closed check.
 
 ## Guardrail
-`scripts/zigux/check-phase12-libbpf-reviewability-gate-snapshot.py` is intentionally narrow. It checks:
+`scripts\zigux/check_phase12_libbpf_reviewability_gate_snapshot.zig` is intentionally narrow. It checks:
 - the primary libbpf snapshot fixture exists
 - `verification_evidence.reviewability_gate.path` is exactly `zigux/tests/phase12_libbpf_reviewability.zig`
 - the recorded reviewability-gate blob is a lowercase 40-character SHA and matches the current Git blob of the reviewability gate
@@ -30,14 +30,14 @@ This note does not claim:
 
 ## Validation
 Rerun the focused guard before treating this evidence as current:
-- `python3 scripts/zigux/check-phase12-libbpf-reviewability-gate-snapshot.py --self-test`
-- `python3 scripts/zigux/check-phase12-libbpf-reviewability-gate-snapshot.py`
+- `zig run check_phase12_libbpf_reviewability_gate_snapshot.zig --self-test`
+- `zig run check_phase12_libbpf_reviewability_gate_snapshot.zig`
 
 Then keep the broader validator-side packet in its existing order:
-- `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`
-- `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`
-- `python3 scripts/zigux/validate-phase12.py`
+- `zig run check_phase12_libbpf_snapshot.zig --self-test`
+- `zig run check_phase12_libbpf_snapshot.zig`
+- `zig run validate_phase12.zig`
 - `make -C zigux phase12-validate`
 
 ## Next Bounded Step
-If this lane reopens, first reread `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/phase12_libbpf_reviewability.zig`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, and `scripts/zigux/check-phase12-libbpf-reviewability-gate-snapshot.py` together. Prefer another one-file fail-closed evidence repair over adding more libbpf helper scope or promoting the parked replay packet into the shared smoke-first route.
+If this lane reopens, first reread `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/phase12_libbpf_reviewability.zig`, `scripts\zigux/check_phase12_libbpf_snapshot.zig`, and `scripts\zigux/check_phase12_libbpf_reviewability_gate_snapshot.zig` together. Prefer another one-file fail-closed evidence repair over adding more libbpf helper scope or promoting the parked replay packet into the shared smoke-first route.

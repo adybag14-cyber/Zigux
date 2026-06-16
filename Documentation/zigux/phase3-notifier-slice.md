@@ -10,7 +10,7 @@ This note records one bounded Phase 3 notifier starter packet on current `master
 - `zigux/tests/phase3_notifier_starter_packet.zig`
 - `zigux/tests/phase3_notifier_starter_packet_build.zig`
 - `zigux/tests/phase3_notifier_starter_packet_manifest.json`
-- `scripts/zigux/check-phase3-notifier-starter-packet.py`
+- `scripts\zigux/check_phase3_notifier_starter_packet.zig`
 
 ## Bounded Contract
 
@@ -20,7 +20,7 @@ This packet stays intentionally small:
 - `zigux/helpers/notifier_view.zig` keeps helper-local forward iteration, first and last node discovery, callback-presence checks, and first priority-increase detection explicit without widening into callback execution, registration, or ownership transfer.
 - `zigux/tests/phase3_notifier_starter_packet.zig` keeps the result constants, layout anchors, bounded priority-chain replay, helper-local callback-presence witnesses, list backlink drift witness, and hlist prev-link drift witness explicit.
 - `zigux/tests/phase3_notifier_starter_packet_build.zig` provides one focused replay route for the starter packet instead of expanding the wider shared tests-root aggregate.
-- `zigux/tests/phase3_notifier_starter_packet_manifest.json` and `scripts/zigux/check-phase3-notifier-starter-packet.py` keep the packet fail-closed and reviewable.
+- `zigux/tests/phase3_notifier_starter_packet_manifest.json` and `scripts\zigux/check_phase3_notifier_starter_packet.zig` keep the packet fail-closed and reviewable.
 
 ## Current Gap
 

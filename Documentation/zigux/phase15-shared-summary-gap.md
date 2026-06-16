@@ -17,7 +17,7 @@ Phase 15 is supposed to govern the mixed-language steady state honestly. Current
 
 The current same-lane truthfulness task is no longer to treat the dedicated shared build companion as missing. It is to keep the broad reminder surfaces aligned with the now-materialized packet while still refusing to imply Architecture Council approval, direct deep-core delivery, or blocked Phase 15 wrapper-route recovery just because more reminder companions are landed.
 
-The tests-root governance reminder is now landed in `zigux/tests/README.md`, so the honest maintenance step is to keep that section aligned with `scripts/zigux/check-phase15-tests-readme-alignment.py`, `Documentation/zigux/phase15-architecture-council-review-process.md`, and the rest of this governance family rather than carrying the tests-root surface as still-missing drift.
+The tests-root governance reminder is now landed in `zigux/tests/README.md`, so the honest maintenance step is to keep that section aligned with `scripts\zigux/check_phase15_tests_readme_alignment.zig`, `Documentation/zigux/phase15-architecture-council-review-process.md`, and the rest of this governance family rather than carrying the tests-root surface as still-missing drift.
 
 This refresh closes the shared-gap undercount that had fallen behind the current 2026-05-27 governance packet. Reviewers can now compare the broad reminder surfaces against the live machine-readable parity scorecard companion, the dedicated readiness manifest, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated handoff manifest plus focused handoff-specific replay, the dedicated deep-core blocker survey, the Architecture Council decision index, the stay-in-C companions, the focused review-process build-file replay, the focused tests-root alignment guard, the focused handoff-note checker, the dedicated validator maintenance gate, the dedicated shared build companion, and the Architecture Council review-process owner note plus decision-record template instead of reconciling that shared-summary packet against neighboring readiness, handoff, and tests-root rereads by hand.
 
@@ -32,7 +32,7 @@ The following paths now count as present governance evidence on current `master`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `Documentation/zigux/phase15-deep-core-blocker-survey.md`
-- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
+- `scripts\zigux/check_phase15_scripts_readme_alignment.zig`
 - `zigux/tests/phase15_freeze_map_governance.zig`
 - `zigux/tests/phase15_parity_scorecard.json`
 - `zigux/tests/phase15_parity_scorecard.zig`
@@ -53,13 +53,13 @@ Direct current-`master` reads now materialize these focused companions, so the s
 - `zigux/tests/phase15_handoff_next_steps.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `zigux/tests/phase15_build.zig`
-- `scripts/zigux/check-phase15-architecture-council-packet.py`
-- `scripts/zigux/check-phase15-review-process-handoff.py`
-- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
-- `scripts/zigux/check-phase15-tests-readme-alignment.py`
-- `scripts/zigux/check-phase15-handoff-note-alignment.py`
-- `scripts/zigux/check-phase15-readiness-gate-packet.py`
-- `scripts/zigux/validate-phase15.py`
+- `scripts\zigux/check_phase15_architecture_council_packet.zig`
+- `scripts\zigux/check_phase15_review_process_handoff.zig`
+- `scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig`
+- `scripts\zigux/check_phase15_tests_readme_alignment.zig`
+- `scripts\zigux/check_phase15_handoff_note_alignment.zig`
+- `scripts\zigux/check_phase15_readiness_gate_packet.zig`
+- `scripts\zigux/validate_phase15.zig`
 
 ## Still-missing broader wrapper and shared-CI route companions on current master
 
@@ -73,7 +73,7 @@ These broader reminder surfaces still are not directly materialized as dedicated
 The remaining Phase 15 discipline work is broad-summary truthfulness and route wording exactness, not missing-file recovery by wishful thinking:
 
 - `Documentation/zigux/README.md`
-- `Documentation/zigux/README.md` now keeps a dedicated Phase 15 reminder packet explicit, so reread it with `scripts/zigux/check-phase15-docs-readme-alignment.py` whenever that shared docs-root wording drifts away from the directly materialized governance packet
+- `Documentation/zigux/README.md` now keeps a dedicated Phase 15 reminder packet explicit, so reread it with `scripts\zigux/check_phase15_docs_readme_alignment.zig` whenever that shared docs-root wording drifts away from the directly materialized governance packet
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
@@ -88,15 +88,15 @@ The remaining Phase 15 discipline work is broad-summary truthfulness and route w
 - `Documentation/zigux/phase15-deep-core-blocker-survey.md`
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
-- `scripts/zigux/check-phase15-docs-readme-alignment.py`
-- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
-- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
-- `scripts/zigux/check-phase15-tests-readme-alignment.py`
-- `scripts/zigux/check-phase15-architecture-council-packet.py`
-- `scripts/zigux/check-phase15-review-process-handoff.py`
-- `scripts/zigux/check-phase15-handoff-note-alignment.py`
-- `scripts/zigux/check-phase15-shared-summary-gap.py`
-- `scripts/zigux/check-phase15-readiness-gate-packet.py`
+- `scripts\zigux/check_phase15_docs_readme_alignment.zig`
+- `scripts\zigux/check_phase15_scripts_readme_alignment.zig`
+- `scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig`
+- `scripts\zigux/check_phase15_tests_readme_alignment.zig`
+- `scripts\zigux/check_phase15_architecture_council_packet.zig`
+- `scripts\zigux/check_phase15_review_process_handoff.zig`
+- `scripts\zigux/check_phase15_handoff_note_alignment.zig`
+- `scripts\zigux/check_phase15_shared_summary_gap.zig`
+- `scripts\zigux/check_phase15_readiness_gate_packet.zig`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_governance_lane_sequencing_manifest.json`
 - `zigux/tests/phase15_governance_lane_sequencing.zig`
@@ -105,8 +105,8 @@ The remaining Phase 15 discipline work is broad-summary truthfulness and route w
 - `zigux/tests/phase15_handoff_next_steps.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `zigux/tests/phase15_build.zig`
-- `scripts/zigux/README.md` now keeps the directly materialized `scripts/zigux/validate-phase15.py` maintenance gate, the directly materialized `scripts/zigux/check-phase15-architecture-council-packet.py` Architecture Council packet checker, and the directly materialized `zigux/tests/phase15_build.zig` shared build companion explicit while the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes plus the shared-CI route remain the broader route-level gaps on current `master`
-- the landed `zigux/tests/README.md` Phase 15 governance section still needs rereads with `scripts/zigux/check-phase15-tests-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the rest of the directly materialized governance packet whenever that broad tests-root summary drifts
+- `scripts/zigux/README.md` now keeps the directly materialized `scripts\zigux/validate_phase15.zig` maintenance gate, the directly materialized `scripts\zigux/check_phase15_architecture_council_packet.zig` Architecture Council packet checker, and the directly materialized `zigux/tests/phase15_build.zig` shared build companion explicit while the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes plus the shared-CI route remain the broader route-level gaps on current `master`
+- the landed `zigux/tests/README.md` Phase 15 governance section still needs rereads with `scripts\zigux/check_phase15_tests_readme_alignment.zig`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the rest of the directly materialized governance packet whenever that broad tests-root summary drifts
 - broader wrapper-route wording around `make -C zigux phase15-validate`, `make -C zigux phase15-test`, `make -C zigux phase15`, and the dedicated shared-CI Phase 15 route names
 
 These are the surfaces that should be reread together before claiming any new Phase 15 shared-summary drift.
@@ -116,9 +116,9 @@ These are the surfaces that should be reread together before claiming any new Ph
 Treat the current Phase 15 shared-summary state as a wording-and-alignment check:
 
 - do not reintroduce stale missing-path claims for materialized governance assets, the dedicated readiness manifest, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated handoff manifest, the dedicated deep-core blocker survey, the dedicated Architecture Council decision index, the dedicated validator maintenance gate, the dedicated Architecture Council packet checker, the dedicated shared build companion, or the focused review-process companions
-- if a materialized Phase 15 governance asset, the dedicated readiness manifest, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated handoff manifest, the dedicated deep-core blocker survey, the dedicated Architecture Council decision index, the dedicated validator maintenance gate, the dedicated Architecture Council packet checker, the dedicated shared build companion, or a materialized focused review-process companion disappears, tighten this note and `scripts/zigux/check-phase15-shared-summary-gap.py` immediately
+- if a materialized Phase 15 governance asset, the dedicated readiness manifest, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated handoff manifest, the dedicated deep-core blocker survey, the dedicated Architecture Council decision index, the dedicated validator maintenance gate, the dedicated Architecture Council packet checker, the dedicated shared build companion, or a materialized focused review-process companion disappears, tighten this note and `scripts\zigux/check_phase15_shared_summary_gap.zig` immediately
 - do not treat the parked make-route vocabulary or shared-CI route vocabulary as shipped evidence until direct current-tree reads recover them
-- do keep the landed tests-root Phase 15 reminder aligned with `scripts/zigux/check-phase15-tests-readme-alignment.py` and the rest of the directly materialized governance packet instead of letting that summary drift back into undercounted or implied-approval wording
+- do keep the landed tests-root Phase 15 reminder aligned with `scripts\zigux/check_phase15_tests_readme_alignment.zig` and the rest of the directly materialized governance packet instead of letting that summary drift back into undercounted or implied-approval wording
 - do not treat present focused companions as Architecture Council approval or direct deep-core delivery evidence by themselves
 - if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, the Architecture Council decision index, the deep-core blocker survey, the Architecture Council packet checker, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
 - keep tests-root follow-through separate from review-process and parity-scorecard packet maintenance unless the same direct evidence forces them back together

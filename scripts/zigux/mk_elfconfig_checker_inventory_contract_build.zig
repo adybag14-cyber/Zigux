@@ -7,8 +7,8 @@ pub fn build(b: *std.Build) void {
     const checker_path = b.option(
         []const u8,
         "checker-path",
-        "Path to scripts/zigux/check-mk-elfconfig-diff.py",
-    ) orelse "scripts/zigux/check-mk-elfconfig-diff.py";
+        "Path to scripts\zigux/check_mk_elfconfig_diff.zig",
+    ) orelse "scripts\zigux/check_mk_elfconfig_diff.zig";
     const cases_path = b.option(
         []const u8,
         "cases-path",

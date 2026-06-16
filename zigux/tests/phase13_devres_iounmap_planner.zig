@@ -65,7 +65,7 @@ test "phase13 devres iounmap planner manifest records the landed helper-first mm
     try requireContains(manifest, "lib/devres.zig");
     try requireContains(manifest, "Documentation/zigux/phase13-devres-iounmap-planner.md");
     try requireContains(manifest, "zigux/tests/phase13_devres_iounmap_planner.zig");
-    try requireContains(manifest, "scripts/zigux/check-phase13-devres-iounmap-planner.py");
+    try requireContains(manifest, "scripts\zigux/check_phase13_devres_iounmap_planner.zig");
     try requireContains(manifest, "\"iounmap_cleanup_owner\": \"zigux/tests/phase13_devres_iounmap_planner.zig\"");
     try requireContains(manifest, "\"warn_on_release_miss_owner\": \"zigux/tests/phase13_devres_iounmap_planner.zig\"");
     try requireContains(manifest, "planManagedIounmapCleanup");
@@ -105,12 +105,12 @@ test "phase13 devres slice records the helper-first iounmap packet in current ev
 
     try requireContains(slice, "`Documentation/zigux/phase13-devres-iounmap-planner.md`");
     try requireContains(slice, "`zigux/tests/phase13_devres_iounmap_planner.zig`");
-    try requireContains(slice, "`scripts/zigux/check-phase13-devres-iounmap-planner.py`");
+    try requireContains(slice, "`scripts\zigux/check_phase13_devres_iounmap_planner.zig`");
     try requireContains(slice, "current packet helper-first, planning-only, and MMIO-bounded");
 }
 
 test "phase13 devres iounmap planner checker stays packet-local" {
-    const checker = try readRepoFile(std.testing.allocator, "scripts/zigux/check-phase13-devres-iounmap-planner.py");
+    const checker = try readRepoFile(std.testing.allocator, "scripts\zigux/check_phase13_devres_iounmap_planner.zig");
     defer std.testing.allocator.free(checker);
 
     try requireContains(checker, "HELPER_PATH = Path(\"lib/devres.zig\")");

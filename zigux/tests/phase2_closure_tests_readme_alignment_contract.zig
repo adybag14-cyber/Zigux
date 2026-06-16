@@ -23,9 +23,9 @@ test "phase2 tests readme alignment checker remains in the closure tool manifest
     try expectContains(manifest, "\"phase\": \"Phase 2\"");
     try expectContains(manifest, "\"status\": \"active\"");
     try expectContains(manifest, "\"repo_reality_gaps\": []");
-    try expectContains(manifest, "\"scripts/zigux/check-phase2-tests-readme-alignment.py\"");
-    try expectContains(manifest, "\"scripts/zigux/validate-phase2.py\"");
-    try expectContains(manifest, "\"scripts/zigux/validate-phase2-closure.py\"");
+    try expectContains(manifest, "\"scripts\zigux/check_phase2_tests_readme_alignment.zig\"");
+    try expectContains(manifest, "\"scripts\zigux/validate_phase2.zig\"");
+    try expectContains(manifest, "\"scripts\zigux/validate_phase2_closure.zig\"");
     try expectContains(manifest, "\"make -C zigux phase2-validate\"");
     try expectContains(manifest, "\"make -C zigux phase2\"");
 }
@@ -37,9 +37,9 @@ test "phase2 tests root reminder names the same live alignment surface" {
     try expectContains(tests_readme, "## Phase 2 review packet");
     try expectContains(tests_readme, "current direct-readback Phase 2 kconfig, genksyms, and fixdep packet:");
     try expectContains(tests_readme, "`Documentation/zigux/phase2-closure.md`");
-    try expectContains(tests_readme, "`scripts/zigux/validate-phase2.py`");
-    try expectContains(tests_readme, "`scripts/zigux/validate-phase2-closure.py`");
-    try expectContains(tests_readme, "`scripts/zigux/check-phase2-tests-readme-alignment.py`");
+    try expectContains(tests_readme, "`scripts\zigux/validate_phase2.zig`");
+    try expectContains(tests_readme, "`scripts\zigux/validate_phase2_closure.zig`");
+    try expectContains(tests_readme, "`scripts\zigux/check_phase2_tests_readme_alignment.zig`");
     try expectContains(tests_readme, "the current directly readable Phase 2 packet is the scripts-root kbuild");
     try expectContains(tests_readme, "the restored closure-side note, validator entrypoint, closure validator");
 }
@@ -48,9 +48,9 @@ test "phase2 validate route keeps tests-readme alignment ahead of closure valida
     const makefile = try readRepoFile("zigux/Makefile", 96 * 1024);
     defer std.testing.allocator.free(makefile);
 
-    const checker_self_test = "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py --self-test";
-    const checker_live = "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py";
-    const closure_validator = "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py";
+    const checker_self_test = "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_tests_readme_alignment.zig --self-test";
+    const checker_live = "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_tests_readme_alignment.zig";
+    const closure_validator = "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase2_closure.zig";
 
     try expectContains(makefile, "phase2-validate:");
     try expectContains(makefile, checker_self_test);
@@ -64,12 +64,12 @@ test "phase2 validate route keeps tests-readme alignment ahead of closure valida
 
     try expectContains(
         closure_note,
-        "PHASE2_CLOSURE_VALIDATORS=python3 scripts/zigux/validate-phase2.py,python3 scripts/zigux/validate-phase2-closure.py",
+        "PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2.zig,zig run validate_phase2_closure.zig",
     );
 }
 
 test "phase2 tests-readme checker keeps its self-test and live pass signals" {
-    const checker = try readRepoFile("scripts/zigux/check-phase2-tests-readme-alignment.py", 160 * 1024);
+    const checker = try readRepoFile("scripts\zigux/check_phase2_tests_readme_alignment.zig", 160 * 1024);
     defer std.testing.allocator.free(checker);
 
     try expectContains(checker, "PHASE2_TESTS_README_ALIGNMENT=self-test-pass");

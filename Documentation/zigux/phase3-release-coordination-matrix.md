@@ -20,7 +20,7 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - linux-header governance companion: `Documentation/zigux/phase3-linux-zigux-header-governance.md`
 - header-family survey companion: `Documentation/zigux/phase3-abi-header-family-survey.md`
 - freeze-map companion: `Documentation/zigux/freeze-map.md`
-- shared validator packet: `scripts/zigux/validate-phase3.py`, `scripts/zigux/check-phase3-abi.py`, `scripts/zigux/check-phase3-selftest-surface.py`, `scripts/zigux/check-phase3-readme-tooling-inventory.py`, `scripts/zigux/check-phase3-catalog-selftest.py`, `scripts/zigux/phase3_catalog.py`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, and `scripts/zigux/validate-phase3-abi-header-family-survey.py`
+- shared validator packet: `scripts\zigux/validate_phase3.zig`, `scripts\zigux/check_phase3_abi.zig`, `scripts\zigux/check_phase3_selftest_surface.zig`, `scripts\zigux/check_phase3_readme_tooling_inventory.zig`, `scripts\zigux/check_phase3_catalog_selftest.zig`, `scripts/zigux/phase3_catalog.zig`, `scripts\zigux/validate_phase3_export_uapi_survey.zig`, `scripts\zigux/validate_phase3_low_level_wrapper_survey.zig`, and `scripts\zigux/validate_phase3_abi_header_family_survey.zig`
 - shared replay wiring: `zigux/tests/build.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, and `zigux/Makefile`
 
 ## Active Shared Packet
@@ -71,7 +71,7 @@ Keep that packet framed as bounded ABI, helper, starter, layout-replay, and surv
 - PMO / Release Management: keep this matrix, `Documentation/zigux/phase3-boundary-lane-sequencing.md`, `Documentation/zigux/phase3-validator-support-surface.md`, and the docs-root reminder packet aligned around the same active-not-closed posture and the same bounded replay family.
 - ABI and export boundary owners: keep `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, `Documentation/zigux/phase3-abi-header-family-survey.md`, `include/linux/zigux.h`, `include/zigux/abi.h`, `zigux/bindings/abi.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and `zigux/tests/fixtures/phase3_abi_manifest.json` grounded in their shipped reviewability surfaces.
 - Helper-local owners: keep the `err_ptr` / `xarray`, `xarray_slot`, policy, and low-level-wrapper slices grounded in `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, and their directly readable helper and test companions instead of promoting them into broader shared-release closure evidence.
-- Validator and catalog owners: keep `scripts/zigux/validate-phase3.py`, `scripts/zigux/check-phase3-abi.py`, `scripts/zigux/check-phase3-selftest-surface.py`, `scripts/zigux/check-phase3-readme-tooling-inventory.py`, `scripts/zigux/check-phase3-catalog-selftest.py`, `scripts/zigux/phase3_catalog.py`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, and `scripts/zigux/validate-phase3-abi-header-family-survey.py` explicit as the current shared truthfulness and rerun packet.
+- Validator and catalog owners: keep `scripts\zigux/validate_phase3.zig`, `scripts\zigux/check_phase3_abi.zig`, `scripts\zigux/check_phase3_selftest_surface.zig`, `scripts\zigux/check_phase3_readme_tooling_inventory.zig`, `scripts\zigux/check_phase3_catalog_selftest.zig`, `scripts/zigux/phase3_catalog.zig`, `scripts\zigux/validate_phase3_export_uapi_survey.zig`, `scripts\zigux/validate_phase3_low_level_wrapper_survey.zig`, and `scripts\zigux/validate_phase3_abi_header_family_survey.zig` explicit as the current shared truthfulness and rerun packet.
 
 ## Release Handle
 
@@ -80,7 +80,7 @@ Keep the stable Phase 3 release-planning handle distinct from the helper-local a
 1. `Documentation/zigux/phase3-release-coordination-matrix.md`
 2. `Documentation/zigux/phase3-boundary-lane-sequencing.md`
 3. `Documentation/zigux/phase3-validator-support-surface.md`
-4. `scripts/zigux/validate-phase3.py`
+4. `scripts\zigux/validate_phase3.zig`
 5. `make -C zigux phase3-validate`
 6. `make -C zigux phase3`
 
@@ -106,9 +106,9 @@ That keeps the release handle centered on the shared validator-first and bounded
 When the shared Phase 3 packet moves:
 
 1. reread this matrix beside `Documentation/zigux/phase3-boundary-lane-sequencing.md`, `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-validator-support-surface.md`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, and `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
-2. rerun `python3 scripts/zigux/check-phase3-selftest-surface.py --self-test`
-3. rerun `python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test`
-4. rerun `python3 scripts/zigux/check-phase3-abi.py --self-test`
+2. rerun `zig run check_phase3_selftest_surface.zig --self-test`
+3. rerun `zig run check_phase3_readme_tooling_inventory.zig --self-test`
+4. rerun `zig run check_phase3_abi.zig --self-test`
 5. keep any broader README, checklist, or tests-root reminder refresh as a separate same-lane step when a fresh repo reread proves drift there
 
 ## Next Bounded Step

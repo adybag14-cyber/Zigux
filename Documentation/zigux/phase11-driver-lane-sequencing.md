@@ -38,8 +38,8 @@ Keep the current lane split explicit:
   `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`,
   `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`,
   `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,
-  `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
-  `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
+  `scripts\zigux/check_phase11_dw_wdt_teardown_packet.zig`,
+  `scripts\zigux/check_phase11_dw_wdt_verify_alignment.zig`,
   `zigux/tests/phase11_dw_wdt_manifest.json`,
   `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
   `drivers/watchdog/dw_wdt_pm.zig`, and
@@ -47,7 +47,7 @@ Keep the current lane split explicit:
   `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and
   `zigux/tests/phase11_dw_wdt.zig` stay framed as repo-reality-gap vocabulary
   until a fresh reread proves they returned, and the older
-  `scripts/zigux/check-phase11-dw-wdt-packet.py` handle stays framed as
+  `scripts\zigux/check_phase11_dw_wdt_packet.zig` handle stays framed as
   historical vocabulary
 - HVC continuity lane `P11-L16` currently keeps the directly readable
   `Documentation/zigux/phase11-hvc-console-survey.md`,
@@ -55,8 +55,8 @@ Keep the current lane split explicit:
   `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`,
   `Documentation/zigux/phase11-hvc-console-validation-matrix.md`,
   `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`,
-  `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
-  `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,
+  `scripts\zigux/check_phase11_hvc_cleanup_current_head.zig`,
+  `scripts\zigux/check_phase11_hvc_targetless_unregister_witness.zig`,
   `zigux/tests/fixtures/phase11_build_inventory.json`,
   `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`,
   `zigux/tests/phase11_hvc_export_surface_layout_build.zig`,
@@ -104,14 +104,14 @@ surfaces that were reread in this run:
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
-- `scripts/zigux/check-phase11-matrix-gap-survey.py`
-- `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
-- `scripts/zigux/check-phase11-build-inventory.py`
-- `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`
-- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
-- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
-- `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
-- `scripts/zigux/validate-phase11.py`
+- `scripts\zigux/check_phase11_matrix_gap_survey.zig`
+- `scripts\zigux/check_phase11_validation_matrix_gap_survey.zig`
+- `scripts\zigux/check_phase11_build_inventory.zig`
+- `scripts\zigux/check_phase11_dw_wdt_teardown_packet.zig`
+- `scripts\zigux/check_phase11_dw_wdt_verify_alignment.zig`
+- `scripts\zigux/check_phase11_hvc_cleanup_current_head.zig`
+- `scripts\zigux/check_phase11_hvc_targetless_unregister_witness.zig`
+- `scripts\zigux/validate_phase11.zig`
 - `drivers/watchdog/dw_wdt_pm.zig`
 - `drivers/watchdog/dw_wdt_pm_scaffold.zig`
 - `zigux/Makefile`
@@ -150,8 +150,8 @@ Current rereads in this run also keep
 `Documentation/zigux/phase11-shared-replay-contract.md` directly readable as an
 archival shared reminder surface.
 Keep that returned contract explicit in the sequencing packet, but keep its
-older paired `scripts/zigux/check-phase11-shared-replay-contract.py`,
-`scripts/zigux/check-phase11-shared-summary-surfaces.py`, and
+older paired `scripts\zigux/check_phase11_shared_replay_contract.zig`,
+`scripts\zigux/check_phase11_shared_summary_surfaces.zig`, and
 `zigux/tests/phase11_build.zig` routes framed as missing current-head
 companions rather than live replay evidence.
 
@@ -159,7 +159,7 @@ Current rereads in this run also keep `Documentation/zigux/README.md`,
 `Documentation/zigux/review-checklist.md`,
 `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`,
 `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`,
-`scripts/zigux/README.md`, `scripts/zigux/validate-phase11.py`,
+`scripts/zigux/README.md`, `scripts\zigux/validate_phase11.zig`,
 `zigux/Makefile`, and the returned `make -C zigux phase11-validate` route
 explicit as the broader contributor-facing reminder family for the shared
 Phase 11 packet, while `make -C zigux phase11` and
@@ -175,8 +175,8 @@ PM-helper packet through
 `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`,
 `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`,
 `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,
-`scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
-`scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
+`scripts\zigux/check_phase11_dw_wdt_teardown_packet.zig`,
+`scripts\zigux/check_phase11_dw_wdt_verify_alignment.zig`,
 `zigux/tests/phase11_dw_wdt_manifest.json`,
 `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
 `drivers/watchdog/dw_wdt_pm.zig`, and
@@ -213,17 +213,17 @@ Use this note to keep the bounded work order honest:
    `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and
    `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, plus the adjacent
    `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`,
-   `scripts/zigux/check-phase11-matrix-gap-survey.py`,
-   `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`,
-   `scripts/zigux/check-phase11-build-inventory.py`, the returned shared
-   validator `scripts/zigux/validate-phase11.py`, the directly readable
+   `scripts\zigux/check_phase11_matrix_gap_survey.zig`,
+   `scripts\zigux/check_phase11_validation_matrix_gap_survey.zig`,
+   `scripts\zigux/check_phase11_build_inventory.zig`, the returned shared
+   validator `scripts\zigux/validate_phase11.zig`, the directly readable
    DesignWare continuity packet through
    `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,
    `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`,
    `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`,
    `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,
-   `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
-   `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
+   `scripts\zigux/check_phase11_dw_wdt_teardown_packet.zig`,
+   `scripts\zigux/check_phase11_dw_wdt_verify_alignment.zig`,
    `zigux/tests/phase11_dw_wdt_manifest.json`,
    `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
    `drivers/watchdog/dw_wdt_pm.zig`, and
@@ -233,8 +233,8 @@ Use this note to keep the bounded work order honest:
    returned DesignWare lane-gap note and matrix note, the returned archival
    `Documentation/zigux/phase11-shared-replay-contract.md`, and the HVC
    current-head continuity packet with its cleanup companion,
-   `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
-   `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`, shared
+   `scripts\zigux/check_phase11_hvc_cleanup_current_head.zig`,
+   `scripts\zigux/check_phase11_hvc_targetless_unregister_witness.zig`, shared
    build inventory anchor, proof-backed adjunct stack, dedicated modem-control
    proof pair, and standalone targetless-unregister witness pair; keep it
    explicit that the bcm2835 and DesignWare matrix notes now reread through
@@ -253,8 +253,8 @@ Use this note to keep the bounded work order honest:
    `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`,
    `Documentation/zigux/phase11-hvc-console-validation-matrix.md`,
    `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`,
-   `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
-   `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,
+   `scripts\zigux/check_phase11_hvc_cleanup_current_head.zig`,
+   `scripts\zigux/check_phase11_hvc_targetless_unregister_witness.zig`,
    `zigux/tests/fixtures/phase11_build_inventory.json`,
    `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`,
    `zigux/tests/phase11_hvc_export_surface_layout_build.zig`,
@@ -287,12 +287,12 @@ This note does not widen Phase 11 into:
 - a claim that the overall simple-driver tranche is closed
 - a claim that the broader absent `make -C zigux phase11` and
   `make -C zigux phase11-contract` routes, the missing paired
-  `scripts/zigux/check-phase11-shared-replay-contract.py` and
-  `scripts/zigux/check-phase11-shared-summary-surfaces.py` routes, or the
+  `scripts\zigux/check_phase11_shared_replay_contract.zig` and
+  `scripts\zigux/check_phase11_shared_summary_surfaces.zig` routes, or the
   missing shared `zigux/tests/phase11_build.zig` replay family are already
   present on current `master` just because the returned archival
   `Documentation/zigux/phase11-shared-replay-contract.md`, the returned shared
-  validator `scripts/zigux/validate-phase11.py`, and the now-returned
+  validator `scripts\zigux/validate_phase11.zig`, and the now-returned
   `make -C zigux phase11-validate` path are back
 - a claim that bcm2835 or DesignWare broader reminder packets, helper stacks, or
   replay routes have all returned just because the driver-local validation

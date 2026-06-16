@@ -15,7 +15,7 @@ const ForbiddenSurface = struct {
 
 const docs_root_markers = [_][]const u8{
     "Phase 15 notes",
-    "scripts/zigux/validate-phase15.py",
+    "scripts\zigux/validate_phase15.zig",
     "zigux/tests/phase15_build.zig",
     "make -C zigux phase15-validate",
     "make -C zigux phase15-test",
@@ -26,7 +26,7 @@ const docs_root_markers = [_][]const u8{
 
 const scripts_root_markers = [_][]const u8{
     "## Phase 15",
-    "scripts/zigux/validate-phase15.py",
+    "scripts\zigux/validate_phase15.zig",
     "zigux/tests/phase15_build.zig",
     "broader dedicated `phase15*` wrapper and shared-CI route names stay repo-reality gaps",
     "does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`",
@@ -131,7 +131,7 @@ test "Phase 15 shared reminders keep route gap explicit" {
 
 test "Phase 15 validator models wrappers and workflow routes as absent" {
     try expectAllMarkers(.{
-        .name = "scripts/zigux/validate-phase15.py",
+        .name = "scripts\zigux/validate_phase15.zig",
         .body = options.validator,
         .required_markers = &validator_markers,
     });

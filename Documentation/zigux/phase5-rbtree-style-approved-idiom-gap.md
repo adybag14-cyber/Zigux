@@ -41,7 +41,7 @@ In particular, do not describe these helper packets as a fifth Phase 5 sample fa
 - `tools/lib/rbtree.zig`
 - `lib/rbtree.zig`
 - `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`
-- `scripts/zigux/check-phase7-rbtree-parity.py`
+- `scripts\zigux/check_phase7_rbtree_parity.zig`
 - `zigux/tests/phase7_build.zig`
 
 Those paths belong to helper-focused Phase 1 or Phase 7 evidence, not to the Phase 5 sample-root packet.

@@ -14,11 +14,11 @@
     "zigux/tests/fixtures/phase3_errptr_xarray/phase3_errptr_xarray_c_harness.c",
     "zigux/tests/fixtures/phase3_errptr_xarray/expected.json",
     "zigux/tests/fixtures/phase3_errptr_xarray_manifest.json",
-    "scripts/zigux/check-phase3-errptr-xarray.py"
+    "scripts\zigux/check_phase3_errptr_xarray.zig"
   ],
   "replay_routes": [
-    "python3 scripts/zigux/check-phase3-errptr-xarray.py --self-test",
-    "python3 scripts/zigux/check-phase3-errptr-xarray.py --repo-root . --zig zig --cc gcc",
+    "zig run check_phase3_errptr_xarray.zig --self-test",
+    "zig run check_phase3_errptr_xarray.zig --repo-root . --zig zig --cc gcc",
     "zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig"
   ],
   "repo_reality_gaps": [],

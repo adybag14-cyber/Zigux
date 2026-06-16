@@ -16,8 +16,8 @@ The Phase 14 roadmap keeps Zigux in a bounded study-only and wrapper-first postu
 Fresh current-`master` readback on 2026-05-19 shows a narrow but real shared-smoke route split:
 
 - `zigux/Makefile` now ships `phase14-validate`
-- `scripts/zigux/check-phase14-shared-smoke-route.py` already fail-closes on that dedicated `phase14-validate` route and still rejects `phase14-smoke` and `phase14-test` as active workflow proof
-- `scripts/zigux/validate-phase14.py` and `scripts/zigux/check-phase14-release-boundary-exact-counts.py` are both directly readable current shared-smoke evidence
+- `scripts\zigux/check_phase14_shared_smoke_route.zig` already fail-closes on that dedicated `phase14-validate` route and still rejects `phase14-smoke` and `phase14-test` as active workflow proof
+- `scripts\zigux/validate_phase14.zig` and `scripts\zigux/check_phase14_release_boundary_exact_counts.zig` are both directly readable current shared-smoke evidence
 
 At the same time, several shared reminder surfaces still lag that live route split:
 

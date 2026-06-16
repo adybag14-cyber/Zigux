@@ -182,7 +182,7 @@ test "phase13 devres dmam_alloc_coherent planner manifest records the landed hel
     try requireContains(manifest, "\"owned_surfaces\": [");
     try requireContains(manifest, "lib/devres.zig");
     try requireContains(manifest, "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig");
-    try requireContains(manifest, "scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py");
+    try requireContains(manifest, "scripts\zigux/check_phase13_devres_dmam_alloc_coherent_planner.zig");
     try requireContains(manifest, "\"release_record_lifetime_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
     try requireContains(manifest, "\"release_call_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
     try requireContains(manifest, "\"detach_cleanup_transition_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
@@ -190,7 +190,7 @@ test "phase13 devres dmam_alloc_coherent planner manifest records the landed hel
     try requireContains(manifest, "\"freed_release_record_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
     try requireContains(manifest, "\"missing_release_record_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
     try requireContains(manifest, "\"warn_on_release_miss_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
-    try requireContains(manifest, "\"validation_guard\": \"scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py\"");
+    try requireContains(manifest, "\"validation_guard\": \"scripts\zigux/check_phase13_devres_dmam_alloc_coherent_planner.zig\"");
     try requireContains(manifest, "\"owner_map\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json\"");
     try requireContains(manifest, "\"adjacent_boundary_evidence_only\": [");
     try requireContains(manifest, "zigux/tests/phase13_devres_dma_coherent.zig");
@@ -236,7 +236,7 @@ test "phase13 devres dmam_alloc_coherent planner note keeps the helper-first dma
     try requireContains(note, "Fixture governance stays helper-local:");
     try requireContains(note, "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` owns the retained-release-record, release-call, freed-release-record, zero-sized-request, detach-cleanup-transition, missing-release-record, and warn-on-release-miss fixture coverage");
     try requireContains(note, "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json` is the packet-local owner map");
-    try requireContains(note, "`scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py` is the packet-local fail-closed checker");
+    try requireContains(note, "`scripts\zigux/check_phase13_devres_dmam_alloc_coherent_planner.zig` is the packet-local fail-closed checker");
     try requireContains(note, "`zigux/tests/phase13_devres_dma_coherent.zig` remains adjacent boundary evidence only");
     try requireContains(note, "does not claim live DMA allocation side effects");
     try requireContains(note, "dma_map_*");
@@ -254,12 +254,12 @@ test "phase13 devres dmam_alloc_coherent planner note preserves standalone repla
     defer std.testing.allocator.free(note);
 
     try requireContains(note, "zig test --dep devres -Mroot=zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig -Mdevres=lib/devres.zig");
-    try requireContains(note, "python3 scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py");
+    try requireContains(note, "zig run check_phase13_devres_dmam_alloc_coherent_planner.zig");
     try requireContains(note, "zig test zigux/tests/phase13_devres_dma_coherent.zig");
 }
 
 test "phase13 devres dmam_alloc_coherent checker stays packet-local" {
-    const checker = try readRepoFile(std.testing.allocator, "scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py");
+    const checker = try readRepoFile(std.testing.allocator, "scripts\zigux/check_phase13_devres_dmam_alloc_coherent_planner.zig");
     defer std.testing.allocator.free(checker);
 
     try requireContains(checker, "HELPER_PATH = Path(\"lib/devres.zig\")");

@@ -32,7 +32,7 @@ const manifest_source = @embedFile("phase4_bitmap_diff_manifest.json");
 const bitmap_diff_source = @embedFile("bitmap_diff.zig");
 const bitmap_live_helper_replay_source = @embedFile("phase4_bitmap_live_helper_replay.zig");
 const phase4_build_source = @embedFile("phase4_build.zig");
-const validator_path = "scripts/zigux/validate-phase4.py";
+const validator_path = "scripts\zigux/validate_phase4.zig";
 const validation_matrix_path = "Documentation/zigux/phase4-validation-matrix.md";
 const gate_evidence_path = "Documentation/zigux/phase4-gate-evidence.md";
 
@@ -86,7 +86,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expectEqualStrings("375f7f5ac9dfecee48500cf52a4edbcd7cd02e2f", manifest.helper_replay_blob_sha);
     try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.owner);
     try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.rollback_owner);
-    try std.testing.expectEqualStrings("scripts/zigux/validate-phase4.py", manifest.shared_validator_path);
+    try std.testing.expectEqualStrings("scripts\zigux/validate_phase4.zig", manifest.shared_validator_path);
     try std.testing.expectEqualStrings("96f542c0b3c1c39d1c451713852172f26786f97f", manifest.shared_validator_blob_sha);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-validation-matrix.md", manifest.shared_matrix_path);
     try std.testing.expectEqualStrings("8d0405c0d75217663ea003c5c18a0c2cddd2953f", manifest.shared_matrix_blob_sha);
@@ -164,6 +164,6 @@ test "phase 4 bitmap survey keeps the shared gate evidence packet fail-closed" {
     defer std.testing.allocator.free(gate_evidence_source);
 
     try expectContains(gate_evidence_source, "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true");
-    try expectContains(gate_evidence_source, "scripts/zigux/check-phase4-perf-baseline-packet.py");
+    try expectContains(gate_evidence_source, "scripts\zigux/check_phase4_perf_baseline_packet.zig");
     try expectContains(gate_evidence_source, "zigux/tests/phase4_perf_baseline_survey.zig");
 }

@@ -183,10 +183,10 @@ test "phase14 shared smoke manifest covers the four roadmap anchors and the focu
         "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig",
     );
 
-    try expectContains(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-shared-smoke-route.py");
-    try expectContains(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-skbuff-compile-route.py");
-    try expectContains(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-ring-buffer-compile-route.py");
-    try expectContains(manifest.shared_smoke_surfaces, "scripts/zigux/check-phase14-rcu-compile-route.py");
+    try expectContains(manifest.shared_smoke_surfaces, "scripts\zigux/check_phase14_shared_smoke_route.zig");
+    try expectContains(manifest.shared_smoke_surfaces, "scripts\zigux/check_phase14_skbuff_compile_route.zig");
+    try expectContains(manifest.shared_smoke_surfaces, "scripts\zigux/check_phase14_ring_buffer_compile_route.zig");
+    try expectContains(manifest.shared_smoke_surfaces, "scripts\zigux/check_phase14_rcu_compile_route.zig");
     try expectContains(manifest.shared_smoke_surfaces, "zigux/tests/phase14_end_to_end_smoke_survey.zig");
 
     try std.testing.expect(manifest.survey_summary.phase14_validate_script_present);

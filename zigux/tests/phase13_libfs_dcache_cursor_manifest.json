@@ -7,7 +7,7 @@
     "fs/libfs_dcache_cursor.zig",
     "zigux/tests/phase13_libfs_dcache_cursor.zig",
     "Documentation/zigux/phase13-libfs-dcache-cursor-planner.md",
-    "scripts/zigux/check-phase13-libfs-dcache-cursor-packet.py"
+    "scripts\zigux/check_phase13_libfs_dcache_cursor_packet.zig"
   ],
   "survey_summary": {
     "current_dcache_cursor_helper_present": true,

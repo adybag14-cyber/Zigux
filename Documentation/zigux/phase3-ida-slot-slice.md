@@ -15,8 +15,8 @@ This note records one bounded Phase 3 helper-side `ida_slot` packet on current `
 - `zigux/tests/fixtures/phase3_ida_slot/phase3_ida_slot_c_harness.c`
 - `zigux/tests/fixtures/phase3_ida_slot/expected.json`
 - `zigux/tests/fixtures/phase3_ida_slot_manifest.json`
-- `scripts/zigux/check-phase3-ida-slot-starter-packet.py`
-- `scripts/zigux/check-phase3-ida-slot.py`
+- `scripts\zigux/check_phase3_ida_slot_starter_packet.zig`
+- `scripts\zigux/check_phase3_ida_slot.zig`
 
 ## Bounded Contract
 
@@ -37,18 +37,18 @@ The current helper-local packet has two bounded replay layers:
   - `zigux/tests/phase3_ida_slot_starter_packet.zig`
   - `zigux/tests/phase3_ida_slot_starter_packet_build.zig`
   - `zigux/tests/fixtures/phase3_ida_slot_manifest.json`
-  - `scripts/zigux/check-phase3-ida-slot-starter-packet.py`
-  - `python3 scripts/zigux/check-phase3-ida-slot-starter-packet.py --self-test`
-  - `python3 scripts/zigux/check-phase3-ida-slot-starter-packet.py --repo-root .`
+  - `scripts\zigux/check_phase3_ida_slot_starter_packet.zig`
+  - `zig run check_phase3_ida_slot_starter_packet.zig --self-test`
+  - `zig run check_phase3_ida_slot_starter_packet.zig --repo-root .`
   - `zig build phase3-ida-slot-starter-packet-test --build-file zigux/tests/phase3_ida_slot_starter_packet_build.zig`
 - one fixture-backed dump parity packet:
   - `zigux/tests/phase3_ida_slot_dump.zig`
   - `zigux/tests/phase3_ida_slot_dump_build.zig`
   - `zigux/tests/fixtures/phase3_ida_slot/phase3_ida_slot_c_harness.c`
   - `zigux/tests/fixtures/phase3_ida_slot/expected.json`
-  - `scripts/zigux/check-phase3-ida-slot.py`
-  - `python3 scripts/zigux/check-phase3-ida-slot.py --self-test`
-  - `python3 scripts/zigux/check-phase3-ida-slot.py --repo-root . --zig zig --cc gcc`
+  - `scripts\zigux/check_phase3_ida_slot.zig`
+  - `zig run check_phase3_ida_slot.zig --self-test`
+  - `zig run check_phase3_ida_slot.zig --repo-root . --zig zig --cc gcc`
   - `zig build phase3-ida-slot-dump --build-file zigux/tests/phase3_ida_slot_dump_build.zig`
 
 That keeps the current follow-through narrow and reviewable without reopening the broader shared Phase 3 validator packet.

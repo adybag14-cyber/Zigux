@@ -25,9 +25,9 @@ test "phase 2 closure note keeps genksyms survey replay commands explicit" {
     defer std.testing.allocator.free(closure_note);
 
     try expectContains(closure_note, "Documentation/zigux/phase2-genksyms-dual-implementation-survey.md");
-    try expectContains(closure_note, "scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py");
-    try expectContains(closure_note, "`python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py --self-test`");
-    try expectContains(closure_note, "`python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py`");
+    try expectContains(closure_note, "scripts\zigux/check_phase2_genksyms_dual_implementation_survey.zig");
+    try expectContains(closure_note, "`zig run check_phase2_genksyms_dual_implementation_survey.zig --self-test`");
+    try expectContains(closure_note, "`zig run check_phase2_genksyms_dual_implementation_survey.zig`");
     try expectContains(closure_note, "restored CRC-side tool-plus-checker evidence");
     try expectContains(closure_note, "restored CRC-side evidence and wrapper bridge packet");
     try expectAbsent(closure_note, "PHASE2_CURRENT_GAP_PACKET=Documentation/zigux/phase2-genksyms-dual-implementation-survey.md");
@@ -39,17 +39,17 @@ test "phase 2 closure note orders survey replay after wrapper evidence and befor
 
     try expectBefore(
         closure_note,
-        "`python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py`",
-        "`python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py --self-test`",
+        "`zig run check_phase2_genksyms_selftest_alignment.zig`",
+        "`zig run check_phase2_genksyms_dual_implementation_survey.zig --self-test`",
     );
     try expectBefore(
         closure_note,
-        "`python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py --self-test`",
-        "`python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py`",
+        "`zig run check_phase2_genksyms_dual_implementation_survey.zig --self-test`",
+        "`zig run check_phase2_genksyms_dual_implementation_survey.zig`",
     );
     try expectBefore(
         closure_note,
-        "`python3 scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py`",
+        "`zig run check_phase2_genksyms_dual_implementation_survey.zig`",
         "`zig test scripts/zigux/genksyms.zig`",
     );
     try expectBefore(
@@ -63,17 +63,17 @@ test "phase 2 manifest and validator keep survey surface split visible" {
     const manifest = try readRepoFile("zigux/tests/fixtures/phase2_tool_manifest.json", 160 * 1024);
     defer std.testing.allocator.free(manifest);
 
-    const validator = try readRepoFile("scripts/zigux/validate-phase2-closure.py", 160 * 1024);
+    const validator = try readRepoFile("scripts\zigux/validate_phase2_closure.zig", 160 * 1024);
     defer std.testing.allocator.free(validator);
 
-    try expectContains(manifest, "\"scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py\"");
+    try expectContains(manifest, "\"scripts\zigux/check_phase2_genksyms_dual_implementation_survey.zig\"");
     try expectContains(manifest, "\"Documentation/zigux/phase2-closure.md\"");
-    try expectContains(manifest, "\"scripts/zigux/validate-phase2-closure.py\"");
+    try expectContains(manifest, "\"scripts\zigux/validate_phase2_closure.zig\"");
     try expectContains(manifest, "\"status\": \"active\"");
     try expectContains(manifest, "\"repo_reality_gaps\": []");
 
     try expectContains(validator, "GENKSYMS_COMMANDS = (");
-    try expectContains(validator, "\"python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py\"");
+    try expectContains(validator, "\"zig run check_phase2_genksyms_selftest_alignment.zig\"");
     try expectContains(validator, "GENKSYMS_REQUIRED_NOTE_MARKERS = (");
     try expectContains(validator, "\"Documentation/zigux/phase2-genksyms-dual-implementation-survey.md\"");
     try expectContains(validator, "expected_workflow_lines = tuple(f\"run: {command}\" for command in GENKSYMS_COMMANDS)");

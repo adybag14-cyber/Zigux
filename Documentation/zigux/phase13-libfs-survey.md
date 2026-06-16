@@ -23,9 +23,9 @@ This document records the bounded Phase 13 survey lane around `fs/libfs.c`.
   - `Documentation/zigux/phase13-libfs-slice.md`
   - `Documentation/zigux/phase13-libfs-dcache-cursor-planner.md`
   - `Documentation/zigux/phase13-libfs-dcache-cursor-release-planner.md`
-  - `scripts/zigux/check-phase13-libfs-packet.py`
-  - `scripts/zigux/check-phase13-libfs-dcache-cursor-packet.py`
-  - `scripts/zigux/check-phase13-libfs-dcache-cursor-release-packet.py`
+  - `scripts\zigux/check_phase13_libfs_packet.zig`
+  - `scripts\zigux/check_phase13_libfs_dcache_cursor_packet.zig`
+  - `scripts\zigux/check_phase13_libfs_dcache_cursor_release_packet.zig`
 
 ## Why this slice exists
 
@@ -35,7 +35,7 @@ That still matters because `fs/libfs.c` contains small VFS-adjacent helpers that
 
 ## Survey findings
 
-- current `master` exposes `fs/libfs.zig`, `fs/libfs_dcache_cursor.zig`, `fs/libfs_dcache_cursor_release.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_libfs_dcache_cursor.zig`, `zigux/tests/phase13_libfs_dcache_cursor_release.zig`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_libfs_dcache_cursor_manifest.json`, `zigux/tests/phase13_libfs_dcache_cursor_release_manifest.json`, `Documentation/zigux/phase13-libfs-slice.md`, `Documentation/zigux/phase13-libfs-survey.md`, `Documentation/zigux/phase13-libfs-dcache-cursor-planner.md`, `Documentation/zigux/phase13-libfs-dcache-cursor-release-planner.md`, `scripts/zigux/check-phase13-libfs-packet.py`, `scripts/zigux/check-phase13-libfs-dcache-cursor-packet.py`, and `scripts/zigux/check-phase13-libfs-dcache-cursor-release-packet.py`
+- current `master` exposes `fs/libfs.zig`, `fs/libfs_dcache_cursor.zig`, `fs/libfs_dcache_cursor_release.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_libfs_dcache_cursor.zig`, `zigux/tests/phase13_libfs_dcache_cursor_release.zig`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_libfs_dcache_cursor_manifest.json`, `zigux/tests/phase13_libfs_dcache_cursor_release_manifest.json`, `Documentation/zigux/phase13-libfs-slice.md`, `Documentation/zigux/phase13-libfs-survey.md`, `Documentation/zigux/phase13-libfs-dcache-cursor-planner.md`, `Documentation/zigux/phase13-libfs-dcache-cursor-release-planner.md`, `scripts\zigux/check_phase13_libfs_packet.zig`, `scripts\zigux/check_phase13_libfs_dcache_cursor_packet.zig`, and `scripts\zigux/check_phase13_libfs_dcache_cursor_release_packet.zig`
 - the current helper packet already lands bounded lookup shaping, `simple_transaction_get()` / `simple_transaction_set()` / `simple_transaction_release()` planning, `generic_check_addressable()` planning, `simple_offset_add()` / `simple_offset_remove()` planning, `offset_readdir()` planning, and offset-based rename plus rename-exchange planning without claiming live dcache or inode ownership
 - the first side packet lands `dcache_dir_open()` and `dcache_readdir()` cursor preconditions through a helper-first planner, a focused replay, a dedicated manifest, and a packet checker without claiming sibling traversal, lock ordering, or live rename relocation
 - the new side packet lands `dcache_dir_close()` cursor-release preconditions through a helper-first planner, a focused replay, a dedicated manifest, and a packet checker without claiming live cursor unlinking, lock ordering, or broader teardown ownership

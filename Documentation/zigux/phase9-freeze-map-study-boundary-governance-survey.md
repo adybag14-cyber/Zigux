@@ -36,9 +36,9 @@ Current `master` already keeps the Phase 9 study-boundary packet explicit throug
 - `scripts/zigux/README.md`
 - `samples/zigux/README.md`
 - `zigux/tests/README.md`
-- `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`
-- `scripts/zigux/check-phase9-trace-events-runtime-packet.py`
-- `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`
+- `scripts\zigux/check_phase9_review_checklist_phase_boundaries.zig`
+- `scripts\zigux/check_phase9_trace_events_runtime_packet.zig`
+- `scripts\zigux/check_phase9_freeze_map_study_boundaries.zig`
 - `.github/workflows/zigux-bootstrap.yml`
 - `zigux/Makefile`
 

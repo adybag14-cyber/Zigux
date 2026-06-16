@@ -60,10 +60,10 @@ test "manifest process-output packet stays aligned with closure note" {
 
 test "scripts root keeps genksyms bridge reminder beside Phase 2 shared tooling" {
     try requireContains(scripts_readme, "Phase 2 flow - the current scripts-root bridge packet stays reviewable");
-    try requireContains(scripts_readme, "scripts/zigux/check-genksyms-bridge.py");
+    try requireContains(scripts_readme, "scripts\zigux/check_genksyms_bridge.zig");
     try requireContains(scripts_readme, "fixdep packet, and returned make wrappers");
     try requireContains(scripts_readme, "make -C zigux phase2-genksyms");
-    try requireContains(scripts_readme, "scripts/zigux/check-phase2-kconfig-selftest-alignment.py");
+    try requireContains(scripts_readme, "scripts\zigux/check_phase2_kconfig_selftest_alignment.zig");
     try requireContains(scripts_readme, "scripts/zigux/kconfig/conf_bridge.zig");
     try requireContains(scripts_readme, "scripts/zigux/kconfig/confdata_bridge.zig");
 }

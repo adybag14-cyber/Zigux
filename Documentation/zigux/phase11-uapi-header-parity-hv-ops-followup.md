@@ -22,7 +22,7 @@
 - `zigux/helpers/layout_assert.zig`, `drivers/tty/hvc/hvc_console.h`, and
   `drivers/tty/hvc/hvc_console.zig` remain the returned substrate and direct
   proof inputs for that `hv_ops` shard.
-- `scripts/zigux/check-phase11-header-boundary-packet.py` now fail-closes on
+- `scripts\zigux/check_phase11_header_boundary_packet.zig` now fail-closes on
   the survey, validation matrix, checker-coverage note, and this follow-up note
   so the adjacent `hv_ops` packet stays aligned with current-head wording.
 - The same current-head packet still does not rematerialize

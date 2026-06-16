@@ -17,20 +17,20 @@ The helper packet now consists of:
 - `zigux/tests/phase13_devres_iounmap_planner.zig`
 - `Documentation/zigux/phase13-devres-iounmap-planner.md`
 - `zigux/tests/phase13_devres_iounmap_planner_manifest.json`
-- `scripts/zigux/check-phase13-devres-iounmap-planner.py`
+- `scripts\zigux/check_phase13_devres_iounmap_planner.zig`
 
 Fixture governance stays helper-local:
 - `zigux/tests/phase13_devres_iounmap_planner.zig` owns the tracked-mapping, missing-release-record, and no-mapping fixture coverage for `planManagedIounmapCleanup(...)`
 - `zigux/tests/phase13_devres_iounmap_planner_manifest.json` is the packet-local owner map for that fixture and should stay aligned with the helper, note, and replay
-- `scripts/zigux/check-phase13-devres-iounmap-planner.py` is the packet-local fail-closed checker and should stay aligned with the helper, planner note, manifest, and replay
+- `scripts\zigux/check_phase13_devres_iounmap_planner.zig` is the packet-local fail-closed checker and should stay aligned with the helper, planner note, manifest, and replay
 - `Documentation/zigux/phase13-devres-survey.md` remains adjacent boundary evidence only and does not own the helper-local MMIO fixture packet
 
 Adjacent boundary evidence stays unchanged:
 - `Documentation/zigux/phase13-devres-slice.md`
 - `Documentation/zigux/phase13-devres-survey.md`
-- `scripts/zigux/check-phase13-devres-mmio-packet.py`
+- `scripts\zigux/check_phase13_devres_mmio_packet.zig`
 
 Standalone replay handles:
 - `zig test --dep devres -Mroot=zigux/tests/phase13_devres_iounmap_planner.zig -Mdevres=lib/devres.zig`
-- `python3 scripts/zigux/check-phase13-devres-iounmap-planner.py`
-- `python3 scripts/zigux/check-phase13-devres-mmio-packet.py --self-test`
+- `zig run check_phase13_devres_iounmap_planner.zig`
+- `zig run check_phase13_devres_mmio_packet.zig --self-test`

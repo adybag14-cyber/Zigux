@@ -14,8 +14,8 @@ const repo_files = [_][]const u8{
 };
 
 const phase1_note_markers = [_][]const u8{
-    "Phase 1 still uses `scripts/zigux/artifact_diff.py` as the shared host-side comparison helper behind the committed helper parity fixtures, including `phase1_helpers.json` and the Phase 1 parity reminder packet.",
-    "`scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_helpers_build.zig`, and `zig build phase1-helpers --build-file zigux/tests/phase1_helpers_build.zig` keep a focused fixture-backed helper parity replay anchor on current `master`",
+    "Phase 1 still uses `scripts/zigux/artifact_diff.zig` as the shared host-side comparison helper behind the committed helper parity fixtures, including `phase1_helpers.json` and the Phase 1 parity reminder packet.",
+    "`scripts\zigux/check_phase1_parity.zig`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_helpers_build.zig`, and `zig build phase1-helpers --build-file zigux/tests/phase1_helpers_build.zig` keep a focused fixture-backed helper parity replay anchor on current `master`",
 };
 
 const helper_mode_markers = [_][]const u8{

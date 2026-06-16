@@ -18,7 +18,7 @@ Current `master` now materializes this helper-local, direct replay, and reviewab
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
-- `scripts/zigux/check-phase13-landlock-syscalls-packet.py`
+- `scripts\zigux/check_phase13_landlock_syscalls_packet.zig`
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 

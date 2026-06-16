@@ -14,7 +14,7 @@ The helper-local iomap/MMIO packet already names the blocked non-posted wrapper 
 - `Documentation/zigux/phase13-devres-survey.md` keeps blocked `phase13-devres-missing-devm-ioremap-np-surface` explicit inside the current devres MMIO packet
 - `zigux/tests/phase13_devres_iomap_planner_manifest.json` records that same blocked boundary in the packet manifest
 - `zigux/tests/phase13_devres_iomap_planner.zig` keeps the blocked non-posted wrapper requirement reviewable in direct replay coverage
-- `scripts/zigux/check-phase13-devres-iomap-planner.py` fail-closes on the packet-local `devm_ioremap_np()` boundary wording
+- `scripts\zigux/check_phase13_devres_iomap_planner.zig` fail-closes on the packet-local `devm_ioremap_np()` boundary wording
 - `lib/devres.zig` keeps `requires_nonposted_ioremap` helper-local while still leaving live `devm_ioremap_np(` absent from shipped helper code
 
 ## Gap
@@ -33,7 +33,7 @@ This lane is about iomap/MMIO safety surface exactness, not new helper behavior.
 
 ## Guard
 
-Use `python3 scripts/zigux/check-phase13-devres-np-wrapper-gap.py` when touching this note or the surrounding shared Phase 13 reminder stack.
+Use `zig run check_phase13_devres_np_wrapper_gap.zig` when touching this note or the surrounding shared Phase 13 reminder stack.
 
 That checker should pass only while:
 

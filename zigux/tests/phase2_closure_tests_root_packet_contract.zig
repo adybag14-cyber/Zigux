@@ -47,17 +47,17 @@ test "tests root keeps the parked Phase 2 closure note and validators visible" {
 
     try expectContains(closure_note, "PHASE2_STATUS=parked");
     try expectContains(closure_note, "PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest");
-    try expectContains(closure_note, "PHASE2_CLOSURE_VALIDATORS=python3 scripts/zigux/validate-phase2.py,python3 scripts/zigux/validate-phase2-closure.py");
+    try expectContains(closure_note, "PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2.zig,zig run validate_phase2_closure.zig");
 
     try expectContains(tests_readme, "`Documentation/zigux/phase2-closure.md`");
-    try expectContains(tests_readme, "`scripts/zigux/validate-phase2.py`");
-    try expectContains(tests_readme, "`scripts/zigux/validate-phase2-closure.py`");
+    try expectContains(tests_readme, "`scripts\zigux/validate_phase2.zig`");
+    try expectContains(tests_readme, "`scripts\zigux/validate_phase2_closure.zig`");
     try expectContains(tests_readme, "`zigux/tests/fixtures/phase2_tool_manifest.json`");
     try expectBefore(tests_readme, "## Phase 2 review packet", "## Phase 3 review packet");
 
     try expectContains(manifest, "\"Documentation/zigux/phase2-closure.md\"");
     try expectContains(manifest, "\"zigux/tests/README.md\"");
-    try expectContains(manifest, "\"scripts/zigux/validate-phase2-closure.py\"");
+    try expectContains(manifest, "\"scripts\zigux/validate_phase2_closure.zig\"");
     try expectContains(manifest, "\"status\": \"active\"");
 }
 
@@ -100,18 +100,18 @@ test "genksyms survey and process-output packets stay aligned across closure, te
     defer std.testing.allocator.free(manifest);
 
     try expectContains(closure_note, "Documentation/zigux/phase2-genksyms-dual-implementation-survey.md");
-    try expectContains(closure_note, "scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py");
+    try expectContains(closure_note, "scripts\zigux/check_phase2_genksyms_dual_implementation_survey.zig");
     try expectContains(closure_note, "PHASE2_CURRENT_GENKSYMS_PROCESS_OUTPUT_PACKET=");
     try expectContains(closure_note, "zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json");
 
     try expectContains(tests_readme, "`Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`");
-    try expectContains(tests_readme, "`scripts/zigux/check-phase2-genksyms-selftest-alignment.py`");
-    try expectContains(tests_readme, "`scripts/zigux/check-genksyms-bridge.py`");
+    try expectContains(tests_readme, "`scripts\zigux/check_phase2_genksyms_selftest_alignment.zig`");
+    try expectContains(tests_readme, "`scripts\zigux/check_genksyms_bridge.zig`");
     try expectContains(tests_readme, "`scripts/zigux/genksyms.zig`");
     try expectContains(tests_readme, "`zigux/tests/fixtures/genksyms_bridge/manifest.json`");
     try expectContains(tests_readme, "`zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json`");
 
-    try expectContains(manifest, "\"scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py\"");
+    try expectContains(manifest, "\"scripts\zigux/check_phase2_genksyms_dual_implementation_survey.zig\"");
     try expectContains(manifest, "\"zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json\"");
 }
 
@@ -146,16 +146,16 @@ test "fixdep governance remains visible beside closure shared tooling" {
     const scripts_readme = try readRepoFile("scripts/zigux/README.md", 512 * 1024);
     defer std.testing.allocator.free(scripts_readme);
 
-    try expectContains(closure_note, "`python3 scripts/zigux/check-phase2-fixdep-gate.py`");
-    try expectContains(closure_note, "`python3 scripts/zigux/check-fixdep-diff.py`");
+    try expectContains(closure_note, "`zig run check_phase2_fixdep_gate.zig`");
+    try expectContains(closure_note, "`zig run check_fixdep_diff.zig`");
     try expectContains(closure_note, "`make -C zigux phase2-fixdep`");
 
-    try expectContains(tests_readme, "`scripts/zigux/check-phase2-fixdep-gate.py`");
-    try expectContains(tests_readme, "`scripts/zigux/check-fixdep-diff.py`");
+    try expectContains(tests_readme, "`scripts\zigux/check_phase2_fixdep_gate.zig`");
+    try expectContains(tests_readme, "`scripts\zigux/check_fixdep_diff.zig`");
     try expectContains(tests_readme, "`scripts/zigux/fixdep.zig`");
     try expectContains(tests_readme, "`zigux/tests/fixtures/fixdep/cases.json`");
 
     try expectContains(scripts_readme, "current fixdep governance, determinism, helper, fixture, and CI packet");
-    try expectContains(scripts_readme, "`python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`");
+    try expectContains(scripts_readme, "`zig run check_phase2_fixdep_gate.zig --self-test`");
     try expectContains(scripts_readme, "`zig test scripts/zigux/fixdep.zig`");
 }

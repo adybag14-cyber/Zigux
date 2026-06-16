@@ -145,7 +145,7 @@ test "phase 2 closure note keeps genksyms proofs closed out of kconfig gap owner
 }
 
 test "closure validator derives genksyms manifest packets from fixture root" {
-    const validator = try readRepoFile("scripts/zigux/validate-phase2-closure.py", 192 * 1024);
+    const validator = try readRepoFile("scripts\zigux/validate_phase2_closure.zig", 192 * 1024);
     defer std.testing.allocator.free(validator);
 
     const manifest = try readRepoFile("zigux/tests/fixtures/genksyms_bridge/manifest.json", 64 * 1024);

@@ -2,21 +2,21 @@ const std = @import("std");
 const testing = std.testing;
 
 const artifact_manifest_paths = [_][]const u8{
-    "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "scripts\zigux/check_phase2_artifact_tools_manifest.zig",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
 };
 
 const artifact_consumers = [_][]const u8{
-    "scripts/zigux/artifact_diff.py",
-    "scripts/zigux/check-kconfig-bridge.py",
-    "scripts/zigux/check-fixdep-diff.py",
+    "scripts/zigux/artifact_diff.zig",
+    "scripts\zigux/check_kconfig_bridge.zig",
+    "scripts\zigux/check_fixdep_diff.zig",
 };
 
 const manifest_notes = [_][]const u8{
     "The artifact diff helper provides deterministic comparison output for fixture-backed scripts-root checks in both the kconfig bridge and fixdep parity packets.",
-    "Keep `scripts/zigux/check-phase2-artifact-tools-manifest.py` explicit so the bounded Phase 2 artifact-support manifest fails closed beside the broader Phase 2 tool packet.",
-    "Keep future Phase 2 artifact-diff follow-up bounded to live consumers like `scripts/zigux/check-kconfig-bridge.py` and `scripts/zigux/check-fixdep-diff.py` plus directly readable fixture packets before widening into broader closure routes.",
-    "Keep the legacy `sha256` compatibility alias explicit as the path that normalizes to the shipped `bytes` comparison surface in `scripts/zigux/artifact_diff.py`.",
+    "Keep `scripts\zigux/check_phase2_artifact_tools_manifest.zig` explicit so the bounded Phase 2 artifact-support manifest fails closed beside the broader Phase 2 tool packet.",
+    "Keep future Phase 2 artifact-diff follow-up bounded to live consumers like `scripts\zigux/check_kconfig_bridge.zig` and `scripts\zigux/check_fixdep_diff.zig` plus directly readable fixture packets before widening into broader closure routes.",
+    "Keep the legacy `sha256` compatibility alias explicit as the path that normalizes to the shipped `bytes` comparison surface in `scripts/zigux/artifact_diff.zig`.",
 };
 
 fn readText(path: []const u8) ![]u8 {
@@ -74,7 +74,7 @@ test "phase2 docs and review surfaces keep artifact tools manifest visible" {
 test "phase2 artifact manifest pins helper consumers and supported modes" {
     const manifest = try readText("zigux/tests/fixtures/phase2_artifact_tools_manifest.json");
     defer testing.allocator.free(manifest);
-    const checker = try readText("scripts/zigux/check-phase2-artifact-tools-manifest.py");
+    const checker = try readText("scripts\zigux/check_phase2_artifact_tools_manifest.zig");
     defer testing.allocator.free(checker);
 
     try requireContains(manifest, "\"phase\": \"Phase 2\"");
@@ -96,7 +96,7 @@ test "phase2 artifact manifest pins helper consumers and supported modes" {
 test "phase2 artifact notes stay exact and ordered" {
     const manifest = try readText("zigux/tests/fixtures/phase2_artifact_tools_manifest.json");
     defer testing.allocator.free(manifest);
-    const checker = try readText("scripts/zigux/check-phase2-artifact-tools-manifest.py");
+    const checker = try readText("scripts\zigux/check_phase2_artifact_tools_manifest.zig");
     defer testing.allocator.free(checker);
 
     for (manifest_notes) |note| {

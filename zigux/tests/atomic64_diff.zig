@@ -270,7 +270,7 @@ test "atomic64 diff wrapper keeps the runtime handoff line counts exact" {
 test "atomic64 diff wrapper keeps the manifest build, validator, and matrix blob pins exact" {
     const validate_phase4_source = try readRepoFile(
         std.testing.allocator,
-        "scripts/zigux/validate-phase4.py",
+        "scripts\zigux/validate_phase4.zig",
     );
     defer std.testing.allocator.free(validate_phase4_source);
 
@@ -461,7 +461,7 @@ test "atomic64 diff wrapper keeps reversible delivery and next-step evidence exp
             "zigux/tests/atomic64_diff.zig",
             "zigux/tests/runtime_atomic64_diff.zig",
             "zigux/tests/phase4_build.zig",
-            "scripts/zigux/validate-phase4.py",
+            "scripts\zigux/validate_phase4.zig",
             "Documentation/zigux/phase4-gate-evidence.md",
             "Documentation/zigux/review-checklist.md",
             "Documentation/zigux/phase4-validation-matrix.md",
@@ -540,7 +540,7 @@ test "atomic64 diff wrapper keeps the Linux-style phase4 make routes explicit" {
 test "atomic64 diff wrapper keeps the shared phase4 validator packet explicit" {
     const validate_phase4_source = try readRepoFile(
         std.testing.allocator,
-        "scripts/zigux/validate-phase4.py",
+        "scripts\zigux/validate_phase4.zig",
     );
     defer std.testing.allocator.free(validate_phase4_source);
     try expectMarker(validate_phase4_source, "\"zigux/tests/atomic64_diff.zig\"");
@@ -576,7 +576,7 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
 
     const validate_phase4_source = try readRepoFile(
         std.testing.allocator,
-        "scripts/zigux/validate-phase4.py",
+        "scripts\zigux/validate_phase4.zig",
     );
     defer std.testing.allocator.free(validate_phase4_source);
     const validate_phase4_blob_sha = try gitBlobShaHex(validate_phase4_source);
@@ -602,7 +602,7 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
 
     const gate_evidence_checker_source = try readRepoFile(
         std.testing.allocator,
-        "scripts/zigux/check-phase4-gate-evidence.py",
+        "scripts\zigux/check_phase4_gate_evidence.zig",
     );
     defer std.testing.allocator.free(gate_evidence_checker_source);
     const gate_evidence_checker_blob_sha = try gitBlobShaHex(gate_evidence_checker_source);
@@ -633,7 +633,7 @@ test "atomic64 diff wrapper keeps the shared gate-evidence packet explicit" {
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19");
     try expectMarker(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=45");
     try expectMarker(gate_evidence_source, "PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true");
-    try expectMarker(gate_evidence_source, "scripts/zigux/check-phase4-gate-evidence.py");
+    try expectMarker(gate_evidence_source, "scripts\zigux/check_phase4_gate_evidence.zig");
     try expectMarker(gate_evidence_source, "phase4-runtime-atomic64-diff-survey-tests");
     try expectMarker(gate_evidence_source, "make -C zigux phase4-runtime-atomic64-diff-survey");
     try expectMarker(gate_evidence_source, "two `inc_not_zero` checks");
@@ -669,7 +669,7 @@ test "atomic64 diff wrapper keeps rollback ownership and threshold posture expli
 
 test "atomic64 diff wrapper keeps the phase4 replay routes measurable" {
     try expectAtomic64MatrixMarkerCount(
-        "`python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml`",
+        "`zig run validate_phase4.zig` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml`",
         1,
     );
     try expectAtomic64MatrixMarkerCount(

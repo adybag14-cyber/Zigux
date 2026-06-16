@@ -54,17 +54,17 @@ test "owner map stays paired with current shared packet evidence" {
     try expectContains(note, "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`");
     try expectContains(note, "`zigux/tests/fixtures/phase2_tool_manifest.json`");
     try expectContains(note, "`zigux/tests/fixtures/phase2_cross_targets.json`");
-    try expectContains(note, "`scripts/zigux/check-phase2-tool-manifest.py`");
-    try expectContains(note, "`scripts/zigux/check-phase2-docs-shared-reminder.py`");
-    try expectMissing(note, "`scripts/zigux/check-phase2-tool-manifest-packets.py`");
-    try expectMissing(note, "`scripts/zigux/check-phase2-kconfig-readme-alignment.py`");
+    try expectContains(note, "`scripts\zigux/check_phase2_tool_manifest.zig`");
+    try expectContains(note, "`scripts\zigux/check_phase2_docs_shared_reminder.zig`");
+    try expectMissing(note, "`scripts\zigux/check_phase2_tool_manifest_packets.zig`");
+    try expectMissing(note, "`scripts\zigux/check_phase2_kconfig_readme_alignment.zig`");
 
-    try expectContains(bootstrap, "`scripts/zigux/check-phase2-tool-manifest.py`");
-    try expectContains(bootstrap, "`scripts/zigux/check-phase2-docs-shared-reminder.py`");
+    try expectContains(bootstrap, "`scripts\zigux/check_phase2_tool_manifest.zig`");
+    try expectContains(bootstrap, "`scripts\zigux/check_phase2_docs_shared_reminder.zig`");
     try expectContains(review, "if the change touches the shared Phase 2 toolchain packet");
-    try expectContains(manifest, "\"scripts/zigux/check-phase2-tool-manifest.py\"");
-    try expectContains(manifest, "\"scripts/zigux/check-phase2-artifact-tools-manifest.py\"");
-    try expectContains(manifest, "\"scripts/zigux/check-phase2-genksyms-dual-implementation-survey.py\"");
+    try expectContains(manifest, "\"scripts\zigux/check_phase2_tool_manifest.zig\"");
+    try expectContains(manifest, "\"scripts\zigux/check_phase2_artifact_tools_manifest.zig\"");
+    try expectContains(manifest, "\"scripts\zigux/check_phase2_genksyms_dual_implementation_survey.zig\"");
 }
 
 test "current backlog evidence parks shared sequencing unless a broad surface drifts" {

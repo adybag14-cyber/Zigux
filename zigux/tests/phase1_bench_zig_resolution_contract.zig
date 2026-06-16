@@ -1,7 +1,7 @@
 const std = @import("std");
 
 const testing = std.testing;
-const checker_path = "scripts/zigux/check-phase1-bench.py";
+const checker_path = "scripts\zigux/check_phase1_bench.zig";
 
 fn readCheckerSource() ![]u8 {
     return try std.Io.Dir.cwd().readFileAlloc(testing.io, checker_path, testing.allocator, .limited(1024 * 1024));

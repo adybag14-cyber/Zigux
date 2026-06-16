@@ -42,13 +42,13 @@ const workflow_step_packet =
     \\- name: Self-test current Zig installer helper
     \\  run: zig run scripts/zigux/install_zig.zig -- --self-test
     \\- name: Self-test current Lane 05 stage helper contract checker
-    \\  run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test
+    \\  run: zig run check_lane05_stage_helper_contract.zig --self-test
     \\- name: Check current Lane 05 stage helper contract packet
-    \\  run: python3 scripts/zigux/check-lane05-stage-helper-contract.py
+    \\  run: zig run check_lane05_stage_helper_contract.zig
     \\- name: Self-test current Lane 05 stage helper selftest checker
-    \\  run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test
+    \\  run: zig run check_lane05_stage_helper_selftest.zig --self-test
     \\- name: Check current Lane 05 stage helper selftest packet
-    \\  run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py
+    \\  run: zig run check_lane05_stage_helper_selftest.zig
 ;
 
 const stage_helper_output_packet =

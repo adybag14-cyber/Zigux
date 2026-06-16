@@ -11,27 +11,27 @@ const WorkflowStep = struct {
 
 const bench_self_test = WorkflowStep{
     .name = "Self-test current Phase 1 bench checker",
-    .run = "python3 scripts/zigux/check-phase1-bench.py --self-test",
+    .run = "zig run check_phase1_bench.zig --self-test",
 };
 
 const bench_live_check = WorkflowStep{
     .name = "Check current Phase 1 bench packet",
-    .run = "python3 scripts/zigux/check-phase1-bench.py",
+    .run = "zig run check_phase1_bench.zig",
 };
 
 const live_guard_self_test = WorkflowStep{
     .name = "Self-test current Phase 1 bench live-check workflow guard",
-    .run = "python3 scripts/zigux/check-phase1-bench-live-check-workflow.py --self-test",
+    .run = "zig run check_phase1_bench_live_check_workflow.zig --self-test",
 };
 
 const live_guard_check = WorkflowStep{
     .name = "Check current Phase 1 bench live-check workflow guard packet",
-    .run = "python3 scripts/zigux/check-phase1-bench-live-check-workflow.py",
+    .run = "zig run check_phase1_bench_live_check_workflow.zig",
 };
 
 const find_bit_bench_self_test = WorkflowStep{
     .name = "Self-test current Phase 1 find-bit bench anchor checker",
-    .run = "python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --self-test",
+    .run = "zig run check_phase1_find_bit_bench_anchors.zig --self-test",
 };
 
 fn markerFor(step: WorkflowStep, allocator: std.mem.Allocator) ![]u8 {
@@ -66,11 +66,11 @@ test "workflow keeps the Phase 1 bench live-check guard as exact commands" {
     try requireContains(workflow_text, live_guard_check_marker);
     try requireMissing(
         workflow_text,
-        "run: python3 scripts/zigux/check-phase1-bench-live-check-workflow.py --allow-missing",
+        "run: zig run check_phase1_bench_live_check_workflow.zig --allow-missing",
     );
     try requireMissing(
         workflow_text,
-        "run: python3 scripts/zigux/check-phase1-bench-live-check-workflow.py --root",
+        "run: zig run check_phase1_bench_live_check_workflow.zig --root",
     );
 }
 

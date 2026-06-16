@@ -70,4 +70,4 @@ Keep `samples/zigux/runtime_*.zig` in the separate Phase 9 lane rather than usin
 
 ## Next bounded use
 
-When a same-lane follow-up touches shared contributor guidance, reread this catalog together with `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, and `scripts/zigux/check-phase5-review-guide-surface.py` before widening sample-local behavior claims.
+When a same-lane follow-up touches shared contributor guidance, reread this catalog together with `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, and `scripts\zigux/check_phase5_review_guide_surface.zig` before widening sample-local behavior claims.

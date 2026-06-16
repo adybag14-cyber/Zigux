@@ -4,11 +4,11 @@ This survey records the current Phase 3 export-shim and starter UAPI boundary ag
 
 ## Status Markers
 
-- `PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py`
-- `PHASE3_EXPORT_UAPI_VALIDATOR_SELF_TEST=python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test`
-- `PHASE3_EXPORT_UAPI_VALIDATOR_RUN=python3 scripts/zigux/validate-phase3-export-uapi-survey.py`
-- `PHASE3_EXPORT_UAPI_LAYOUT_ROUTE_CHECK=scripts/zigux/check-phase3-export-uapi-layout-route.py`
-- `PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py`
+- `PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts\zigux/validate_phase3_export_uapi_survey.zig`
+- `PHASE3_EXPORT_UAPI_VALIDATOR_SELF_TEST=zig run validate_phase3_export_uapi_survey.zig --self-test`
+- `PHASE3_EXPORT_UAPI_VALIDATOR_RUN=zig run validate_phase3_export_uapi_survey.zig`
+- `PHASE3_EXPORT_UAPI_LAYOUT_ROUTE_CHECK=scripts\zigux/check_phase3_export_uapi_layout_route.zig`
+- `PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts\zigux/check_phase3_catalog_selftest.zig`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
 - `PHASE3_EXPORT_SHIM_INTEROP_POLICY_RELAY=zigux/kernel/export_shim.zig -> validateInteropPolicy`
 - `PHASE3_EXPORT_SHIM_RBTREE_RELAY=zigux/kernel/export_shim.zig -> validateRbtreeRootView`
@@ -28,7 +28,7 @@ This survey records the current Phase 3 export-shim and starter UAPI boundary ag
 - `PHASE3_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig`
 - `PHASE3_C_HEADER_SMOKE_PATH=zigux/tests/phase3_export_uapi_c_header_smoke.c`
 - `PHASE3_C_HEADER_SMOKE_WORKFLOW_ROUTE=.github/workflows/zigux-bootstrap.yml`
-- `PHASE3_DEV_T_STARTER_PACKET_CHECK=scripts/zigux/check-phase3-dev-t-starter-packet.py`
+- `PHASE3_DEV_T_STARTER_PACKET_CHECK=scripts\zigux/check_phase3_dev_t_starter_packet.zig`
 
 ## Roadmap Alignment
 
@@ -41,7 +41,7 @@ The landed boundary is still narrow and reviewable:
 - `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, `zigux/bindings/version.zig`, `zigux/bindings/dev_t.zig`, and `zigux/bindings/header_family.zig` provide the curated Zig-side view of that same boundary.
 - `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_export_shim_build.zig`, and `zigux/tests/phase3_export_uapi_c_header_smoke.c` keep the packet replayable from both Zig and C-facing entry points, while `.github/workflows/zigux-bootstrap.yml` now runs the direct C smoke route as its own Phase 3 bootstrap step.
 - `zigux/tests/build.zig` and `zigux/Makefile` now keep a shared `phase3-abi-export` replay route visible alongside the focused export-shim and export/UAPI layout replays so this packet can be rerun as one bounded gate.
-- `scripts/zigux/check-phase3-export-uapi-layout-route.py` keeps the shared and dedicated export/UAPI layout build routes scoped to the header-family binding import that the layout replay now exercises, so a generic marker elsewhere in `zigux/tests/build.zig` cannot mask a broken shared layout route.
+- `scripts\zigux/check_phase3_export_uapi_layout_route.zig` keeps the shared and dedicated export/UAPI layout build routes scoped to the header-family binding import that the layout replay now exercises, so a generic marker elsewhere in `zigux/tests/build.zig` cannot mask a broken shared layout route.
 
 ## Current Boundary Gap
 
@@ -62,14 +62,14 @@ The detailed Linux-facing predicate relays above are part of the landed starter 
 - `PHASE3_EXPORT_SHIM_DEDICATED_GATE=zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig`
 - `PHASE3_LAYOUT_SHARED_GATE=zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig`
 - `PHASE3_LAYOUT_DEDICATED_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
-- `PHASE3_EXPORT_UAPI_LAYOUT_ROUTE_SELF_TEST=python3 scripts/zigux/check-phase3-export-uapi-layout-route.py --self-test`
-- `PHASE3_EXPORT_UAPI_LAYOUT_ROUTE_RUN=python3 scripts/zigux/check-phase3-export-uapi-layout-route.py`
+- `PHASE3_EXPORT_UAPI_LAYOUT_ROUTE_SELF_TEST=zig run check_phase3_export_uapi_layout_route.zig --self-test`
+- `PHASE3_EXPORT_UAPI_LAYOUT_ROUTE_RUN=zig run check_phase3_export_uapi_layout_route.zig`
 - `PHASE3_ABI_EXPORT_SHARED_GATE=zig build phase3-abi-export --build-file zigux/tests/build.zig`
 - `PHASE3_ABI_EXPORT_MAKE_ROUTE=make -C zigux phase3-abi-export`
-- `PHASE3_C_HEADER_SMOKE_GATE=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py`
+- `PHASE3_C_HEADER_SMOKE_GATE=zig run check_phase3_export_uapi_c_header_smoke.zig`
 - `PHASE3_C_HEADER_SMOKE_WORKFLOW_GATE=.github/workflows/zigux-bootstrap.yml -> Run current Phase 3 export/UAPI C header smoke`
-- `PHASE3_SHARED_VALIDATE_SELFTEST_PATH=scripts/zigux/validate_phase3_selftest.py`
-- `PHASE3_SHARED_CHECK_RUNNER_PATH=scripts/zigux/run-phase3-checks.py`
+- `PHASE3_SHARED_VALIDATE_SELFTEST_PATH=scripts/zigux/validate_phase3_selftest.zig`
+- `PHASE3_SHARED_CHECK_RUNNER_PATH=scripts/zigux/run_phase3_checks.zig`
 - `PHASE3_SHARED_VALIDATE_MAKE_ROUTE=make -C zigux phase3-validate`
 - `PHASE3_SHARED_PHASE_MAKE_ROUTE=make -C zigux phase3`
 

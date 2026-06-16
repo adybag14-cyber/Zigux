@@ -69,7 +69,7 @@ test "phase13 devres dma coherent replay keeps missing checker surfaces framed a
     const slice = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-devres-slice.md");
     defer std.testing.allocator.free(slice);
 
-    try requireContains(slice, "`scripts/zigux/check-phase13-devres-packet-alignment.py`");
+    try requireContains(slice, "`scripts\zigux/check_phase13_devres_packet_alignment.zig`");
     try requireContains(slice, "the older direct devres replay, reviewability gate, manifest-backed packet, and packet-alignment checker remain repo-reality gaps");
     try requireContains(slice, "the broader direct helper packet stays an explicit repo-reality gap");
 }
@@ -131,7 +131,7 @@ test "phase13 devres dma coherent replay keeps scatterlist helper evidence helpe
 }
 
 test "phase13 devres dma coherent replay keeps build-shard boundary checks explicit" {
-    const checker = try readRepoFile(std.testing.allocator, "scripts/zigux/check-phase13-devres-dma-boundary.py");
+    const checker = try readRepoFile(std.testing.allocator, "scripts\zigux/check_phase13_devres_dma_boundary.zig");
     defer std.testing.allocator.free(checker);
 
     try requireContains(checker, "DMA_REPLAY_BUILD_PATH = Path(\"zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig\")");

@@ -10,12 +10,12 @@ const Command = struct {
 
 const phase1_shared_reminder_selftest = Command{
     .name = "Self-test current Phase 1 shared reminder checker",
-    .run = "python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test",
+    .run = "zig run check_phase1_shared_reminder_packet.zig --self-test",
 };
 
 const phase1_shared_reminder_check = Command{
     .name = "Check current Phase 1 shared reminder packet",
-    .run = "python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
+    .run = "zig run check_phase1_shared_reminder_packet.zig",
 };
 
 fn requireContains(haystack: []const u8, needle: []const u8) !void {
@@ -50,11 +50,11 @@ test "workflow keeps shared reminder self-test and packet check as exact run lin
     try requireContains(workflow_text, check_marker);
     try requireMissing(
         workflow_text,
-        "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --root",
+        "run: zig run check_phase1_shared_reminder_packet.zig --root",
     );
     try requireMissing(
         workflow_text,
-        "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --allow-missing",
+        "run: zig run check_phase1_shared_reminder_packet.zig --allow-missing",
     );
 }
 
@@ -66,11 +66,11 @@ test "shared reminder live check follows its self-test after bench gates" {
 
     const bench_selftest_index = try markerIndex(
         workflow_text,
-        "- name: Self-test current Phase 1 bench checker\n        run: python3 scripts/zigux/check-phase1-bench.py --self-test\n",
+        "- name: Self-test current Phase 1 bench checker\n        run: zig run check_phase1_bench.zig --self-test\n",
     );
     const find_bit_bench_check_index = try markerIndex(
         workflow_text,
-        "- name: Check current Phase 1 find-bit bench anchor packet\n        run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py\n",
+        "- name: Check current Phase 1 find-bit bench anchor packet\n        run: zig run check_phase1_find_bit_bench_anchors.zig\n",
     );
     const selftest_index = try markerIndex(workflow_text, selftest_marker);
     const check_index = try markerIndex(workflow_text, check_marker);
@@ -87,15 +87,15 @@ test "shared reminder gate stays before closure and final Phase 1 smoke" {
     const shared_reminder_index = try markerIndex(workflow_text, check_marker);
     const closure_selftest_index = try markerIndex(
         workflow_text,
-        "- name: Self-test current Phase 1 closure validator\n        run: python3 scripts/zigux/validate-phase1-closure.py --self-test\n",
+        "- name: Self-test current Phase 1 closure validator\n        run: zig run validate_phase1_closure.zig --self-test\n",
     );
     const closure_check_index = try markerIndex(
         workflow_text,
-        "- name: Check current Phase 1 closure packet\n        run: python3 scripts/zigux/validate-phase1-closure.py\n",
+        "- name: Check current Phase 1 closure packet\n        run: zig run validate_phase1_closure.zig\n",
     );
     const phase3_interop_index = try markerIndex(
         workflow_text,
-        "- name: Self-test current Phase 3 interop packet\n        run: python3 scripts/zigux/validate_phase3_selftest.py\n",
+        "- name: Self-test current Phase 3 interop packet\n        run: zig run scripts/zigux/validate_phase3_selftest.zig\n",
     );
     const smoke_index = try markerIndex(
         workflow_text,

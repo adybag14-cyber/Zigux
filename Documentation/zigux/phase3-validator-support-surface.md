@@ -2,7 +2,7 @@
 
 This note records the current validator-facing Phase 3 surface on live `master`.
 
-Current `master` now carries one bounded `dev_t` starter packet with paired `dev_t` and version bindings plus a directly readable export shim companion, one focused helper-local `err_ptr` / `xarray` interop slice with both the manifest-backed starter packet and fixture-backed parity coverage, one focused helper-local `xarray_slot` classifier slice with both starter-packet and fixture-backed dump parity coverage, one focused helper-local `idr_slot` classifier slice with both starter-packet and fixture-backed dump parity coverage, one bounded helper-local `bitmap` / `cpumask` starter slice with manifest-backed replay coverage, one bounded helper-local `list_head` / `hlist` starter-plus-dump slice with dedicated replay coverage, and one adjacent export/UAPI layout replay pair. It now separately ships the dedicated `Documentation/zigux/phase3-abi-header-family-survey.md` note together with `scripts/zigux/validate-phase3-abi-header-family-survey.py` as bounded header-family follow-through, plus the focused `Documentation/zigux/phase3-abi-h-boundary-next-step.md` note as the packet-local `include/zigux/abi.h` companion. It does not currently ship the broader shared Phase 3 replay packet itself, even though the shared `scripts/zigux/validate-phase3.py` validator entrypoint and `scripts/zigux/check-phase3-abi.py` shared ABI checker are directly readable on current `master`, current `master` also directly serves the bounded catalog helper at `scripts/zigux/phase3_catalog.py` together with the shared ABI manifest at `zigux/tests/fixtures/phase3_abi_manifest.json`, and the aligned docs-root, review-checklist, tests-root, and scripts-root reminder surfaces now keep that broader shared-summary drift closed.
+Current `master` now carries one bounded `dev_t` starter packet with paired `dev_t` and version bindings plus a directly readable export shim companion, one focused helper-local `err_ptr` / `xarray` interop slice with both the manifest-backed starter packet and fixture-backed parity coverage, one focused helper-local `xarray_slot` classifier slice with both starter-packet and fixture-backed dump parity coverage, one focused helper-local `idr_slot` classifier slice with both starter-packet and fixture-backed dump parity coverage, one bounded helper-local `bitmap` / `cpumask` starter slice with manifest-backed replay coverage, one bounded helper-local `list_head` / `hlist` starter-plus-dump slice with dedicated replay coverage, and one adjacent export/UAPI layout replay pair. It now separately ships the dedicated `Documentation/zigux/phase3-abi-header-family-survey.md` note together with `scripts\zigux/validate_phase3_abi_header_family_survey.zig` as bounded header-family follow-through, plus the focused `Documentation/zigux/phase3-abi-h-boundary-next-step.md` note as the packet-local `include/zigux/abi.h` companion. It does not currently ship the broader shared Phase 3 replay packet itself, even though the shared `scripts\zigux/validate_phase3.zig` validator entrypoint and `scripts\zigux/check_phase3_abi.zig` shared ABI checker are directly readable on current `master`, current `master` also directly serves the bounded catalog helper at `scripts/zigux/phase3_catalog.zig` together with the shared ABI manifest at `zigux/tests/fixtures/phase3_abi_manifest.json`, and the aligned docs-root, review-checklist, tests-root, and scripts-root reminder surfaces now keep that broader shared-summary drift closed.
 
 Current `master` also directly serves the returned `Documentation/zigux/phase3-linux-zigux-header-governance.md` ownership note beside that adjacent export/UAPI layout replay pair, so the bounded Linux-facing relay is reviewable without turning this validator-support packet into the semantic owner of the separately landed header-family survey follow-through.
 
@@ -20,9 +20,9 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `zigux/tests/phase3_dev_t_starter_packet.zig`
 - `zigux/tests/phase3_dev_t_starter_packet_build.zig`
 - `zigux/tests/phase3_dev_t_starter_packet_manifest.json`
-- `scripts/zigux/check-phase3-dev-t-starter-packet.py`
-- `python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test`
-- `python3 scripts/zigux/check-phase3-dev-t-starter-packet.py`
+- `scripts\zigux/check_phase3_dev_t_starter_packet.zig`
+- `zig run check_phase3_dev_t_starter_packet.zig --self-test`
+- `zig run check_phase3_dev_t_starter_packet.zig`
 - `zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all`
 
 ## Focused helper slice present on `master`
@@ -33,17 +33,17 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `zigux/tests/phase3_errptr_xarray_starter_packet.zig`
 - `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
 - `zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json`
-- `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
-- `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test`
-- `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+- `scripts\zigux/check_phase3_errptr_xarray_starter_packet.zig`
+- `zig run check_phase3_errptr_xarray_starter_packet.zig --self-test`
+- `zig run check_phase3_errptr_xarray_starter_packet.zig`
 - `zigux/tests/phase3_errptr_xarray_dump.zig`
 - `zigux/tests/phase3_errptr_xarray_dump_build.zig`
 - `zigux/tests/fixtures/phase3_errptr_xarray/phase3_errptr_xarray_c_harness.c`
 - `zigux/tests/fixtures/phase3_errptr_xarray/expected.json`
 - `zigux/tests/fixtures/phase3_errptr_xarray_manifest.json`
-- `scripts/zigux/check-phase3-errptr-xarray.py`
-- `python3 scripts/zigux/check-phase3-errptr-xarray.py --self-test`
-- `python3 scripts/zigux/check-phase3-errptr-xarray.py --repo-root . --zig zig --cc gcc`
+- `scripts\zigux/check_phase3_errptr_xarray.zig`
+- `zig run check_phase3_errptr_xarray.zig --self-test`
+- `zig run check_phase3_errptr_xarray.zig --repo-root . --zig zig --cc gcc`
 - `zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig`
 
 ## Focused xarray-slot slice present on `master`
@@ -52,18 +52,18 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `zigux/helpers/xarray_slot_view.zig`
 - `zigux/tests/phase3_xarray_slot_starter_packet.zig`
 - `zigux/tests/phase3_xarray_slot_starter_packet_build.zig`
-- `scripts/zigux/check-phase3-xarray-slot-starter-packet.py`
-- `python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --self-test`
-- `python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --repo-root .`
+- `scripts\zigux/check_phase3_xarray_slot_starter_packet.zig`
+- `zig run check_phase3_xarray_slot_starter_packet.zig --self-test`
+- `zig run check_phase3_xarray_slot_starter_packet.zig --repo-root .`
 - `zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig`
 - `zigux/tests/phase3_xarray_slot_dump.zig`
 - `zigux/tests/phase3_xarray_slot_dump_build.zig`
 - `zigux/tests/fixtures/phase3_xarray_slot/phase3_xarray_slot_c_harness.c`
 - `zigux/tests/fixtures/phase3_xarray_slot/expected.json`
 - `zigux/tests/fixtures/phase3_xarray_slot_manifest.json`
-- `scripts/zigux/check-phase3-xarray-slot.py`
-- `python3 scripts/zigux/check-phase3-xarray-slot.py --self-test`
-- `python3 scripts/zigux/check-phase3-xarray-slot.py --repo-root . --zig zig --cc gcc`
+- `scripts\zigux/check_phase3_xarray_slot.zig`
+- `zig run check_phase3_xarray_slot.zig --self-test`
+- `zig run check_phase3_xarray_slot.zig --repo-root . --zig zig --cc gcc`
 - `zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig`
 
 ## Focused idr-slot slice present on `master`
@@ -73,17 +73,17 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `zigux/tests/phase3_idr_slot_starter_packet.zig`
 - `zigux/tests/phase3_idr_slot_starter_packet_build.zig`
 - `zigux/tests/fixtures/phase3_idr_slot_manifest.json`
-- `scripts/zigux/check-phase3-idr-slot-starter-packet.py`
-- `python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --self-test`
-- `python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --repo-root .`
+- `scripts\zigux/check_phase3_idr_slot_starter_packet.zig`
+- `zig run check_phase3_idr_slot_starter_packet.zig --self-test`
+- `zig run check_phase3_idr_slot_starter_packet.zig --repo-root .`
 - `zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig`
 - `zigux/tests/phase3_idr_slot_dump.zig`
 - `zigux/tests/phase3_idr_slot_dump_build.zig`
 - `zigux/tests/fixtures/phase3_idr_slot/phase3_idr_slot_c_harness.c`
 - `zigux/tests/fixtures/phase3_idr_slot/expected.json`
-- `scripts/zigux/check-phase3-idr-slot.py`
-- `python3 scripts/zigux/check-phase3-idr-slot.py --self-test`
-- `python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc`
+- `scripts\zigux/check_phase3_idr_slot.zig`
+- `zig run check_phase3_idr_slot.zig --self-test`
+- `zig run check_phase3_idr_slot.zig --repo-root . --zig zig --cc gcc`
 - `zig build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig`
 
 ## Focused bitmap/cpumask slice present on `master`
@@ -94,9 +94,9 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `zigux/tests/phase3_bitmap_cpumask_starter_packet.zig`
 - `zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig`
 - `zigux/tests/fixtures/phase3_bitmap_cpumask_manifest.json`
-- `scripts/zigux/check-phase3-bitmap-cpumask.py`
-- `python3 scripts/zigux/check-phase3-bitmap-cpumask.py --self-test`
-- `python3 scripts/zigux/check-phase3-bitmap-cpumask.py`
+- `scripts\zigux/check_phase3_bitmap_cpumask.zig`
+- `zig run check_phase3_bitmap_cpumask.zig --self-test`
+- `zig run check_phase3_bitmap_cpumask.zig`
 - `zig build phase3-bitmap-cpumask-starter-packet --build-file zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig`
 
 ## Focused list/hlist slice present on `master`
@@ -107,17 +107,17 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `zigux/tests/phase3_list_hlist_starter_packet.zig`
 - `zigux/tests/phase3_list_hlist_starter_packet_build.zig`
 - `zigux/tests/fixtures/phase3_list_hlist_manifest.json`
-- `scripts/zigux/check-phase3-list-hlist-starter-packet.py`
-- `python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test`
-- `python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py`
+- `scripts\zigux/check_phase3_list_hlist_starter_packet.zig`
+- `zig run check_phase3_list_hlist_starter_packet.zig --self-test`
+- `zig run check_phase3_list_hlist_starter_packet.zig`
 - `zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig`
 - `zigux/tests/phase3_list_hlist_dump.zig`
 - `zigux/tests/phase3_list_hlist_dump_build.zig`
 - `zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c`
 - `zigux/tests/fixtures/phase3_list_hlist/expected.json`
-- `scripts/zigux/check-phase3-list-hlist.py`
-- `python3 scripts/zigux/check-phase3-list-hlist.py --self-test`
-- `python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc`
+- `scripts\zigux/check_phase3_list_hlist.zig`
+- `zig run check_phase3_list_hlist.zig --self-test`
+- `zig run check_phase3_list_hlist.zig --repo-root . --zig zig --cc gcc`
 - `zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig`
 
 ## Focused policy slice present on `master`
@@ -134,24 +134,24 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `zigux/tests/phase3_policy_starter_packet.zig`
 - `zigux/tests/phase3_policy_starter_packet_build.zig`
 - `zigux/tests/phase3_policy_starter_packet_manifest.json`
-- `scripts/zigux/check-phase3-policy-starter-packet.py`
-- `python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test`
-- `python3 scripts/zigux/check-phase3-policy-starter-packet.py`
+- `scripts\zigux/check_phase3_policy_starter_packet.zig`
+- `zig run check_phase3_policy_starter_packet.zig --self-test`
+- `zig run check_phase3_policy_starter_packet.zig`
 - `zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig`
 - `zigux/tests/phase3_policy_dump.zig`
 - `zigux/tests/phase3_policy_dump_build.zig`
 - `zigux/tests/fixtures/phase3_policy_dump_expected.txt`
-- `scripts/zigux/check-phase3-policy-dump.py`
-- `python3 scripts/zigux/check-phase3-policy-dump.py --self-test`
-- `python3 scripts/zigux/check-phase3-policy-dump.py`
+- `scripts\zigux/check_phase3_policy_dump.zig`
+- `zig run check_phase3_policy_dump.zig --self-test`
+- `zig run check_phase3_policy_dump.zig`
 - `zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig`
 
-Current `master` also directly serves the same focused policy slice through the reviewer-readable dump route at `zigux/tests/phase3_policy_dump.zig`, `zigux/tests/phase3_policy_dump_build.zig`, `zigux/tests/fixtures/phase3_policy_dump_expected.txt`, and `scripts/zigux/check-phase3-policy-dump.py`, so the bounded policy packet now exposes both its starter replay and its focused dump companion without widening this note into MMIO, low-level-wrapper, or broader runtime-shim ownership.
+Current `master` also directly serves the same focused policy slice through the reviewer-readable dump route at `zigux/tests/phase3_policy_dump.zig`, `zigux/tests/phase3_policy_dump_build.zig`, `zigux/tests/fixtures/phase3_policy_dump_expected.txt`, and `scripts\zigux/check_phase3_policy_dump.zig`, so the bounded policy packet now exposes both its starter replay and its focused dump companion without widening this note into MMIO, low-level-wrapper, or broader runtime-shim ownership.
 
 ## Adjacent export/UAPI layout replay present on `master`
 
 - `Documentation/zigux/phase3-linux-zigux-header-governance.md`
-- `scripts/zigux/validate-phase3-export-uapi-survey.py`
+- `scripts\zigux/validate_phase3_export_uapi_survey.zig`
 - `zigux/tests/phase3_export_uapi_layout.zig`
 - `zigux/tests/phase3_export_uapi_layout_build.zig`
 - `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
@@ -166,13 +166,13 @@ Do not treat the current starter packet, its manifest-backed replay guard, its d
 
 ## Same-family follow-through present on `master`
 
-Current `master` also directly serves the focused `Documentation/zigux/phase3-abi-h-boundary-next-step.md` note as the packet-local `include/zigux/abi.h` companion beside the dedicated `Documentation/zigux/phase3-abi-header-family-survey.md` plus `scripts/zigux/validate-phase3-abi-header-family-survey.py` follow-through and `Documentation/zigux/phase3-linux-zigux-header-governance.md`, but those returned same-family surfaces should not be used here to imply that the broader shared Phase 3 replay packet has returned.
+Current `master` also directly serves the focused `Documentation/zigux/phase3-abi-h-boundary-next-step.md` note as the packet-local `include/zigux/abi.h` companion beside the dedicated `Documentation/zigux/phase3-abi-header-family-survey.md` plus `scripts\zigux/validate_phase3_abi_header_family_survey.zig` follow-through and `Documentation/zigux/phase3-linux-zigux-header-governance.md`, but those returned same-family surfaces should not be used here to imply that the broader shared Phase 3 replay packet has returned.
 
-Current `master` does still ship the separately readable shared validator entrypoint through `scripts/zigux/validate-phase3.py` together with the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, and it also directly serves `scripts/zigux/phase3_catalog.py` together with `zigux/tests/fixtures/phase3_abi_manifest.json`, but those shared validation, catalog, and manifest surfaces should not be used here to imply that the broader validator-support or shared replay packet has returned beyond that bounded survey-plus-next-step companion packet already enumerated here.
+Current `master` does still ship the separately readable shared validator entrypoint through `scripts\zigux/validate_phase3.zig` together with the shared ABI checker through `scripts\zigux/check_phase3_abi.zig`, and it also directly serves `scripts/zigux/phase3_catalog.zig` together with `zigux/tests/fixtures/phase3_abi_manifest.json`, but those shared validation, catalog, and manifest surfaces should not be used here to imply that the broader validator-support or shared replay packet has returned beyond that bounded survey-plus-next-step companion packet already enumerated here.
 
-Current `master` also keeps this note's dedicated packet-local validator explicit through `scripts/zigux/validate-phase3-validator-support-surface.py`, and that validator should stay aligned with this note rather than being left implicit behind the broader shared `scripts/zigux/validate-phase3.py` entrypoint.
+Current `master` also keeps this note's dedicated packet-local validator explicit through `scripts\zigux/validate_phase3_validator_support_surface.zig`, and that validator should stay aligned with this note rather than being left implicit behind the broader shared `scripts\zigux/validate_phase3.zig` entrypoint.
 
-Current `master` does still ship the adjacent low-level-wrapper packet through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/helpers/unsafe_policy.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`, and it separately ships the adjacent export/UAPI layout replay pair through `zigux/tests/phase3_export_uapi_layout.zig` and `zigux/tests/phase3_export_uapi_layout_build.zig`, but those separate wrapper and replay surfaces should not be used here to imply that the broader validator-support or export/UAPI survey packet has returned.
+Current `master` does still ship the adjacent low-level-wrapper packet through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts\zigux/validate_phase3_low_level_wrapper_survey.zig`, `zigux/helpers/unsafe_policy.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`, and it separately ships the adjacent export/UAPI layout replay pair through `zigux/tests/phase3_export_uapi_layout.zig` and `zigux/tests/phase3_export_uapi_layout_build.zig`, but those separate wrapper and replay surfaces should not be used here to imply that the broader validator-support or export/UAPI survey packet has returned.
 
 That adjacent low-level-wrapper packet now keeps `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/helpers/unsafe_policy.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, and `make -C zigux phase3-low-level-wrappers-test` directly readable on current `master`, but those returned wrapper-local surfaces should stay adjacent here instead of being promoted into broader validator support.
 

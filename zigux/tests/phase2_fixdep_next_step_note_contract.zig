@@ -68,7 +68,7 @@ test "phase2 fixdep next-step note records the parked twenty-six-test roster" {
     try expectContains(note, "twenty-six named helper-local tests");
     try expectContains(note, "test \"runFixdep preserves escaped colon dependencies through the public entry path\" {");
     try expectContains(note, "The live helper-local test surface is broad enough that this lane does not currently have an honest parser-side, gate-roster-side, or expected-output-side reopen signal.");
-    try expectContains(note, "If `scripts/zigux/fixdep.zig` grows another helper-local test, first teach `scripts/zigux/check-phase2-fixdep-gate.py` about that exact new test line");
+    try expectContains(note, "If `scripts/zigux/fixdep.zig` grows another helper-local test, first teach `scripts\zigux/check_phase2_fixdep_gate.zig` about that exact new test line");
 
     try expectNotContains(note, "twenty-five named helper-local tests");
     try expectNotContains(note, "The latest live helper has advanced one step beyond that gate roster");
@@ -76,7 +76,7 @@ test "phase2 fixdep next-step note records the parked twenty-six-test roster" {
 }
 
 test "phase2 fixdep gate pins the same twenty-six exact helper test lines" {
-    const gate = try readRepoFile("scripts/zigux/check-phase2-fixdep-gate.py", 192 * 1024);
+    const gate = try readRepoFile("scripts\zigux/check_phase2_fixdep_gate.zig", 192 * 1024);
     defer std.testing.allocator.free(gate);
 
     try expectContains(gate, "FIXDEP_REQUIRED_EXACT_LINES = (");
@@ -98,9 +98,9 @@ test "phase2 fixdep helper and reminder surfaces keep the public-entry replay vi
 
     try expectContains(fixdep, "pub fn runFixdep(");
     try expectContains(fixdep, "test \"runFixdep preserves escaped colon dependencies through the public entry path\" {");
-    try expectContains(closure, "`scripts/zigux/check-phase2-fixdep-gate.py`");
+    try expectContains(closure, "`scripts\zigux/check_phase2_fixdep_gate.zig`");
     try expectContains(closure, "`make -C zigux phase2-fixdep`");
-    try expectContains(tests_readme, "`scripts/zigux/check-phase2-fixdep-gate.py`");
+    try expectContains(tests_readme, "`scripts\zigux/check_phase2_fixdep_gate.zig`");
     try expectContains(tests_readme, "`scripts/zigux/fixdep.zig`");
     try expectContains(tests_readme, "`make -C zigux phase2-fixdep`");
 }

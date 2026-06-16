@@ -18,18 +18,18 @@ test "phase1 closure keeps the find_bit bench guard marker tied to the current p
     const closure = try readRepoFile("Documentation/zigux/phase1-closure.md", 160 * 1024);
     defer std.testing.allocator.free(closure);
 
-    try expectContains(closure, "PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000");
+    try expectContains(closure, "PHASE1_FIND_BIT_BENCH_GUARD=scripts\zigux/check_phase1_bench.zig still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000");
     try expectContains(closure, "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM");
     try expectContains(closure, "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM");
-    try expectContains(closure, "PHASE1_FIND_BIT_BENCH_ANCHOR_GUARD=python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py");
-    try expectContains(closure, "PHASE1_FIND_BIT_REVIEW_GUARD=python3 scripts/zigux/check-phase1-find-bit-review-packet.py");
-    try expectContains(closure, "PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py");
+    try expectContains(closure, "PHASE1_FIND_BIT_BENCH_ANCHOR_GUARD=zig run check_phase1_find_bit_bench_anchors.zig");
+    try expectContains(closure, "PHASE1_FIND_BIT_REVIEW_GUARD=zig run check_phase1_find_bit_review_packet.zig");
+    try expectContains(closure, "PHASE1_CLOSURE_VALIDATOR=zig run validate_phase1_closure.zig");
     try expectContains(closure, "PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig");
     try expectNotContains(closure, "PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master");
 }
 
 test "phase1 bench checker keeps find_bit iterations checksums and source markers exact" {
-    const checker = try readRepoFile("scripts/zigux/check-phase1-bench.py", 128 * 1024);
+    const checker = try readRepoFile("scripts\zigux/check_phase1_bench.zig", 128 * 1024);
     defer std.testing.allocator.free(checker);
 
     try expectContains(checker, "PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS");
@@ -54,9 +54,9 @@ test "phase1 workflow and manifest keep the find_bit bench closure path review v
     const manifest = try readRepoFile("zigux/tests/fixtures/phase1_helper_manifest.json", 128 * 1024);
     defer std.testing.allocator.free(manifest);
 
-    try expectContains(workflow, "python3 scripts/zigux/check-phase1-bench.py");
-    try expectContains(workflow, "python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py");
-    try expectContains(workflow, "python3 scripts/zigux/validate-phase1-closure.py");
+    try expectContains(workflow, "zig run check_phase1_bench.zig");
+    try expectContains(workflow, "zig run check_phase1_find_bit_bench_anchors.zig");
+    try expectContains(workflow, "zig run validate_phase1_closure.zig");
     try expectContains(workflow, "zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig");
 
     try expectContains(manifest, "tools/lib/find_bit.zig");

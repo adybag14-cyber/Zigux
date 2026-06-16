@@ -10,7 +10,7 @@ Commit-train item 20 in `BOOTSTRAP_COMMIT_LEDGER.md` narrows that to bounded bri
 
 - `scripts/zigux/kconfig/conf_bridge.zig`
 - `scripts/zigux/kconfig/confdata_bridge.zig`
-- `scripts/zigux/check-kconfig-bridge.py`
+- `scripts\zigux/check_kconfig_bridge.zig`
 - `zigux/tests/fixtures/kconfig_bridge/*`
 
 The lane is therefore not a full `confdata.c` port. It is a reviewable bridge scaffold that can be replayed, diffed, and extended without claiming parser-complete parity.
@@ -20,7 +20,7 @@ The lane is therefore not a full `confdata.c` port. It is a reviewable bridge sc
 Current `master` already ships a bounded `confdata_bridge` scaffold with three concrete pieces of product-facing evidence:
 
 - `scripts/zigux/kconfig/confdata_bridge.zig` parses `.config`-style input into a deterministic JSON summary of `CONFIG_*` entries, counts, and value kinds.
-- `scripts/zigux/check-kconfig-bridge.py` compiles the bridge, replays the fixture packet, and checks repeatable JSON output.
+- `scripts\zigux/check_kconfig_bridge.zig` compiles the bridge, replays the fixture packet, and checks repeatable JSON output.
 - `zigux/tests/fixtures/kconfig_bridge/cases.json` plus `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` define the shipped bounded fixture roster for escaped strings, CRLF handling, duplicate assignment resolution, malformed quoted values, explicit empty assignments, and ownership-failure coverage.
 
 That is real scaffolding progress because it gives Zigux a replayable, fixture-backed bridge around one narrow `confdata` surface instead of leaving the Phase 2 claim as prose only.
@@ -64,7 +64,7 @@ Until that lands, the current bridge should stay documented as bounded scaffoldi
 ## Evidence Packet
 
 - `scripts/zigux/kconfig/confdata_bridge.zig`
-- `scripts/zigux/check-kconfig-bridge.py`
+- `scripts\zigux/check_kconfig_bridge.zig`
 - `zigux/tests/fixtures/kconfig_bridge/cases.json`
 - `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
 - `Documentation/zigux/phase2-closure.md`

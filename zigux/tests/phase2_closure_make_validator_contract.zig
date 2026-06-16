@@ -23,13 +23,13 @@ const make_targets = [_][]const u8{
 };
 
 const validator_commands = [_][]const u8{
-    "python3 scripts/zigux/validate-phase2.py",
-    "python3 scripts/zigux/validate-phase2-closure.py",
+    "zig run validate_phase2.zig",
+    "zig run validate_phase2_closure.zig",
 };
 
 const validator_paths = [_][]const u8{
-    "scripts/zigux/validate-phase2.py",
-    "scripts/zigux/validate-phase2-closure.py",
+    "scripts\zigux/validate_phase2.zig",
+    "scripts\zigux/validate_phase2_closure.zig",
 };
 
 const makefile_validator_markers = [_][]const u8{
@@ -37,23 +37,23 @@ const makefile_validator_markers = [_][]const u8{
 };
 
 const shared_checker_commands = [_][]const u8{
-    "python3 scripts/zigux/check-phase2-tool-manifest.py",
-    "python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
-    "python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
-    "python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
-    "python3 scripts/zigux/check-phase2-cross.py",
-    "python3 scripts/zigux/check-phase2-fixdep-gate.py",
-    "python3 scripts/zigux/check-fixdep-diff.py",
+    "zig run check_phase2_tool_manifest.zig",
+    "zig run check_phase2_bootstrap_workflow_routes.zig",
+    "zig run check_phase2_artifact_tools_manifest.zig",
+    "zig run check_phase2_kconfig_allconfig_helper_packet.zig",
+    "zig run check_phase2_cross.zig",
+    "zig run check_phase2_fixdep_gate.zig",
+    "zig run check_fixdep_diff.zig",
 };
 
 const shared_checker_paths = [_][]const u8{
-    "scripts/zigux/check-phase2-tool-manifest.py",
-    "scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
-    "scripts/zigux/check-phase2-artifact-tools-manifest.py",
-    "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
-    "scripts/zigux/check-phase2-cross.py",
-    "scripts/zigux/check-phase2-fixdep-gate.py",
-    "scripts/zigux/check-fixdep-diff.py",
+    "scripts\zigux/check_phase2_tool_manifest.zig",
+    "scripts\zigux/check_phase2_bootstrap_workflow_routes.zig",
+    "scripts\zigux/check_phase2_artifact_tools_manifest.zig",
+    "scripts\zigux/check_phase2_kconfig_allconfig_helper_packet.zig",
+    "scripts\zigux/check_phase2_cross.zig",
+    "scripts\zigux/check_phase2_fixdep_gate.zig",
+    "scripts\zigux/check_fixdep_diff.zig",
 };
 
 const makefile_shared_checker_markers = [_][]const u8{
@@ -62,8 +62,8 @@ const makefile_shared_checker_markers = [_][]const u8{
     "$(PHASE2_SCRIPT_ROOT)/check-phase2-artifact-tools-manifest.py",
     "$(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py",
     "$(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
-    "scripts/zigux/check-phase2-fixdep-gate.py",
-    "scripts/zigux/check-fixdep-diff.py",
+    "scripts\zigux/check_phase2_fixdep_gate.zig",
+    "scripts\zigux/check_fixdep_diff.zig",
 };
 
 fn readRepoFile(path: []const u8, limit: usize) ![]u8 {

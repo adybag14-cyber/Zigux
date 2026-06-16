@@ -30,7 +30,7 @@ fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
 }
 
 test "checker owns all three Lane 01 charter source files" {
-    const checker = try readFileAlloc("scripts/zigux/check-lane01-bootstrap-charter-alignment.py");
+    const checker = try readFileAlloc("scripts\zigux/check_lane01_bootstrap_charter_alignment.zig");
     defer std.testing.allocator.free(checker);
 
     try expectContains(checker, "README_PATH = Path(\"zigux-alpha/README.md\")");
@@ -41,13 +41,13 @@ test "checker owns all three Lane 01 charter source files" {
 }
 
 test "checker keeps README roadmap and ledger marker rosters explicit" {
-    const checker = try readFileAlloc("scripts/zigux/check-lane01-bootstrap-charter-alignment.py");
+    const checker = try readFileAlloc("scripts\zigux/check_lane01_bootstrap_charter_alignment.zig");
     defer std.testing.allocator.free(checker);
 
     try expectContains(checker, "README_MARKERS = (");
     try expectContains(checker, "ROADMAP_MARKERS = (");
     try expectContains(checker, "LEDGER_MARKERS = (");
-    try expectContains(checker, "`scripts/zigux/check-lane01-bootstrap-charter-alignment.py` is the shipped bootstrap-charter guard");
+    try expectContains(checker, "`scripts\zigux/check_lane01_bootstrap_charter_alignment.zig` is the shipped bootstrap-charter guard");
     try expectContains(checker, "confirm later-lane state in the live product docs, current repo tree, and active lane notes");
     try expectContains(checker, "## Bootstrap Status Note");
     try expectContains(checker, "25. `docs(zigux): reopen and close broadened Phase 2 tranche`");
@@ -55,7 +55,7 @@ test "checker keeps README roadmap and ledger marker rosters explicit" {
 }
 
 test "checker self-test covers each charter drift family" {
-    const checker = try readFileAlloc("scripts/zigux/check-lane01-bootstrap-charter-alignment.py");
+    const checker = try readFileAlloc("scripts\zigux/check_lane01_bootstrap_charter_alignment.zig");
     defer std.testing.allocator.free(checker);
 
     try std.testing.expect(countOccurrences(checker, "unexpected missing markers for") >= 8);
@@ -71,7 +71,7 @@ test "checker self-test covers each charter drift family" {
 }
 
 test "checker CLI exposes live-root and synthetic self-test modes" {
-    const checker = try readFileAlloc("scripts/zigux/check-lane01-bootstrap-charter-alignment.py");
+    const checker = try readFileAlloc("scripts\zigux/check_lane01_bootstrap_charter_alignment.zig");
     defer std.testing.allocator.free(checker);
 
     try expectContains(checker, "Verify that the landed Lane 01 zigux-alpha charter packet remains aligned.");

@@ -12,16 +12,16 @@
     "zigux/tests/phase3_notifier_abi_packet.zig",
     "zigux/tests/phase3_notifier_abi_packet_build.zig",
     "zigux/tests/phase3_notifier_abi_packet_manifest.json",
-    "scripts/zigux/check-phase3-notifier-abi-packet.py"
+    "scripts\zigux/check_phase3_notifier_abi_packet.zig"
   ],
   "replay_routes": [
-    "python3 scripts/zigux/check-phase3-notifier-abi-packet.py --self-test",
-    "python3 scripts/zigux/check-phase3-notifier-abi-packet.py",
+    "zig run check_phase3_notifier_abi_packet.zig --self-test",
+    "zig run check_phase3_notifier_abi_packet.zig",
     "zig build phase3-notifier-abi-packet-test --build-file zigux/tests/phase3_notifier_abi_packet_build.zig"
   ],
   "repo_reality_gaps": [
-    "scripts/zigux/check-phase3-abi.py",
-    "scripts/zigux/validate-phase3.py"
+    "scripts\zigux/check_phase3_abi.zig",
+    "scripts\zigux/validate_phase3.zig"
   ],
   "next_safe_step": "keep the shared notifier binding bounded to its compile route and truthful packet inventory before widening broader shared Phase 3 reminder surfaces"
 }

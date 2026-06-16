@@ -29,8 +29,8 @@ can validate locally before it falls back to network downloads.
 - If the exact archive file is absent but `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts` is present, `.github/workflows/zigux-bootstrap.yml` stages the same pinned payload locally with `zig run scripts/zigux/stage_pinned_zig_archive.zig` before canonical release, mirror, or direct-download fallback.
 - Before retrying the canonical release, mirror, or direct-download path, `.github/workflows/zigux-bootstrap.yml` clears the extracted `.zig-toolchain` root plus the cached `community-mirrors.txt` handle so stale partial recovery state is discarded before the next fallback attempt.
 - If the repo-local archive is unavailable, `.github/workflows/zigux-bootstrap.yml` falls back to the rolling canonical [`adybag14-cyber/zig`](https://github.com/adybag14-cyber/zig) release (`upstream-a3ae499dc297`) before `community-mirrors.txt` and the direct `ziglang.org` download URL.
-- `scripts/zigux/check-lane05-local-first-archive-workflow.py` and `scripts/zigux/check-lane05-local-archive-readme.py` are the shipped reminder guards for that local-first archive path.
-- `scripts/zigux/check-lane05-install-zig-archive-verification.py`, `scripts/zigux/check-lane05-stage-helper-contract.py`, and `scripts/zigux/check-lane05-stage-helper-selftest.py` keep the archive-verification, staged-helper contract, and staged-helper self-test packet explicit beside that same local-first archive path.
+- `scripts\zigux/check_lane05_local_first_archive_workflow.zig` and `scripts\zigux/check_lane05_local_archive_readme.zig` are the shipped reminder guards for that local-first archive path.
+- `scripts\zigux/check_lane05_install_zig_archive_verification.zig`, `scripts\zigux/check_lane05_stage_helper_contract.zig`, and `scripts\zigux/check_lane05_stage_helper_selftest.zig` keep the archive-verification, staged-helper contract, and staged-helper self-test packet explicit beside that same local-first archive path.
 
 ## Git LFS
 

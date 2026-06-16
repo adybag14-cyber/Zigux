@@ -41,7 +41,7 @@ test "alpha README keeps the ledger bounded and planning-only" {
     try requireContains(readme, "confirm later-lane state in the live product docs, current repo tree, and active lane notes before using it as a sole source of truth.");
     try requireContains(readme, "- Move actual product code into the native Linux locations or the small `zigux/` support root once a slice is approved.");
     try requireContains(readme, "- Do not create `zigux-alpha/ports/` or any mirror-tree equivalent.");
-    try requireContains(readme, "- `scripts/zigux/check-lane01-bootstrap-charter-alignment.py` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet.");
+    try requireContains(readme, "- `scripts\zigux/check_lane01_bootstrap_charter_alignment.zig` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet.");
 }
 
 test "roadmap status note preserves live-state confirmation boundary" {

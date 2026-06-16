@@ -6,11 +6,11 @@ const ContractError = error{
     WrongMarkerOrder,
 };
 
-const parity_checker_path = "scripts/zigux/check-phase1-parity.py";
-const artifact_diff_path = "scripts/zigux/artifact_diff.py";
+const parity_checker_path = "scripts\zigux/check_phase1_parity.zig";
+const artifact_diff_path = "scripts/zigux/artifact_diff.zig";
 
 const checker_path_markers = [_][]const u8{
-    "ARTIFACT_DIFF_REL = Path(\"scripts/zigux/artifact_diff.py\")",
+    "ARTIFACT_DIFF_REL = Path(\"scripts/zigux/artifact_diff.zig\")",
     "for rel in (ARTIFACT_DIFF_REL, FIXTURE_REL, MANIFEST_REL, BLOCKERS_REL, REPLAY_REL, REPLAY_BUILD_REL):",
 };
 
@@ -125,8 +125,8 @@ test "artifact diff helper still exposes the mode surface the parity checker pro
 }
 
 test "phase1 parity artifact contract watches only checker and helper surfaces" {
-    try std.testing.expectEqualStrings("scripts/zigux/check-phase1-parity.py", parity_checker_path);
-    try std.testing.expectEqualStrings("scripts/zigux/artifact_diff.py", artifact_diff_path);
+    try std.testing.expectEqualStrings("scripts\zigux/check_phase1_parity.zig", parity_checker_path);
+    try std.testing.expectEqualStrings("scripts/zigux/artifact_diff.zig", artifact_diff_path);
     try std.testing.expectEqual(@as(usize, 2), checker_path_markers.len);
     try std.testing.expectEqual(@as(usize, 5), checker_artifact_gate_markers.len);
     try std.testing.expectEqual(@as(usize, 6), checker_mode_probe_markers.len);

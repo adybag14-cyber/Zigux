@@ -1,7 +1,7 @@
 const std = @import("std");
 const testing = std.testing;
 
-const checker_path = "scripts/zigux/check-phase2-required-make-routes.py";
+const checker_path = "scripts\zigux/check_phase2_required_make_routes.zig";
 
 fn readFile(path: []const u8, limit: usize) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(
@@ -64,14 +64,14 @@ test "phase2 required make routes checker preserves workflow makefile and surfac
     defer testing.allocator.free(checker);
 
     try expectContains(checker, "WORKFLOW_LINES = (");
-    try expectContains(checker, "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test");
-    try expectContains(checker, "run: python3 scripts/zigux/check-phase2-required-make-routes.py");
+    try expectContains(checker, "run: zig run check_phase2_required_make_routes.zig --self-test");
+    try expectContains(checker, "run: zig run check_phase2_required_make_routes.zig");
     try expectContains(checker, "REQUIRED_PHASE2_PHONY_LINE");
     try expectContains(checker, ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2");
 
     try expectInOrder(checker, &.{
         "TOOLCHAIN_ALLOWED_RECIPE_LINES = (",
-        "check-zig-toolchain.py --self-test",
+        "check_zig_toolchain.zig --self-test",
         "check-phase2-toolchain-pinning.py",
         "check-phase2-toolchain-pin-scope.py",
         "TOOLCHAIN_OVERLAP_FRAGMENTS = (",

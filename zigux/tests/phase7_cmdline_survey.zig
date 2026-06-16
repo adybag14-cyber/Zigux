@@ -38,7 +38,7 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
 
 test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     const allocator = std.testing.allocator;
-    const checker_path = "scripts/zigux/check-phase7-cmdline-packet.py";
+    const checker_path = "scripts\zigux/check_phase7_cmdline_packet.zig";
 
     const manifest_json = try readRepoFile(allocator, "zigux/tests/phase7_cmdline_manifest.json");
     defer allocator.free(manifest_json);

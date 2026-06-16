@@ -51,13 +51,13 @@ test "phase1 closure flows into expanded phase3 export handoff before shared smo
 
     const ordered = [_][]const u8{
         "name: Check current Phase 1 closure packet",
-        "run: python3 scripts/zigux/validate-phase1-closure.py",
+        "run: zig run validate_phase1_closure.zig",
         "name: Self-test current Phase 3 interop packet",
-        "run: python3 scripts/zigux/validate_phase3_selftest.py",
+        "run: zig run scripts/zigux/validate_phase3_selftest.zig",
         "name: Check current Phase 3 interop packet",
-        "run: python3 scripts/zigux/run-phase3-checks.py",
+        "run: zig run scripts/zigux/run_phase3_checks.zig",
         "name: Run current Phase 3 export/UAPI C header smoke",
-        "run: python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
+        "run: zig run check_phase3_export_uapi_c_header_smoke.zig",
         "name: Run current Phase 3 export/UAPI layout replay",
         "run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
         "name: Run current Phase 3 export shim replay",
@@ -90,9 +90,9 @@ test "phase3 policy and low-level wrappers remain inside the handoff window" {
         "name: Run current Phase 3 policy dump make wrapper",
         "run: make -C zigux phase3-policy-dump",
         "name: Self-test current Phase 3 low-level wrapper survey validator",
-        "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+        "run: zig run validate_phase3_low_level_wrapper_survey.zig --self-test",
         "name: Check current Phase 3 low-level wrapper survey packet",
-        "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+        "run: zig run validate_phase3_low_level_wrapper_survey.zig",
         "name: Run current Phase 3 low-level wrapper replay",
         "run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
         "name: Run current Phase 3 low-level wrapper make route",
@@ -111,7 +111,7 @@ test "handoff commands are unique for review-sensitive routes" {
 
     const unique_markers = [_][]const u8{
         "name: Run current Phase 3 export/UAPI C header smoke",
-        "run: python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
+        "run: zig run check_phase3_export_uapi_c_header_smoke.zig",
         "name: Run current Phase 3 export/UAPI layout replay",
         "run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
         "name: Run current Phase 3 export shim replay",
@@ -151,11 +151,11 @@ test "phase1 closure and phase3 handoff scripts stay referenced explicitly" {
     defer std.testing.allocator.free(workflow);
 
     const explicit_files = [_][]const u8{
-        "scripts/zigux/validate-phase1-closure.py",
-        "scripts/zigux/validate_phase3_selftest.py",
-        "scripts/zigux/run-phase3-checks.py",
-        "scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
-        "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+        "scripts\zigux/validate_phase1_closure.zig",
+        "scripts/zigux/validate_phase3_selftest.zig",
+        "scripts/zigux/run_phase3_checks.zig",
+        "scripts\zigux/check_phase3_export_uapi_c_header_smoke.zig",
+        "scripts\zigux/validate_phase3_low_level_wrapper_survey.zig",
         "zigux/tests/phase3_export_uapi_layout_build.zig",
         "zigux/tests/phase3_export_shim_build.zig",
         "zigux/tests/phase3_policy_unsafe_build.zig",

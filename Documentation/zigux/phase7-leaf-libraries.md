@@ -15,7 +15,7 @@ It is shared validation substrate wiring that makes those live helpers reviewabl
 - `zigux/tests/phase7_leaf_libraries_starter_packet.zig`
 - `zigux/tests/phase7_leaf_libraries_starter_packet_build.zig`
 - `zigux/tests/fixtures/phase7_leaf_libraries_manifest.json`
-- `scripts/zigux/check-phase7-leaf-libraries.py`
+- `scripts\zigux/check_phase7_leaf_libraries.zig`
 
 ## Bounded contract
 
@@ -27,8 +27,8 @@ It is shared validation substrate wiring that makes those live helpers reviewabl
 
 ## Replay routes
 
-- `python3 scripts/zigux/check-phase7-leaf-libraries.py --self-test`
-- `python3 scripts/zigux/check-phase7-leaf-libraries.py --repo-root . --skip-exec`
+- `zig run check_phase7_leaf_libraries.zig --self-test`
+- `zig run check_phase7_leaf_libraries.zig --repo-root . --skip-exec`
 - `zig build phase7-leaf-libraries-starter-packet --build-file zigux/tests/phase7_leaf_libraries_starter_packet_build.zig`
 
 ## Scope
