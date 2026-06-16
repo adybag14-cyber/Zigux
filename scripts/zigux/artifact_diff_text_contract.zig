@@ -1,6 +1,5 @@
 const std = @import("std");
-
-const artifact_diff_source = @embedFile("artifact_diff.py");
+const diff = @import("artifact_diff.zig");
 
 const text_case_names = [_][]const u8{
     "text_pass",
@@ -10,136 +9,97 @@ const text_case_names = [_][]const u8{
     "text_missing_both",
 };
 
-const current_text_surface = [_][]const u8{
-    "def compare_text(expected: Path, actual: Path) -> ComparisonResult:",
-    "if read_bytes(expected) == read_bytes(actual):",
-    "return ComparisonResult(ok=True, extra_lines=[])",
-    "return ComparisonResult(ok=False, extra_lines=[])",
-    "mode == \"text\"",
-};
-
-const legacy_text_surface = [_][]const u8{
-    "if mode == 'text':",
-    "expected_value = read_text(expected)",
-    "actual_value = read_text(actual)",
-    "assert_detail_shape(details, mode='text'",
-    "render_result_lines(matched, details) == [",
-};
-
-fn expectContains(haystack: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+fn tmpPath(allocator: std.mem.Allocator, tmp_sub_path: []const u8, name: []const u8) ![]const u8 {
+    return std.fmt.allocPrint(allocator, ".zig-cache/tmp/{s}/{s}", .{ tmp_sub_path, name });
 }
 
-fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
-}
-
-fn expectContainsAll(haystack: []const u8, needles: []const []const u8) !void {
-    for (needles) |needle| {
-        try expectContains(haystack, needle);
+fn catalogContains(case_name: []const u8) bool {
+    for (diff.self_test_case_names) |name| {
+        if (std.mem.eql(u8, name, case_name)) return true;
     }
-}
-
-fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
-    var count: usize = 0;
-    var index: usize = 0;
-    while (std.mem.indexOf(u8, haystack[index..], needle)) |offset| {
-        count += 1;
-        index += offset + needle.len;
-    }
-    return count;
-}
-
-fn quotedCount(haystack: []const u8, name: []const u8) usize {
-    var single_buffer: [128]u8 = undefined;
-    var double_buffer: [128]u8 = undefined;
-    const single = std.fmt.bufPrint(&single_buffer, "'{s}'", .{name}) catch unreachable;
-    const double = std.fmt.bufPrint(&double_buffer, "\"{s}\"", .{name}) catch unreachable;
-    return countOccurrences(haystack, single) + countOccurrences(haystack, double);
-}
-
-fn expectQuotedName(haystack: []const u8, name: []const u8) !void {
-    try std.testing.expect(quotedCount(haystack, name) > 0);
+    return false;
 }
 
 test "artifact diff keeps text self-test catalog explicit" {
-    try std.testing.expect(
-        std.mem.indexOf(u8, artifact_diff_source, "SELF_TEST_CASES") != null or
-            std.mem.indexOf(u8, artifact_diff_source, "EXPECTED_SELF_TEST_CASES") != null,
-    );
-    try expectContains(artifact_diff_source, "run_self_test");
     for (text_case_names) |name| {
-        try expectQuotedName(artifact_diff_source, name);
+        try std.testing.expect(catalogContains(name));
     }
-
-    try expectContains(artifact_diff_source, "ARTIFACT_DIFF_SELF_TEST_CASES=");
 }
 
 test "artifact diff text mode remains exact and separate from json and byte digest modes" {
-    const has_current_surface =
-        std.mem.indexOf(u8, artifact_diff_source, current_text_surface[0]) != null;
-    const has_legacy_surface =
-        std.mem.indexOf(u8, artifact_diff_source, legacy_text_surface[0]) != null;
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "expected.txt", .data = "alpha\n" });
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "actual.txt", .data = "alpha\n" });
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "expected.json", .data = "{}\n" });
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "blob.bin", .data = "bytes" });
 
-    try std.testing.expect(has_current_surface or has_legacy_surface);
-    try std.testing.expect(
-        std.mem.indexOf(u8, artifact_diff_source, "mode == \"json\"") != null or
-            std.mem.indexOf(u8, artifact_diff_source, "mode == 'json'") != null,
-    );
-    try std.testing.expect(
-        std.mem.indexOf(u8, artifact_diff_source, "mode == \"bytes\"") != null or
-            std.mem.indexOf(u8, artifact_diff_source, "mode == 'sha256'") != null,
-    );
+    const expected_txt = try tmpPath(std.testing.allocator, tmp.sub_path[0..], "expected.txt");
+    defer std.testing.allocator.free(expected_txt);
+    const actual_txt = try tmpPath(std.testing.allocator, tmp.sub_path[0..], "actual.txt");
+    defer std.testing.allocator.free(actual_txt);
+    const expected_json = try tmpPath(std.testing.allocator, tmp.sub_path[0..], "expected.json");
+    defer std.testing.allocator.free(expected_json);
+    const blob = try tmpPath(std.testing.allocator, tmp.sub_path[0..], "blob.bin");
+    defer std.testing.allocator.free(blob);
 
-    if (has_current_surface) {
-        try expectContainsAll(artifact_diff_source, &current_text_surface);
-    } else {
-        try expectContainsAll(artifact_diff_source, &legacy_text_surface);
-    }
+    const text_pass = try diff.compare(std.testing.io, std.testing.allocator, .text, expected_txt, actual_txt);
+    defer diff.freeComparisonResult(std.testing.allocator, text_pass);
+    try std.testing.expect(text_pass.ok);
+    try std.testing.expectEqual(@as(usize, 0), text_pass.extra_lines.len);
+
+    const json_pass = try diff.compare(std.testing.io, std.testing.allocator, .json, expected_json, expected_json);
+    defer diff.freeComparisonResult(std.testing.allocator, json_pass);
+    try std.testing.expect(json_pass.ok);
+
+    const bytes_pass = try diff.compare(std.testing.io, std.testing.allocator, .bytes, blob, blob);
+    defer diff.freeComparisonResult(std.testing.allocator, bytes_pass);
+    try std.testing.expect(bytes_pass.ok);
+    try std.testing.expect(std.mem.startsWith(u8, bytes_pass.extra_lines[0], "SHA256="));
 }
 
 test "artifact diff text results report identity without digest noise" {
-    try expectContains(artifact_diff_source, "ARTIFACT_DIFF=pass");
-    try expectContains(artifact_diff_source, "print(f\"ARTIFACT_DIFF={status}\")");
-    try expectContains(artifact_diff_source, "\"pass\" if result.ok else \"fail\"");
-    try expectContains(artifact_diff_source, "MODE=");
-    try expectContains(artifact_diff_source, "EXPECTED=");
-    try expectContains(artifact_diff_source, "ACTUAL=");
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "a.txt", .data = "same\n" });
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "b.txt", .data = "same\n" });
 
-    const has_current_sha_surface =
-        std.mem.indexOf(u8, artifact_diff_source, "def compare_bytes(expected: Path, actual: Path) -> ComparisonResult:") != null;
-    if (has_current_sha_surface) {
-        try expectContains(artifact_diff_source, "return ComparisonResult(ok=True, extra_lines=[f\"SHA256={expected_digest}\"])");
-    } else {
-        try expectContains(artifact_diff_source, "if mode == 'sha256':");
-        try expectContains(artifact_diff_source, "details['expected_sha256'] = expected_value");
-        try expectContains(artifact_diff_source, "if 'expected_sha256' in details:");
-    }
+    const a = try tmpPath(std.testing.allocator, tmp.sub_path[0..], "a.txt");
+    defer std.testing.allocator.free(a);
+    const b = try tmpPath(std.testing.allocator, tmp.sub_path[0..], "b.txt");
+    defer std.testing.allocator.free(b);
 
-    try expectNotContains(artifact_diff_source, "text_sha256");
-    try expectNotContains(artifact_diff_source, "TEXT_SHA256");
+    const result = try diff.compare(std.testing.io, std.testing.allocator, .text, a, b);
+    defer diff.freeComparisonResult(std.testing.allocator, result);
+    try std.testing.expect(result.ok);
+    try std.testing.expectEqual(@as(usize, 0), result.extra_lines.len);
+    try std.testing.expectEqual(diff.Mode.text, diff.Mode.parse("text").?);
 }
 
 test "artifact diff text mode shares stable missing-file reporting" {
-    const has_current_path_problem_surface =
-        std.mem.indexOf(u8, artifact_diff_source, "def path_problem_lines(expected: Path, actual: Path)") != null;
-    const has_current_missing_surface =
-        std.mem.indexOf(u8, artifact_diff_source, "def missing_lines(expected: Path, actual: Path)") != null;
-    if (has_current_path_problem_surface) {
-        try expectContains(artifact_diff_source, "EXPECTED_EXISTS={expected_exists}");
-        try expectContains(artifact_diff_source, "ACTUAL_EXISTS={actual_exists}");
-        try expectContains(artifact_diff_source, "EXPECTED_IS_FILE={expected_is_file}");
-        try expectContains(artifact_diff_source, "ACTUAL_IS_FILE={actual_is_file}");
-    } else if (has_current_missing_surface) {
-        try expectContains(artifact_diff_source, "EXPECTED_EXISTS={expected_exists}");
-        try expectContains(artifact_diff_source, "ACTUAL_EXISTS={actual_exists}");
-    } else {
-        try expectContains(artifact_diff_source, "details['expected_exists'] = expected.exists()");
-        try expectContains(artifact_diff_source, "details['actual_exists'] = actual.exists()");
-        try expectContains(artifact_diff_source, "assert_detail_shape(details, mode='text'");
-    }
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "actual.txt", .data = "present\n" });
 
-    try expectQuotedName(artifact_diff_source, "text_missing_expected");
-    try expectQuotedName(artifact_diff_source, "text_missing_actual");
-    try expectQuotedName(artifact_diff_source, "text_missing_both");
+    const missing = try tmpPath(std.testing.allocator, tmp.sub_path[0..], "missing.txt");
+    defer std.testing.allocator.free(missing);
+    const actual_txt = try tmpPath(std.testing.allocator, tmp.sub_path[0..], "actual.txt");
+    defer std.testing.allocator.free(actual_txt);
+    const other_missing = try tmpPath(std.testing.allocator, tmp.sub_path[0..], "other-missing.txt");
+    defer std.testing.allocator.free(other_missing);
+
+    const missing_expected = try diff.compare(std.testing.io, std.testing.allocator, .text, missing, actual_txt);
+    defer diff.freeComparisonResult(std.testing.allocator, missing_expected);
+    try std.testing.expectEqualStrings("EXPECTED_EXISTS=False", missing_expected.extra_lines[0]);
+    try std.testing.expectEqualStrings("ACTUAL_EXISTS=True", missing_expected.extra_lines[1]);
+
+    const missing_actual = try diff.compare(std.testing.io, std.testing.allocator, .text, actual_txt, missing);
+    defer diff.freeComparisonResult(std.testing.allocator, missing_actual);
+    try std.testing.expectEqualStrings("EXPECTED_EXISTS=True", missing_actual.extra_lines[0]);
+    try std.testing.expectEqualStrings("ACTUAL_EXISTS=False", missing_actual.extra_lines[1]);
+
+    const missing_both = try diff.compare(std.testing.io, std.testing.allocator, .text, missing, other_missing);
+    defer diff.freeComparisonResult(std.testing.allocator, missing_both);
+    try std.testing.expectEqualStrings("EXPECTED_EXISTS=False", missing_both.extra_lines[0]);
+    try std.testing.expectEqualStrings("ACTUAL_EXISTS=False", missing_both.extra_lines[1]);
 }

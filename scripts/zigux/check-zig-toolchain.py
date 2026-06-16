@@ -579,8 +579,8 @@ def run_self_test() -> int:
         raise AssertionError("expected ValueError to fail")
 
     expect_equal(parse_zig_version("0.16.0"), ZigVersion(0, 16, 0, 1, 0))
-    expect_equal(parse_zig_version("0.17.0-dev.877+a3ae499dc"), ZigVersion(0, 17, 0, 0, 758))
-    expect_true(parse_zig_version("0.17.0-dev.759") > parse_zig_version("0.17.0-dev.877+a3ae499dc"))
+    expect_equal(parse_zig_version("0.17.0-dev.877+a3ae499dc"), ZigVersion(0, 17, 0, 0, 877))
+    expect_true(parse_zig_version("0.17.0-dev.877+a3ae499dc") > parse_zig_version("0.17.0-dev.759"))
     expect_true(parse_zig_version("0.17.0") > parse_zig_version("0.17.0-dev.999+abcdef"))
     expect_true(parse_zig_version("0.17.1-dev.1") > parse_zig_version("0.17.0"))
     expect_true(parse_zig_version("0.16.0") > parse_zig_version("0.15.2"))
@@ -627,11 +627,19 @@ def run_self_test() -> int:
     )
     expect_equal(
         evaluate_toolchain_version(
-            "0.17.0-dev.759+abcdef",
+            "0.17.0-dev.877+stalehash",
             "0.17.0-dev.877+a3ae499dc",
             "0.17.0-dev.877+a3ae499dc",
         ),
         ("not_pinned", "expected pinned Zig channel 0.17.0-dev.877+a3ae499dc"),
+    )
+    expect_equal(
+        evaluate_toolchain_version(
+            "0.17.0-dev.759+abcdef",
+            "0.17.0-dev.877+a3ae499dc",
+            "0.17.0-dev.877+a3ae499dc",
+        ),
+        ("too_old", None),
     )
     expect_equal(
         evaluate_toolchain_version(

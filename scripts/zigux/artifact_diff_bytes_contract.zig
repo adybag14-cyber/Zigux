@@ -1,76 +1,62 @@
 const std = @import("std");
+const diff = @import("artifact_diff.zig");
 
-const artifact_diff_source = @embedFile("artifact_diff.py");
-
-fn expectContains(needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, artifact_diff_source, needle) != null);
+fn tmpPath(allocator: std.mem.Allocator, tmp_sub_path: []const u8, name: []const u8) ![]const u8 {
+    return std.fmt.allocPrint(allocator, ".zig-cache/tmp/{s}/{s}", .{ tmp_sub_path, name });
 }
 
-fn expectOrder(before: []const u8, after: []const u8) !void {
-    const before_index = std.mem.indexOf(u8, artifact_diff_source, before) orelse return error.MissingBeforeMarker;
-    const after_index = std.mem.indexOf(u8, artifact_diff_source, after) orelse return error.MissingAfterMarker;
-    try std.testing.expect(before_index < after_index);
-}
-
-fn sourceHasAny(markers: []const []const u8) bool {
-    for (markers) |marker| {
-        if (std.mem.indexOf(u8, artifact_diff_source, marker) != null) return true;
+fn catalogContains(case_name: []const u8) bool {
+    for (diff.self_test_case_names) |name| {
+        if (std.mem.eql(u8, name, case_name)) return true;
     }
     return false;
 }
 
 test "artifact diff exposes bytes digest mode and legacy sha256 compatibility" {
-    const has_current_bytes_mode = sourceHasAny(&.{
-        "MODE_CHOICES = (\"text\", \"json\", \"bytes\")",
-        "\" --mode {text,json,bytes}\"",
-    });
-    const has_legacy_sha256_mode = sourceHasAny(&.{
-        "choices=['text', 'json', 'sha256']",
-        "compare_artifacts('sha256'",
-    });
-    try std.testing.expect(has_current_bytes_mode or has_legacy_sha256_mode);
-
-    if (has_current_bytes_mode) {
-        try expectContains("LEGACY_MODE_ALIASES = {\"sha256\": \"bytes\"}");
-        try expectContains("def normalize_mode(mode: str) -> str:");
-        try expectContains("return LEGACY_MODE_ALIASES.get(mode, mode)");
-        try expectContains("MODE=bytes");
-        try expectOrder("if mode in LEGACY_MODE_ALIASES:", "mode = LEGACY_MODE_ALIASES[mode]");
-    }
+    try std.testing.expectEqual(diff.Mode.bytes, diff.Mode.parse("sha256").?);
+    try std.testing.expectEqualStrings("bytes", diff.Mode.bytes.name());
+    try std.testing.expect(catalogContains("legacy_sha256_alias"));
 }
 
 test "artifact diff byte comparison emits stable digest markers" {
-    try expectContains("hashlib.sha256");
-    try expectContains("SHA256=");
-    try expectContains("EXPECTED_SHA256=");
-    try expectContains("ACTUAL_SHA256=");
-    try expectOrder("EXPECTED_SHA256=", "ACTUAL_SHA256=");
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "blob-a.bin", .data = "zigux-artifact-diff" });
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "blob-b.bin", .data = "zigux-artifact-diff" });
 
-    const has_current_compare = sourceHasAny(&.{
-        "def compare_bytes(expected: Path, actual: Path) -> ComparisonResult:",
-        "if mode == \"bytes\":\n        return compare_bytes(expected, actual)",
-    });
-    const has_legacy_compare = sourceHasAny(&.{
-        "elif mode == 'sha256':",
-        "details['expected_sha256'] = expected_value",
-    });
-    try std.testing.expect(has_current_compare or has_legacy_compare);
+    const blob_a = try tmpPath(std.testing.allocator, tmp.sub_path[0..], "blob-a.bin");
+    defer std.testing.allocator.free(blob_a);
+    const blob_b = try tmpPath(std.testing.allocator, tmp.sub_path[0..], "blob-b.bin");
+    defer std.testing.allocator.free(blob_b);
+
+    const pass = try diff.compare(std.testing.io, std.testing.allocator, .bytes, blob_a, blob_b);
+    defer diff.freeComparisonResult(std.testing.allocator, pass);
+    try std.testing.expect(pass.ok);
+    try std.testing.expectEqual(@as(usize, 1), pass.extra_lines.len);
+    try std.testing.expect(std.mem.startsWith(u8, pass.extra_lines[0], "SHA256="));
+
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "blob-b.bin", .data = "zigux-artifact-DRIFT" });
+    const drift = try diff.compare(std.testing.io, std.testing.allocator, .bytes, blob_a, blob_b);
+    defer diff.freeComparisonResult(std.testing.allocator, drift);
+    try std.testing.expect(!drift.ok);
+    try std.testing.expectEqual(@as(usize, 2), drift.extra_lines.len);
+    try std.testing.expect(std.mem.startsWith(u8, drift.extra_lines[0], "EXPECTED_SHA256="));
+    try std.testing.expect(std.mem.startsWith(u8, drift.extra_lines[1], "ACTUAL_SHA256="));
 }
 
 test "artifact diff self-test catalog covers pass drift and missing byte cases" {
-    const pass_markers = [_][]const u8{ "\"bytes_pass\"", "'sha256_pass'" };
-    const drift_markers = [_][]const u8{ "\"bytes_drift\"", "'sha256_drift'" };
-    const missing_expected_markers = [_][]const u8{ "\"bytes_missing_expected\"", "'sha256_missing_expected'" };
-    const missing_actual_markers = [_][]const u8{ "\"bytes_missing_actual\"", "'sha256_missing_actual'" };
-    const missing_both_markers = [_][]const u8{ "\"bytes_missing_both\"", "'sha256_missing_both'" };
+    const cases = [_][]const u8{
+        "bytes_pass",
+        "bytes_drift",
+        "bytes_missing_expected",
+        "bytes_missing_actual",
+        "bytes_missing_both",
+    };
+    for (cases) |case_name| {
+        try std.testing.expect(catalogContains(case_name));
+    }
 
-    try std.testing.expect(sourceHasAny(&pass_markers));
-    try std.testing.expect(sourceHasAny(&drift_markers));
-    try std.testing.expect(sourceHasAny(&missing_expected_markers));
-    try std.testing.expect(sourceHasAny(&missing_actual_markers));
-    try std.testing.expect(sourceHasAny(&missing_both_markers));
-
-    try expectContains("zigux-artifact-diff");
-    try expectContains("zigux-artifact-DRIFT");
-    try expectContains("ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=");
+    const digest = try diff.sha256Hex(std.testing.allocator, "zigux-artifact-diff");
+    defer std.testing.allocator.free(digest);
+    try std.testing.expectEqualStrings("0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576", digest);
 }

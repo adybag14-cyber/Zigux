@@ -28,6 +28,9 @@ phase2-toolchain:
 	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/toolchain_policy.zig
 	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_policy_validation_contract.zig
 	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_version_evaluation_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig -- --policy-only
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing
@@ -184,14 +187,19 @@ phase4-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-perf-baseline-packet.py
 
 phase4-artifact-diff-contract:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run scripts/zigux/artifact_diff.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-makefile-contract.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-makefile-contract.py
-	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build artifact-diff-text-contract --build-file scripts/zigux/artifact_diff_text_contract_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/artifact_diff_text_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/artifact_diff_json_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/artifact_diff_bytes_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/artifact_diff_cli_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/artifact_diff_utf8_error_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/artifact_diff_missing_path_contract.zig
 
 phase4-test:
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase4_build.zig

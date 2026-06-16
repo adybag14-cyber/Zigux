@@ -18,7 +18,7 @@ VALIDATE_TARGET = "phase4-validate"
 
 EXPECTED_CONTRACT_LINES = (
     "phase4-artifact-diff-contract:",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run scripts/zigux/artifact_diff.zig -- --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
@@ -134,7 +134,7 @@ def baseline_makefile() -> str:
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-reversible-delivery-pins.py",
             "",
             "phase4-artifact-diff-contract:",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run scripts/zigux/artifact_diff.zig -- --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
