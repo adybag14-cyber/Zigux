@@ -35,8 +35,10 @@ fn requireOrder(haystack: []const u8, earlier: []const u8, later: []const u8) !v
 pub fn checkToolchainActivationMarkers(workflow: []const u8) !void {
     try requireContains(workflow, "      - name: Setup pinned Zig toolchain\n");
     try requireContains(workflow, "          extract_root=\"$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL\"\n");
-    try requireContains(workflow, "              tar -xJf \"$repo_archive_path\" -C .zig-toolchain\n");
-    try requireContains(workflow, "              tar -xJf \"$archive_path\" -C .zig-toolchain\n");
+    try requireContains(workflow, "verify_and_activate_archive \"$repo_archive_path\"");
+    try requireContains(workflow, "verify_and_activate_archive \"$archive_path\"");
+    try requireContains(workflow, "            tar -xJf \"$archive\" -C .zig-toolchain");
+    try requireContains(workflow, "activate_extracted_zig");
     try routes.requireRoute(workflow, "              if python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"; then\n", "              if zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then\n");
     try requireContains(workflow, "          zig_path=\"$extract_root/zig\"\n");
     try requireContains(workflow, "          echo \"$extract_root\" >> \"$GITHUB_PATH\"\n");
@@ -49,15 +51,15 @@ pub fn checkToolchainActivationMarkers(workflow: []const u8) !void {
 pub fn checkToolchainActivationOrder(workflow: []const u8) !void {
     try requireOrder(workflow, "      - name: Setup pinned Zig toolchain\n", "      - name: Compile current scripts\n");
     try requireOrder(workflow, "          extract_root=\"$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL\"\n", "          try_local_archive() {\n");
-    try requireOrder(workflow, "          try_local_archive() {\n", "              tar -xJf \"$repo_archive_path\" -C .zig-toolchain\n");
-    const repo_tar_index = std.mem.indexOf(u8, workflow, "              tar -xJf \"$repo_archive_path\" -C .zig-toolchain\n") orelse return error.MissingWorkflowMarker;
+    try requireOrder(workflow, "          try_local_archive() {\n", "verify_and_activate_archive \"$repo_archive_path\"");
+    const repo_activate_index = std.mem.indexOf(u8, workflow, "verify_and_activate_archive \"$repo_archive_path\"") orelse return error.MissingWorkflowMarker;
     const repo_probe_index = routes.routeIndex(workflow, "              if python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"; then\n", "              if zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then\n") orelse return error.MissingWorkflowMarker;
     const download_index = std.mem.indexOf(u8, workflow, "          try_download() {\n") orelse return error.MissingWorkflowMarker;
-    const archive_tar_index = std.mem.indexOf(u8, workflow, "              tar -xJf \"$archive_path\" -C .zig-toolchain\n") orelse return error.MissingWorkflowMarker;
+    const archive_activate_index = std.mem.indexOf(u8, workflow, "verify_and_activate_archive \"$archive_path\"") orelse return error.MissingWorkflowMarker;
     const archive_probe_index = routes.routeIndex(workflow, "                if python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"; then\n", "                if zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then\n") orelse return error.MissingWorkflowMarker;
-    try std.testing.expect(repo_tar_index < repo_probe_index);
-    try std.testing.expect(download_index < archive_tar_index);
-    try std.testing.expect(archive_tar_index < archive_probe_index);
+    try std.testing.expect(repo_activate_index < repo_probe_index);
+    try std.testing.expect(download_index < archive_activate_index);
+    try std.testing.expect(archive_activate_index < archive_probe_index);
     try requireOrder(workflow, "          if [ \"$download_success\" -ne 1 ]; then\n", "          zig_path=\"$extract_root/zig\"\n");
     try requireOrder(workflow, "          zig_path=\"$extract_root/zig\"\n", "          echo \"$extract_root\" >> \"$GITHUB_PATH\"\n");
     try requireOrder(workflow, "          echo \"$extract_root\" >> \"$GITHUB_PATH\"\n", "          \"$zig_path\" version\n");
@@ -86,14 +88,20 @@ test "Lane 05 activation rejects adding archive paths to GITHUB_PATH" {
         \\      - name: Setup pinned Zig toolchain
         \\        run: |
         \\          extract_root="$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL"
+        \\          verify_and_activate_archive() {
+        \\            tar -xJf "$archive" -C .zig-toolchain
+        \\          }
+        \\          activate_extracted_zig() {
+        \\            zig_path="$extract_root/zig"
+        \\          }
         \\          try_local_archive() {
-        \\              tar -xJf "$repo_archive_path" -C .zig-toolchain
+        \\            verify_and_activate_archive "$repo_archive_path"
         \\              if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then
         \\                return 0
         \\              fi
         \\          }
         \\          try_download() {
-        \\              tar -xJf "$archive_path" -C .zig-toolchain
+        \\            verify_and_activate_archive "$archive_path"
         \\                if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then
         \\                  return 0
         \\                fi
@@ -120,14 +128,20 @@ test "Lane 05 activation rejects running zig before GITHUB_PATH export" {
         \\      - name: Setup pinned Zig toolchain
         \\        run: |
         \\          extract_root="$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL"
+        \\          verify_and_activate_archive() {
+        \\            tar -xJf "$archive" -C .zig-toolchain
+        \\          }
+        \\          activate_extracted_zig() {
+        \\            zig_path="$extract_root/zig"
+        \\          }
         \\          try_local_archive() {
-        \\              tar -xJf "$repo_archive_path" -C .zig-toolchain
+        \\            verify_and_activate_archive "$repo_archive_path"
         \\              if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then
         \\                return 0
         \\              fi
         \\          }
         \\          try_download() {
-        \\              tar -xJf "$archive_path" -C .zig-toolchain
+        \\            verify_and_activate_archive "$archive_path"
         \\                if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then
         \\                  return 0
         \\                fi

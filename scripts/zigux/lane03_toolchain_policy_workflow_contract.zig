@@ -46,6 +46,8 @@ const workflow_toolchain_markers = [_][]const u8{
     "canonical_tag = \"upstream-a3ae499dc297\"",
     "repo_archive_path=\"third_party/$ZIGUX_ZIG_FILENAME\"",
     "repo_archive_parts_dir=\"${repo_archive_path}.parts\"",
+    "verify_pinned_archive_sha256",
+    "ensure_bootstrap_zig",
     "zig run scripts/zigux/stage_pinned_zig_archive.zig",
     "zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"",
     "zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"",
@@ -124,7 +126,7 @@ test "Lane 03 checker keeps fail-closed policy and archive validation hooks" {
 }
 
 test "Lane 03 workflow installs from the trusted local archive path before fallbacks" {
-    try std.testing.expectEqual(@as(usize, 19), workflow_toolchain_markers.len);
+    try std.testing.expectEqual(@as(usize, 21), workflow_toolchain_markers.len);
     try expectUnique(&workflow_toolchain_markers);
     try expectOrdered(
         &workflow_toolchain_markers,

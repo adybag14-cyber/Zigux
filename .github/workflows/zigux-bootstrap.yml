@@ -95,16 +95,66 @@ jobs:
           repo_archive_parts_dir="${repo_archive_path}.parts"
           rm -f "$archive_path" "$mirror_file"
           rm -rf "$extract_root"
+          verify_pinned_archive_sha256() {
+            local archive="$1"
+            python3 - "$archive" "$ZIGUX_ZIG_TARGET" <<'PY'
+          import hashlib, json, sys
+          from pathlib import Path
+          archive, target = sys.argv[1], sys.argv[2]
+          policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))
+          expected = policy["archive_sha256"][target]
+          actual = hashlib.sha256(Path(archive).read_bytes()).hexdigest()
+          if actual != expected:
+              print(f"pinned archive sha256 mismatch: expected {expected}, got {actual}", file=sys.stderr)
+              raise SystemExit(1)
+          PY
+          }
+          activate_extracted_zig() {
+            zig_path="$extract_root/zig"
+            export PATH="$extract_root:$PATH"
+          }
+          ensure_bootstrap_zig() {
+            if command -v zig >/dev/null 2>&1; then
+              return 0
+            fi
+            if [ -x "$extract_root/zig" ]; then
+              activate_extracted_zig
+              return 0
+            fi
+            if [ ! -f "$archive_path" ]; then
+              curl --fail \
+                --location \
+                --retry 5 \
+                --retry-all-errors \
+                --retry-delay 3 \
+                --connect-timeout 20 \
+                --speed-limit 1024 \
+                --speed-time 30 \
+                "$ZIGUX_ZIG_CANONICAL_URL" \
+                -o "$archive_path" || return 1
+            fi
+            verify_pinned_archive_sha256 "$archive_path" || return 1
+            rm -rf "$extract_root"
+            tar -xJf "$archive_path" -C .zig-toolchain || return 1
+            activate_extracted_zig
+          }
+          verify_and_activate_archive() {
+            local archive="$1"
+            verify_pinned_archive_sha256 "$archive" || return 1
+            rm -rf "$extract_root"
+            tar -xJf "$archive" -C .zig-toolchain || return 1
+            activate_extracted_zig
+          }
           try_local_archive() {
             if [ ! -f "$repo_archive_path" ]; then
               if [ ! -d "$repo_archive_parts_dir" ]; then
                 return 1
               fi
+              ensure_bootstrap_zig || return 1
               zig run scripts/zigux/stage_pinned_zig_archive.zig -- --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1
             fi
+            verify_and_activate_archive "$repo_archive_path" || return 1
             if zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
-              tar -xJf "$repo_archive_path" -C .zig-toolchain
-              zig_path="$extract_root/zig"
               if zig run scripts/zigux/check_zig_toolchain.zig -- --zig "$zig_path"; then
                 return 0
               fi
@@ -124,9 +174,12 @@ jobs:
               --speed-time 30 \
               "$url" \
               -o "$archive_path"; then
+              verify_and_activate_archive "$archive_path" || {
+                rm -f "$archive_path"
+                rm -rf "$extract_root"
+                return 1
+              }
               if zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
-                tar -xJf "$archive_path" -C .zig-toolchain
-                zig_path="$extract_root/zig"
                 if zig run scripts/zigux/check_zig_toolchain.zig -- --zig "$zig_path"; then
                   return 0
                 fi

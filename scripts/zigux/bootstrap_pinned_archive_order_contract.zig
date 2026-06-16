@@ -74,7 +74,8 @@ test "local archive and staged parts are tried before network fallbacks" {
     try expectContains(workflow, "repo_archive_parts_dir=\"${repo_archive_path}.parts\"");
     try routes.requireRoute(workflow, routes.stage_python, routes.stage_zig);
     try routes.requireRoute(workflow, routes.archive_check_python, routes.archive_check_zig);
-    try expectContains(workflow, "tar -xJf \"$repo_archive_path\" -C .zig-toolchain");
+    try expectContains(workflow, "verify_and_activate_archive");
+    try expectContains(workflow, "tar -xJf \"$archive\" -C .zig-toolchain");
     try routes.requireRoute(workflow, routes.zig_probe_python, routes.zig_probe_zig);
 
     try expectBefore(workflow, "try_local_archive() {", "try_download() {");

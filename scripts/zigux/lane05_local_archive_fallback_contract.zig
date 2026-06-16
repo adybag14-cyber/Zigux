@@ -9,11 +9,11 @@ const workflow_setup_zig =
     \\              if [ ! -d "$repo_archive_parts_dir" ]; then
     \\                return 1
     \\              fi
+    \\              ensure_bootstrap_zig || return 1
     \\              zig run scripts/zigux/stage_pinned_zig_archive.zig -- --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1
     \\            fi
+    \\            verify_and_activate_archive "$repo_archive_path" || return 1
     \\            if zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
-    \\              tar -xJf "$repo_archive_path" -C .zig-toolchain
-    \\              zig_path="$extract_root/zig"
     \\              if zig run scripts/zigux/check_zig_toolchain.zig -- --zig "$zig_path"; then
     \\                return 0
     \\              fi
@@ -66,7 +66,7 @@ test "Lane 05 local archive path stages split archives before downloads" {
     try routes.requireRoute(workflow_setup_zig, routes.stage_python, routes.stage_zig);
     try requireContains(workflow_setup_zig, "--parts-dir \"$repo_archive_parts_dir\"");
     try routes.requireRoute(workflow_setup_zig, routes.archive_check_python, routes.archive_check_zig);
-    try requireContains(workflow_setup_zig, "tar -xJf \"$repo_archive_path\" -C .zig-toolchain");
+    try requireContains(workflow_setup_zig, "verify_and_activate_archive");
     try routes.requireRouteOrder(
         workflow_setup_zig,
         routes.stage_python,
@@ -74,7 +74,9 @@ test "Lane 05 local archive path stages split archives before downloads" {
         routes.archive_check_python,
         routes.archive_check_zig,
     );
-    try requireOrder(workflow_setup_zig, routes.archive_check_zig, "tar -xJf \"$repo_archive_path\" -C .zig-toolchain");
+    try requireContains(workflow_setup_zig, routes.bootstrap_zig_helper);
+    try requireOrder(workflow_setup_zig, routes.stage_zig, "verify_and_activate_archive");
+    try requireOrder(workflow_setup_zig, "verify_and_activate_archive", routes.archive_check_zig);
 }
 
 test "Lane 05 fallback order prefers verified local archive before network sources" {

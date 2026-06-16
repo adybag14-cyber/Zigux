@@ -9,10 +9,12 @@ const workflow_packet =
     \\    if [ ! -d "$repo_archive_parts_dir" ]; then
     \\      return 1
     \\    fi
+    \\    ensure_bootstrap_zig || return 1
     \\    zig run scripts/zigux/stage_pinned_zig_archive.zig -- --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1
     \\  fi
+    \\  verify_and_activate_archive "$repo_archive_path" || return 1
     \\  if zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
-    \\    tar -xJf "$repo_archive_path" -C .zig-toolchain
+    \\    true
     \\  fi
     \\}
     \\if try_local_archive; then

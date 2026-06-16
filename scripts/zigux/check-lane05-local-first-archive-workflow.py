@@ -52,6 +52,10 @@ REPO_ARCHIVE_CHECK_ZIG_CMD = (
 )
 STAGE_HELPER_ROOT_ARG = '--root "$GITHUB_WORKSPACE"'
 STAGE_HELPER_PARTS_ARG = '--parts-dir "$repo_archive_parts_dir"'
+VERIFY_ARCHIVE_SHA256 = 'verify_pinned_archive_sha256'
+ENSURE_BOOTSTRAP_ZIG = 'ensure_bootstrap_zig'
+VERIFY_AND_ACTIVATE_ARCHIVE = 'verify_and_activate_archive "$repo_archive_path"'
+ACTIVATE_EXTRACTED_ZIG = 'export PATH="$extract_root:$PATH"'
 
 RETRY_REQUIRED_MARKERS = (
     "--fail",
@@ -94,8 +98,12 @@ LOCAL_ARCHIVE_MARKERS = (
     STAGE_HELPER_ZIG_CMD,
     STAGE_HELPER_ROOT_ARG,
     STAGE_HELPER_PARTS_ARG,
+    VERIFY_ARCHIVE_SHA256,
+    ENSURE_BOOTSTRAP_ZIG,
+    VERIFY_AND_ACTIVATE_ARCHIVE,
+    'tar -xJf "$archive" -C .zig-toolchain',
+    ACTIVATE_EXTRACTED_ZIG,
     REPO_ARCHIVE_CHECK_ZIG_CMD,
-    'tar -xJf "$repo_archive_path" -C .zig-toolchain',
     "if try_local_archive; then",
     'elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then',
     'https://ziglang.org/download/community-mirrors.txt',
@@ -204,7 +212,7 @@ def check_workflow(text: str) -> None:
     for marker in RETRY_REQUIRED_MARKERS:
         require_marker(text, marker, "workflow retry marker")
     for marker in RETRY_EXACT_OPTIONS:
-        require_exact_count(text, marker, 2, "workflow retry option")
+        require_exact_count(text, marker, 3, "workflow retry option")
 
     require_marker(text, CHECKOUT_STEP, "workflow checkout step name")
     require_marker(text, SETUP_STEP, "workflow setup step name")
@@ -401,8 +409,14 @@ def check_workflow(text: str) -> None:
     require_order(
         local_archive_block,
         STAGE_HELPER_PARTS_ARG,
-        archive_check_cmd,
+        VERIFY_AND_ACTIVATE_ARCHIVE,
         "workflow staged archive before validation order",
+    )
+    require_order(
+        local_archive_block,
+        VERIFY_AND_ACTIVATE_ARCHIVE,
+        archive_check_cmd,
+        "workflow archive activation before zig validation order",
     )
     require_order(
         text,
@@ -472,15 +486,36 @@ jobs:
           extract_root="$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL"
           repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"
           repo_archive_parts_dir="${repo_archive_path}.parts"
+          verify_pinned_archive_sha256() {
+            true
+          }
+          ensure_bootstrap_zig() {
+            curl --fail \
+              --location \
+              --retry 5 \
+              --retry-all-errors \
+              --retry-delay 3 \
+              --connect-timeout 20 \
+              --speed-limit 1024 \
+              --speed-time 30 \
+              "$ZIGUX_ZIG_CANONICAL_URL" \
+              -o "$archive_path"
+          }
+          verify_and_activate_archive() {
+            tar -xJf "$archive" -C .zig-toolchain
+            export PATH="$extract_root:$PATH"
+          }
           try_local_archive() {
             if [ ! -f "$repo_archive_path" ]; then
               if [ ! -d "$repo_archive_parts_dir" ]; then
                 return 1
               fi
+              ensure_bootstrap_zig || return 1
               zig run scripts/zigux/stage_pinned_zig_archive.zig -- --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1
             fi
+            verify_and_activate_archive "$repo_archive_path" || return 1
             if zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
-              tar -xJf "$repo_archive_path" -C .zig-toolchain
+              true
             fi
           }
           try_download() {
@@ -495,6 +530,7 @@ jobs:
               --speed-time 30 \
               "$url" \
               -o "$archive_path"; then
+              verify_and_activate_archive "$archive_path" || return 1
               return 0
             fi
           }
@@ -800,11 +836,13 @@ jobs:
         raise AssertionError("expected duplicate third-party path failure")
 
     reordered_stage_helper = good_workflow.replace(
+        '              ensure_bootstrap_zig || return 1\n'
         '              zig run scripts/zigux/stage_pinned_zig_archive.zig -- --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1\n'
         '            fi\n'
-        f'            if {REPO_ARCHIVE_CHECK_ZIG_CMD}; then\n',
+        '            verify_and_activate_archive "$repo_archive_path" || return 1\n',
         '            fi\n'
-        f'            if {REPO_ARCHIVE_CHECK_ZIG_CMD}; then\n'
+        '            verify_and_activate_archive "$repo_archive_path" || return 1\n'
+        '              ensure_bootstrap_zig || return 1\n'
         '              zig run scripts/zigux/stage_pinned_zig_archive.zig -- --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1\n',
         1,
     )
