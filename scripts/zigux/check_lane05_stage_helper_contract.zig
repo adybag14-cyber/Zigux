@@ -73,7 +73,7 @@ fn loadContract(io: Io, allocator: std.mem.Allocator, root: []const u8) !struct 
 }
 
 fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {
-    var contract = try loadContract(io, allocator, root);
+    const contract = try loadContract(io, allocator, root);
     defer {
         allocator.free(contract.target);
         allocator.free(contract.channel);
