@@ -1,54 +1,80 @@
 const std = @import("std");
-
-const checker_text = @embedFile("check-zig-toolchain.py");
-
-fn expectContains(haystack: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
-}
-
-fn expectBefore(haystack: []const u8, first: []const u8, second: []const u8) !void {
-    const first_index = std.mem.indexOf(u8, haystack, first) orelse return error.MissingFirstMarker;
-    const second_index = std.mem.indexOf(u8, haystack, second) orelse return error.MissingSecondMarker;
-    try std.testing.expect(first_index < second_index);
-}
+const policy = @import("toolchain_policy.zig");
 
 test "archive search roots include repo and attached-runtime trusted archive locations" {
-    try expectContains(checker_text, "def iter_archive_search_roots(root: Path = ROOT) -> list[Path]:");
-    try expectContains(checker_text, "add_search_root(root / \".zig-toolchain\")");
-    try expectContains(checker_text, "add_search_root(root / \"toolchains\")");
-    try expectContains(checker_text, "add_search_root(root / \".toolchains\")");
-    try expectContains(checker_text, "add_search_root(root / \"third_party\")");
-    try expectContains(checker_text, "add_search_root(root / \"agent_files\")");
-    try expectContains(checker_text, "add_search_root(parent / \"agent_files\")");
+    const resolver = @import("toolchain_resolver.zig");
+    const roots = try resolver.iterArchiveSearchRoots(std.testing.allocator, ".");
+    defer resolver.freeSearchRoots(std.testing.allocator, roots);
+
+    var has_third_party = false;
+    var has_agent_files = false;
+    var has_dot_toolchain = false;
+    for (roots) |root| {
+        if (std.mem.endsWith(u8, root, "/third_party")) has_third_party = true;
+        if (std.mem.endsWith(u8, root, "/agent_files")) has_agent_files = true;
+        if (std.mem.endsWith(u8, root, "/.zig-toolchain")) has_dot_toolchain = true;
+    }
+    try std.testing.expect(has_dot_toolchain);
+    try std.testing.expect(has_third_party);
+    try std.testing.expect(has_agent_files);
 }
 
 test "duplicate archive names are accepted only through the policy filename stem" {
-    try expectContains(checker_text, "ARCHIVE_DUPLICATE_SUFFIX_RE = re.compile");
-    try expectContains(checker_text, "def archive_name_has_duplicate_suffix(path_name: str, expected_filename: str) -> bool:");
-    try expectContains(checker_text, "if not expected_filename.endswith(\".tar.xz\"):");
-    try expectContains(checker_text, "return match.group(\"stem\") == expected_filename[: -len(\".tar.xz\")]");
-    try expectContains(checker_text, "def archive_name_matches_policy(path_name: str, expected_filename: str) -> bool:");
-    try expectContains(checker_text, "return path_name == expected_filename or archive_name_has_duplicate_suffix(path_name, expected_filename)");
-}
-
-test "repo local archive discovery de-duplicates candidate paths before selection" {
-    try expectContains(checker_text, "def iter_repo_local_archive_candidates(");
-    try expectContains(checker_text, "seen: set[Path] = set()");
-    try expectContains(checker_text, "if path not in seen:");
-    try expectContains(checker_text, "seen.add(path)");
-    try expectContains(checker_text, "for child in sorted(base.iterdir()):");
-    try expectContains(checker_text, "if child in seen or not child.is_file():");
-    try expectContains(checker_text, "if archive_name_has_duplicate_suffix(child.name, expected_filename):");
-    try expectBefore(checker_text, "seen: set[Path] = set()", "def select_matching_policy_archive(");
+    const expected = "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz";
+    try std.testing.expect(policy.archiveNameMatchesPolicy(expected, expected));
+    try std.testing.expect(policy.archiveNameMatchesPolicy(
+        "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc (1).tar.xz",
+        expected,
+    ));
+    try std.testing.expect(!policy.archiveNameMatchesPolicy(
+        "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc-copy.tar.xz",
+        expected,
+    ));
 }
 
 test "multiple visible pinned archive candidates fail closed instead of selecting one" {
-    try expectContains(checker_text, "def select_matching_policy_archive(");
-    try expectContains(checker_text, "matching_candidates = [");
-    try expectContains(checker_text, "if candidate_path.is_file()");
-    try expectContains(checker_text, "if len(matching_candidates) > 1:");
-    try expectContains(checker_text, "multiple repo-local pinned archive candidates matched in {policy_path}: ");
-    try expectContains(checker_text, "candidate_summary = \", \".join(");
-    try expectContains(checker_text, "return candidate_target, candidate_path");
-    try expectContains(checker_text, "return None, None");
+    const resolver = @import("toolchain_resolver.zig");
+    const json =
+        \\{
+        \\  "phase": "Phase 2",
+        \\  "channel": "0.17.0-dev.758+selftest",
+        \\  "minimum_version": "0.17.0-dev.758+selftest",
+        \\  "archive_sha256": {
+        \\    "x86_64-linux": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        \\  },
+        \\  "upgrade_policy": {
+        \\    "channel_minimum_lockstep": true,
+        \\    "archive_target_scope": ["x86_64-linux"],
+        \\    "required_make_routes": ["phase2-toolchain"]
+        \\  }
+        \\}
+    ;
+    var loaded = try policy.loadPolicyFromJson(std.testing.allocator, json);
+    defer policy.freePolicy(std.testing.allocator, &loaded);
+
+    const io = std.testing.io;
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const archive_name = "zig-x86_64-linux-0.17.0-dev.758+selftest.tar.xz";
+    const duplicate_name = "zig-x86_64-linux-0.17.0-dev.758+selftest (1).tar.xz";
+    const root_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        ".zig-cache/tmp/{s}",
+        .{tmp.sub_path[0..]},
+    );
+    defer std.testing.allocator.free(root_path);
+    try tmp.dir.createDirPath(io, "third_party");
+    try tmp.dir.writeFile(io, .{ .sub_path = "third_party/" ++ archive_name, .data = "zigux-archive" });
+    try tmp.dir.writeFile(io, .{ .sub_path = "third_party/" ++ duplicate_name, .data = "zigux-archive" });
+
+    const resolved = resolver.resolvePolicyArchive(
+        io,
+        std.testing.allocator,
+        &loaded,
+        root_path,
+        null,
+        null,
+    );
+    try std.testing.expectError(resolver.ResolverError.AmbiguousArchive, resolved);
 }

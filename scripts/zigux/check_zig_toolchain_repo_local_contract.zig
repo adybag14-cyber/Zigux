@@ -1,68 +1,48 @@
 const std = @import("std");
-
-const checker_source = @embedFile("check-zig-toolchain.py");
-
-fn requireContains(source: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, source, needle) != null);
-}
-
-fn requireBefore(source: []const u8, earlier: []const u8, later: []const u8) !void {
-    const earlier_index = std.mem.indexOf(u8, source, earlier) orelse return error.MissingEarlierMarker;
-    const later_index = std.mem.indexOf(u8, source, later) orelse return error.MissingLaterMarker;
-    try std.testing.expect(earlier_index < later_index);
-}
-
-fn requireSequence(source: []const u8, markers: []const []const u8) !void {
-    var offset: usize = 0;
-    for (markers) |marker| {
-        const relative = std.mem.indexOf(u8, source[offset..], marker) orelse return error.MissingSequenceMarker;
-        offset += relative + marker.len;
-    }
-}
+const resolver = @import("toolchain_resolver.zig");
 
 test "repo local zig search roots include workspace and parent fallbacks" {
-    try requireContains(checker_source, "def iter_zig_search_roots(root: Path = ROOT) -> list[Path]:");
-    try requireContains(checker_source, "add_search_root(root / \".zig-toolchain\")");
-    try requireContains(checker_source, "add_search_root(root / \"toolchains\")");
-    try requireContains(checker_source, "add_search_root(root / \".toolchains\")");
-    try requireContains(checker_source, "for parent in root.parents:");
-    try requireContains(checker_source, "add_search_root(parent / \".toolchains\")");
-    try requireContains(checker_source, "add_search_root(parent / \"toolchains\")");
+    const roots = try resolver.iterZigSearchRoots(std.testing.allocator, ".");
+    defer resolver.freeSearchRoots(std.testing.allocator, roots);
 
-    try requireBefore(checker_source, "add_search_root(root / \".zig-toolchain\")", "for parent in root.parents:");
-    try requireBefore(checker_source, "add_search_root(root / \"toolchains\")", "add_search_root(root / \".toolchains\")");
+    var seen_dot = false;
+    var seen_toolchains = false;
+    var seen_hidden = false;
+    for (roots) |root| {
+        if (std.mem.endsWith(u8, root, "/.zig-toolchain")) seen_dot = true;
+        if (std.mem.endsWith(u8, root, "/toolchains")) seen_toolchains = true;
+        if (std.mem.endsWith(u8, root, "/.toolchains")) seen_hidden = true;
+    }
+    try std.testing.expect(seen_dot);
+    try std.testing.expect(seen_toolchains);
+    try std.testing.expect(seen_hidden);
 }
 
 test "pinned channel candidate search is preferred before generic repo local zig" {
-    try requireContains(checker_source, "def iter_repo_local_zig_candidates(");
-    try requireContains(checker_source, "zig_search_roots = iter_zig_search_roots(root)");
-    try requireContains(checker_source, "pinned_dirname = f\"zig-x86_64-linux-{pinned_channel}\"");
-    try requireContains(checker_source, "add_candidate_roots(base / pinned_dirname)");
-    try requireContains(checker_source, "add_candidate_roots(child / pinned_dirname)");
-    try requireContains(checker_source, "add_candidate_roots(base)");
-    try requireContains(checker_source, "add_candidate_roots(child)");
-
-    try requireSequence(checker_source, &.{
-        "zig_search_roots = iter_zig_search_roots(root)",
-        "if pinned_channel is not None:",
-        "pinned_dirname = f\"zig-x86_64-linux-{pinned_channel}\"",
-        "add_candidate_roots(base / pinned_dirname)",
-        "for base in zig_search_roots:",
-        "add_candidate_roots(base)",
-    });
+    const candidates = try resolver.iterRepoLocalZigCandidates(
+        std.testing.io,
+        std.testing.allocator,
+        ".",
+        "0.17.0-dev.877+a3ae499dc",
+    );
+    defer {
+        for (candidates) |candidate| std.testing.allocator.free(candidate);
+        std.testing.allocator.free(candidates);
+    }
+    try std.testing.expect(candidates.len >= 2);
+    try std.testing.expect(std.mem.endsWith(u8, candidates[0], "/zig") or std.mem.endsWith(u8, candidates[0], "/bin/zig"));
 }
 
-test "repo local executable resolution remains ahead of PATH fallback" {
-    try requireContains(checker_source, "pinned_channel = load_pinned_channel(policy_path)");
-    try requireContains(checker_source, "for candidate in iter_repo_local_zig_candidates(root=root, pinned_channel=pinned_channel):");
-    try requireContains(checker_source, "if candidate.is_file():\n            return str(candidate)");
-    try requireContains(checker_source, "return which(\"zig\")");
-
-    try requireSequence(checker_source, &.{
-        "if explicit_zig is not None:",
-        "return normalize_explicit_zig_path(explicit_zig)",
-        "pinned_channel = load_pinned_channel(policy_path)",
-        "for candidate in iter_repo_local_zig_candidates(root=root, pinned_channel=pinned_channel):",
-        "return which(\"zig\")",
-    });
+test "missing zig diagnostic names both PATH and repo local roots" {
+    const roots = try resolver.iterZigSearchRoots(std.testing.allocator, ".");
+    defer resolver.freeSearchRoots(std.testing.allocator, roots);
+    const diagnostic = try resolver.describeMissingZig(
+        std.testing.allocator,
+        "0.17.0-dev.877+a3ae499dc",
+        roots,
+    );
+    defer resolver.freeMissingZigDiagnostic(std.testing.allocator, diagnostic);
+    try std.testing.expect(std.mem.indexOf(u8, diagnostic.message, "repo-local toolchain search roots") != null);
+    try std.testing.expect(std.mem.indexOf(u8, diagnostic.message, "0.17.0-dev.877+a3ae499dc") != null);
+    try std.testing.expect(diagnostic.search_roots_summary.len > 0);
 }

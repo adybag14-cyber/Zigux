@@ -61,20 +61,22 @@ test "bootstrap setup keeps trusted local and canonical sources ahead of network
 
 test "installer and workflow agree on the canonical release before generic dev builds" {
     const allocator = std.testing.allocator;
-    const install_zig_source = try readRepoFile(allocator, "scripts/zigux/install-zig.py");
+    const install_zig_source = try readRepoFile(allocator, "scripts/zigux/install_zig.zig");
     defer allocator.free(install_zig_source);
 
-    try expectContains(install_zig_source, "CANONICAL_RELEASE_CHANNEL = '" ++ canonical_channel ++ "'");
-    try expectContains(install_zig_source, "CANONICAL_RELEASE_REPO = os.environ.get('ZIGUX_ZIG_RELEASE_REPO', '" ++ canonical_repo ++ "')");
-    try expectContains(install_zig_source, "CANONICAL_RELEASE_TAG = os.environ.get('ZIGUX_ZIG_RELEASE_TAG', '" ++ canonical_tag ++ "')");
+    try expectContains(install_zig_source, "pub const canonical_release_channel = \"" ++ canonical_channel ++ "\"");
+    try expectContains(install_zig_source, "pub const default_canonical_release_repo = \"" ++ canonical_repo ++ "\"");
+    try expectContains(install_zig_source, "pub const default_canonical_release_tag = \"" ++ canonical_tag ++ "\"");
+    try expectContains(install_zig_source, "ZIGUX_ZIG_RELEASE_REPO");
+    try expectContains(install_zig_source, "ZIGUX_ZIG_RELEASE_TAG");
     try expectBefore(
         install_zig_source,
-        "if channel == CANONICAL_RELEASE_CHANNEL:",
-        "if '-dev.' in channel:",
+        "if (std.mem.eql(u8, channel, canonical_release_channel))",
+        "if (std.mem.indexOf(u8, channel, \"-dev.\"))",
     );
     try expectBefore(
         install_zig_source,
-        "if channel == CANONICAL_RELEASE_CHANNEL:\n        return target_key, channel, infer_tarball_url(channel, target_key, system_key)",
-        "entry = index.get(channel)",
+        "if (std.mem.eql(u8, channel, canonical_release_channel)) {",
+        "var entry = index.get(channel);",
     );
 }

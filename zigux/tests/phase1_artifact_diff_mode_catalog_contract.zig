@@ -42,31 +42,29 @@ fn expectUnique(comptime items: []const []const u8) !void {
 }
 
 test "artifact diff mode roster stays canonical" {
-    try expectContains(helper_source, "MODE_CHOICES = (\"text\", \"json\", \"bytes\")");
-    try expectContains(helper_source, "LEGACY_MODE_ALIASES = {\"sha256\": \"bytes\"}");
-    try expectContains(helper_source, "MODE={mode}");
-    try expectContains(helper_source, "mode = LEGACY_MODE_ALIASES[mode]");
+    try expectContains(helper_source, "pub const Mode = enum {");
+    try expectContains(helper_source, "if (std.mem.eql(u8, raw, \"sha256\")) return .bytes;");
+    try expectContains(helper_source, "MODE={s}");
+    try expectContains(helper_source, "mode.name()");
 
-    try expectContains(helper_source, "if mode == \"text\":");
-    try expectContains(helper_source, "if mode == \"json\":");
-    try expectContains(helper_source, "if mode == \"bytes\":");
+    try expectContains(helper_source, ".text => try compareText");
+    try expectContains(helper_source, ".json => try compareJson");
+    try expectContains(helper_source, ".bytes => try compareBytes");
 }
 
 test "artifact diff parser errors cover required operands and invalid modes" {
-    try expectContains(helper_source, "MISSING_ARGUMENT_ERROR = (");
-    try expectContains(helper_source, "INVALID_MODE_ERROR_TEMPLATE = (");
-    try expectContains(helper_source, "TOO_MANY_ARGUMENTS_ERROR = (");
+    try expectContains(helper_source, "const missing_argument_error =");
+    try expectContains(helper_source, "const too_many_arguments_error =");
     try expectContains(helper_source, "are required unless --self-test is set");
-    try expectContains(helper_source, "invalid ");
-    try expectContains(helper_source, "choice: {value!r} (choose from text, json, bytes)");
+    try expectContains(helper_source, "invalid choice: '{s}' (choose from text, json, bytes)");
     try expectContains(helper_source, "expected exactly two positional ");
     try expectContains(helper_source, "arguments");
 }
 
 test "artifact diff self-test catalog keeps every mode and failure branch" {
     try expectUnique(expected_self_test_cases[0..]);
-    try expectContains(helper_source, "SELF_TEST_CASES = [");
-    try expectContains(helper_source, "covered == SELF_TEST_CASES");
+    try expectContains(helper_source, "pub const self_test_case_names = [_][]const u8{");
+    try expectContains(helper_source, "self_test_case_names.len");
     try expectContains(helper_source, "ARTIFACT_DIFF_SELF_TEST=pass");
     try expectContains(helper_source, "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=");
     try expectContains(helper_source, "ARTIFACT_DIFF_SELF_TEST_CASES=");
@@ -77,9 +75,9 @@ test "artifact diff self-test catalog keeps every mode and failure branch" {
 }
 
 test "artifact diff digest mode reports stable bytes labels" {
-    try expectContains(helper_source, "SHA256={expected_digest}");
-    try expectContains(helper_source, "EXPECTED_SHA256={expected_digest}");
-    try expectContains(helper_source, "ACTUAL_SHA256={actual_digest}");
-    try expectContains(helper_source, "EXPECTED_EXISTS={expected_exists}");
-    try expectContains(helper_source, "ACTUAL_EXISTS={actual_exists}");
+    try expectContains(helper_source, "SHA256={s}");
+    try expectContains(helper_source, "EXPECTED_SHA256={s}");
+    try expectContains(helper_source, "ACTUAL_SHA256={s}");
+    try expectContains(helper_source, "EXPECTED_EXISTS={s}");
+    try expectContains(helper_source, "ACTUAL_EXISTS={s}");
 }

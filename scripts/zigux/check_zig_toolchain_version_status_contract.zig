@@ -1,68 +1,58 @@
 const std = @import("std");
-
-const checker_path = "check-zig-toolchain.py";
-const checker_source = @embedFile(checker_path);
-
-fn requireContains(source: []const u8, marker: []const u8) !void {
-    if (std.mem.indexOf(u8, source, marker) == null) {
-        std.debug.print("missing marker in {s}: {s}\n", .{ checker_path, marker });
-        return error.MissingMarker;
-    }
-}
-
-fn requireOrdered(source: []const u8, before: []const u8, after: []const u8) !void {
-    const before_index = std.mem.indexOf(u8, source, before) orelse {
-        std.debug.print("missing ordered marker in {s}: {s}\n", .{ checker_path, before });
-        return error.MissingMarker;
-    };
-    const after_index = std.mem.indexOf(u8, source, after) orelse {
-        std.debug.print("missing ordered marker in {s}: {s}\n", .{ checker_path, after });
-        return error.MissingMarker;
-    };
-    try std.testing.expect(before_index < after_index);
-}
+const policy = @import("toolchain_policy.zig");
+const resolver = @import("toolchain_resolver.zig");
+const checker = @import("check_zig_toolchain.zig");
 
 test "toolchain version status decisions remain exact and ordered" {
-    const source = checker_source;
+    const too_old = try policy.evaluateToolchainVersion(
+        "0.17.0-dev.757+abcdef",
+        "0.17.0-dev.877+a3ae499dc",
+        "0.17.0-dev.877+a3ae499dc",
+    );
+    try std.testing.expectEqual(policy.ToolchainStatus.too_old, too_old.status);
 
-    try requireContains(source, "def evaluate_toolchain_version(");
-    try requireContains(source, "parsed_version = parse_zig_version(version)");
-    try requireContains(source, "min_version = parse_zig_version(min_version_raw)");
-    try requireContains(source, "return \"too_old\", None");
-    try requireContains(source, "parse_zig_version(expected_channel_raw)");
-    try requireContains(source, "if version.strip() != expected_channel_raw:");
-    try requireContains(source, "return \"not_pinned\", f\"expected pinned Zig channel {expected_channel_raw}\"");
-    try requireContains(source, "return \"present\", None");
+    const not_pinned = try policy.evaluateToolchainVersion(
+        "0.17.0",
+        "0.17.0-dev.877+a3ae499dc",
+        "0.17.0-dev.877+a3ae499dc",
+    );
+    try std.testing.expectEqual(policy.ToolchainStatus.not_pinned, not_pinned.status);
+    try std.testing.expect(not_pinned.note != null);
 
-    try requireOrdered(source, "if parsed_version < min_version:", "return \"too_old\", None");
-    try requireOrdered(source, "return \"too_old\", None", "if expected_channel_raw is not None:");
-    try requireContains(source, "return \"not_pinned\", f\"expected pinned Zig channel {expected_channel_raw}\"\n    return \"present\", None");
+    const present = try policy.evaluateToolchainVersion(
+        "0.17.0-dev.877+a3ae499dc",
+        "0.17.0-dev.877+a3ae499dc",
+        "0.17.0-dev.877+a3ae499dc",
+    );
+    try std.testing.expectEqual(policy.ToolchainStatus.present, present.status);
 }
 
-test "toolchain CLI reports the final status packet" {
-    const source = checker_source;
-
-    try requireContains(source, "status, note = evaluate_toolchain_version(version, min_version_raw, expected_channel_raw)");
-    try requireContains(source, "exit_code = 0 if status == \"present\" else 1");
-    try requireContains(source, "print(f\"ZIG_TOOLCHAIN_STATUS={status}\")");
-    try requireContains(source, "print(f\"ZIG_TOOLCHAIN_PATH={zig}\")");
-    try requireContains(source, "print(f\"ZIG_TOOLCHAIN_VERSION={version}\")");
-    try requireContains(source, "print(f\"ZIG_TOOLCHAIN_MIN_SUPPORTED={min_version_raw}\")");
-    try requireContains(source, "print(f\"ZIG_TOOLCHAIN_PINNED_CHANNEL={expected_channel_raw}\")");
-    try requireContains(source, "print(\"ZIG_TOOLCHAIN_PIN_POLICY=exact\")");
-    try requireContains(source, "print(\"ZIG_TOOLCHAIN_PIN_POLICY=minimum_only\")");
-    try requireContains(source, "if note is not None:");
-    try requireContains(source, "print(f\"ZIG_TOOLCHAIN_NOTE={note}\")");
-    try requireContains(source, "return exit_code");
+test "toolchain status names map to machine-readable CLI values" {
+    try std.testing.expectEqualStrings("present", resolver.toolchainStatusName(.present));
+    try std.testing.expectEqualStrings("too_old", resolver.toolchainStatusName(.too_old));
+    try std.testing.expectEqualStrings("not_pinned", resolver.toolchainStatusName(.not_pinned));
 }
 
-test "checker self-test covers present not-pinned and too-old outcomes" {
-    const source = checker_source;
+test "checker self-test catalog covers present not-pinned and too-old outcomes" {
+    const present = try policy.evaluateToolchainVersion(
+        "0.17.0-dev.877+a3ae499dc",
+        "0.17.0-dev.877+a3ae499dc",
+        "0.17.0-dev.877+a3ae499dc",
+    );
+    try std.testing.expectEqual(policy.ToolchainStatus.present, present.status);
 
-    try requireContains(source, "evaluate_toolchain_version(\"0.17.0-dev.877+a3ae499dc\", \"0.17.0-dev.877+a3ae499dc\")");
-    try requireContains(source, "(\"present\", None)");
-    try requireContains(source, "(\"not_pinned\", \"expected pinned Zig channel 0.17.0-dev.877+a3ae499dc\")");
-    try requireContains(source, "(\"too_old\", None)");
-    try requireContains(source, "ZIG_TOOLCHAIN_SELF_TEST=pass");
-    try requireContains(source, "ZIG_TOOLCHAIN_SELF_TEST_CASE_COUNT=");
+    const not_pinned = try policy.evaluateToolchainVersion(
+        "0.17.0-dev.877+stalehash",
+        "0.17.0-dev.877+a3ae499dc",
+        "0.17.0-dev.877+a3ae499dc",
+    );
+    try std.testing.expectEqual(policy.ToolchainStatus.not_pinned, not_pinned.status);
+
+    const too_old = try policy.evaluateToolchainVersion(
+        "0.17.0-dev.757+abcdef",
+        "0.17.0-dev.877+a3ae499dc",
+        null,
+    );
+    try std.testing.expectEqual(policy.ToolchainStatus.too_old, too_old.status);
+    _ = checker.fallback_min_version;
 }

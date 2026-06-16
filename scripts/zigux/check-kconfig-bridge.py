@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -11,7 +12,7 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"
+ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.zig"
 CONF_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
 CONFDATA_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
 FIXTURE_DIR = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge"
@@ -148,6 +149,16 @@ def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
 def find_zig(explicit: str | None) -> str:
     if explicit:
         return explicit
+    env = os.environ.get("ZIG")
+    if env:
+        return env
+    toolchain_dir = ROOT / ".zig-toolchain"
+    if toolchain_dir.is_dir():
+        candidates = sorted(toolchain_dir.glob("*/zig"))
+        if not candidates:
+            candidates = sorted(toolchain_dir.glob("*/zig.exe"))
+        if candidates:
+            return str(candidates[-1])
     found = shutil.which("zig")
     if found:
         return found
@@ -286,15 +297,15 @@ def emit_manifest_issues(issues: list[tuple[str, str]]) -> None:
     raise SystemExit(1)
 
 
-def check_repeatable_json_output(expected: Path, actual: Path, repeat: Path) -> None:
-    run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(expected), str(actual)], cwd=str(ROOT))
-    run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(actual), str(repeat)], cwd=str(ROOT))
+def check_repeatable_json_output(zig: str, expected: Path, actual: Path, repeat: Path) -> None:
+    run([zig, "run", str(ARTIFACT_DIFF), "--", "--mode", "json", str(expected), str(actual)], cwd=str(ROOT))
+    run([zig, "run", str(ARTIFACT_DIFF), "--", "--mode", "json", str(actual), str(repeat)], cwd=str(ROOT))
 
 
-def run_repeatable_json_output(cmd: list[str], expected: Path, actual: Path, repeat: Path) -> None:
+def run_repeatable_json_output(zig: str, cmd: list[str], expected: Path, actual: Path, repeat: Path) -> None:
     actual.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\n")
     repeat.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\n")
-    check_repeatable_json_output(expected, actual, repeat)
+    check_repeatable_json_output(zig, expected, actual, repeat)
 
 
 def build_self_test_root(root: Path) -> None:
@@ -303,7 +314,7 @@ def build_self_test_root(root: Path) -> None:
     (root / CONFDATA_BRIDGE.relative_to(ROOT)).parent.mkdir(parents=True, exist_ok=True)
     (root / FIXTURE_DIR.relative_to(ROOT)).mkdir(parents=True, exist_ok=True)
     (root / ARTIFACT_DIFF.relative_to(ROOT)).parent.mkdir(parents=True, exist_ok=True)
-    (root / ARTIFACT_DIFF.relative_to(ROOT)).write_text("import sys\n", encoding="utf-8")
+    (root / ARTIFACT_DIFF.relative_to(ROOT)).write_text("pub fn main() void {}\n", encoding="utf-8")
     (root / CONF_BRIDGE.relative_to(ROOT)).write_text("\n".join(f'test \"{anchor}\" {{\n}}' for anchor in REQUIRED_CONF_HELPER_ANCHORS) + "\n", encoding="utf-8")
     (root / CONFDATA_BRIDGE.relative_to(ROOT)).write_text("\n".join(f'test \"{anchor}\" {{\n}}' for anchor in REQUIRED_CONFDATA_HELPER_ANCHORS) + "\n", encoding="utf-8")
     (fixture_root / "cases.json").write_text(json.dumps({"conf_cases": SAMPLE_CONF_CASES, "confdata_cases": SAMPLE_CONFDATA_CASES}, indent=2) + "\n", encoding="utf-8")
@@ -382,12 +393,12 @@ def main() -> int:
             actual = tmp_dir / f"{case['name']}.actual.json"
             repeat = tmp_dir / f"{case['name']}.repeat.json"
             cmd = [str(conf_exe), *build_conf_command(case)]
-            run_repeatable_json_output(cmd, FIXTURE_DIR / str(case["expected"]), actual, repeat)
+            run_repeatable_json_output(zig, cmd, FIXTURE_DIR / str(case["expected"]), actual, repeat)
         for case in confdata_cases:
             actual = tmp_dir / f"{case['name']}.actual.json"
             repeat = tmp_dir / f"{case['name']}.repeat.json"
             cmd = [str(confdata_exe), str(FIXTURE_DIR / str(case["input"]))]
-            run_repeatable_json_output(cmd, FIXTURE_DIR / str(case["expected"]), actual, repeat)
+            run_repeatable_json_output(zig, cmd, FIXTURE_DIR / str(case["expected"]), actual, repeat)
     print("KCONFIG_BRIDGE_DETERMINISM=pass")
     print("KCONFIG_BRIDGE_DIFF=pass")
     print(f"FIXTURE_DIR={FIXTURE_DIR}")

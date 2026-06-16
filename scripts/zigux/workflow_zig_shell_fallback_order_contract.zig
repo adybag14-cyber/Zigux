@@ -1,4 +1,5 @@
 const std = @import("std");
+const routes = @import("bootstrap_toolchain_route_contract.zig");
 
 const workflow_path = ".github/workflows/zigux-bootstrap.yml";
 
@@ -9,10 +10,9 @@ const required_markers = [_][]const u8{
     "canonical_tag = \"upstream-a3ae499dc297\"",
     "repo_archive_path=\"third_party/$ZIGUX_ZIG_FILENAME\"",
     "repo_archive_parts_dir=\"${repo_archive_path}.parts\"",
-    "python3 scripts/zigux/stage-pinned-zig-archive.py",
-    "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"",
+
     "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then",
-    "elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"; then",
+    "https://ziglang.org/download/community-mirrors.txt",
     "if try_download \"${mirror_url%/}/$ZIGUX_ZIG_FILENAME?source=github-zigux-bootstrap\"; then",
     "if try_download \"$ZIGUX_ZIG_URL\"; then",
     "failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org",
@@ -63,16 +63,14 @@ test "bootstrap workflow keeps pinned Zig shell fallback order explicit" {
     defer std.testing.allocator.free(workflow_text);
 
     inline for (required_markers) |marker| {
-        if (std.mem.eql(u8, marker, "python3 scripts/zigux/stage-pinned-zig-archive.py")) {
-            try expectContainsAtLeastOnce(workflow_text, marker);
-        } else {
-            try expectContainsExactlyOnce(workflow_text, marker);
-        }
+        try expectContainsExactlyOnce(workflow_text, marker);
     }
+    try routes.requireRoute(workflow_text, routes.stage_python, routes.stage_zig);
+    try routes.requireRoute(workflow_text, routes.archive_check_python, routes.archive_check_zig);
 
     try expectBefore(workflow_text, "if try_local_archive; then", "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then");
-    try expectBefore(workflow_text, "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then", "elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"; then");
-    try expectBefore(workflow_text, "elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"; then", "if try_download \"$ZIGUX_ZIG_URL\"; then");
+    try expectBefore(workflow_text, "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then", "https://ziglang.org/download/community-mirrors.txt");
+    try expectBefore(workflow_text, "https://ziglang.org/download/community-mirrors.txt", "if try_download \"$ZIGUX_ZIG_URL\"; then");
 }
 
 test "bootstrap workflow does not rely on a node-bound setup-zig action" {

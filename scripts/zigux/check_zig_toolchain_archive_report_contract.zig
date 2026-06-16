@@ -1,83 +1,55 @@
 const std = @import("std");
+const policy = @import("toolchain_policy.zig");
+const resolver = @import("toolchain_resolver.zig");
 
-const checker_source = @embedFile("check-zig-toolchain.py");
+test "expected archive metadata is derived from policy target and channel" {
+    const json = @embedFile("zig-toolchain-policy.json");
+    var loaded = try policy.loadPolicyFromJson(std.testing.allocator, json);
+    defer policy.freePolicy(std.testing.allocator, &loaded);
 
-fn requireContains(haystack: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
-}
-
-fn requireBefore(haystack: []const u8, earlier: []const u8, later: []const u8) !void {
-    const earlier_index = std.mem.indexOf(u8, haystack, earlier) orelse return error.MissingEarlierMarker;
-    const later_index = std.mem.indexOf(u8, haystack, later) orelse return error.MissingLaterMarker;
-    try std.testing.expect(earlier_index < later_index);
-}
-
-test "archive-only branch resolves target and expected metadata before reporting" {
-    try requireContains(checker_source, "parser.add_argument(\"--archive-only\", action=\"store_true\"");
-    try requireContains(checker_source, "parser.add_argument(\"--archive\", help=\"Explicit Zig archive path for archive-integrity validation.\")");
-    try requireContains(checker_source, "parser.add_argument(\"--archive-target\", help=\"Archive target key from scripts/zigux/zig-toolchain-policy.json.\")");
-    try requireContains(checker_source, "if args.archive_only:");
-    try requireContains(checker_source, "archive_target, archive_path = resolve_policy_archive(args.archive, args.archive_target)");
-    try requireContains(checker_source, "expected_sha, expected_filename = expected_archive_metadata(archive_target)");
-    try requireBefore(
-        checker_source,
-        "archive_target, archive_path = resolve_policy_archive(args.archive, args.archive_target)",
-        "expected_sha, expected_filename = expected_archive_metadata(archive_target)",
-    );
-    try requireBefore(
-        checker_source,
-        "expected_sha, expected_filename = expected_archive_metadata(archive_target)",
-        "if args.archive is not None and archive_path is not None:",
+    var filename_buffer: [160]u8 = undefined;
+    const meta = try resolver.expectedArchiveMetadata(&loaded, "x86_64-linux", &filename_buffer);
+    try std.testing.expect(std.mem.startsWith(u8, meta.expected_filename, "zig-x86_64-linux-"));
+    try std.testing.expectEqualStrings(
+        "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8",
+        meta.expected_sha,
     );
 }
 
-test "missing or invalid archive reports stable fields before notes" {
-    try requireContains(checker_source, "print(\"ZIG_TOOLCHAIN_ARCHIVE_STATUS=missing\")");
-    try requireContains(checker_source, "print(\"ZIG_TOOLCHAIN_ARCHIVE_STATUS=invalid\")");
-    try requireContains(checker_source, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_PATH={archive_path or args.archive or 'unresolved'}\")");
-    try requireContains(checker_source, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target or 'unresolved'}\")");
-    try requireContains(checker_source, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_FILENAME={expected_filename}\")");
-    try requireContains(checker_source, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_SHA256={expected_sha}\")");
-    try requireContains(checker_source, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_SEARCH_ROOTS={search_roots_summary}\")");
-    try requireContains(checker_source, "return 0 if args.allow_missing else 1");
-    try requireBefore(
-        checker_source,
-        "print(f\"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_SHA256={expected_sha}\")",
-        "print(f\"ZIG_TOOLCHAIN_NOTE={message}\")",
-    );
-    try requireBefore(
-        checker_source,
-        "print(f\"ZIG_TOOLCHAIN_ARCHIVE_SEARCH_ROOTS={search_roots_summary}\")",
-        "print(f\"ZIG_TOOLCHAIN_NOTE={message}\")",
-    );
-    try requireBefore(
-        checker_source,
-        "print(f\"ZIG_TOOLCHAIN_NOTE={message}\")",
-        "return 0 if args.allow_missing else 1",
-    );
+test "invalid explicit archive paths are classified before missing handling" {
+    const io = std.testing.io;
+    const note = try resolver.describeInvalidExplicitArchivePath(io, std.testing.allocator, ".");
+    defer if (note) |text| std.testing.allocator.free(text);
+    try std.testing.expect(note != null);
+    try std.testing.expect(std.mem.indexOf(u8, note.?, "directory") != null);
 }
 
-test "validated archive reports expected and actual digest before mismatch note" {
-    try requireContains(checker_source, "archive_status, note, validated_expected_sha, actual_sha = validate_policy_archive(");
-    try requireContains(checker_source, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_STATUS={archive_status}\")");
-    try requireContains(checker_source, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_PATH={archive_path}\")");
-    try requireContains(checker_source, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target or 'unresolved'}\")");
-    try requireContains(checker_source, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_SHA256={validated_expected_sha}\")");
-    try requireContains(checker_source, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_ACTUAL_SHA256={actual_sha}\")");
-    try requireContains(checker_source, "if note is not None:");
-    try requireBefore(
-        checker_source,
-        "print(f\"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_SHA256={validated_expected_sha}\")",
-        "print(f\"ZIG_TOOLCHAIN_ARCHIVE_ACTUAL_SHA256={actual_sha}\")",
+test "archive validation reports mismatch filename before digest drift" {
+    const json = @embedFile("zig-toolchain-policy.json");
+    var loaded = try policy.loadPolicyFromJson(std.testing.allocator, json);
+    defer policy.freePolicy(std.testing.allocator, &loaded);
+
+    const io = std.testing.io;
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+    const archive_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        ".zig-cache/tmp/{s}/renamed-zig.tar.xz",
+        .{tmp.sub_path[0..]},
     );
-    try requireBefore(
-        checker_source,
-        "print(f\"ZIG_TOOLCHAIN_ARCHIVE_ACTUAL_SHA256={actual_sha}\")",
-        "if note is not None:",
+    defer std.testing.allocator.free(archive_path);
+    try tmp.dir.writeFile(io, .{ .sub_path = "renamed-zig.tar.xz", .data = "zigux-archive" });
+
+    const validation = try resolver.validatePolicyArchive(
+        io,
+        std.testing.allocator,
+        &loaded,
+        archive_path,
+        "x86_64-linux",
+        "renamed-zig.tar.xz",
     );
-    try requireBefore(
-        checker_source,
-        "if note is not None:",
-        "return 0\n\n    zig: str | None = None",
-    );
+    defer resolver.freeArchiveValidation(std.testing.allocator, validation);
+    try std.testing.expectEqualStrings("mismatch", validation.status);
+    try std.testing.expect(validation.note != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation.note.?, "expected archive filename") != null);
 }

@@ -111,8 +111,8 @@ fn expectUniqueCatalog(comptime cases: []const []const u8) !void {
 
 test "artifact diff contract checker keeps helper binding and summary markers" {
     try expectContainsAny(checker_source, &.{
-        "HELPER_REL = Path(\"scripts\") / \"zigux\" / \"artifact_diff.py\"",
-        "ARTIFACT_DIFF = ROOT / \"scripts\" / \"zigux\" / \"artifact_diff.py\"",
+        "HELPER_REL = Path(\"scripts\") / \"zigux\" / \"artifact_diff.zig\"",
+        "ARTIFACT_DIFF = ROOT / \"scripts\" / \"zigux\" / \"artifact_diff.zig\"",
     });
     try expectContains(checker_source, "BASE_CONTRACT_CASES = [");
     try expectContains(checker_source, "REPEAT_CONTRACT_CASES = [");
@@ -138,7 +138,7 @@ test "artifact diff helper and checker catalogs stay aligned" {
     try expectUniqueCatalog(checker_self_test_cases[0..]);
 
     try expectContainsAny(helper_source, &.{
-        "MODE_CHOICES = (\"text\", \"json\", \"bytes\")",
+        "pub const Mode = enum {",
         "choices=['text', 'json', 'sha256']",
     });
     try expectContainsAny(checker_source, &.{

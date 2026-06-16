@@ -10,7 +10,7 @@ const ContractError = error{
 const repo_files = [_][]const u8{
     "Documentation/zigux/artifact-diff.md",
     "scripts/zigux/README.md",
-    "scripts/zigux/artifact_diff.py",
+    "scripts/zigux/artifact_diff.zig",
 };
 
 const phase1_note_markers = [_][]const u8{
@@ -19,37 +19,37 @@ const phase1_note_markers = [_][]const u8{
 };
 
 const helper_mode_markers = [_][]const u8{
-    "MODE_CHOICES = (\"text\", \"json\", \"bytes\")",
-    "LEGACY_MODE_ALIASES = {\"sha256\": \"bytes\"}",
+    "pub const Mode = enum {",
+    "if (std.mem.eql(u8, raw, \"sha256\")) return .bytes;",
     "ARTIFACT_DIFF_SELF_TEST=pass",
-    "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}",
-    "ARTIFACT_DIFF_SELF_TEST_CASES=\" + \",\".join(SELF_TEST_CASES)",
+    "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT={d}",
+    "ARTIFACT_DIFF_SELF_TEST_CASES=",
 };
 
 const helper_case_markers = [_][]const u8{
-    "    \"text_pass\",",
-    "    \"text_mismatch\",",
-    "    \"json_pass\",",
-    "    \"json_mismatch\",",
-    "    \"json_invalid_expected\",",
-    "    \"json_invalid_actual\",",
-    "    \"json_invalid_both\",",
-    "    \"json_missing_expected\",",
-    "    \"json_missing_actual\",",
-    "    \"json_missing_both\",",
-    "    \"bytes_pass\",",
-    "    \"bytes_drift\",",
-    "    \"text_missing_expected\",",
-    "    \"text_missing_actual\",",
-    "    \"text_missing_both\",",
-    "    \"bytes_missing_expected\",",
-    "    \"bytes_missing_actual\",",
-    "    \"bytes_missing_both\",",
-    "    \"legacy_sha256_alias\",",
-    "    \"missing_mode_value_rejected\",",
-    "    \"missing_positional_arguments_rejected\",",
-    "    \"invalid_mode_rejected\",",
-    "    \"extra_positional_rejected\",",
+    "text_pass",
+    "text_mismatch",
+    "json_pass",
+    "json_mismatch",
+    "json_invalid_expected",
+    "json_invalid_actual",
+    "json_invalid_both",
+    "json_missing_expected",
+    "json_missing_actual",
+    "json_missing_both",
+    "bytes_pass",
+    "bytes_drift",
+    "text_missing_expected",
+    "text_missing_actual",
+    "text_missing_both",
+    "bytes_missing_expected",
+    "bytes_missing_actual",
+    "bytes_missing_both",
+    "legacy_sha256_alias",
+    "missing_mode_value_rejected",
+    "missing_positional_arguments_rejected",
+    "invalid_mode_rejected",
+    "extra_positional_rejected",
 };
 
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
@@ -88,16 +88,16 @@ fn requireInOrder(haystack: []const u8, markers: []const []const u8) !void {
 }
 
 fn selfTestCasesBlock(helper: []const u8) ![]const u8 {
-    const start = std.mem.indexOf(u8, helper, "SELF_TEST_CASES = [") orelse return ContractError.MissingMarker;
-    const relative_end = std.mem.indexOf(u8, helper[start..], "\n]") orelse return ContractError.MissingMarker;
+    const start = std.mem.indexOf(u8, helper, "pub const self_test_case_names = [_][]const u8{") orelse return ContractError.MissingMarker;
+    const relative_end = std.mem.indexOf(u8, helper[start..], "\n};") orelse return ContractError.MissingMarker;
     return helper[start .. start + relative_end];
 }
 
 fn requireSelfTestCases(helper: []const u8) !void {
     const cases_block = try selfTestCasesBlock(helper);
-    try requireAll(cases_block, &helper_case_markers);
+    try requireAllPresent(cases_block, &helper_case_markers);
     try requireInOrder(cases_block, &helper_case_markers);
-    try requireOnce(helper, "assert_case(covered == SELF_TEST_CASES, \"self_test_case_order\")");
+    try requireOnce(helper, "self_test_case_names.len");
 }
 
 test "phase1 artifact diff gate keeps current reminder anchors visible" {
@@ -129,5 +129,5 @@ test "phase1 artifact diff gate contract watches exactly the expected files" {
     try std.testing.expectEqual(@as(usize, 3), repo_files.len);
     try std.testing.expectEqualStrings("Documentation/zigux/artifact-diff.md", repo_files[0]);
     try std.testing.expectEqualStrings("scripts/zigux/README.md", repo_files[1]);
-    try std.testing.expectEqualStrings("scripts/zigux/artifact_diff.py", repo_files[2]);
+    try std.testing.expectEqualStrings("scripts/zigux/artifact_diff.zig", repo_files[2]);
 }

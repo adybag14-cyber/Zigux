@@ -1,4 +1,5 @@
 const std = @import("std");
+const routes = @import("bootstrap_toolchain_route_contract.zig");
 
 const workflow_path = ".github/workflows/zigux-bootstrap.yml";
 
@@ -36,7 +37,7 @@ pub fn checkToolchainActivationMarkers(workflow: []const u8) !void {
     try requireContains(workflow, "          extract_root=\"$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL\"\n");
     try requireContains(workflow, "              tar -xJf \"$repo_archive_path\" -C .zig-toolchain\n");
     try requireContains(workflow, "              tar -xJf \"$archive_path\" -C .zig-toolchain\n");
-    try requireContains(workflow, "              if python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"; then\n");
+    try routes.requireRoute(workflow, "              if python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"; then\n", "              if zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then\n");
     try requireContains(workflow, "          zig_path=\"$extract_root/zig\"\n");
     try requireContains(workflow, "          echo \"$extract_root\" >> \"$GITHUB_PATH\"\n");
     try requireContains(workflow, "          \"$zig_path\" version\n");
@@ -49,9 +50,14 @@ pub fn checkToolchainActivationOrder(workflow: []const u8) !void {
     try requireOrder(workflow, "      - name: Setup pinned Zig toolchain\n", "      - name: Compile current scripts\n");
     try requireOrder(workflow, "          extract_root=\"$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL\"\n", "          try_local_archive() {\n");
     try requireOrder(workflow, "          try_local_archive() {\n", "              tar -xJf \"$repo_archive_path\" -C .zig-toolchain\n");
-    try requireOrder(workflow, "              tar -xJf \"$repo_archive_path\" -C .zig-toolchain\n", "              if python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"; then\n");
-    try requireOrder(workflow, "          try_download() {\n", "              tar -xJf \"$archive_path\" -C .zig-toolchain\n");
-    try requireOrder(workflow, "              tar -xJf \"$archive_path\" -C .zig-toolchain\n", "                if python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"; then\n");
+    const repo_tar_index = std.mem.indexOf(u8, workflow, "              tar -xJf \"$repo_archive_path\" -C .zig-toolchain\n") orelse return error.MissingWorkflowMarker;
+    const repo_probe_index = routes.routeIndex(workflow, "              if python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"; then\n", "              if zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then\n") orelse return error.MissingWorkflowMarker;
+    const download_index = std.mem.indexOf(u8, workflow, "          try_download() {\n") orelse return error.MissingWorkflowMarker;
+    const archive_tar_index = std.mem.indexOf(u8, workflow, "              tar -xJf \"$archive_path\" -C .zig-toolchain\n") orelse return error.MissingWorkflowMarker;
+    const archive_probe_index = routes.routeIndex(workflow, "                if python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"; then\n", "                if zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then\n") orelse return error.MissingWorkflowMarker;
+    try std.testing.expect(repo_tar_index < repo_probe_index);
+    try std.testing.expect(download_index < archive_tar_index);
+    try std.testing.expect(archive_tar_index < archive_probe_index);
     try requireOrder(workflow, "          if [ \"$download_success\" -ne 1 ]; then\n", "          zig_path=\"$extract_root/zig\"\n");
     try requireOrder(workflow, "          zig_path=\"$extract_root/zig\"\n", "          echo \"$extract_root\" >> \"$GITHUB_PATH\"\n");
     try requireOrder(workflow, "          echo \"$extract_root\" >> \"$GITHUB_PATH\"\n", "          \"$zig_path\" version\n");

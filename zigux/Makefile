@@ -26,11 +26,30 @@ phase1-route-summary:
 
 phase2-toolchain:
 	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/toolchain_policy.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/toolchain_resolver.zig
 	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_policy_validation_contract.zig
 	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_version_evaluation_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_policy_only_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_policy_schema_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_allow_missing_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_archive_only_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_archive_report_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_archive_target_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_executable_failure_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_explicit_archive_path_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_explicit_archive_target_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_explicit_zig_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_repo_local_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_repo_local_priority_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_resolver_priority_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_search_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_version_status_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/lane03_archive_candidate_ambiguity_contract.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/lane03_toolchain_policy_schema_contract.zig
 	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig -- --policy-only
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig -- --archive-only --allow-missing
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing
@@ -40,7 +59,12 @@ phase2-toolchain:
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-archive-readme.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/install_zig.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run $(PHASE2_SCRIPT_ROOT)/install_zig.zig -- --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/install-zig.py --self-test
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/stage_pinned_zig_archive.zig
+	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/lane03_stage_parts_manifest_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run $(PHASE2_SCRIPT_ROOT)/stage_pinned_zig_archive.zig -- --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/stage-pinned-zig-archive.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-contract.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-contract.py

@@ -43,6 +43,13 @@ TOOLS_PATH = "- 'tools/lib/*.zig'"
 REPO_ARCHIVE_PARTS_DIR = 'repo_archive_parts_dir="${repo_archive_path}.parts"'
 LOCAL_PARTS_GUARD = 'if [ ! -d "$repo_archive_parts_dir" ]; then'
 STAGE_HELPER_CMD = "python3 scripts/zigux/stage-pinned-zig-archive.py"
+STAGE_HELPER_ZIG_CMD = "zig run scripts/zigux/stage_pinned_zig_archive.zig"
+REPO_ARCHIVE_CHECK_CMD = (
+    'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"'
+)
+REPO_ARCHIVE_CHECK_ZIG_CMD = (
+    'zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"'
+)
 STAGE_HELPER_ROOT_ARG = '--root "$GITHUB_WORKSPACE"'
 STAGE_HELPER_PARTS_ARG = '--parts-dir "$repo_archive_parts_dir"'
 
@@ -84,10 +91,10 @@ LOCAL_ARCHIVE_MARKERS = (
     "try_local_archive() {",
     'if [ ! -f "$repo_archive_path" ]; then',
     LOCAL_PARTS_GUARD,
-    STAGE_HELPER_CMD,
+    STAGE_HELPER_ZIG_CMD,
     STAGE_HELPER_ROOT_ARG,
     STAGE_HELPER_PARTS_ARG,
-    'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
+    REPO_ARCHIVE_CHECK_ZIG_CMD,
     'tar -xJf "$repo_archive_path" -C .zig-toolchain',
     "if try_local_archive; then",
     'elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then',
@@ -114,6 +121,42 @@ RETAINED_STEP_PAIRS = (
 def require_marker(text: str, marker: str, label: str) -> None:
     if marker not in text:
         raise SystemExit(f"lane05 local-first archive checker missing {label}: {marker}")
+
+
+def require_any_marker(text: str, markers: tuple[str, ...], label: str) -> None:
+    if not any(marker in text for marker in markers):
+        joined = " | ".join(markers)
+        raise SystemExit(f"lane05 local-first archive checker missing {label}: {joined}")
+
+
+def find_first_marker(text: str, markers: tuple[str, ...]) -> str | None:
+    earliest_index: int | None = None
+    earliest_marker: str | None = None
+    for marker in markers:
+        index = text.find(marker)
+        if index == -1:
+            continue
+        if earliest_index is None or index < earliest_index:
+            earliest_index = index
+            earliest_marker = marker
+    return earliest_marker
+
+
+def find_first_marker_after(text: str, anchor: str, markers: tuple[str, ...]) -> str | None:
+    anchor_index = text.find(anchor)
+    if anchor_index == -1:
+        return None
+    return find_first_marker(text[anchor_index:], markers)
+
+
+def extract_try_local_archive(text: str) -> str:
+    start = text.find("try_local_archive() {")
+    if start == -1:
+        raise SystemExit("lane05 local-first archive checker missing try_local_archive helper")
+    end = text.find("try_download() {", start)
+    if end == -1:
+        raise SystemExit("lane05 local-first archive checker missing try_download helper")
+    return text[start:end]
 
 
 def require_exact_count(text: str, marker: str, expected: int, label: str) -> None:
@@ -152,7 +195,12 @@ def check_workflow(text: str) -> None:
     for marker in POLICY_MARKERS:
         require_marker(text, marker, "workflow policy marker")
     for marker in LOCAL_ARCHIVE_MARKERS:
-        require_marker(text, marker, "workflow local-first marker")
+        if marker == STAGE_HELPER_ZIG_CMD:
+            require_any_marker(text, (STAGE_HELPER_CMD, STAGE_HELPER_ZIG_CMD), "workflow local-first marker")
+        elif marker == REPO_ARCHIVE_CHECK_ZIG_CMD:
+            require_any_marker(text, (REPO_ARCHIVE_CHECK_CMD, REPO_ARCHIVE_CHECK_ZIG_CMD), "workflow local-first marker")
+        else:
+            require_marker(text, marker, "workflow local-first marker")
     for marker in RETRY_REQUIRED_MARKERS:
         require_marker(text, marker, "workflow retry marker")
     for marker in RETRY_EXACT_OPTIONS:
@@ -202,7 +250,12 @@ def check_workflow(text: str) -> None:
     require_exact_count(text, 'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"', 1, "local archive path marker")
     require_exact_count(text, REPO_ARCHIVE_PARTS_DIR, 1, "archive parts-dir marker")
     require_exact_count(text, LOCAL_PARTS_GUARD, 1, "parts-dir guard")
-    require_exact_count(text, STAGE_HELPER_CMD, 2, "stage helper command")
+    stage_helper_hits = text.count(STAGE_HELPER_CMD) + text.count(STAGE_HELPER_ZIG_CMD)
+    if stage_helper_hits != 2:
+        raise SystemExit(
+            "lane05 local-first archive checker expected exactly 2 stage helper command "
+            f"occurrences across python or zig routes, found {stage_helper_hits}"
+        )
     require_exact_count(text, STAGE_HELPER_ROOT_ARG, 1, "stage helper root arg")
     require_exact_count(text, STAGE_HELPER_PARTS_ARG, 1, "stage helper parts arg")
     require_exact_count(text, "try_local_archive() {", 1, "local archive helper definition")
@@ -308,28 +361,47 @@ def check_workflow(text: str) -> None:
         LOCAL_PARTS_GUARD,
         "workflow parts-dir guard order",
     )
+    local_archive_block = extract_try_local_archive(text)
+    stage_helper_cmd = find_first_marker_after(local_archive_block, LOCAL_PARTS_GUARD, (STAGE_HELPER_CMD, STAGE_HELPER_ZIG_CMD))
+    archive_check_cmd = find_first_marker_after(local_archive_block, LOCAL_PARTS_GUARD, (REPO_ARCHIVE_CHECK_CMD, REPO_ARCHIVE_CHECK_ZIG_CMD))
+    if stage_helper_cmd is None or archive_check_cmd is None:
+        raise SystemExit("lane05 local-first archive checker missing workflow stage or archive route")
     require_order(
-        text,
+        local_archive_block,
         LOCAL_PARTS_GUARD,
-        STAGE_HELPER_CMD,
+        stage_helper_cmd,
         "workflow stage-helper order",
     )
+    if stage_helper_cmd == STAGE_HELPER_ZIG_CMD:
+        require_order(
+            local_archive_block,
+            stage_helper_cmd,
+            "--",
+            "workflow stage-helper zig separator order",
+        )
+        require_order(
+            local_archive_block,
+            "--",
+            STAGE_HELPER_ROOT_ARG,
+            "workflow stage-helper argument order",
+        )
+    else:
+        require_order(
+            local_archive_block,
+            stage_helper_cmd,
+            STAGE_HELPER_ROOT_ARG,
+            "workflow stage-helper argument order",
+        )
     require_order(
-        text,
-        STAGE_HELPER_CMD,
-        STAGE_HELPER_ROOT_ARG,
-        "workflow stage-helper argument order",
-    )
-    require_order(
-        text,
+        local_archive_block,
         STAGE_HELPER_ROOT_ARG,
         STAGE_HELPER_PARTS_ARG,
         "workflow stage-helper argument order",
     )
     require_order(
-        text,
+        local_archive_block,
         STAGE_HELPER_PARTS_ARG,
-        'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
+        archive_check_cmd,
         "workflow staged archive before validation order",
     )
     require_order(
@@ -405,9 +477,9 @@ jobs:
               if [ ! -d "$repo_archive_parts_dir" ]; then
                 return 1
               fi
-              python3 scripts/zigux/stage-pinned-zig-archive.py --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1
+              zig run scripts/zigux/stage_pinned_zig_archive.zig -- --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1
             fi
-            if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
+            if zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
               tar -xJf "$repo_archive_path" -C .zig-toolchain
             fi
           }
@@ -575,7 +647,7 @@ jobs:
         raise AssertionError("expected missing parts-dir guard failure")
 
     missing_stage_helper_call = good_workflow.replace(
-        '              python3 scripts/zigux/stage-pinned-zig-archive.py --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1\n',
+        '              zig run scripts/zigux/stage_pinned_zig_archive.zig -- --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1\n',
         "",
         1,
     )
@@ -606,7 +678,7 @@ jobs:
         raise AssertionError("expected missing stage helper self-test failure")
 
     missing_local_validation = good_workflow.replace(
-        'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
+        REPO_ARCHIVE_CHECK_ZIG_CMD,
         'python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing',
         1,
     )
@@ -728,18 +800,22 @@ jobs:
         raise AssertionError("expected duplicate third-party path failure")
 
     reordered_stage_helper = good_workflow.replace(
-        '              python3 scripts/zigux/stage-pinned-zig-archive.py --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1\n'
+        '              zig run scripts/zigux/stage_pinned_zig_archive.zig -- --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1\n'
         '            fi\n'
-        '            if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then\n',
+        f'            if {REPO_ARCHIVE_CHECK_ZIG_CMD}; then\n',
         '            fi\n'
-        '            if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then\n'
-        '              python3 scripts/zigux/stage-pinned-zig-archive.py --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1\n',
+        f'            if {REPO_ARCHIVE_CHECK_ZIG_CMD}; then\n'
+        '              zig run scripts/zigux/stage_pinned_zig_archive.zig -- --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1\n',
         1,
     )
     try:
         check_workflow(reordered_stage_helper)
     except SystemExit as exc:
-        assert "workflow staged archive before validation order" in str(exc)
+        assert (
+            "workflow staged archive before validation order" in str(exc)
+            or "workflow stage-helper order" in str(exc)
+            or "workflow stage-helper zig separator order" in str(exc)
+        )
         case_count += 1
     else:
         raise AssertionError("expected reordered stage helper failure")

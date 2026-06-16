@@ -1,4 +1,5 @@
 const std = @import("std");
+const routes = @import("bootstrap_toolchain_route_contract.zig");
 
 const ContractError = error{
     MissingMarker,
@@ -46,7 +47,7 @@ fn checkWorkflow(workflow: []const u8) ContractError!void {
     try requireContains(workflow, "canonical_tag = \"upstream-a3ae499dc297\"");
     try requireContains(workflow, "repo_archive_path=\"third_party/$ZIGUX_ZIG_FILENAME\"");
     try requireContains(workflow, "repo_archive_parts_dir=\"${repo_archive_path}.parts\"");
-    try requireContains(workflow, "python3 scripts/zigux/stage-pinned-zig-archive.py");
+    try routes.requireRoute(workflow, routes.stage_python, routes.stage_zig);
     try requireContains(workflow, "try_local_archive");
     try requireContains(workflow, "try_download \"$ZIGUX_ZIG_CANONICAL_URL\"");
     try requireContains(workflow, "community-mirrors.txt");
@@ -105,7 +106,7 @@ const current_workflow =
     \\canonical_tag = "upstream-a3ae499dc297"
     \\repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"
     \\repo_archive_parts_dir="${repo_archive_path}.parts"
-    \\python3 scripts/zigux/stage-pinned-zig-archive.py --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1
+    \\zig run scripts/zigux/stage_pinned_zig_archive.zig -- --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1
     \\if try_local_archive; then
     \\  download_success=1
     \\elif try_download "$ZIGUX_ZIG_CANONICAL_URL"; then

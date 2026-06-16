@@ -1,4 +1,5 @@
 const std = @import("std");
+const routes = @import("bootstrap_toolchain_route_contract.zig");
 
 const current_channel = "0.17.0-dev.877+a3ae499dc";
 const current_target = "x86_64-linux";
@@ -63,19 +64,28 @@ test "bootstrap workflow derives archive filename and probes local trusted bytes
     try requireContains(workflow, "repo_archive_path=\"third_party/$ZIGUX_ZIG_FILENAME\"");
     try requireContains(workflow, "repo_archive_parts_dir=\"${repo_archive_path}.parts\"");
 
-    try requireOrdered(workflow, &.{
-        "try_local_archive() {",
-        "python3 scripts/zigux/stage-pinned-zig-archive.py",
-        "--parts-dir \"$repo_archive_parts_dir\"",
-        "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"",
-        "try_download() {",
-        "if try_local_archive; then",
-        "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then",
-        "community-mirrors.txt",
-        "try_download \"${mirror_url%/}/$ZIGUX_ZIG_FILENAME?source=github-zigux-bootstrap\"",
-        "try_download \"$ZIGUX_ZIG_URL\"",
-        "failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org",
-    });
+    const local_index = std.mem.indexOf(u8, workflow, "try_local_archive() {") orelse return error.MissingLocalArchive;
+    const stage_index = routes.routeIndex(workflow, routes.stage_python, routes.stage_zig) orelse return error.MissingStageRoute;
+    const parts_index = std.mem.indexOf(u8, workflow, "--parts-dir \"$repo_archive_parts_dir\"") orelse return error.MissingPartsArg;
+    const archive_index = routes.routeIndex(workflow, routes.archive_check_python, routes.archive_check_zig) orelse return error.MissingArchiveRoute;
+    const download_index = std.mem.indexOf(u8, workflow, "try_download() {") orelse return error.MissingDownloadHelper;
+    const attempt_index = std.mem.indexOf(u8, workflow, "if try_local_archive; then") orelse return error.MissingLocalAttempt;
+    const canonical_index = std.mem.indexOf(u8, workflow, "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then") orelse return error.MissingCanonicalFallback;
+    const mirrors_index = std.mem.indexOf(u8, workflow[canonical_index..], "elif curl --fail") orelse return error.MissingMirrorsFallback;
+    const mirrors_abs_index = canonical_index + mirrors_index;
+    const mirror_try_index = std.mem.indexOf(u8, workflow, "try_download \"${mirror_url%/}/$ZIGUX_ZIG_FILENAME?source=github-zigux-bootstrap\"") orelse return error.MissingMirrorAttempt;
+    const direct_index = std.mem.indexOf(u8, workflow, "try_download \"$ZIGUX_ZIG_URL\"") orelse return error.MissingDirectFallback;
+    const failure_index = std.mem.indexOf(u8, workflow, "failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org") orelse return error.MissingFailureMessage;
+    try std.testing.expect(local_index < stage_index);
+    try std.testing.expect(stage_index < parts_index);
+    try std.testing.expect(parts_index < archive_index);
+    try std.testing.expect(archive_index < download_index);
+    try std.testing.expect(download_index < attempt_index);
+    try std.testing.expect(attempt_index < canonical_index);
+    try std.testing.expect(canonical_index < mirrors_abs_index);
+    try std.testing.expect(mirrors_abs_index < mirror_try_index);
+    try std.testing.expect(mirror_try_index < direct_index);
+    try std.testing.expect(direct_index < failure_index);
 }
 
 test "bootstrap workflow keeps setup and early policy gates fail-closed" {
@@ -105,16 +115,16 @@ test "bootstrap workflow keeps setup and early policy gates fail-closed" {
 }
 
 test "installer helper canonical release constants match live policy channel" {
-    const installer = try readRepoFile(std.testing.allocator, "scripts/zigux/install-zig.py");
+    const installer = try readRepoFile(std.testing.allocator, "scripts/zigux/install_zig.zig");
     defer std.testing.allocator.free(installer);
 
-    try requireContains(installer, "CANONICAL_RELEASE_CHANNEL = '" ++ current_channel ++ "'");
-    try requireContains(installer, "CANONICAL_RELEASE_REPO = os.environ.get('ZIGUX_ZIG_RELEASE_REPO', '" ++ canonical_repo ++ "')");
-    try requireContains(installer, "CANONICAL_RELEASE_TAG = os.environ.get('ZIGUX_ZIG_RELEASE_TAG', '" ++ canonical_tag ++ "')");
-    try requireContains(installer, "def load_policy_archive_sha256");
-    try requireContains(installer, "def verify_archive_sha256");
-    try requireContains(installer, "DOWNLOAD_RETRIES = 4");
-    try requireContains(installer, "RETRYABLE_HTTP_STATUS_CODES = {408, 429, 500, 502, 503, 504}");
+    try requireContains(installer, "pub const canonical_release_channel = \"" ++ current_channel ++ "\"");
+    try requireContains(installer, "pub const default_canonical_release_repo = \"" ++ canonical_repo ++ "\"");
+    try requireContains(installer, "pub const default_canonical_release_tag = \"" ++ canonical_tag ++ "\"");
+    try requireContains(installer, "pub fn loadPolicyArchiveSha256");
+    try requireContains(installer, "pub fn verifyArchiveSha256");
+    try requireContains(installer, "pub const download_retries: u32 = 4");
+    try requireContains(installer, "pub const retryable_http_status_codes = [_]u16{ 408, 429, 500, 502, 503, 504 }");
 
-    try requireAbsent(installer, "CANONICAL_RELEASE_CHANNEL = '0.17.0-dev.87+9b177a7d2'");
+    try requireAbsent(installer, "0.17.0-dev.87+9b177a7d2");
 }

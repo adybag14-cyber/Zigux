@@ -34,14 +34,13 @@ const workflow_excerpt =
 ;
 
 const installer_excerpt =
-    \\CANONICAL_RELEASE_CHANNEL = '0.17.0-dev.877+a3ae499dc'
-    \\CANONICAL_RELEASE_REPO = os.environ.get('ZIGUX_ZIG_RELEASE_REPO', 'adybag14-cyber/zig')
-    \\CANONICAL_RELEASE_TAG = os.environ.get('ZIGUX_ZIG_RELEASE_TAG', 'upstream-a3ae499dc297')
-    \\    if channel == CANONICAL_RELEASE_CHANNEL:
-    \\        return (
-    \\            f'https://github.com/{CANONICAL_RELEASE_REPO}/releases/download/'
-    \\            f'{CANONICAL_RELEASE_TAG}/zig-{target_key}-{channel}{suffix}'
-    \\        )
+    \\pub const canonical_release_channel = "0.17.0-dev.877+a3ae499dc";
+    \\pub const default_canonical_release_repo = "adybag14-cyber/zig";
+    \\pub const default_canonical_release_tag = "upstream-a3ae499dc297";
+    \\if (environ_map.get("ZIGUX_ZIG_RELEASE_REPO")) |value| return dupe(allocator, value);
+    \\if (environ_map.get("ZIGUX_ZIG_RELEASE_TAG")) |value| return dupe(allocator, value);
+    \\if (std.mem.eql(u8, channel, canonical_release_channel)) {
+    \\    "https://github.com/{s}/releases/download/{s}/zig-{s}-{s}{s}",
 ;
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
@@ -98,16 +97,16 @@ test "bootstrap workflow keeps canonical release before network mirror fallback"
 }
 
 test "installer helper keeps local release overrides separate from CI constants" {
-    try expectContains(installer_excerpt, "CANONICAL_RELEASE_CHANNEL = '0.17.0-dev.877+a3ae499dc'");
+    try expectContains(installer_excerpt, "pub const canonical_release_channel = \"0.17.0-dev.877+a3ae499dc\"");
     try expectContains(installer_excerpt, "ZIGUX_ZIG_RELEASE_REPO");
     try expectContains(installer_excerpt, "ZIGUX_ZIG_RELEASE_TAG");
-    try expectContains(installer_excerpt, "'adybag14-cyber/zig'");
-    try expectContains(installer_excerpt, "'upstream-a3ae499dc297'");
-    try expectContains(installer_excerpt, "https://github.com/{CANONICAL_RELEASE_REPO}/releases/download/");
+    try expectContains(installer_excerpt, "\"adybag14-cyber/zig\"");
+    try expectContains(installer_excerpt, "\"upstream-a3ae499dc297\"");
+    try expectContains(installer_excerpt, "https://github.com/{s}/releases/download/{s}/zig-{s}-{s}{s}");
 
-    try expectBefore(installer_excerpt, "CANONICAL_RELEASE_CHANNEL", "CANONICAL_RELEASE_REPO");
-    try expectBefore(installer_excerpt, "CANONICAL_RELEASE_REPO", "CANONICAL_RELEASE_TAG");
-    try expectBefore(installer_excerpt, "if channel == CANONICAL_RELEASE_CHANNEL", "https://github.com/{CANONICAL_RELEASE_REPO}/releases/download/");
+    try expectBefore(installer_excerpt, "canonical_release_channel", "default_canonical_release_repo");
+    try expectBefore(installer_excerpt, "default_canonical_release_repo", "default_canonical_release_tag");
+    try expectBefore(installer_excerpt, "ZIGUX_ZIG_RELEASE_REPO", "ZIGUX_ZIG_RELEASE_TAG");
 }
 
 test "canonical markers are unique enough to catch drift without masking fallbacks" {
@@ -116,5 +115,5 @@ test "canonical markers are unique enough to catch drift without masking fallbac
     try expectExactCount(workflow_excerpt, "ZIGUX_ZIG_CANONICAL_URL", 2);
     try expectExactCount(installer_excerpt, "ZIGUX_ZIG_RELEASE_REPO", 1);
     try expectExactCount(installer_excerpt, "ZIGUX_ZIG_RELEASE_TAG", 1);
-    try expectExactCount(installer_excerpt, "CANONICAL_RELEASE_CHANNEL", 2);
+    try expectExactCount(installer_excerpt, "canonical_release_channel", 2);
 }

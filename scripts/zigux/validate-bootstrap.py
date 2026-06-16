@@ -17,11 +17,13 @@ REQUIRED_PATHS = (
     "Documentation/zigux/freeze-map.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-zig-toolchain.py",
+    "scripts/zigux/check_zig_toolchain.zig",
     "scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
     "scripts/zigux/check-lane05-local-first-archive-workflow.py",
     "scripts/zigux/check-lane05-local-archive-readme.py",
     "scripts/zigux/check-lane05-install-zig-archive-verification.py",
     "scripts/zigux/stage-pinned-zig-archive.py",
+    "scripts/zigux/stage_pinned_zig_archive.zig",
     "scripts/zigux/check-lane05-stage-helper-contract.py",
     "scripts/zigux/check-lane05-stage-helper-selftest.py",
     "scripts/zigux/check-phase1-route-summary-counts.py",
@@ -67,6 +69,8 @@ SCRIPTS_README_MARKERS = (
     "# scripts/zigux",
     "This directory holds shipped Zigux validation helpers and compact reminder surfaces.",
     "scripts/zigux/check-zig-toolchain.py",
+    "scripts/zigux/check_zig_toolchain.zig",
+    "scripts/zigux/stage_pinned_zig_archive.zig",
     "scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
 )
 
@@ -280,17 +284,21 @@ def build_self_test_root(root: Path) -> None:
                 "This directory holds shipped Zigux validation helpers and compact reminder surfaces.",
                 "",
                 "- `scripts/zigux/check-zig-toolchain.py`",
+                "- `scripts/zigux/check_zig_toolchain.zig`",
+                "- `scripts/zigux/stage_pinned_zig_archive.zig`",
                 "- `scripts/zigux/check-lane01-bootstrap-charter-alignment.py`",
             )
         )
         + "\n",
     )
     write_text(root, "scripts/zigux/check-zig-toolchain.py", "present\n")
+    write_text(root, "scripts/zigux/check_zig_toolchain.zig", "present\n")
     write_text(root, "scripts/zigux/check-lane01-bootstrap-charter-alignment.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-local-first-archive-workflow.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-local-archive-readme.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-install-zig-archive-verification.py", "present\n")
     write_text(root, "scripts/zigux/stage-pinned-zig-archive.py", "present\n")
+    write_text(root, "scripts/zigux/stage_pinned_zig_archive.zig", "present\n")
     write_text(root, "scripts/zigux/check-lane05-stage-helper-contract.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-stage-helper-selftest.py", "present\n")
     write_text(root, "scripts/zigux/check-phase1-route-summary-counts.py", "present\n")

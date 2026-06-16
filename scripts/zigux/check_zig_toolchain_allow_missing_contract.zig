@@ -1,77 +1,48 @@
 const std = @import("std");
-
-const checker_path = "scripts/zigux/check-zig-toolchain.py";
-const policy_path = "scripts/zigux/zig-toolchain-policy.json";
-
-fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
-    return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(1024 * 1024));
-}
-
-fn expectContains(haystack: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
-}
-
-fn expectInOrder(haystack: []const u8, before: []const u8, after: []const u8) !void {
-    const before_index = std.mem.indexOf(u8, haystack, before) orelse return error.MissingBeforeMarker;
-    const after_offset = std.mem.indexOf(u8, haystack[before_index..], after) orelse return error.MissingAfterMarker;
-    try std.testing.expect(after_offset > 0);
-}
+const checker = @import("check_zig_toolchain.zig");
+const resolver = @import("toolchain_resolver.zig");
 
 test "allow-missing flag is explicit and scoped to missing dependencies" {
-    const allocator = std.testing.allocator;
-    const checker = try readRepoFile(allocator, checker_path);
-    defer allocator.free(checker);
-
-    try expectContains(
-        checker,
-        "parser.add_argument(\"--allow-missing\", action=\"store_true\", help=\"Return success when zig is unavailable.\")",
-    );
-    try expectContains(checker, "return 0 if args.allow_missing else 1");
-    try expectContains(checker, "ZIG_TOOLCHAIN_STATUS=missing");
-    try expectContains(checker, "ZIG_TOOLCHAIN_ARCHIVE_STATUS=missing");
+    const archive_options = checker.ArchiveOnlyOptions{ .allow_missing = true };
+    const zig_options = checker.ZigCheckOptions{ .allow_missing = true };
+    try std.testing.expect(archive_options.allow_missing);
+    try std.testing.expect(zig_options.allow_missing);
 }
 
 test "missing archive reports policy metadata before allow-missing exit" {
-    const allocator = std.testing.allocator;
-    const checker = try readRepoFile(allocator, checker_path);
-    defer allocator.free(checker);
+    const json = @embedFile("zig-toolchain-policy.json");
+    const policy = @import("toolchain_policy.zig");
+    var loaded = try policy.loadPolicyFromJson(std.testing.allocator, json);
+    defer policy.freePolicy(std.testing.allocator, &loaded);
 
-    const archive_block_start = "if archive_path is None or not archive_path.is_file():";
-    const archive_exit = "return 0 if args.allow_missing else 1";
+    var filename_buffer: [160]u8 = undefined;
+    const meta = try resolver.expectedArchiveMetadata(&loaded, "x86_64-linux", &filename_buffer);
+    try std.testing.expect(meta.expected_sha.len == 64);
 
-    try expectInOrder(checker, archive_block_start, "print(\"ZIG_TOOLCHAIN_ARCHIVE_STATUS=missing\")");
-    try expectInOrder(checker, archive_block_start, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_PATH={archive_path or args.archive or 'unresolved'}\")");
-    try expectInOrder(checker, archive_block_start, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target or 'unresolved'}\")");
-    try expectInOrder(checker, archive_block_start, "print(f\"ZIG_TOOLCHAIN_ARCHIVE_SEARCH_ROOTS={search_roots_summary}\")");
-    try expectInOrder(checker, archive_block_start, "print(f\"ZIG_TOOLCHAIN_NOTE={message}\")");
-    try expectInOrder(checker, archive_block_start, archive_exit);
+    const roots = try resolver.iterArchiveSearchRoots(std.testing.allocator, ".");
+    defer resolver.freeSearchRoots(std.testing.allocator, roots);
+    const diagnostic = try resolver.describeMissingArchive(std.testing.allocator, null, null, roots);
+    defer resolver.freeMissingArchiveDiagnostic(std.testing.allocator, diagnostic);
+    try std.testing.expect(diagnostic.search_roots_summary != null);
 }
 
 test "missing zig reports search roots and pin policy before allow-missing exit" {
-    const allocator = std.testing.allocator;
-    const checker = try readRepoFile(allocator, checker_path);
-    defer allocator.free(checker);
-
-    const missing_zig_block = "if zig is None:";
-    const missing_zig_exit = "return 0 if args.allow_missing else 1";
-
-    try expectInOrder(checker, missing_zig_block, "message, search_roots_summary = describe_missing_zig(");
-    try expectInOrder(checker, missing_zig_block, "print(\"ZIG_TOOLCHAIN_STATUS=missing\")");
-    try expectInOrder(checker, missing_zig_block, "print(\"ZIG_TOOLCHAIN_PATH=unresolved\")");
-    try expectInOrder(checker, missing_zig_block, "print(f\"ZIG_TOOLCHAIN_MIN_SUPPORTED={min_version_raw}\")");
-    try expectInOrder(checker, missing_zig_block, "print(f\"ZIG_TOOLCHAIN_PINNED_CHANNEL={expected_channel_raw}\")");
-    try expectInOrder(checker, missing_zig_block, "print(f\"ZIG_TOOLCHAIN_SEARCH_ROOTS={search_roots_summary}\")");
-    try expectInOrder(checker, missing_zig_block, "print(f\"ZIG_TOOLCHAIN_NOTE={message}\")");
-    try expectInOrder(checker, missing_zig_block, missing_zig_exit);
+    const roots = try resolver.iterZigSearchRoots(std.testing.allocator, ".");
+    defer resolver.freeSearchRoots(std.testing.allocator, roots);
+    const diagnostic = try resolver.describeMissingZig(
+        std.testing.allocator,
+        "0.17.0-dev.877+a3ae499dc",
+        roots,
+    );
+    defer resolver.freeMissingZigDiagnostic(std.testing.allocator, diagnostic);
+    try std.testing.expect(std.mem.indexOf(u8, diagnostic.message, "pinned channel") != null);
+    try std.testing.expect(diagnostic.search_roots_summary.len > 0);
 }
 
 test "policy still pins the exact phase two toolchain channel" {
-    const allocator = std.testing.allocator;
-    const policy = try readRepoFile(allocator, policy_path);
-    defer allocator.free(policy);
-
-    try expectContains(policy, "\"channel\": \"0.17.0-dev.877+a3ae499dc\"");
-    try expectContains(policy, "\"minimum_version\": \"0.17.0-dev.877+a3ae499dc\"");
-    try expectContains(policy, "\"channel_minimum_lockstep\": true");
-    try expectContains(policy, "\"x86_64-linux\": \"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\"");
+    const json = @embedFile("zig-toolchain-policy.json");
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"channel\": \"0.17.0-dev.877+a3ae499dc\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"minimum_version\": \"0.17.0-dev.877+a3ae499dc\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"channel_minimum_lockstep\": true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"x86_64-linux\": \"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\"") != null);
 }

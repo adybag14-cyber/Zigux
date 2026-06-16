@@ -1,4 +1,5 @@
 const std = @import("std");
+const routes = @import("bootstrap_toolchain_route_contract.zig");
 
 const workflow_path = ".github/workflows/zigux-bootstrap.yml";
 
@@ -28,17 +29,23 @@ test "pinned toolchain setup keeps fallback sources ordered" {
     const workflow = try readWorkflow(allocator);
     defer allocator.free(workflow);
 
-    try requireOrdered(workflow, &.{
-        "- name: Setup pinned Zig toolchain",
-        "try_local_archive()",
-        "python3 scripts/zigux/stage-pinned-zig-archive.py",
-        "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"",
-        "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then",
-        "elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"; then",
-        "try_download \"${mirror_url%/}/$ZIGUX_ZIG_FILENAME?source=github-zigux-bootstrap\"",
-        "if [ \"$download_success\" -ne 1 ]; then",
-        "if try_download \"$ZIGUX_ZIG_URL\"; then",
-    });
+    const setup_index = try requireContains(workflow, "- name: Setup pinned Zig toolchain");
+    const local_index = try requireContains(workflow, "try_local_archive()");
+    const stage_index = routes.routeIndex(workflow, routes.stage_python, routes.stage_zig) orelse return error.MissingStageRoute;
+    const archive_index = routes.routeIndex(workflow, routes.archive_check_python, routes.archive_check_zig) orelse return error.MissingArchiveRoute;
+    const canonical_index = try requireContains(workflow, "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then");
+    const mirrors_index = try requireContains(workflow, "https://ziglang.org/download/community-mirrors.txt");
+    const mirror_try_index = try requireContains(workflow, "try_download \"${mirror_url%/}/$ZIGUX_ZIG_FILENAME?source=github-zigux-bootstrap\"");
+    const retry_guard_index = try requireContains(workflow, "if [ \"$download_success\" -ne 1 ]; then");
+    const direct_index = try requireContains(workflow, "if try_download \"$ZIGUX_ZIG_URL\"; then");
+    try std.testing.expect(setup_index < local_index);
+    try std.testing.expect(local_index < stage_index);
+    try std.testing.expect(stage_index < archive_index);
+    try std.testing.expect(archive_index < canonical_index);
+    try std.testing.expect(canonical_index < mirrors_index);
+    try std.testing.expect(mirrors_index < mirror_try_index);
+    try std.testing.expect(mirror_try_index < retry_guard_index);
+    try std.testing.expect(retry_guard_index < direct_index);
 }
 
 test "download attempts verify archives before extraction" {
@@ -46,15 +53,20 @@ test "download attempts verify archives before extraction" {
     const workflow = try readWorkflow(allocator);
     defer allocator.free(workflow);
 
-    try requireOrdered(workflow, &.{
-        "try_download() {",
-        "if curl -L --fail \"$url\" -o \"$archive_path\"; then",
-        "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"",
-        "tar -xJf \"$archive_path\" -C .zig-toolchain",
-        "python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"",
-        "rm -f \"$archive_path\"",
-        "rm -rf \"$extract_root\"",
-    });
+    const download_index = try requireContains(workflow, "try_download() {");
+    const download_end = std.mem.indexOf(u8, workflow[download_index..], "return 1\n          }") orelse return error.MissingDownloadEnd;
+    const download_block = workflow[download_index .. download_index + download_end];
+    const curl_if_index = std.mem.indexOf(u8, download_block, "if curl --fail") orelse return error.MissingCurlProbe;
+    const archive_rel = routes.routeIndex(download_block, routes.archive_check_python, routes.archive_check_zig) orelse return error.MissingArchiveRoute;
+    const tar_rel = std.mem.indexOf(u8, download_block, "tar -xJf \"$archive_path\" -C .zig-toolchain") orelse return error.MissingTarStep;
+    const zig_probe_rel = routes.routeIndex(download_block, routes.zig_probe_python, routes.zig_probe_zig) orelse return error.MissingZigProbeRoute;
+    const rm_archive_rel = std.mem.indexOf(u8, download_block, "rm -f \"$archive_path\"") orelse return error.MissingArchiveCleanup;
+    const rm_extract_rel = std.mem.indexOf(u8, download_block, "rm -rf \"$extract_root\"") orelse return error.MissingExtractCleanup;
+    try std.testing.expect(curl_if_index < archive_rel);
+    try std.testing.expect(archive_rel < tar_rel);
+    try std.testing.expect(tar_rel < zig_probe_rel);
+    try std.testing.expect(zig_probe_rel < rm_archive_rel);
+    try std.testing.expect(rm_archive_rel < rm_extract_rel);
 }
 
 test "failed fallback emits explicit verified archive failure" {

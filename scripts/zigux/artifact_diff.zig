@@ -394,8 +394,9 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
+    const arena = init.arena.allocator();
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(arena);
     const argv = args[1..];
 
     if (argv.len == 1 and (std.mem.eql(u8, argv[0], "--help") or std.mem.eql(u8, argv[0], "-h"))) {
@@ -404,6 +405,15 @@ pub fn main(init: std.process.Init) !void {
             \\ [expected] [actual]
             \\
             \\Compare two artifacts in a stable mode.
+            \\
+            \\positional arguments:
+            \\ expected
+            \\ actual
+            \\
+            \\options:
+            \\ -h, --help show this help message and exit
+            \\ --mode {text,json,bytes}
+            \\ --self-test Run built-in deterministic comparison checks.
         ;
         var stdout_buffer: [512]u8 = undefined;
         var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);

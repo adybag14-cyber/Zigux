@@ -1,16 +1,15 @@
 const std = @import("std");
 
-const artifact_diff_source = @embedFile("artifact_diff.py");
+const artifact_diff_source = @embedFile("artifact_diff.zig");
 
 fn hasLiveTerminatorBoundary(source: []const u8) bool {
-    return std.mem.containsAtLeast(u8, source, 1, "def parse_args(argv: list[str]) -> tuple[bool, str | None, str | None, str | None] | int:") and
-        std.mem.containsAtLeast(u8, source, 1, "if arg == \"--self-test\":") and
-        std.mem.containsAtLeast(u8, source, 1, "if arg == \"--mode\":") and
-        std.mem.containsAtLeast(u8, source, 1, "positionals.append(arg)") and
-        std.mem.containsAtLeast(u8, source, 1, "expected = positionals[0] if len(positionals) >= 1 else None") and
-        std.mem.containsAtLeast(u8, source, 1, "if len(positionals) > 2:") and
-        std.mem.containsAtLeast(u8, source, 1, "if mode is None or expected_text is None or actual_text is None:") and
-        std.mem.containsAtLeast(u8, source, 1, "result = compare(mode, expected, actual)");
+    return std.mem.containsAtLeast(u8, source, 1, "pub fn main(init: std.process.Init) !void {") and
+        std.mem.containsAtLeast(u8, source, 1, "if (std.mem.eql(u8, arg, \"--self-test\"))") and
+        std.mem.containsAtLeast(u8, source, 1, "if (std.mem.eql(u8, arg, \"--mode\"))") and
+        std.mem.containsAtLeast(u8, source, 1, "try positionals.append(allocator, arg);") and
+        std.mem.containsAtLeast(u8, source, 1, "if (mode == null or positionals.items.len < 2)") and
+        std.mem.containsAtLeast(u8, source, 1, "if (positionals.items.len > 2)") and
+        std.mem.containsAtLeast(u8, source, 1, "const result = try compare(io, allocator, mode.?, positionals.items[0], positionals.items[1]);");
 }
 
 fn requireLiveTerminatorBoundary() !void {
@@ -35,14 +34,14 @@ test "parser has no dash dash option terminator branch" {
 
     const parse_body = try bodyBetween(
         artifact_diff_source,
-        "def parse_args(argv: list[str]) -> tuple[bool, str | None, str | None, str | None] | int:\n",
-        "\n\ndef main()",
+        "pub fn main(init: std.process.Init) !void {\n",
+        "\nfn emitStderrLine",
     );
 
-    try std.testing.expect(std.mem.indexOf(u8, parse_body, "if arg == \"--\":") == null);
+    try std.testing.expect(std.mem.indexOf(u8, parse_body, "if (std.mem.eql(u8, arg, \"--\"):") == null);
     try std.testing.expect(std.mem.indexOf(u8, parse_body, "arg == \"--\"") == null);
-    try std.testing.expect(std.mem.indexOf(u8, parse_body, "argv[index + 1:]") == null);
-    try std.testing.expect(std.mem.indexOf(u8, parse_body, "positionals.extend") == null);
+    try std.testing.expect(std.mem.indexOf(u8, parse_body, "argv[index + 1..]") == null);
+    try std.testing.expect(std.mem.indexOf(u8, parse_body, "positionals.appendSlice") == null);
 }
 
 test "dash dash tokens fall through as ordinary positionals" {
@@ -50,36 +49,35 @@ test "dash dash tokens fall through as ordinary positionals" {
 
     const parse_body = try bodyBetween(
         artifact_diff_source,
-        "def parse_args(argv: list[str]) -> tuple[bool, str | None, str | None, str | None] | int:\n",
-        "\n\ndef main()",
+        "pub fn main(init: std.process.Init) !void {\n",
+        "\nfn emitStderrLine",
     );
 
-    const self_test_branch = try indexOfNeedle(parse_body, "if arg == \"--self-test\":");
-    const mode_branch = try indexOfNeedle(parse_body, "if arg == \"--mode\":");
-    const append_positional = try indexOfNeedle(parse_body, "positionals.append(arg)");
-    const expected_assignment = try indexOfNeedle(parse_body, "expected = positionals[0] if len(positionals) >= 1 else None");
-    const too_many_check = try indexOfNeedle(parse_body, "if len(positionals) > 2:");
-    const tuple_return = try indexOfNeedle(parse_body, "return self_test, mode, expected, actual");
+    const self_test_branch = try indexOfNeedle(parse_body, "if (std.mem.eql(u8, arg, \"--self-test\"))");
+    const mode_branch = try indexOfNeedle(parse_body, "if (std.mem.eql(u8, arg, \"--mode\"))");
+    const append_positional = try indexOfNeedle(parse_body, "try positionals.append(allocator, arg);");
+    const missing_mode_check = try indexOfNeedle(parse_body, "if (mode == null or positionals.items.len < 2)");
+    const too_many_check = try indexOfNeedle(parse_body, "if (positionals.items.len > 2)");
+    const compare_call = try indexOfNeedle(parse_body, "const result = try compare(io, allocator, mode.?, positionals.items[0], positionals.items[1]);");
 
     try std.testing.expect(self_test_branch < append_positional);
     try std.testing.expect(mode_branch < append_positional);
-    try std.testing.expect(append_positional < expected_assignment);
-    try std.testing.expect(expected_assignment < too_many_check);
-    try std.testing.expect(too_many_check < tuple_return);
+    try std.testing.expect(append_positional < missing_mode_check);
+    try std.testing.expect(missing_mode_check < too_many_check);
+    try std.testing.expect(too_many_check < compare_call);
 }
 
 test "missing mode remains the post-parse executable boundary" {
     try requireLiveTerminatorBoundary();
 
-    const main_body = try bodyBetween(
+    const parse_body = try bodyBetween(
         artifact_diff_source,
-        "def main() -> int:\n",
-        "\n\nif __name__ == \"__main__\":",
+        "pub fn main(init: std.process.Init) !void {\n",
+        "\nfn emitStderrLine",
     );
 
-    try std.testing.expect(std.mem.indexOf(u8, main_body, "self_test, mode, expected_text, actual_text = parsed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, main_body, "if mode is None or expected_text is None or actual_text is None:") != null);
-    try std.testing.expect(std.mem.indexOf(u8, main_body, "print(MISSING_ARGUMENT_ERROR, file=sys.stderr)") != null);
-    try std.testing.expect((try indexOfNeedle(main_body, "if mode is None or expected_text is None or actual_text is None:")) < (try indexOfNeedle(main_body, "result = compare(mode, expected")));
+    try std.testing.expect(std.mem.indexOf(u8, parse_body, "if (mode == null or positionals.items.len < 2)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, parse_body, "try emitStderrLine(io, missing_argument_error);") != null);
+    try std.testing.expect((try indexOfNeedle(parse_body, "if (mode == null or positionals.items.len < 2)")) < (try indexOfNeedle(parse_body, "const result = try compare(io, allocator, mode.?, positionals.items[0], positionals.items[1]);")));
     try std.testing.expect(std.mem.indexOf(u8, artifact_diff_source, "\"terminator") == null);
 }

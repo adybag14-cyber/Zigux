@@ -9,34 +9,43 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
-INSTALL_ZIG = Path("scripts/zigux/install-zig.py")
+INSTALL_ZIG = Path("scripts/zigux/install_zig.zig")
 TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 INSTALL_ZIG_MARKERS = (
-    "def load_policy_archive_sha256(policy_path: Path, target_key: str) -> str | None:",
-    "expected_archive_sha256 = load_policy_archive_sha256(TOOLCHAIN_POLICY, target_key)",
-    "copy_url_to_file(tarball_url, archive_path)",
-    "if expected_archive_sha256 is not None:",
-    "actual_archive_sha256 = verify_archive_sha256(archive_path, expected_archive_sha256)",
-    "print(f'ZIG_INSTALL_ARCHIVE_SHA256={actual_archive_sha256}')",
-    "print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=verified')",
-    "print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=unverified')",
-    "extracted_root = extract_archive(archive_path, tmpdir / 'extract')",
-    "shutil.copytree(extracted_root, final_root)",
+    "pub fn loadPolicyArchiveSha256(",
+    "expected_archive_sha256 = try loadPolicyArchiveSha256(io, allocator, policy_path, resolved.target_key)",
+                "const archive_source = try stageArchive(io, expanded_archive, resolved.tarball_url, staged_archive_path, allocator)",
+                "if (expected_archive_sha256) |digest| {",
+    "const actual = try verifyArchiveSha256(io, allocator, staged_archive_path, digest)",
+    "ZIG_INSTALL_ARCHIVE_SHA256={s}",
+    "ZIG_INSTALL_ARCHIVE_SHA256_STATUS=verified",
+    "ZIG_INSTALL_ARCHIVE_SHA256_STATUS=unverified",
+    "const extracted_name = try extractArchive(io, allocator, staged_archive_path, extract_root)",
+    "try copyDirRecursive(io, extracted_root, final_root)",
 )
 
 EXACT_COUNT_MARKERS = (
-    "expected_archive_sha256 = load_policy_archive_sha256(TOOLCHAIN_POLICY, target_key)",
-    "actual_archive_sha256 = verify_archive_sha256(archive_path, expected_archive_sha256)",
-    "print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=verified')",
-    "print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=unverified')",
+    "expected_archive_sha256 = try loadPolicyArchiveSha256(io, allocator, policy_path, resolved.target_key)",
+    "const actual = try verifyArchiveSha256(io, allocator, staged_archive_path, digest)",
+    "ZIG_INSTALL_ARCHIVE_SHA256_STATUS=verified",
+    "ZIG_INSTALL_ARCHIVE_SHA256_STATUS=unverified",
 )
 
 ORDERED_MARKERS = (
-    ("copy_url_to_file(tarball_url, archive_path)", "actual_archive_sha256 = verify_archive_sha256(archive_path, expected_archive_sha256)"),
-    ("actual_archive_sha256 = verify_archive_sha256(archive_path, expected_archive_sha256)", "extracted_root = extract_archive(archive_path, tmpdir / 'extract')"),
-    ("extracted_root = extract_archive(archive_path, tmpdir / 'extract')", "shutil.copytree(extracted_root, final_root)"),
+    (
+        "const archive_source = try stageArchive(io, expanded_archive, resolved.tarball_url, staged_archive_path, allocator)",
+        "const actual = try verifyArchiveSha256(io, allocator, staged_archive_path, digest)",
+    ),
+    (
+        "const actual = try verifyArchiveSha256(io, allocator, staged_archive_path, digest)",
+        "const extracted_name = try extractArchive(io, allocator, staged_archive_path, extract_root)",
+    ),
+    (
+        "const extracted_name = try extractArchive(io, allocator, staged_archive_path, extract_root)",
+        "try copyDirRecursive(io, extracted_root, final_root)",
+    ),
 )
 
 
@@ -139,39 +148,52 @@ def build_self_test_root(root: Path) -> None:
         root / INSTALL_ZIG,
         "\n".join(
             (
-                "from pathlib import Path",
-                "import shutil",
+                "pub fn loadPolicyArchiveSha256(io: std.Io, allocator: std.mem.Allocator, policy_path: []const u8, target_key: []const u8) !?[]const u8 {",
+                "    _ = .{ io, allocator, policy_path, target_key };",
+                "    return '3' ** 64;",
+                "}",
                 "",
-                "TOOLCHAIN_POLICY = Path('scripts/zigux/zig-toolchain-policy.json')",
+                "pub fn verifyArchiveSha256(io: std.Io, allocator: std.mem.Allocator, path: []const u8, expected_sha256: []const u8) ![]const u8 {",
+                "    _ = .{ io, allocator, path };",
+                "    return expected_sha256;",
+                "}",
                 "",
-                "def load_policy_archive_sha256(policy_path: Path, target_key: str) -> str | None:",
-                "    return '3' * 64",
+                "pub fn stageArchive(io: std.Io, local_archive: ?[]const u8, tarball_url: []const u8, archive_path: []const u8, allocator: std.mem.Allocator) !void {",
+                "    _ = .{ io, local_archive, tarball_url, archive_path, allocator };",
+                "}",
                 "",
-                "def verify_archive_sha256(path, expected):",
-                "    return expected",
+                "pub fn extractArchive(io: std.Io, allocator: std.mem.Allocator, archive_path: []const u8, dest_path: []const u8) ![]const u8 {",
+                "    _ = .{ io, allocator, archive_path };",
+                "    return dest_path;",
+                "}",
                 "",
-                "def copy_url_to_file(url, path):",
-                "    return None",
+                "pub fn copyDirRecursive(io: std.Io, source: []const u8, destination: []const u8) !void {",
+                "    _ = .{ io, source, destination };",
+                "}",
                 "",
-                "def extract_archive(path, dest):",
-                "    return dest",
-                "",
-                "def main():",
-                "    target_key = 'x86_64-linux'",
-                "    tarball_url = 'https://example.invalid/archive.tar.xz'",
-                "    archive_path = Path('archive.tar.xz')",
-                "    tmpdir = Path('tmp')",
-                "    final_root = Path('out')",
-                "    expected_archive_sha256 = load_policy_archive_sha256(TOOLCHAIN_POLICY, target_key)",
-                "    copy_url_to_file(tarball_url, archive_path)",
-                "    if expected_archive_sha256 is not None:",
-                "        actual_archive_sha256 = verify_archive_sha256(archive_path, expected_archive_sha256)",
-                "        print(f'ZIG_INSTALL_ARCHIVE_SHA256={actual_archive_sha256}')",
-                "        print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=verified')",
-                "    else:",
-                "        print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=unverified')",
-                "    extracted_root = extract_archive(archive_path, tmpdir / 'extract')",
-                "    shutil.copytree(extracted_root, final_root)",
+                "pub fn main() !void {",
+                "    const io = undefined;",
+                "    const allocator = undefined;",
+                "    const policy_path = \"scripts/zigux/zig-toolchain-policy.json\";",
+                "    const resolved = .{ .target_key = \"x86_64-linux\", .tarball_url = \"https://example.invalid/archive.tar.xz\" };",
+                "    const expanded_archive: ?[]const u8 = null;",
+                "    const staged_archive_path = \"archive.tar.xz\";",
+                "    const extract_root = \"tmp/extract\";",
+                "    const extracted_root = \"tmp/extract/root\";",
+                "    const final_root = \"out\";",
+                "    var expected_archive_sha256 = try loadPolicyArchiveSha256(io, allocator, policy_path, resolved.target_key);",
+                "    const archive_source = try stageArchive(io, expanded_archive, resolved.tarball_url, staged_archive_path, allocator);",
+                "    if (expected_archive_sha256) |digest| {",
+                "        const actual = try verifyArchiveSha256(io, allocator, staged_archive_path, digest);",
+                "        try std.Io.File.stdout().writer(io, undefined).interface.print(\"ZIG_INSTALL_ARCHIVE_SHA256={s}\\n\", .{actual});",
+                "        try std.Io.File.stdout().writer(io, undefined).interface.print(\"ZIG_INSTALL_ARCHIVE_SHA256_STATUS=verified\\n\", .{});",
+                "    } else {",
+                "        try std.Io.File.stdout().writer(io, undefined).interface.print(\"ZIG_INSTALL_ARCHIVE_SHA256_STATUS=unverified\\n\", .{});",
+                "    }",
+                "    const extracted_name = try extractArchive(io, allocator, staged_archive_path, extract_root);",
+                "    try copyDirRecursive(io, extracted_root, final_root);",
+                "    _ = .{ archive_source, extracted_name };",
+                "}",
                 "",
             )
         )
@@ -221,20 +243,20 @@ def run_self_test() -> int:
         install_path.write_text(
             replace_once(
                 install_path.read_text(encoding="utf-8"),
-                "actual_archive_sha256 = verify_archive_sha256(archive_path, expected_archive_sha256)",
+                "const actual = try verifyArchiveSha256(io, allocator, staged_archive_path, digest)",
                 "",
             ),
             encoding="utf-8",
         )
         assert (
             "MISSING_INSTALL_MARKER",
-            "actual_archive_sha256 = verify_archive_sha256(archive_path, expected_archive_sha256)",
+            "const actual = try verifyArchiveSha256(io, allocator, staged_archive_path, digest)",
         ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
         install_path = root / INSTALL_ZIG
-        marker = "print('ZIG_INSTALL_ARCHIVE_SHA256_STATUS=verified')"
+        marker = "ZIG_INSTALL_ARCHIVE_SHA256_STATUS=verified"
         install_path.write_text(
             install_path.read_text(encoding="utf-8") + marker + "\n",
             encoding="utf-8",
@@ -247,8 +269,8 @@ def run_self_test() -> int:
         install_path.write_text(
             replace_once(
                 install_path.read_text(encoding="utf-8"),
-                "copy_url_to_file(tarball_url, archive_path)\n    if expected_archive_sha256 is not None:",
-                "if expected_archive_sha256 is not None:\n        actual_archive_sha256 = verify_archive_sha256(archive_path, expected_archive_sha256)\n    copy_url_to_file(tarball_url, archive_path)",
+                "const archive_source = try stageArchive(io, expanded_archive, resolved.tarball_url, staged_archive_path, allocator);\n    if (expected_archive_sha256) |digest| {",
+                "if (expected_archive_sha256) |digest| {\n        const actual = try verifyArchiveSha256(io, allocator, staged_archive_path, digest)\n    const archive_source = try stageArchive(io, expanded_archive, resolved.tarball_url, staged_archive_path, allocator);",
             ),
             encoding="utf-8",
         )
@@ -287,7 +309,7 @@ def run_self_test() -> int:
             assert "required file missing" in str(exc)
             checks_run += 1
         else:
-            raise AssertionError("missing install-zig.py did not abort")
+            raise AssertionError("missing install_zig.zig did not abort")
 
     assert checks_run == expected_case_count
     print("LANE05_INSTALL_ZIG_ARCHIVE_VERIFICATION_SELF_TEST=pass")

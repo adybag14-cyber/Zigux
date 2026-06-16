@@ -1,4 +1,5 @@
 const std = @import("std");
+const routes = @import("bootstrap_toolchain_route_contract.zig");
 
 const max_file_size = 256 * 1024;
 
@@ -64,11 +65,11 @@ test "pinned setup action path tries trusted local archive then canonical releas
     try expectContains(setup_path, "canonical_tag = \"upstream-a3ae499dc297\"");
     try expectContains(setup_path, "repo_archive_path=\"third_party/$ZIGUX_ZIG_FILENAME\"");
     try expectContains(setup_path, "repo_archive_parts_dir=\"${repo_archive_path}.parts\"");
-    try expectContains(setup_path, "python3 scripts/zigux/stage-pinned-zig-archive.py");
-    try expectContains(setup_path, "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"");
+    try routes.requireRoute(setup_path, routes.stage_python, routes.stage_zig);
+    try routes.requireRoute(setup_path, routes.archive_check_python, routes.archive_check_zig);
     try expectBefore(setup_path, "if try_local_archive; then", "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then");
-    try expectBefore(setup_path, "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then", "elif curl -L --fail https://ziglang.org/download/community-mirrors.txt");
-    try expectBefore(setup_path, "elif curl -L --fail https://ziglang.org/download/community-mirrors.txt", "if try_download \"$ZIGUX_ZIG_URL\"; then");
+    try expectBefore(setup_path, "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then", "https://ziglang.org/download/community-mirrors.txt");
+    try expectBefore(setup_path, "https://ziglang.org/download/community-mirrors.txt", "if try_download \"$ZIGUX_ZIG_URL\"; then");
     try expectContains(setup_path, "failed to install a verified pinned Zig archive from third_party, canonical adybag14-cyber/zig release, mirrors, or ziglang.org");
 }
 

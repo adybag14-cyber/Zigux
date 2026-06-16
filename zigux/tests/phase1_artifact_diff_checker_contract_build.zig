@@ -24,7 +24,7 @@ pub fn build(b: *std.Build) void {
     options.addOption(
         []const u8,
         "helper_source",
-        readRepoFile(b, "scripts/zigux/artifact_diff.py"),
+        readRepoFile(b, "scripts/zigux/artifact_diff.zig"),
     );
 
     const root_module = b.createModule(.{

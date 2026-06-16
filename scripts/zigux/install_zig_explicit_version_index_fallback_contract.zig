@@ -1,52 +1,38 @@
 const std = @import("std");
+const install = @import("install_zig.zig");
 
-const install_zig_text = @embedFile("install-zig.py");
-
-fn expectContains(haystack: []const u8, needle: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+test "explicit version channels are detected" {
+    try std.testing.expect(install.isExplicitVersion("0.17.0-dev.877+a3ae499dc"));
+    try std.testing.expect(!install.isExplicitVersion("master"));
 }
 
-fn expectBefore(haystack: []const u8, first: []const u8, second: []const u8) !void {
-    const first_index = std.mem.indexOf(u8, haystack, first) orelse return error.MissingFirstMarker;
-    const second_index = std.mem.indexOf(u8, haystack, second) orelse return error.MissingSecondMarker;
-    try std.testing.expect(first_index < second_index);
+test "explicit version index fallback returns empty map on network failure" {
+    const allocator = std.testing.allocator;
+    const io = std.testing.io;
+    const original = install.test_hooks.read_index_fn;
+    install.test_hooks.read_index_fn = struct {
+        fn hook(_: std.mem.Allocator, _: std.Io) install.OpenUrlError!std.json.ObjectMap {
+            return error.Network;
+        }
+    }.hook;
+    defer install.test_hooks.read_index_fn = original;
+
+    var index = try install.loadIndex(allocator, io, install.canonical_release_channel);
+    defer index.deinit(allocator);
+    try std.testing.expectEqual(@as(usize, 0), index.count());
 }
 
-test "explicit Zig version channels can resolve without the download index" {
-    try expectContains(install_zig_text, "def load_index(channel: str) -> dict:");
-    try expectContains(install_zig_text, "return read_index()");
-    try expectContains(install_zig_text, "except (TimeoutError, urllib.error.URLError):");
-    try expectContains(install_zig_text, "if not is_explicit_version(channel):");
-    try expectContains(install_zig_text, "raise");
-    try expectContains(install_zig_text, "return {}");
-    try expectBefore(install_zig_text, "if not is_explicit_version(channel):", "return {}");
-}
+test "explicit version resolves via inferred tarball when index lacks channel" {
+    const allocator = std.testing.allocator;
+    const environ = std.process.Environ.Map.init(std.testing.allocator);
+    const release_repo = try install.canonicalReleaseRepo(allocator, environ);
+    defer allocator.free(release_repo);
+    const release_tag = try install.canonicalReleaseTag(allocator, environ);
+    defer allocator.free(release_tag);
 
-test "canonical release explicit channel bypasses the download index entry lookup" {
-    try expectContains(install_zig_text, "CANONICAL_RELEASE_CHANNEL = '0.17.0-dev.877+a3ae499dc'");
-    try expectContains(install_zig_text, "CANONICAL_RELEASE_REPO = os.environ.get('ZIGUX_ZIG_RELEASE_REPO', 'adybag14-cyber/zig')");
-    try expectContains(install_zig_text, "CANONICAL_RELEASE_TAG = os.environ.get('ZIGUX_ZIG_RELEASE_TAG', 'upstream-a3ae499dc297')");
-    try expectContains(install_zig_text, "if channel == CANONICAL_RELEASE_CHANNEL:");
-    try expectContains(install_zig_text, "f'https://github.com/{CANONICAL_RELEASE_REPO}/releases/download/'");
-    try expectContains(install_zig_text, "f'{CANONICAL_RELEASE_TAG}/zig-{target_key}-{channel}{suffix}'");
-    try expectContains(install_zig_text, "return target_key, channel, infer_tarball_url(channel, target_key, system_key)");
-    try expectBefore(install_zig_text, "if channel == CANONICAL_RELEASE_CHANNEL:", "entry = index.get(channel)");
-}
-
-test "generic explicit dev versions still infer stable Zig build URLs" {
-    try expectContains(install_zig_text, "def infer_tarball_url(channel: str, target_key: str, system_key: str) -> str:");
-    try expectContains(install_zig_text, "suffix = '.zip' if system_key == 'windows' else '.tar.xz'");
-    try expectContains(install_zig_text, "if '-dev.' in channel:");
-    try expectContains(install_zig_text, "https://ziglang.org/builds/zig-{target_key}-{channel}{suffix}");
-    try expectContains(install_zig_text, "https://ziglang.org/download/{channel}/zig-{target_key}-{channel}{suffix}");
-    try expectBefore(install_zig_text, "if channel == CANONICAL_RELEASE_CHANNEL:", "if '-dev.' in channel:");
-    try expectBefore(install_zig_text, "if '-dev.' in channel:", "https://ziglang.org/download/{channel}/zig-{target_key}-{channel}{suffix}");
-}
-
-test "fallback behavior is covered by installer self-test markers" {
-    try expectContains(install_zig_text, "globals()['read_index'] = lambda: (_ for _ in ()).throw(TimeoutError('timed out'))");
-    try expectContains(install_zig_text, "assert load_index('0.17.0-dev.877+a3ae499dc') == {}");
-    try expectContains(install_zig_text, "load_index('master')");
-    try expectContains(install_zig_text, "raise AssertionError('expected non-explicit channel timeout to fail')");
-    try expectContains(install_zig_text, "https://github.com/adybag14-cyber/zig/releases/download/upstream-a3ae499dc297/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz");
+    var partial = std.json.ObjectMap{};
+    defer partial.deinit(allocator);
+    var resolved = try install.resolveTarget(allocator, partial, install.canonical_release_channel, "x86_64", "linux", release_repo, release_tag);
+    defer install.freeResolveTarget(allocator, &resolved);
+    try std.testing.expect(std.mem.startsWith(u8, resolved.tarball_url, "https://github.com/"));
 }

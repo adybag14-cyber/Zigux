@@ -15,6 +15,8 @@ fn expectBefore(haystack: []const u8, first: []const u8, second: []const u8) !vo
 test "bootstrap validator keeps Lane 03 toolchain files in the required path roster" {
     try expectContains(validate_bootstrap_text, "REQUIRED_PATHS = (");
     try expectContains(validate_bootstrap_text, "\"scripts/zigux/check-zig-toolchain.py\"");
+    try expectContains(validate_bootstrap_text, "\"scripts/zigux/check_zig_toolchain.zig\"");
+    try expectContains(validate_bootstrap_text, "\"scripts/zigux/stage_pinned_zig_archive.zig\"");
     try expectContains(validate_bootstrap_text, "\"scripts/zigux/install-zig.py\"");
     try expectContains(validate_bootstrap_text, "\"scripts/zigux/validate-bootstrap.py\"");
     try expectContains(validate_bootstrap_text, "\"scripts/zigux/zig-toolchain-policy.json\"");
@@ -60,9 +62,25 @@ test "validator reports exact workflow drift and stable bootstrap count summarie
     try expectContains(validate_bootstrap_text, "\"run: make -C zigux phase6-validate\"");
     try expectContains(validate_bootstrap_text, "\"run: zig build test --build-file zigux/tests/phase6_build.zig --summary all\"");
     try expectContains(validate_bootstrap_text, "\"MISSING_WORKFLOW_LINE\",\n            \"run: python3 scripts/zigux/install-zig.py --self-test\",");
-    try expectContains(validate_bootstrap_text, "\"DUPLICATE_WORKFLOW_LINE\",\n            \"run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing:count=2\",");
+    try expectContains(validate_bootstrap_text, "f\"{REQUIRED_WORKFLOW_LINES[2]}:count=2\"");
+    try expectContains(validate_bootstrap_text, "f\"{REQUIRED_WORKFLOW_LINES[-1]}:count=2\"");
     try expectContains(validate_bootstrap_text, "BOOTSTRAP_VALIDATION=fail");
     try expectContains(validate_bootstrap_text, "BOOTSTRAP_VALIDATION=pass");
     try expectContains(validate_bootstrap_text, "BOOTSTRAP_REQUIRED_PATH_COUNT");
     try expectContains(validate_bootstrap_text, "BOOTSTRAP_WORKFLOW_LINE_COUNT");
+}
+
+test "bootstrap validator keeps zig-first toolchain and stage routes beside python wrappers" {
+    try expectContains(validate_bootstrap_text, "\"scripts/zigux/check_zig_toolchain.zig\"");
+    try expectContains(validate_bootstrap_text, "\"scripts/zigux/stage_pinned_zig_archive.zig\"");
+    try expectBefore(
+        validate_bootstrap_text,
+        "\"scripts/zigux/check-zig-toolchain.py\"",
+        "\"scripts/zigux/check_zig_toolchain.zig\"",
+    );
+    try expectBefore(
+        validate_bootstrap_text,
+        "\"scripts/zigux/stage-pinned-zig-archive.py\"",
+        "\"scripts/zigux/stage_pinned_zig_archive.zig\"",
+    );
 }

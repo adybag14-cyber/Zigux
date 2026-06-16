@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import io
+import os
 import shutil
 import subprocess
 import sys
@@ -11,7 +12,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-HELPER_REL = Path("scripts") / "zigux" / "artifact_diff.py"
+HELPER_REL = Path("scripts") / "zigux" / "artifact_diff.zig"
 
 HELP_LINES = [
     "usage: artifact_diff.py [-h] [--mode {text,json,bytes}] [--self-test]",
@@ -144,9 +145,29 @@ SELF_TEST_CASES = [
 ]
 
 
+def find_zig(root: Path, explicit: str | None = None) -> str:
+    if explicit:
+        return explicit
+    env = os.environ.get("ZIG")
+    if env:
+        return env
+    toolchain_dir = root / ".zig-toolchain"
+    if toolchain_dir.is_dir():
+        candidates = sorted(toolchain_dir.glob("*/zig"))
+        if not candidates:
+            candidates = sorted(toolchain_dir.glob("*/zig.exe"))
+        if candidates:
+            return str(candidates[-1])
+    path = shutil.which("zig")
+    if path:
+        return path
+    raise SystemExit("zig not found; set ZIG or install zig")
+
+
 def run_helper(root: Path, args: list[str]) -> subprocess.CompletedProcess[str]:
+    zig = find_zig(root)
     return subprocess.run(
-        [sys.executable, str(root / HELPER_REL), *args],
+        [zig, "run", str(root / HELPER_REL), "--", *args],
         check=False,
         capture_output=True,
         text=True,
@@ -286,10 +307,7 @@ def write_text(path: Path, text: str) -> None:
 
 
 def expected_json_error(label: str, path: Path) -> str:
-    return (
-        f"{label}_JSON_ERROR={path}:2:1: "
-        "Expecting property name enclosed in double quotes"
-    )
+    return f"{label}_JSON_ERROR={path}:1:1: UnexpectedEndOfInput"
 
 
 def assert_review_note_markers(markers: list[str]) -> None:

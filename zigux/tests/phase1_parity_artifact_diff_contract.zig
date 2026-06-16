@@ -68,7 +68,7 @@ test "phase1 parity checker keeps the committed fixture and artifact diff helper
 test "phase1 parity and artifact diff gates keep fail closed marker catalogs visible" {
     const parity_checker = try readFileAlloc("scripts/zigux/check-phase1-parity.py");
     defer std.testing.allocator.free(parity_checker);
-    const artifact_helper = try readFileAlloc("scripts/zigux/artifact_diff.py");
+    const artifact_helper = try readFileAlloc("scripts/zigux/artifact_diff.zig");
     defer std.testing.allocator.free(artifact_helper);
     const artifact_contract = try readFileAlloc("scripts/zigux/check-artifact-diff-contract.py");
     defer std.testing.allocator.free(artifact_contract);
@@ -87,6 +87,7 @@ test "phase1 parity and artifact diff gates keep fail closed marker catalogs vis
 
     try expectContains(artifact_helper, "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=");
     try expectContains(artifact_helper, "ARTIFACT_DIFF_SELF_TEST_CASES=");
+    try expectContains(artifact_helper, "pub const self_test_case_names");
     try expectContains(artifact_contract, "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=");
     try expectContains(artifact_contract, "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=");
     try expectContains(artifact_contract, "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=");
@@ -166,7 +167,7 @@ test "phase1 committed fixture and manifest keep helper coverage aligned" {
 }
 
 test "artifact diff gate keeps binary diff mode and review coverage visible" {
-    const helper = try readFileAlloc("scripts/zigux/artifact_diff.py");
+    const helper = try readFileAlloc("scripts/zigux/artifact_diff.zig");
     defer std.testing.allocator.free(helper);
     const contract = try readFileAlloc("scripts/zigux/check-artifact-diff-contract.py");
     defer std.testing.allocator.free(contract);
@@ -174,13 +175,13 @@ test "artifact diff gate keeps binary diff mode and review coverage visible" {
     defer std.testing.allocator.free(note);
 
     try expectAnyContains(helper, &.{
-        "MODE_CHOICES = (\"text\", \"json\", \"bytes\")",
+        "pub const Mode = enum {",
         "--mode {text,json,sha256}",
-        "unsupported artifact diff mode",
+        "UnsupportedMode",
     });
     try expectAnyContains(helper, &.{
-        "LEGACY_MODE_ALIASES = {\"sha256\": \"bytes\"}",
-        "sha256_pass",
+        "if (std.mem.eql(u8, raw, \"sha256\")) return .bytes;",
+        "legacy_sha256_alias",
     });
     try expectAnyContains(helper, &.{
         "\"legacy_sha256_alias\"",
@@ -194,7 +195,10 @@ test "artifact diff gate keeps binary diff mode and review coverage visible" {
         "\"extra_positional_rejected\"",
         "invalid_mode_rejected",
     });
-    try expectContains(helper, "ARTIFACT_DIFF_SELF_TEST=pass");
+    try expectAnyContains(helper, &.{
+        "ARTIFACT_DIFF_SELF_TEST=pass",
+        "ARTIFACT_DIFF={s}",
+    });
 
     try expectAnyContains(contract, &.{
         "BASE_CONTRACT_CASES = [",

@@ -12,7 +12,7 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"
+ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.zig"
 ZIG_FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"
 FIXTURE_DIR = ROOT / "zigux" / "tests" / "fixtures" / "fixdep"
 CASES_PATH = FIXTURE_DIR / "cases.json"
@@ -216,6 +216,13 @@ def find_zig(explicit: str | None) -> str:
     env = os.environ.get("ZIG")
     if env:
         return env
+    toolchain_dir = ROOT / ".zig-toolchain"
+    if toolchain_dir.is_dir():
+        candidates = sorted(toolchain_dir.glob("*/zig"))
+        if not candidates:
+            candidates = sorted(toolchain_dir.glob("*/zig.exe"))
+        if candidates:
+            return str(candidates[-1])
     path = shutil.which("zig")
     if path:
         return path
@@ -530,8 +537,8 @@ def write_result(stdout_path: Path, stderr_path: Path, result: subprocess.Comple
     stderr_path.write_text(result.stderr, encoding="utf-8")
 
 
-def diff_text(expected: Path, actual: Path) -> None:
-    run([sys.executable, str(ARTIFACT_DIFF), "--mode", "text", str(expected), str(actual)], cwd=str(ROOT))
+def diff_text(zig: str, expected: Path, actual: Path) -> None:
+    run([zig, "run", str(ARTIFACT_DIFF), "--", "--mode", "text", str(expected), str(actual)], cwd=str(ROOT))
 
 
 def main() -> int:
@@ -584,12 +591,12 @@ def main() -> int:
             compare_returncode(f"{case['name']} Zig", expected_exit_code, zig_result.returncode)
             compare_returncode(f"{case['name']} Zig repeat", zig_result.returncode, zig_repeat_result.returncode)
 
-            diff_text(expected_stdout, zig_actual)
-            diff_text(expected_stdout, zig_repeat)
-            diff_text(zig_actual, zig_repeat)
-            diff_text(expected_stderr_path, zig_actual_stderr)
-            diff_text(expected_stderr_path, zig_repeat_stderr)
-            diff_text(zig_actual_stderr, zig_repeat_stderr)
+            diff_text(zig, expected_stdout, zig_actual)
+            diff_text(zig, expected_stdout, zig_repeat)
+            diff_text(zig, zig_actual, zig_repeat)
+            diff_text(zig, expected_stderr_path, zig_actual_stderr)
+            diff_text(zig, expected_stderr_path, zig_repeat_stderr)
+            diff_text(zig, zig_actual_stderr, zig_repeat_stderr)
 
     if args.refresh:
         print("FIXDEP_REFRESH=pass")

@@ -1,4 +1,5 @@
 const std = @import("std");
+const routes = @import("bootstrap_toolchain_route_contract.zig");
 
 const workflow_packet =
     \\repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"
@@ -8,9 +9,9 @@ const workflow_packet =
     \\    if [ ! -d "$repo_archive_parts_dir" ]; then
     \\      return 1
     \\    fi
-    \\    python3 scripts/zigux/stage-pinned-zig-archive.py --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1
+    \\    zig run scripts/zigux/stage_pinned_zig_archive.zig -- --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1
     \\  fi
-    \\  if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
+    \\  if zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
     \\    tar -xJf "$repo_archive_path" -C .zig-toolchain
     \\  fi
     \\}
@@ -72,15 +73,14 @@ fn requireOrder(haystack: []const u8, earlier: []const u8, later: []const u8) !v
 }
 
 test "workflow stages repo-local archive parts before every download fallback" {
-    try requireOrder(
+    try routes.requireRoute(workflow_packet, routes.stage_python, routes.stage_zig);
+    try routes.requireRoute(workflow_packet, routes.archive_check_python, routes.archive_check_zig);
+    try routes.requireRouteOrder(
         workflow_packet,
-        "repo_archive_parts_dir=\"${repo_archive_path}.parts\"",
-        "python3 scripts/zigux/stage-pinned-zig-archive.py --root \"$GITHUB_WORKSPACE\" --parts-dir \"$repo_archive_parts_dir\" || return 1",
-    );
-    try requireOrder(
-        workflow_packet,
-        "python3 scripts/zigux/stage-pinned-zig-archive.py --root \"$GITHUB_WORKSPACE\" --parts-dir \"$repo_archive_parts_dir\" || return 1",
-        "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"",
+        routes.stage_python,
+        routes.stage_zig,
+        routes.archive_check_python,
+        routes.archive_check_zig,
     );
     try requireOrder(workflow_packet, "if try_local_archive; then", "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then");
     try requireOrder(workflow_packet, "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then", "https://ziglang.org/download/community-mirrors.txt");

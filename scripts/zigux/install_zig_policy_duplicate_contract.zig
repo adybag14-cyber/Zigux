@@ -1,89 +1,44 @@
 const std = @import("std");
+const install = @import("install_zig.zig");
 
-const installer_path = "scripts/zigux/install-zig.py";
+test "policy channel rejects duplicate keys" {
+    const io = std.testing.io;
+    const allocator = std.testing.allocator;
+    const policy_root = ".zig-cache/tmp/zigux_install_zig_policy_dup_contract";
+    std.Io.Dir.cwd().deleteTree(io, policy_root) catch {};
+    try std.Io.Dir.cwd().createDirPath(io, policy_root);
+    defer std.Io.Dir.cwd().deleteTree(io, policy_root) catch {};
 
-fn readInstallerSource() ![]u8 {
-    return try std.Io.Dir.cwd().readFileAlloc(
-        std.testing.io,
-        installer_path,
-        std.testing.allocator,
-        .limited(192 * 1024),
-    );
+    const policy_path = try std.fmt.allocPrint(allocator, "{s}/policy.json", .{policy_root});
+    defer allocator.free(policy_path);
+    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = policy_path, .data = "{\"channel\":\"0.17.0-dev.877+a3ae499dc\",\"channel\":\"0.17.0-dev.90+abcdef\"}\n" });
+    try std.testing.expectError(error.DuplicatePolicyKey, install.loadPolicyChannel(io, allocator, policy_path, "master"));
 }
 
-fn expectContains(source: []const u8, marker: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, source, marker) != null);
+test "policy archive digest rejects duplicate targets" {
+    const io = std.testing.io;
+    const allocator = std.testing.allocator;
+    const policy_root = ".zig-cache/tmp/zigux_install_zig_archive_dup_contract";
+    std.Io.Dir.cwd().deleteTree(io, policy_root) catch {};
+    try std.Io.Dir.cwd().createDirPath(io, policy_root);
+    defer std.Io.Dir.cwd().deleteTree(io, policy_root) catch {};
+
+    const policy_path = try std.fmt.allocPrint(allocator, "{s}/policy.json", .{policy_root});
+    defer allocator.free(policy_path);
+    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = policy_path, .data = "{\"channel\":\"0.17.0-dev.877+a3ae499dc\",\"archive_sha256\":{\"x86_64-linux\":\"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\",\"x86_64-linux\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}\n" });
+    try std.testing.expectError(error.DuplicatePolicyKey, install.loadPolicyArchiveSha256(io, allocator, policy_path, "x86_64-linux"));
 }
 
-fn expectOrdered(source: []const u8, first: []const u8, second: []const u8) !void {
-    const first_index = std.mem.indexOf(u8, source, first) orelse return error.MissingFirstMarker;
-    const second_index = std.mem.indexOf(u8, source, second) orelse return error.MissingSecondMarker;
-    try std.testing.expect(first_index < second_index);
-}
+test "invalid archive digest is rejected" {
+    const io = std.testing.io;
+    const allocator = std.testing.allocator;
+    const policy_root = ".zig-cache/tmp/zigux_install_zig_archive_short_contract";
+    std.Io.Dir.cwd().deleteTree(io, policy_root) catch {};
+    try std.Io.Dir.cwd().createDirPath(io, policy_root);
+    defer std.Io.Dir.cwd().deleteTree(io, policy_root) catch {};
 
-test "installer tracks duplicate keys while loading policy JSON" {
-    const source = try readInstallerSource();
-    defer std.testing.allocator.free(source);
-
-    try expectContains(source, "class DuplicateTrackingDict(dict[str, object]):");
-    try expectContains(source, "self.duplicate_keys: list[str] = []");
-    try expectContains(source, "if key in self and key not in self.duplicate_keys:");
-    try expectContains(source, "self.duplicate_keys.append(key)");
-    try expectContains(source, "object_pairs_hook=DuplicateTrackingDict");
-    try expectContains(source, "if isinstance(payload, DuplicateTrackingDict) and payload.duplicate_keys:");
-    try expectContains(source, "duplicate toolchain policy keys");
-
-    try expectOrdered(
-        source,
-        "class DuplicateTrackingDict(dict[str, object]):",
-        "def load_policy(policy_path: Path = TOOLCHAIN_POLICY) -> dict[str, object] | None:",
-    );
-    try expectOrdered(
-        source,
-        "object_pairs_hook=DuplicateTrackingDict",
-        "duplicate toolchain policy keys",
-    );
-}
-
-test "installer rejects duplicate archive sha target entries" {
-    const source = try readInstallerSource();
-    defer std.testing.allocator.free(source);
-
-    try expectContains(source, "archive_sha256 = payload.get('archive_sha256')");
-    try expectContains(source, "if isinstance(archive_sha256, DuplicateTrackingDict) and archive_sha256.duplicate_keys:");
-    try expectContains(source, "duplicate archive_sha256 targets");
-    try expectContains(source, "+ ', '.join(archive_sha256.duplicate_keys)");
-    try expectContains(source, "digest = archive_sha256.get(target_key)");
-
-    try expectOrdered(
-        source,
-        "if isinstance(archive_sha256, DuplicateTrackingDict) and archive_sha256.duplicate_keys:",
-        "digest = archive_sha256.get(target_key)",
-    );
-    try expectOrdered(
-        source,
-        "duplicate archive_sha256 targets",
-        "digest = archive_sha256.get(target_key)",
-    );
-}
-
-test "installer self-test covers duplicate top-level and archive target policies" {
-    const source = try readInstallerSource();
-    defer std.testing.allocator.free(source);
-
-    try expectContains(source, "\"channel\":\"0.17.0-dev.877+a3ae499dc\",\"channel\":\"0.17.0-dev.90+abcdef\"");
-    try expectContains(source, "assert 'duplicate toolchain policy keys' in str(exc)");
-    try expectContains(source, "\"x86_64-linux\":\"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\",\"x86_64-linux\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"");
-    try expectContains(source, "assert 'duplicate archive_sha256 targets' in str(exc)");
-
-    try expectOrdered(
-        source,
-        "\"channel\":\"0.17.0-dev.877+a3ae499dc\",\"channel\":\"0.17.0-dev.90+abcdef\"",
-        "assert 'duplicate toolchain policy keys' in str(exc)",
-    );
-    try expectOrdered(
-        source,
-        "\"x86_64-linux\":\"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\",\"x86_64-linux\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"",
-        "assert 'duplicate archive_sha256 targets' in str(exc)",
-    );
+    const policy_path = try std.fmt.allocPrint(allocator, "{s}/policy.json", .{policy_root});
+    defer allocator.free(policy_path);
+    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = policy_path, .data = "{\"channel\":\"0.17.0-dev.877+a3ae499dc\",\"archive_sha256\":{\"x86_64-linux\":\"short\"}}\n" });
+    try std.testing.expectError(error.InvalidArchiveDigest, install.loadPolicyArchiveSha256(io, allocator, policy_path, "x86_64-linux"));
 }
