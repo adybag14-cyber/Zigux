@@ -225,24 +225,23 @@ jobs:
           echo "$extract_root" >> "$GITHUB_PATH"
           "$zig_path" version
 
-      - name: Compile current scripts
+      - name: Validate current Zig bootstrap helpers
         run: |
           set -euxo pipefail
-          mapfile -t scripts < <(find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort)
-          if [ "${#scripts[@]}" -eq 0 ]; then
-            echo 'no Python scripts found under scripts/zigux' >&2
-            exit 1
-          fi
-          python3 -m py_compile "${scripts[@]}"
+          zig test scripts/zigux/toolchain_policy.zig
+          zig test scripts/zigux/toolchain_resolver.zig
+          zig test scripts/zigux/check_zig_toolchain.zig
+          zig test scripts/zigux/stage_pinned_zig_archive.zig
+          zig test scripts/zigux/install_zig.zig
 
       - name: Self-test current Zig toolchain checker
-        run: python3 scripts/zigux/check-zig-toolchain.py --self-test
+        run: zig run scripts/zigux/check_zig_toolchain.zig -- --self-test
 
       - name: Check current Zig toolchain policy packet
-        run: python3 scripts/zigux/check-zig-toolchain.py --policy-only
+        run: zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only
 
       - name: Check current pinned Zig archive packet
-        run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
+        run: zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing
 
       - name: Self-test current Lane 05 local-first archive checker
         run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test
@@ -263,16 +262,10 @@ jobs:
         run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py
 
       - name: Self-test current staged pinned Zig archive helper
-        run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test
-
-      - name: Self-test current Zig installer helper (zig)
-        run: |
-          set -euxo pipefail
-          zig test scripts/zigux/install_zig.zig
-          zig run scripts/zigux/install_zig.zig -- --self-test
+        run: zig run scripts/zigux/stage_pinned_zig_archive.zig -- --self-test
 
       - name: Self-test current Zig installer helper
-        run: python3 scripts/zigux/install-zig.py --self-test
+        run: zig run scripts/zigux/install_zig.zig -- --self-test
 
       - name: Self-test current Lane 05 stage helper contract checker
         run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test

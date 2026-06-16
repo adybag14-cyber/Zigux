@@ -49,7 +49,7 @@ pub fn checkToolchainActivationMarkers(workflow: []const u8) !void {
 }
 
 pub fn checkToolchainActivationOrder(workflow: []const u8) !void {
-    try requireOrder(workflow, "      - name: Setup pinned Zig toolchain\n", "      - name: Compile current scripts\n");
+    try requireOrder(workflow, "      - name: Setup pinned Zig toolchain\n", "      - name: Validate current Zig bootstrap helpers\n");
     try requireOrder(workflow, "          extract_root=\"$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL\"\n", "          try_local_archive() {\n");
     try requireOrder(workflow, "          try_local_archive() {\n", "verify_and_activate_archive \"$repo_archive_path\"");
     const repo_activate_index = std.mem.indexOf(u8, workflow, "verify_and_activate_archive \"$repo_archive_path\"") orelse return error.MissingWorkflowMarker;
@@ -63,7 +63,7 @@ pub fn checkToolchainActivationOrder(workflow: []const u8) !void {
     try requireOrder(workflow, "          if [ \"$download_success\" -ne 1 ]; then\n", "          zig_path=\"$extract_root/zig\"\n");
     try requireOrder(workflow, "          zig_path=\"$extract_root/zig\"\n", "          echo \"$extract_root\" >> \"$GITHUB_PATH\"\n");
     try requireOrder(workflow, "          echo \"$extract_root\" >> \"$GITHUB_PATH\"\n", "          \"$zig_path\" version\n");
-    try requireOrder(workflow, "          \"$zig_path\" version\n", "      - name: Compile current scripts\n");
+    try requireOrder(workflow, "          \"$zig_path\" version\n", "      - name: Validate current Zig bootstrap helpers\n");
 }
 
 test "Lane 05 activates only the verified extracted pinned Zig root" {
@@ -113,7 +113,7 @@ test "Lane 05 activation rejects adding archive paths to GITHUB_PATH" {
         \\          echo "$archive_path" >> "$GITHUB_PATH"
         \\          echo "$extract_root" >> "$GITHUB_PATH"
         \\          "$zig_path" version
-        \\      - name: Compile current scripts
+        \\      - name: Validate current Zig bootstrap helpers
         \\
     ;
 
@@ -152,7 +152,7 @@ test "Lane 05 activation rejects running zig before GITHUB_PATH export" {
         \\          zig_path="$extract_root/zig"
         \\          "$zig_path" version
         \\          echo "$extract_root" >> "$GITHUB_PATH"
-        \\      - name: Compile current scripts
+        \\      - name: Validate current Zig bootstrap helpers
         \\
     ;
 

@@ -9,19 +9,24 @@ can validate locally before it falls back to network downloads.
 - channel: `0.17.0-dev.877+a3ae499dc`
 - canonical release: [adybag14-cyber/zig `upstream-a3ae499dc297`](https://github.com/adybag14-cyber/zig/releases/tag/upstream-a3ae499dc297)
 - file: `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz`
+- parts: `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts`
 - sha256: `c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8`
-- self-test fixture digest marker: `3333333333333333333333333333333333333333333333333333333333333333`
 - size: `59581484` bytes
+- policy: `scripts/zigux/zig-toolchain-policy.json`
+- duplicate-copy boundary: `zig-x86_64-linux-0.17.0-dev.877+a3ae499dc (1).tar.xz`
 
 ## Validation
 
+- `scripts/zigux/check_zig_toolchain.zig`
+- `scripts/zigux/stage_pinned_zig_archive.zig`
+- `scripts/zigux/zig-toolchain-policy.json`
 - `zig test scripts/zigux/toolchain_policy.zig` — policy parsing and version evaluation
-- `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz --archive-target x86_64-linux`
+- `zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz --archive-target x86_64-linux`
 
 ## Bootstrap order
 
 - Lane 05 bootstrap first reuses and validates `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz` when that pinned archive is present.
-- If the exact archive file is absent but `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts` is present, `.github/workflows/zigux-bootstrap.yml` stages the same pinned payload locally with `scripts/zigux/stage-pinned-zig-archive.py` before canonical release, mirror, or direct-download fallback.
+- If the exact archive file is absent but `third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz.parts` is present, `.github/workflows/zigux-bootstrap.yml` stages the same pinned payload locally with `zig run scripts/zigux/stage_pinned_zig_archive.zig` before canonical release, mirror, or direct-download fallback.
 - Before retrying the canonical release, mirror, or direct-download path, `.github/workflows/zigux-bootstrap.yml` clears the extracted `.zig-toolchain` root plus the cached `community-mirrors.txt` handle so stale partial recovery state is discarded before the next fallback attempt.
 - If the repo-local archive is unavailable, `.github/workflows/zigux-bootstrap.yml` falls back to the rolling canonical [`adybag14-cyber/zig`](https://github.com/adybag14-cyber/zig) release (`upstream-a3ae499dc297`) before `community-mirrors.txt` and the direct `ziglang.org` download URL.
 - `scripts/zigux/check-lane05-local-first-archive-workflow.py` and `scripts/zigux/check-lane05-local-archive-readme.py` are the shipped reminder guards for that local-first archive path.
@@ -34,10 +39,8 @@ Clone with `git lfs pull` when working offline with the repo-local archive contr
 
 ## Rules
 
-- keep the filename exact so bootstrap can resolve the pinned archive without
-  guessing
+- keep the filename exact so bootstrap can resolve the pinned archive without guessing
 - repo-local pinned archive filename is part of the guarded bootstrap contract
 - do not keep duplicate-suffix copies such as `zig-x86_64-linux-0.17.0-dev.877+a3ae499dc (1).tar.xz` in this directory
 - duplicate-copy boundary: duplicate-suffix archives are rejected before staging
-- update this README and its checker whenever `scripts/zigux/zig-toolchain-policy.json`
-  changes the pinned target, channel, digest, or expected payload size
+- update this README and its checker whenever `scripts/zigux/zig-toolchain-policy.json` changes the pinned target, channel, digest, or expected payload size

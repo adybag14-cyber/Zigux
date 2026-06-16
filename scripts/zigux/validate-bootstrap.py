@@ -75,17 +75,17 @@ SCRIPTS_README_MARKERS = (
 )
 
 REQUIRED_WORKFLOW_LINES = (
-    "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
-    "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
-    "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: zig run scripts/zigux/check_zig_toolchain.zig -- --self-test",
+    "run: zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only",
+    "run: zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing",
     "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test",
     "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py",
     "run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
     "run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
     "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test",
     "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
-    "run: python3 scripts/zigux/install-zig.py --self-test",
-    "run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test",
+    "run: zig run scripts/zigux/install_zig.zig -- --self-test",
+    "run: zig run scripts/zigux/stage_pinned_zig_archive.zig -- --self-test",
     "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test",
     "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
     "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test",
@@ -359,13 +359,13 @@ def run_self_test() -> int:
             WORKFLOW,
             replace_exact_line(
                 read_text(root, WORKFLOW),
-                "run: python3 scripts/zigux/install-zig.py --self-test",
+                "run: zig run scripts/zigux/install_zig.zig -- --self-test",
                 "run: python3 scripts/zigux/other.py",
             ),
         )
         assert (
             "MISSING_WORKFLOW_LINE",
-            "run: python3 scripts/zigux/install-zig.py --self-test",
+            "run: zig run scripts/zigux/install_zig.zig -- --self-test",
         ) in collect_issues(root)
         checks += 1
 

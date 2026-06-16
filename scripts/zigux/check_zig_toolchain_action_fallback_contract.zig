@@ -80,11 +80,11 @@ test "make phase2 toolchain route preserves the same checker and helper order" {
 
     const route = try sliceBetween(makefile, "phase2-toolchain:\n", "phase2-tools:\n");
 
-    try expectBefore(route, "check-zig-toolchain.py --self-test", "check-zig-toolchain.py --policy-only");
-    try expectBefore(route, "check-zig-toolchain.py --policy-only", "check-zig-toolchain.py --archive-only --allow-missing");
-    try expectBefore(route, "check-zig-toolchain.py --archive-only --allow-missing", "check-lane05-local-first-archive-workflow.py --self-test");
-    try expectBefore(route, "check-lane05-install-zig-archive-verification.py", "install-zig.py --self-test");
-    try expectBefore(route, "install-zig.py --self-test", "stage-pinned-zig-archive.py --self-test");
-    try expectBefore(route, "stage-pinned-zig-archive.py --self-test", "check-lane05-stage-helper-contract.py --self-test");
+    try expectBefore(route, "check_zig_toolchain.zig -- --self-test", "check_zig_toolchain.zig -- --policy-only");
+    try expectBefore(route, "check_zig_toolchain.zig -- --policy-only", "check_zig_toolchain.zig -- --archive-only --allow-missing");
+    try expectBefore(route, "check_zig_toolchain.zig -- --archive-only --allow-missing", "check-lane05-local-first-archive-workflow.py --self-test");
+    try expectBefore(route, "check-lane05-install-zig-archive-verification.py", "install_zig.zig -- --self-test");
+    try expectBefore(route, "install_zig.zig -- --self-test", "stage_pinned_zig_archive.zig -- --self-test");
+    try expectBefore(route, "stage_pinned_zig_archive.zig -- --self-test", "check-lane05-stage-helper-contract.py --self-test");
     try expectBefore(route, "check-phase2-toolchain-pinning.py --self-test", "check-phase2-toolchain-pin-scope.py --self-test");
 }

@@ -30,7 +30,7 @@ test "setup-python stays between snapshot checkout and pinned Zig setup" {
     try requireBefore(workflow, "- name: Setup Python", "- name: Setup pinned Zig toolchain");
 }
 
-test "Python setup precedes script compilation checks" {
-    try requireBefore(workflow, "- name: Setup Python", "- name: Compile current scripts");
-    try requireBefore(workflow, "uses: actions/setup-python@v6.2.0", "python3 -m py_compile");
+test "Python setup precedes Zig bootstrap helper validation" {
+    try requireBefore(workflow, "- name: Setup Python", "- name: Validate current Zig bootstrap helpers");
+    try requireBefore(workflow, "uses: actions/setup-python@v6.2.0", "zig test scripts/zigux/toolchain_policy.zig");
 }

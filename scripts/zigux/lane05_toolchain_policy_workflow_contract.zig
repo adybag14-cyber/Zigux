@@ -97,16 +97,15 @@ test "bootstrap workflow keeps setup and early policy gates fail-closed" {
         "https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${GITHUB_SHA}",
         "name: Setup Python",
         "name: Setup pinned Zig toolchain",
-        "name: Compile current scripts",
-        "mapfile -t scripts < <(find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort)",
-        "if [ \"${#scripts[@]}\" -eq 0 ]; then",
-        "python3 -m py_compile \"${scripts[@]}\"",
+        "name: Validate current Zig bootstrap helpers",
+        "zig test scripts/zigux/toolchain_policy.zig",
+        "zig test scripts/zigux/install_zig.zig",
         "name: Self-test current Zig toolchain checker",
-        "python3 scripts/zigux/check-zig-toolchain.py --self-test",
+        "zig run scripts/zigux/check_zig_toolchain.zig -- --self-test",
         "name: Check current Zig toolchain policy packet",
-        "python3 scripts/zigux/check-zig-toolchain.py --policy-only",
+        "zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only",
         "name: Check current pinned Zig archive packet",
-        "python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+        "zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing",
     });
 
     try requireExactlyOnce(workflow, "name: Setup pinned Zig toolchain");

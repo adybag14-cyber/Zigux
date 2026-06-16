@@ -11,9 +11,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 README_PATH = Path("third_party/README.md")
 POLICY_PATH = Path("scripts/zigux/zig-toolchain-policy.json")
+POLICY_REL = "scripts/zigux/zig-toolchain-policy.json"
 ARCHIVE_DUPLICATE_SUFFIX_RE = re.compile(r"^(?P<stem>.+) \((?P<copy>\d+)\)(?P<suffix>\.tar\.xz)$")
 EXPECTED_ARCHIVE_SIZES = {
-    "x86_64-linux": 59_410_844,
+    "x86_64-linux": 59_581_484,
 }
 
 
@@ -102,7 +103,7 @@ def validate_readme(root: Path) -> tuple[str, int, str]:
     expected_sha = archives[target]
     expected_size = EXPECTED_ARCHIVE_SIZES[target]
     validation_command = (
-        "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "
+        "zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive "
         f"{expected_path} --archive-target {target}"
     )
     expected_parts_path = f"{expected_path}.parts"
@@ -124,14 +125,15 @@ def validate_readme(root: Path) -> tuple[str, int, str]:
         f"`{expected_size}` bytes",
         f"`{validation_command}`",
         "`community-mirrors.txt`",
+        "`scripts/zigux/check_zig_toolchain.zig`",
+        "`scripts/zigux/stage_pinned_zig_archive.zig`",
         "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
         "`scripts/zigux/check-lane05-local-archive-readme.py`",
         "`scripts/zigux/check-lane05-install-zig-archive-verification.py`",
-        "`scripts/zigux/stage-pinned-zig-archive.py`",
         "`scripts/zigux/check-lane05-stage-helper-contract.py`",
         "`scripts/zigux/check-lane05-stage-helper-selftest.py`",
         f"`{duplicate_archive_name(expected_filename)}`",
-        f"`{POLICY_PATH}`",
+        f"`{POLICY_REL}`",
     ]
     missing_markers = [marker for marker in required_markers if marker not in readme_text]
     if missing_markers:
@@ -205,7 +207,7 @@ def run_self_test() -> int:
         with tempfile.TemporaryDirectory(prefix="lane05_archive_readme_pass_") as tmp_dir:
             root = Path(tmp_dir)
             write_fixture(root, include_archive=include_archive)
-            assert validate_readme(root) == ("x86_64-linux", 18, "present" if include_archive else "missing_allowed")
+            assert validate_readme(root) == ("x86_64-linux", 19, "present" if include_archive else "missing_allowed")
             case_count += 1
 
     def expect_failure(mutator, expected_substring: str) -> None:

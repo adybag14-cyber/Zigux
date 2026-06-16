@@ -9,7 +9,7 @@ pub const self_test_pass_marker = "STAGE_PINNED_ZIG_ARCHIVE_SELF_TEST=pass";
 pub const self_test_case_count_prefix = "STAGE_PINNED_ZIG_ARCHIVE_SELF_TEST_CASE_COUNT=";
 
 pub const expected_archive_sizes = std.StaticStringMap(u64).initComptime(.{
-    .{ "x86_64-linux", 59_410_844 },
+    .{ "x86_64-linux", 59_581_484 },
 });
 
 pub const InputMode = enum {
@@ -1081,7 +1081,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
     };
 
     const failure_cases = [_]ExpectFailure{
-        .{ .source_size = 1, .expected_substring = "to be 59410844 bytes, got 1" },
+        .{ .source_size = 1, .expected_substring = "to be 59581484 bytes, got 1" },
         .{
             .expected_substring = "to have sha256",
             .mutator = struct {

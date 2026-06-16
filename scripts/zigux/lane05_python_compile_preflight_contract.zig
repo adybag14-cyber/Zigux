@@ -5,7 +5,7 @@ const ContractError = error{
     OutOfOrderMarker,
 };
 
-const compile_step = "Compile current scripts";
+const validate_step = "Validate current Zig bootstrap helpers";
 const setup_zig_step = "Setup pinned Zig toolchain";
 const first_lane05_self_test = "Self-test current Zig toolchain checker";
 const first_lane05_packet = "Check current Zig toolchain policy packet";
@@ -20,15 +20,16 @@ fn requireOrder(text: []const u8, earlier: []const u8, later: []const u8) Contra
     if (earlier_index >= later_index) return error.OutOfOrderMarker;
 }
 
-fn checkCompilePreflight(workflow: []const u8) ContractError!void {
-    try requireContains(workflow, "- name: " ++ compile_step);
-    try requireContains(workflow, "mapfile -t scripts < <(find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort)");
-    try requireContains(workflow, "if [ \"${#scripts[@]}\" -eq 0 ]; then");
-    try requireContains(workflow, "echo 'no Python scripts found under scripts/zigux' >&2");
-    try requireContains(workflow, "python3 -m py_compile \"${scripts[@]}\"");
+fn checkBootstrapHelperValidation(workflow: []const u8) ContractError!void {
+    try requireContains(workflow, "- name: " ++ validate_step);
+    try requireContains(workflow, "zig test scripts/zigux/toolchain_policy.zig");
+    try requireContains(workflow, "zig test scripts/zigux/toolchain_resolver.zig");
+    try requireContains(workflow, "zig test scripts/zigux/check_zig_toolchain.zig");
+    try requireContains(workflow, "zig test scripts/zigux/stage_pinned_zig_archive.zig");
+    try requireContains(workflow, "zig test scripts/zigux/install_zig.zig");
 
-    try requireOrder(workflow, "- name: " ++ setup_zig_step, "- name: " ++ compile_step);
-    try requireOrder(workflow, "- name: " ++ compile_step, "- name: " ++ first_lane05_self_test);
+    try requireOrder(workflow, "- name: " ++ setup_zig_step, "- name: " ++ validate_step);
+    try requireOrder(workflow, "- name: " ++ validate_step, "- name: " ++ first_lane05_self_test);
     try requireOrder(workflow, "- name: " ++ first_lane05_self_test, "- name: " ++ first_lane05_packet);
 }
 
@@ -38,71 +39,65 @@ const current_workflow =
     \\          set -euxo pipefail
     \\          "$zig_path" version
     \\
-    \\      - name: Compile current scripts
+    \\      - name: Validate current Zig bootstrap helpers
     \\        run: |
     \\          set -euxo pipefail
-    \\          mapfile -t scripts < <(find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort)
-    \\          if [ "${#scripts[@]}" -eq 0 ]; then
-    \\            echo 'no Python scripts found under scripts/zigux' >&2
-    \\            exit 1
-    \\          fi
-    \\          python3 -m py_compile "${scripts[@]}"
+    \\          zig test scripts/zigux/toolchain_policy.zig
+    \\          zig test scripts/zigux/toolchain_resolver.zig
+    \\          zig test scripts/zigux/check_zig_toolchain.zig
+    \\          zig test scripts/zigux/stage_pinned_zig_archive.zig
+    \\          zig test scripts/zigux/install_zig.zig
     \\
     \\      - name: Self-test current Zig toolchain checker
-    \\        run: python3 scripts/zigux/check-zig-toolchain.py --self-test
+    \\        run: zig run scripts/zigux/check_zig_toolchain.zig -- --self-test
     \\
     \\      - name: Check current Zig toolchain policy packet
-    \\        run: python3 scripts/zigux/check-zig-toolchain.py --policy-only
+    \\        run: zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only
 ;
 
-test "lane05 Python compile preflight checks every script before Lane 05 gates" {
-    try checkCompilePreflight(current_workflow);
+test "lane05 bootstrap helper validation runs before Lane 05 gates" {
+    try checkBootstrapHelperValidation(current_workflow);
 }
 
-test "lane05 Python compile preflight rejects unsorted script discovery" {
+test "lane05 bootstrap helper validation rejects missing toolchain modules" {
     const stale_workflow =
         \\      - name: Setup pinned Zig toolchain
-        \\      - name: Compile current scripts
+        \\      - name: Validate current Zig bootstrap helpers
         \\        run: |
-        \\          mapfile -t scripts < <(find scripts/zigux -maxdepth 1 -type f -name '*.py')
-        \\          if [ "${#scripts[@]}" -eq 0 ]; then
-        \\            echo 'no Python scripts found under scripts/zigux' >&2
-        \\          fi
-        \\          python3 -m py_compile "${scripts[@]}"
+        \\          zig test scripts/zigux/toolchain_policy.zig
         \\      - name: Self-test current Zig toolchain checker
         \\      - name: Check current Zig toolchain policy packet
     ;
 
-    try std.testing.expectError(error.MissingMarker, checkCompilePreflight(stale_workflow));
+    try std.testing.expectError(error.MissingMarker, checkBootstrapHelperValidation(stale_workflow));
 }
 
-test "lane05 Python compile preflight rejects permissive empty script rosters" {
+test "lane05 bootstrap helper validation rejects python compile preflight" {
     const stale_workflow =
         \\      - name: Setup pinned Zig toolchain
-        \\      - name: Compile current scripts
+        \\      - name: Validate current Zig bootstrap helpers
         \\        run: |
-        \\          mapfile -t scripts < <(find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort)
-        \\          python3 -m py_compile "${scripts[@]}"
+        \\          python3 -m py_compile scripts/zigux/check-zig-toolchain.py
         \\      - name: Self-test current Zig toolchain checker
         \\      - name: Check current Zig toolchain policy packet
     ;
 
-    try std.testing.expectError(error.MissingMarker, checkCompilePreflight(stale_workflow));
+    try std.testing.expectError(error.MissingMarker, checkBootstrapHelperValidation(stale_workflow));
 }
 
-test "lane05 Python compile preflight stays before checker gates" {
+test "lane05 bootstrap helper validation stays before checker gates" {
     const stale_workflow =
         \\      - name: Setup pinned Zig toolchain
         \\      - name: Self-test current Zig toolchain checker
-        \\      - name: Compile current scripts
+        \\      - name: Validate current Zig bootstrap helpers
         \\        run: |
-        \\          mapfile -t scripts < <(find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort)
-        \\          if [ "${#scripts[@]}" -eq 0 ]; then
-        \\            echo 'no Python scripts found under scripts/zigux' >&2
-        \\          fi
-        \\          python3 -m py_compile "${scripts[@]}"
+        \\          zig test scripts/zigux/toolchain_policy.zig
+        \\          zig test scripts/zigux/toolchain_resolver.zig
+        \\          zig test scripts/zigux/check_zig_toolchain.zig
+        \\          zig test scripts/zigux/stage_pinned_zig_archive.zig
+        \\          zig test scripts/zigux/install_zig.zig
         \\      - name: Check current Zig toolchain policy packet
     ;
 
-    try std.testing.expectError(error.OutOfOrderMarker, checkCompilePreflight(stale_workflow));
+    try std.testing.expectError(error.OutOfOrderMarker, checkBootstrapHelperValidation(stale_workflow));
 }

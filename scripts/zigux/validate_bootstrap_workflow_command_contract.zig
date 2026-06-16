@@ -26,16 +26,16 @@ test "bootstrap validator keeps Lane 03 toolchain files in the required path ros
 
 test "workflow command roster runs toolchain checks before bootstrap self validation" {
     try expectContains(validate_bootstrap_text, "REQUIRED_WORKFLOW_LINES = (");
-    try expectContains(validate_bootstrap_text, "\"run: python3 scripts/zigux/check-zig-toolchain.py --self-test\"");
-    try expectContains(validate_bootstrap_text, "\"run: python3 scripts/zigux/check-zig-toolchain.py --policy-only\"");
-    try expectContains(validate_bootstrap_text, "\"run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing\"");
-    try expectContains(validate_bootstrap_text, "\"run: python3 scripts/zigux/install-zig.py --self-test\"");
+    try expectContains(validate_bootstrap_text, "\"run: zig run scripts/zigux/check_zig_toolchain.zig -- --self-test\"");
+    try expectContains(validate_bootstrap_text, "\"run: zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only\"");
+    try expectContains(validate_bootstrap_text, "\"run: zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing\"");
+    try expectContains(validate_bootstrap_text, "\"run: zig run scripts/zigux/install_zig.zig -- --self-test\"");
     try expectContains(validate_bootstrap_text, "\"run: python3 scripts/zigux/validate-bootstrap.py --self-test\"");
     try expectContains(validate_bootstrap_text, "\"run: python3 scripts/zigux/validate-bootstrap.py\"");
-    try expectBefore(validate_bootstrap_text, "check-zig-toolchain.py --self-test", "check-zig-toolchain.py --policy-only");
-    try expectBefore(validate_bootstrap_text, "check-zig-toolchain.py --policy-only", "check-zig-toolchain.py --archive-only --allow-missing");
-    try expectBefore(validate_bootstrap_text, "check-zig-toolchain.py --archive-only --allow-missing", "install-zig.py --self-test");
-    try expectBefore(validate_bootstrap_text, "install-zig.py --self-test", "validate-bootstrap.py --self-test");
+    try expectBefore(validate_bootstrap_text, "check_zig_toolchain.zig -- --self-test", "check_zig_toolchain.zig -- --policy-only");
+    try expectBefore(validate_bootstrap_text, "check_zig_toolchain.zig -- --policy-only", "check_zig_toolchain.zig -- --archive-only --allow-missing");
+    try expectBefore(validate_bootstrap_text, "check_zig_toolchain.zig -- --archive-only --allow-missing", "install_zig.zig -- --self-test");
+    try expectBefore(validate_bootstrap_text, "install_zig.zig -- --self-test", "validate-bootstrap.py --self-test");
     try expectBefore(
         validate_bootstrap_text,
         "validate-bootstrap.py --self-test",
@@ -61,7 +61,7 @@ test "validator reports exact workflow drift and stable bootstrap count summarie
     try expectContains(validate_bootstrap_text, "\"run: python3 scripts/zigux/check-phase1-route-summary-counts.py\"");
     try expectContains(validate_bootstrap_text, "\"run: make -C zigux phase6-validate\"");
     try expectContains(validate_bootstrap_text, "\"run: zig build test --build-file zigux/tests/phase6_build.zig --summary all\"");
-    try expectContains(validate_bootstrap_text, "\"MISSING_WORKFLOW_LINE\",\n            \"run: python3 scripts/zigux/install-zig.py --self-test\",");
+    try expectContains(validate_bootstrap_text, "\"MISSING_WORKFLOW_LINE\",\n            \"run: zig run scripts/zigux/install_zig.zig -- --self-test\",");
     try expectContains(validate_bootstrap_text, "f\"{REQUIRED_WORKFLOW_LINES[2]}:count=2\"");
     try expectContains(validate_bootstrap_text, "f\"{REQUIRED_WORKFLOW_LINES[-1]}:count=2\"");
     try expectContains(validate_bootstrap_text, "BOOTSTRAP_VALIDATION=fail");

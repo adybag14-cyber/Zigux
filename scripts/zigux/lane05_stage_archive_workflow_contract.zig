@@ -38,9 +38,9 @@ const workflow_packet =
 
 const workflow_step_packet =
     \\- name: Self-test current staged pinned Zig archive helper
-    \\  run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test
+    \\  run: zig run scripts/zigux/stage_pinned_zig_archive.zig -- --self-test
     \\- name: Self-test current Zig installer helper
-    \\  run: python3 scripts/zigux/install-zig.py --self-test
+    \\  run: zig run scripts/zigux/install_zig.zig -- --self-test
     \\- name: Self-test current Lane 05 stage helper contract checker
     \\  run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test
     \\- name: Check current Lane 05 stage helper contract packet
