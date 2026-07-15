@@ -34,7 +34,7 @@ const CONTRACT_SELF_TEST_STEP = [_][]const u8{
 };
 
 const CONTRACT_SELF_TEST_CMD = [_][]const u8{
-    "zig run scripts\\zigux/check_lane05_stage_helper_contract.zig --self-test",
+    "zig run scripts/zigux/check_lane05_stage_helper_contract.zig -- --self-test",
 };
 
 const CONTRACT_CHECK_STEP = [_][]const u8{
@@ -42,7 +42,7 @@ const CONTRACT_CHECK_STEP = [_][]const u8{
 };
 
 const CONTRACT_CHECK_CMD = [_][]const u8{
-    "zig run scripts\\zigux/check_lane05_stage_helper_contract.zig",
+    "zig run scripts/zigux/check_lane05_stage_helper_contract.zig",
 };
 
 const SELF_TEST_STEP = [_][]const u8{
@@ -50,7 +50,7 @@ const SELF_TEST_STEP = [_][]const u8{
 };
 
 const SELF_TEST_CMD = [_][]const u8{
-    "zig run scripts\\zigux/check_lane05_stage_helper_selftest.zig --self-test",
+    "zig run scripts/zigux/check_lane05_stage_helper_selftest.zig -- --self-test",
 };
 
 const CHECK_STEP = [_][]const u8{
@@ -58,7 +58,7 @@ const CHECK_STEP = [_][]const u8{
 };
 
 const CHECK_CMD = [_][]const u8{
-    "zig run scripts\\zigux/check_lane05_stage_helper_selftest.zig",
+    "zig run scripts/zigux/check_lane05_stage_helper_selftest.zig",
 };
 
 const NEXT_STEP = [_][]const u8{
@@ -144,7 +144,9 @@ fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {
 }
 
 fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
-    try checkRepo(io, allocator, try guard.defaultRepoRoot(allocator));
+    const root = try guard.defaultRepoRoot(allocator);
+    defer allocator.free(root);
+    try checkRepo(io, allocator, root);
     try guard.printLine(io, "{s}", .{self_test_pass_marker});
     return 0;
 }
@@ -152,7 +154,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var self_test = false;
     var explicit_root: ?[]const u8 = null;
@@ -175,7 +177,8 @@ pub fn main(init: std.process.Init) !void {
     defer if (explicit_root == null) allocator.free(root);
 
     if (self_test) {
-        std.process.exit(try runSelfTest(io, allocator));
+        _ = try runSelfTest(io, allocator);
+        return;
     }
 
     checkRepo(io, allocator, root) catch {

@@ -41,12 +41,18 @@ test "pinned channel candidates are enumerated before generic local candidates" 
         std.testing.io,
         std.testing.allocator,
         ".",
-        "0.17.0-dev.877+a3ae499dc",
+        "0.17.0-dev.1415+64dfaa568",
     );
     defer {
         for (candidates) |candidate| std.testing.allocator.free(candidate);
         std.testing.allocator.free(candidates);
     }
     try std.testing.expect(candidates.len > 0);
-    try std.testing.expect(std.mem.indexOf(u8, candidates[0], "zig-x86_64-linux-0.17.0-dev.877+a3ae499dc") != null);
+    const pinned_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "zig-{s}-0.17.0-dev.1415+64dfaa568",
+        .{resolver.hostArchiveTarget().?},
+    );
+    defer std.testing.allocator.free(pinned_marker);
+    try std.testing.expect(std.mem.indexOf(u8, candidates[0], pinned_marker) != null);
 }

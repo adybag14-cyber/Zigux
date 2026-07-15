@@ -492,7 +492,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
     const json = @embedFile("zig-toolchain-policy.json");
     var loaded = try policy.loadPolicyFromJson(allocator, json);
     defer policy.freePolicy(allocator, &loaded);
-    try expectSelfTest(std.mem.eql(u8, loaded.channel, "0.17.0-dev.877+a3ae499dc"));
+    try expectSelfTest(std.mem.eql(u8, loaded.channel, "0.17.0-dev.1415+64dfaa568"));
     case_count += 1;
 
     const zig_roots = try resolver.iterZigSearchRoots(allocator, ".");

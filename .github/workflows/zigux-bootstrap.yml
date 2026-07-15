@@ -71,13 +71,13 @@ jobs:
 
           policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))
           targets = policy["upgrade_policy"]["archive_target_scope"]
-          if len(targets) != 1:
-              raise SystemExit(f"expected exactly one pinned archive target, got {len(targets)}")
-          target = targets[0]
+          target = "x86_64-linux"
+          if target not in targets:
+              raise SystemExit(f"missing required Linux CI archive target: {target}")
           channel = policy["channel"]
           filename = f"zig-{target}-{channel}.tar.xz"
           canonical_repo = "adybag14-cyber/zig"
-          canonical_tag = "upstream-a3ae499dc297"
+          canonical_tag = "upstream-64dfaa568db0"
           url = f"https://ziglang.org/builds/{filename}"
           canonical_url = f"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}"
           print(f"ZIGUX_ZIG_TARGET='{target}'")

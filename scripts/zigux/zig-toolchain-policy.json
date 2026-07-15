@@ -1,14 +1,16 @@
 {
   "phase": "Phase 2",
-  "channel": "0.17.0-dev.877+a3ae499dc",
-  "minimum_version": "0.17.0-dev.877+a3ae499dc",
+  "channel": "0.17.0-dev.1415+64dfaa568",
+  "minimum_version": "0.17.0-dev.1415+64dfaa568",
   "archive_sha256": {
-    "x86_64-linux": "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8"
+    "x86_64-linux": "f72f19cbae9f4e649d7b2c5040aec6ccb93dce08048738bcfdf1a03475cd0c93",
+    "x86_64-windows": "6fa26a51b2a9bff2952bb11458c863580731021d65dbb04bc42680cfa5a7140f"
   },
   "upgrade_policy": {
     "channel_minimum_lockstep": true,
     "archive_target_scope": [
-      "x86_64-linux"
+      "x86_64-linux",
+      "x86_64-windows"
     ],
     "required_make_routes": [
       "phase2-toolchain",

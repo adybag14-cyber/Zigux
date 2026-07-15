@@ -31,7 +31,7 @@ test "missing zig reports search roots and pin policy before allow-missing exit"
     defer resolver.freeSearchRoots(std.testing.allocator, roots);
     const diagnostic = try resolver.describeMissingZig(
         std.testing.allocator,
-        "0.17.0-dev.877+a3ae499dc",
+        "0.17.0-dev.1415+64dfaa568",
         roots,
     );
     defer resolver.freeMissingZigDiagnostic(std.testing.allocator, diagnostic);
@@ -41,8 +41,9 @@ test "missing zig reports search roots and pin policy before allow-missing exit"
 
 test "policy still pins the exact phase two toolchain channel" {
     const json = @embedFile("zig-toolchain-policy.json");
-    try std.testing.expect(std.mem.indexOf(u8, json, "\"channel\": \"0.17.0-dev.877+a3ae499dc\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, json, "\"minimum_version\": \"0.17.0-dev.877+a3ae499dc\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"channel\": \"0.17.0-dev.1415+64dfaa568\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"minimum_version\": \"0.17.0-dev.1415+64dfaa568\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, json, "\"channel_minimum_lockstep\": true") != null);
-    try std.testing.expect(std.mem.indexOf(u8, json, "\"x86_64-linux\": \"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"x86_64-linux\": \"f72f19cbae9f4e649d7b2c5040aec6ccb93dce08048738bcfdf1a03475cd0c93\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, json, "\"x86_64-windows\": \"6fa26a51b2a9bff2952bb11458c863580731021d65dbb04bc42680cfa5a7140f\"") != null);
 }

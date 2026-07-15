@@ -110,7 +110,7 @@ fn loadRequiredRoutes(io: Io, allocator: std.mem.Allocator, root: []const u8) ![
         if (route.len == 0 or std.mem.trim(u8, route, " \t").len == 0) return error.InvalidPolicy;
         const normalized = std.mem.trim(u8, route, " \t");
         if (seen.contains(normalized)) return error.InvalidPolicy;
-        try seen.put(try allocator.dupe(u8, normalized), {});
+        try seen.put(normalized, {});
         try routes.append(allocator, try allocator.dupe(u8, normalized));
     }
     return routes.toOwnedSlice(allocator);
@@ -311,7 +311,7 @@ fn removeFirst(allocator: std.mem.Allocator, text: []const u8, needle: []const u
     const index = std.mem.indexOf(u8, text, needle) orelse return error.MissingNeedle;
     var out = try allocator.alloc(u8, text.len - needle.len);
     @memcpy(out[0..index], text[0..index]);
-    @memcpy(out[index .. out.len], text[index + needle.len ..]);
+    @memcpy(out[index..out.len], text[index + needle.len ..]);
     return out;
 }
 
@@ -537,7 +537,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var self_test = false;
     var write_sample_root: ?[]const u8 = null;

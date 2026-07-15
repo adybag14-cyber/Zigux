@@ -6,9 +6,9 @@ const policy = @import("toolchain_policy.zig");
 pub const index_url = "https://ziglang.org/download/index.json";
 pub const fallback_channel = "master";
 pub const default_toolchain_policy_rel = "scripts/zigux/zig-toolchain-policy.json";
-pub const canonical_release_channel = "0.17.0-dev.877+a3ae499dc";
+pub const canonical_release_channel = "0.17.0-dev.1415+64dfaa568";
 pub const default_canonical_release_repo = "adybag14-cyber/zig";
-pub const default_canonical_release_tag = "upstream-a3ae499dc297";
+pub const default_canonical_release_tag = "upstream-64dfaa568db0";
 
 pub const retryable_http_status_codes = [_]u16{ 408, 429, 500, 502, 503, 504 };
 pub const download_retries: u32 = 4;
@@ -1201,14 +1201,14 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator, environ_map: std.proces
     try expectSelfTestCheck(io, (try loadPolicyArchiveSha256(io, allocator, policy_path, "x86_64-linux")) == null);
     case_count += 1;
 
-    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = policy_path, .data = "{\"channel\":\"0.17.0-dev.877+a3ae499dc\",\"archive_sha256\":{\"x86_64-linux\":\"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\"}}\n" });
+    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = policy_path, .data = "{\"channel\":\"0.17.0-dev.1415+64dfaa568\",\"archive_sha256\":{\"x86_64-linux\":\"f72f19cbae9f4e649d7b2c5040aec6ccb93dce08048738bcfdf1a03475cd0c93\"}}\n" });
     const policy_channel = try loadPolicyChannel(io, allocator, policy_path, "0.15.0");
     defer allocator.free(policy_channel);
     try expectSelfTestCheck(io, std.mem.eql(u8, policy_channel, canonical_release_channel));
     case_count += 1;
     const policy_digest = (try loadPolicyArchiveSha256(io, allocator, policy_path, "x86_64-linux")).?;
     defer allocator.free(policy_digest);
-    try expectSelfTestCheck(io, std.mem.eql(u8, policy_digest, "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8"));
+    try expectSelfTestCheck(io, std.mem.eql(u8, policy_digest, "f72f19cbae9f4e649d7b2c5040aec6ccb93dce08048738bcfdf1a03475cd0c93"));
     case_count += 1;
     try expectSelfTestCheck(io, (try loadPolicyArchiveSha256(io, allocator, policy_path, "aarch64-linux")) == null);
     case_count += 1;
@@ -1216,19 +1216,19 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator, environ_map: std.proces
     try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = policy_path, .data = "{\"channel\":7}\n" });
     try expectSelfTestError(io, error.InvalidChannel, loadPolicyChannel(io, allocator, policy_path, "0.15.0"));
     case_count += 1;
-    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = policy_path, .data = "{\"channel\":\"0.17.0-dev.877+a3ae499dc\",\"archive_sha256\":7}\n" });
+    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = policy_path, .data = "{\"channel\":\"0.17.0-dev.1415+64dfaa568\",\"archive_sha256\":7}\n" });
     try expectSelfTestError(io, error.InvalidArchiveSha256, loadPolicyArchiveSha256(io, allocator, policy_path, "x86_64-linux"));
     case_count += 1;
-    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = policy_path, .data = "{\"channel\":\"0.17.0-dev.877+a3ae499dc\",\"archive_sha256\":{\"x86_64-linux\":\"short\"}}\n" });
+    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = policy_path, .data = "{\"channel\":\"0.17.0-dev.1415+64dfaa568\",\"archive_sha256\":{\"x86_64-linux\":\"short\"}}\n" });
     try expectSelfTestError(io, error.InvalidArchiveDigest, loadPolicyArchiveSha256(io, allocator, policy_path, "x86_64-linux"));
     case_count += 1;
     try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = policy_path, .data = "{not-json}\n" });
     try expectSelfTestError(io, error.InvalidPolicyJson, loadPolicyChannel(io, allocator, policy_path, "0.15.0"));
     case_count += 1;
-    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = policy_path, .data = "{\"channel\":\"0.17.0-dev.877+a3ae499dc\",\"channel\":\"0.17.0-dev.90+abcdef\"}\n" });
+    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = policy_path, .data = "{\"channel\":\"0.17.0-dev.1415+64dfaa568\",\"channel\":\"0.17.0-dev.90+abcdef\"}\n" });
     try expectSelfTestError(io, error.DuplicatePolicyKey, loadPolicyChannel(io, allocator, policy_path, "0.15.0"));
     case_count += 1;
-    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = policy_path, .data = "{\"channel\":\"0.17.0-dev.877+a3ae499dc\",\"archive_sha256\":{\"x86_64-linux\":\"c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8\",\"x86_64-linux\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}\n" });
+    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = policy_path, .data = "{\"channel\":\"0.17.0-dev.1415+64dfaa568\",\"archive_sha256\":{\"x86_64-linux\":\"f72f19cbae9f4e649d7b2c5040aec6ccb93dce08048738bcfdf1a03475cd0c93\",\"x86_64-linux\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}\n" });
     try expectSelfTestError(io, error.DuplicatePolicyKey, loadPolicyArchiveSha256(io, allocator, policy_path, "x86_64-linux"));
     case_count += 1;
 

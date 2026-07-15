@@ -46,7 +46,25 @@ const ORDERED_MARKERS = [_]struct { earlier: []const u8, later: []const u8 }{
 const Issue = struct {
     code: []const u8,
     value: []const u8,
+    owned_value: ?[]u8 = null,
 };
+
+fn appendOwnedIssue(
+    allocator: std.mem.Allocator,
+    issues: *std.ArrayList(Issue),
+    code: []const u8,
+    value: []u8,
+) !void {
+    errdefer allocator.free(value);
+    try issues.append(allocator, .{ .code = code, .value = value, .owned_value = value });
+}
+
+fn deinitIssues(allocator: std.mem.Allocator, issues: *std.ArrayList(Issue)) void {
+    for (issues.items) |issue| {
+        if (issue.owned_value) |value| allocator.free(value);
+    }
+    issues.deinit(allocator);
+}
 
 fn isExactCountMarker(marker: []const u8) bool {
     for (EXACT_COUNT_MARKERS) |exact| {
@@ -92,29 +110,24 @@ fn collectPolicyIssues(allocator: std.mem.Allocator, issues: *std.ArrayList(Issu
         return;
     }
 
-    if (archive_target_scope.array.items.len != 1) {
-        const count_text = try std.fmt.allocPrint(allocator, "{d}", .{archive_target_scope.array.items.len});
-        try issues.append(allocator, .{ .code = "UNEXPECTED_ARCHIVE_TARGET_COUNT", .value = count_text });
-    }
-
     for (archive_target_scope.array.items, 0..) |entry, index| {
         if (entry != .string or entry.string.len == 0) {
             const index_text = try std.fmt.allocPrint(allocator, "index={d}", .{index});
-            try issues.append(allocator, .{ .code = "INVALID_ARCHIVE_TARGET", .value = index_text });
+            try appendOwnedIssue(allocator, issues, "INVALID_ARCHIVE_TARGET", index_text);
             continue;
         }
         const target = entry.string;
         const digest_value = archive_sha256.object.get(target);
         if (digest_value == null or digest_value.? != .string or !isValidSha256Hex(digest_value.?.string)) {
             const target_copy = try allocator.dupe(u8, target);
-            try issues.append(allocator, .{ .code = "INVALID_ARCHIVE_SHA256", .value = target_copy });
+            try appendOwnedIssue(allocator, issues, "INVALID_ARCHIVE_SHA256", target_copy);
         }
     }
 }
 
 fn collectIssues(io: Io, allocator: std.mem.Allocator, root: []const u8) !std.ArrayList(Issue) {
     var issues: std.ArrayList(Issue) = .empty;
-    errdefer issues.deinit(allocator);
+    errdefer deinitIssues(allocator, &issues);
 
     const install_path = try guard.joinPath(allocator, root, install_zig_rel);
     defer allocator.free(install_path);
@@ -134,7 +147,7 @@ fn collectIssues(io: Io, allocator: std.mem.Allocator, root: []const u8) !std.Ar
             try issues.append(allocator, .{ .code = "MISSING_INSTALL_MARKER", .value = marker });
         } else if (isExactCountMarker(marker) and count != 1) {
             const detail = try std.fmt.allocPrint(allocator, "{s}:count={d}", .{ marker, count });
-            try issues.append(allocator, .{ .code = "DUPLICATE_INSTALL_MARKER", .value = detail });
+            try appendOwnedIssue(allocator, &issues, "DUPLICATE_INSTALL_MARKER", detail);
         }
     }
 
@@ -144,13 +157,28 @@ fn collectIssues(io: Io, allocator: std.mem.Allocator, root: []const u8) !std.Ar
         if (earlier_index == null or later_index == null) continue;
         if (earlier_index.? >= later_index.?) {
             const detail = try std.fmt.allocPrint(allocator, "{s} -> {s}", .{ pair.earlier, pair.later });
-            try issues.append(allocator, .{ .code = "ORDER_MISMATCH", .value = detail });
+            try appendOwnedIssue(allocator, &issues, "ORDER_MISMATCH", detail);
         }
     }
 
     try collectPolicyIssues(allocator, &issues, parsed_policy.value);
 
     return issues;
+}
+
+fn policyTargetCount(io: Io, allocator: std.mem.Allocator, root: []const u8) !usize {
+    const policy_path = try guard.joinPath(allocator, root, toolchain_policy_rel);
+    defer allocator.free(policy_path);
+    const policy_text = try guard.readUtf8File(io, allocator, policy_path);
+    defer allocator.free(policy_text);
+    const parsed_policy = try guard.parseJsonValue(allocator, policy_text);
+    defer parsed_policy.deinit();
+
+    const upgrade_policy = parsed_policy.value.object.get("upgrade_policy") orelse return guard.GuardError.ValidationFailed;
+    if (upgrade_policy != .object) return guard.GuardError.ValidationFailed;
+    const archive_target_scope = upgrade_policy.object.get("archive_target_scope") orelse return guard.GuardError.ValidationFailed;
+    if (archive_target_scope != .array) return guard.GuardError.ValidationFailed;
+    return archive_target_scope.array.items.len;
 }
 
 fn emitIssues(io: Io, allocator: std.mem.Allocator, issues: []const Issue) !u8 {
@@ -254,8 +282,8 @@ const self_test_install_zig =
 const self_test_policy_json =
     \\{
     \\  "phase": "Phase 2",
-    \\  "channel": "0.17.0-dev.877+a3ae499dc",
-    \\  "minimum_version": "0.17.0-dev.877+a3ae499dc",
+    \\  "channel": "0.17.0-dev.1415+64dfaa568",
+    \\  "minimum_version": "0.17.0-dev.1415+64dfaa568",
     \\  "archive_sha256": {
     \\    "x86_64-linux": "3333333333333333333333333333333333333333333333333333333333333333"
     \\  },
@@ -285,7 +313,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
     try buildSelfTestRoot(&workspace);
     {
         var issues = try collectIssues(io, allocator, root);
-        defer issues.deinit(allocator);
+        defer deinitIssues(allocator, &issues);
         try guard.expectSelfTest(issues.items.len == 0);
         checks_run += 1;
     }
@@ -305,7 +333,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
         defer allocator.free(mutated);
         try guard.writeUtf8File(io, install_path, mutated);
         var issues = try collectIssues(io, allocator, root);
-        defer issues.deinit(allocator);
+        defer deinitIssues(allocator, &issues);
         try guard.expectSelfTest(hasIssue(
             issues.items,
             "MISSING_INSTALL_MARKER",
@@ -324,7 +352,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
         defer allocator.free(mutated);
         try guard.writeUtf8File(io, install_path, mutated);
         var issues = try collectIssues(io, allocator, root);
-        defer issues.deinit(allocator);
+        defer deinitIssues(allocator, &issues);
         try guard.expectSelfTest(hasIssue(
             issues.items,
             "DUPLICATE_INSTALL_MARKER",
@@ -348,7 +376,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
         defer allocator.free(mutated);
         try guard.writeUtf8File(io, install_path, mutated);
         var issues = try collectIssues(io, allocator, root);
-        defer issues.deinit(allocator);
+        defer deinitIssues(allocator, &issues);
         try guard.expectSelfTest(hasIssueCode(issues.items, "ORDER_MISMATCH"));
         checks_run += 1;
     }
@@ -365,7 +393,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
             \\
         );
         var issues = try collectIssues(io, allocator, root);
-        defer issues.deinit(allocator);
+        defer deinitIssues(allocator, &issues);
         try guard.expectSelfTest(hasIssue(issues.items, "INVALID_POLICY_FIELD", "archive_sha256"));
         checks_run += 1;
     }
@@ -376,14 +404,15 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
         defer allocator.free(policy_path);
         try guard.writeUtf8File(io, policy_path,
             \\{
-            \\  "archive_sha256": { "x86_64-linux": "3333333333333333333333333333333333333333333333333333333333333333" },
-            \\  "upgrade_policy": { "archive_target_scope": ["x86_64-linux", "aarch64-linux"] }
+            \\  "archive_sha256": { "x86_64-linux": "3333333333333333333333333333333333333333333333333333333333333333", "x86_64-windows": "4444444444444444444444444444444444444444444444444444444444444444" },
+            \\  "upgrade_policy": { "archive_target_scope": ["x86_64-linux", "x86_64-windows"] }
             \\}
             \\
         );
         var issues = try collectIssues(io, allocator, root);
-        defer issues.deinit(allocator);
-        try guard.expectSelfTest(hasIssue(issues.items, "UNEXPECTED_ARCHIVE_TARGET_COUNT", "2"));
+        defer deinitIssues(allocator, &issues);
+        try guard.expectSelfTest(!hasIssue(issues.items, "UNEXPECTED_ARCHIVE_TARGET_COUNT", "2"));
+        try guard.expectSelfTest(issues.items.len == 0);
         checks_run += 1;
     }
 
@@ -399,7 +428,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
             \\
         );
         var issues = try collectIssues(io, allocator, root);
-        defer issues.deinit(allocator);
+        defer deinitIssues(allocator, &issues);
         try guard.expectSelfTest(hasIssue(issues.items, "INVALID_ARCHIVE_SHA256", "x86_64-linux"));
         checks_run += 1;
     }
@@ -426,7 +455,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var self_test = false;
     var explicit_root: ?[]const u8 = null;
@@ -446,7 +475,8 @@ pub fn main(init: std.process.Init) !void {
     }
 
     if (self_test) {
-        std.process.exit(try runSelfTest(io, allocator));
+        _ = try runSelfTest(io, allocator);
+        return;
     }
 
     const root = explicit_root orelse try guard.repoRootFromScript(allocator);
@@ -459,13 +489,14 @@ pub fn main(init: std.process.Init) !void {
         },
         else => return err,
     };
-    defer issues.deinit(allocator);
+    defer deinitIssues(allocator, &issues);
 
     if (issues.items.len != 0) {
         std.process.exit(try emitIssues(io, allocator, issues.items));
     }
 
+    const target_count = try policyTargetCount(io, allocator, root);
     try guard.printLine(io, "{s}", .{live_pass_marker});
     try guard.printLine(io, "LANE05_INSTALL_ZIG_ARCHIVE_VERIFICATION_MARKER_COUNT={d}", .{INSTALL_ZIG_MARKERS.len});
-    try guard.printLine(io, "LANE05_INSTALL_ZIG_ARCHIVE_VERIFICATION_TARGET_COUNT=1", .{});
+    try guard.printLine(io, "LANE05_INSTALL_ZIG_ARCHIVE_VERIFICATION_TARGET_COUNT={d}", .{target_count});
 }

@@ -18,7 +18,7 @@
   "present_surfaces": {
     "archive_support": [
       "third_party/README.md",
-      "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz"
+      "third_party/zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz"
     ],
     "artifact_support": [
       "scripts/zigux/artifact_diff.zig",

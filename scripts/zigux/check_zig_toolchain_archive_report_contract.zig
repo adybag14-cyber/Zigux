@@ -11,7 +11,7 @@ test "expected archive metadata is derived from policy target and channel" {
     const meta = try resolver.expectedArchiveMetadata(&loaded, "x86_64-linux", &filename_buffer);
     try std.testing.expect(std.mem.startsWith(u8, meta.expected_filename, "zig-x86_64-linux-"));
     try std.testing.expectEqualStrings(
-        "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8",
+        "f72f19cbae9f4e649d7b2c5040aec6ccb93dce08048738bcfdf1a03475cd0c93",
         meta.expected_sha,
     );
 }
