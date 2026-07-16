@@ -16,7 +16,7 @@
     "checked_at_utc": "2026-05-28T18:55:47Z",
     "readback_mode": "github-contents-readback",
     "checker": {
-      "path": "scripts\zigux/check_phase12_libbpf_snapshot.zig",
+      "path": "scripts/zigux/check_phase12_libbpf_snapshot.zig",
       "blob_sha": "277554397ab1a236c71f1dac9061ffe4cfbeaf67",
       "modified_at_utc": "2026-05-25T19:05:31Z",
       "self_test_case_count": 30

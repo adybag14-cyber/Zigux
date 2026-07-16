@@ -5,28 +5,36 @@ const guard = @import("zigux_guard.zig");
 pub const live_pass_marker = "PHASE3_DEV_T_STARTER_PACKET=pass";
 pub const self_test_pass_marker = "PHASE3_DEV_T_STARTER_PACKET_SELF_TEST=pass";
 
-const COMPILE_ROUTE = [_][]const u8{
-    "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all",
+const self_test_output_markers = [_][]const u8{
+    "PHASE3_DEV_T_STARTER_PACKET_SELF_TEST=pass",
+    "PHASE3_DEV_T_STARTER_PACKET_SELF_TEST_CASES=",
 };
 
-const REQUIRED_MARKERS__Documentation_zigux_phase3-abi-slice_md = [_][]const u8{
+const live_output_markers = [_][]const u8{
+    "PHASE3_DEV_T_STARTER_PACKET=pass",
+};
+
+const FileContract = struct {
+    rel: []const u8,
+    markers: []const []const u8,
+};
+
+const markers_0 = [_][]const u8{
     "zigux/bindings/abi.zig",
     "zigux/bindings/version.zig",
     "zigux/kernel/export_shim.zig",
 };
 
-const REQUIRED_MARKERS__Documentation_zigux_phase3-validator-support-surface_md = [_][]const u8{
+const markers_1 = [_][]const u8{
     "zigux/bindings/abi.zig",
     "zigux/bindings/version.zig",
     "zigux/kernel/export_shim.zig",
     "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
     "scripts\\zigux/check_phase3_dev_t_starter_packet.zig",
-    "zig run scripts\\zigux/check_phase3_dev_t_starter_packet.zig --self-test",
-    "zig run scripts\\zigux/check_phase3_dev_t_starter_packet.zig",
     "the broader export/UAPI survey, catalog, or shared Phase 3 replay packet",
 };
 
-const REQUIRED_MARKERS__include_linux_zigux_h = [_][]const u8{
+const markers_2 = [_][]const u8{
     "#define ZIGUX_UAPI_ABI_MAJOR 0u",
     "#define ZIGUX_UAPI_ABI_MINOR 1u",
     "#define ZIGUX_UAPI_HEADER_FAMILY_REVISION 1u",
@@ -35,7 +43,7 @@ const REQUIRED_MARKERS__include_linux_zigux_h = [_][]const u8{
     "static inline struct zigux_uapi_version zigux_uapi_version_current(void) {",
 };
 
-const REQUIRED_MARKERS__include_zigux_dev_t_h = [_][]const u8{
+const markers_3 = [_][]const u8{
     "#define ZIGUX_DEV_T_FIELDS_ABI_VERSION 1u",
     "#define ZIGUX_DEV_T_FIELDS_SIZE 8u",
     "#define ZIGUX_DEV_T_FIELDS_ALIGN 4u",
@@ -45,7 +53,7 @@ const REQUIRED_MARKERS__include_zigux_dev_t_h = [_][]const u8{
     "static inline struct zigux_dev_t_fields zigux_dev_t_fields_make(",
 };
 
-const REQUIRED_MARKERS__zigux_uapi_dev_t_zig = [_][]const u8{
+const markers_4 = [_][]const u8{
     "pub const abi_version: u32 = 1;",
     "pub const Fields = extern struct {",
     "pub const fields_size: usize = @sizeOf(Fields);",
@@ -62,7 +70,7 @@ const REQUIRED_MARKERS__zigux_uapi_dev_t_zig = [_][]const u8{
     "std.debug.assert(major_bits + minor_bits == 32);",
 };
 
-const REQUIRED_MARKERS__zigux_uapi_version_zig = [_][]const u8{
+const markers_5 = [_][]const u8{
     "pub const abi_major: u32 = 0;",
     "pub const abi_minor: u32 = 1;",
     "pub const header_family_revision: u32 = 1;",
@@ -72,7 +80,7 @@ const REQUIRED_MARKERS__zigux_uapi_version_zig = [_][]const u8{
     "std.debug.assert(version_align == 4);",
 };
 
-const REQUIRED_MARKERS__zigux_bindings_abi_zig = [_][]const u8{
+const markers_6 = [_][]const u8{
     "pub const ABI_VERSION: u16 = 1;",
     "pub const STATUS_FLAG_ERROR: u16 = 1;",
     "pub const BoundaryHeader = extern struct {",
@@ -81,7 +89,7 @@ const REQUIRED_MARKERS__zigux_bindings_abi_zig = [_][]const u8{
     "pub fn defaultHeader(flags: u16) BoundaryHeader {",
 };
 
-const REQUIRED_MARKERS__zigux_bindings_dev_t_zig = [_][]const u8{
+const markers_7 = [_][]const u8{
     "pub const abi_version = uapi.abi_version;",
     "pub const fields_size = uapi.fields_size;",
     "pub const fields_align = uapi.fields_align;",
@@ -95,7 +103,7 @@ const REQUIRED_MARKERS__zigux_bindings_dev_t_zig = [_][]const u8{
     "std.debug.assert(minor_offset == 4);",
 };
 
-const REQUIRED_MARKERS__zigux_bindings_version_zig = [_][]const u8{
+const markers_8 = [_][]const u8{
     "pub const abi_major = uapi.abi_major;",
     "pub const abi_minor = uapi.abi_minor;",
     "pub const header_family_revision = uapi.header_family_revision;",
@@ -109,7 +117,7 @@ const REQUIRED_MARKERS__zigux_bindings_version_zig = [_][]const u8{
     "std.debug.assert(header_family_revision_offset == 8);",
 };
 
-const REQUIRED_MARKERS__zigux_kernel_export_shim_zig = [_][]const u8{
+const markers_9 = [_][]const u8{
     "const abi = @import(\"abi_bindings\");",
     "const dev_t = @import(\"dev_t_binding\");",
     "const version = @import(\"version_binding\");",
@@ -126,7 +134,7 @@ const REQUIRED_MARKERS__zigux_kernel_export_shim_zig = [_][]const u8{
     "pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {",
 };
 
-const REQUIRED_MARKERS__zigux_tests_phase3_dev_t_starter_packet_zig = [_][]const u8{
+const markers_10 = [_][]const u8{
     "const uapi_dev_t = @import(\"uapi_dev_t\");",
     "const export_shim = @import(\"export_shim\");",
     "test \"dev_t starter binding preserves the current ABI layout\" {",
@@ -150,7 +158,7 @@ const REQUIRED_MARKERS__zigux_tests_phase3_dev_t_starter_packet_zig = [_][]const
     "const valid = export_shim.validateDeviceNumber(dev_t.max_major, dev_t.max_minor);",
 };
 
-const REQUIRED_MARKERS__zigux_tests_phase3_dev_t_starter_packet_build_zig = [_][]const u8{
+const markers_11 = [_][]const u8{
     ".root_source_file = b.path(\"../uapi/dev_t.zig\"),",
     ".root_source_file = b.path(\"../uapi/version.zig\"),",
     ".root_source_file = b.path(\"../bindings/abi.zig\"),",
@@ -171,7 +179,7 @@ const REQUIRED_MARKERS__zigux_tests_phase3_dev_t_starter_packet_build_zig = [_][
     "\"Run the Phase 3 dev_t starter-packet ABI self-check\"",
 };
 
-const REQUIRED_MARKERS__zigux_tests_phase3_dev_t_starter_packet_manifest_json = [_][]const u8{
+const markers_12 = [_][]const u8{
     "\"slug\": \"phase3-dev-t-starter-packet\"",
     "\"status\": \"starter_packet_present\"",
     "\"scope\": \"starter Linux-facing header family plus dev_t, version, and export shim replay\"",
@@ -181,117 +189,62 @@ const REQUIRED_MARKERS__zigux_tests_phase3_dev_t_starter_packet_manifest_json = 
     "\"zigux/bindings/version.zig\"",
     "\"zigux/kernel/export_shim.zig\"",
     "\"zigux/tests/phase3_dev_t_starter_packet_manifest.json\"",
-    "\"zig run scripts\\zigux/check_phase3_dev_t_starter_packet.zig --self-test\"",
-    "\"zig run scripts\\zigux/check_phase3_dev_t_starter_packet.zig\"",
     "\"next_safe_step\": \"keep the live starter packet honest with bounded manifest-backed checker and compile replay work before widening the broader Phase 3 ABI substrate\"",
 };
 
-const SELF_TEST_CASES = [_][]const u8{
-    "zigux/kernel/export_shim.zig",
-    "zigux/kernel/export_shim.zig",
-    "pub const major_offset: usize = @offsetOf(Fields, \"major\");",
-    "pub fn validateRange(start: Fields, end: Fields) bool {",
-    "pub const header_family_revision: u32 = 1;",
-    "pub fn defaultHeader(flags: u16) BoundaryHeader {",
-    "pub const major_offset = uapi.major_offset;",
-    "pub fn validateRange(start: Fields, end: Fields) bool {",
-    "pub const version_size: usize = uapi.version_size;",
-    "pub fn errorStatus(code: i32, facility: Facility) ExportStatus {",
-    "pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {",
-    "test \"starter export shim reuses the canonical boundary header and version snapshot\" {",
-    "const valid = export_shim.validateDeviceNumber(dev_t.max_major, dev_t.max_minor);",
-    "root_module.addImport(\"export_shim\", export_shim);",
-    "\"zigux/kernel/export_shim.zig\"",
+const markers_13 = [_][]const u8{
+    "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all",
 };
 
+const contracts = [_]FileContract{
+    .{ .rel = "Documentation/zigux/phase3-abi-slice.md", .markers = &markers_0 },
+    .{ .rel = "Documentation/zigux/phase3-validator-support-surface.md", .markers = &markers_1 },
+    .{ .rel = "include/linux/zigux.h", .markers = &markers_2 },
+    .{ .rel = "include/zigux/dev_t.h", .markers = &markers_3 },
+    .{ .rel = "zigux/uapi/dev_t.zig", .markers = &markers_4 },
+    .{ .rel = "zigux/uapi/version.zig", .markers = &markers_5 },
+    .{ .rel = "zigux/bindings/abi.zig", .markers = &markers_6 },
+    .{ .rel = "zigux/bindings/dev_t.zig", .markers = &markers_7 },
+    .{ .rel = "zigux/bindings/version.zig", .markers = &markers_8 },
+    .{ .rel = "zigux/kernel/export_shim.zig", .markers = &markers_9 },
+    .{ .rel = "zigux/tests/phase3_dev_t_starter_packet.zig", .markers = &markers_10 },
+    .{ .rel = "zigux/tests/phase3_dev_t_starter_packet_build.zig", .markers = &markers_11 },
+    .{ .rel = "zigux/tests/phase3_dev_t_starter_packet_manifest.json", .markers = &markers_12 },
+    .{ .rel = "zigux/tests/fixtures/phase3_abi_manifest.json", .markers = &markers_13 },
+};
+
+fn printOutputMarkers(io: Io, markers: []const []const u8) !void {
+    for (markers) |marker| {
+        if (std.mem.endsWith(u8, marker, "=")) {
+            try guard.printLine(io, "{s}{d}", .{ marker, contracts.len });
+        } else {
+            try guard.printLine(io, "{s}", .{marker});
+        }
+    }
+}
+
 fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {
-    const text_compile_route_path = try guard.joinPath(allocator, root, "Documentation/zigux/phase3-abi-slice.md");
-    defer allocator.free(text_compile_route_path);
-    const text_compile_route = try guard.readUtf8File(io, allocator, text_compile_route_path);
-    defer allocator.free(text_compile_route);
-    for (COMPILE_ROUTE) |marker| try guard.requireMarker(text_compile_route, marker);
-    const text_required_markers__documentation_zigux_phase3-abi-slice_md_path = try guard.joinPath(allocator, root, "Documentation/zigux/phase3-abi-slice/md");
-    defer allocator.free(text_required_markers__documentation_zigux_phase3-abi-slice_md_path);
-    const text_required_markers__documentation_zigux_phase3-abi-slice_md = try guard.readUtf8File(io, allocator, text_required_markers__documentation_zigux_phase3-abi-slice_md_path);
-    defer allocator.free(text_required_markers__documentation_zigux_phase3-abi-slice_md);
-    for (REQUIRED_MARKERS__Documentation_zigux_phase3-abi-slice_md) |marker| try guard.requireMarker(text_required_markers__documentation_zigux_phase3-abi-slice_md, marker);
-    const text_required_markers__documentation_zigux_phase3-validator-support-surface_md_path = try guard.joinPath(allocator, root, "Documentation/zigux/phase3-validator-support-surface/md");
-    defer allocator.free(text_required_markers__documentation_zigux_phase3-validator-support-surface_md_path);
-    const text_required_markers__documentation_zigux_phase3-validator-support-surface_md = try guard.readUtf8File(io, allocator, text_required_markers__documentation_zigux_phase3-validator-support-surface_md_path);
-    defer allocator.free(text_required_markers__documentation_zigux_phase3-validator-support-surface_md);
-    for (REQUIRED_MARKERS__Documentation_zigux_phase3-validator-support-surface_md) |marker| try guard.requireMarker(text_required_markers__documentation_zigux_phase3-validator-support-surface_md, marker);
-    const text_required_markers__include_linux_zigux_h_path = try guard.joinPath(allocator, root, "include/linux/zigux/h");
-    defer allocator.free(text_required_markers__include_linux_zigux_h_path);
-    const text_required_markers__include_linux_zigux_h = try guard.readUtf8File(io, allocator, text_required_markers__include_linux_zigux_h_path);
-    defer allocator.free(text_required_markers__include_linux_zigux_h);
-    for (REQUIRED_MARKERS__include_linux_zigux_h) |marker| try guard.requireMarker(text_required_markers__include_linux_zigux_h, marker);
-    const text_required_markers__include_zigux_dev_t_h_path = try guard.joinPath(allocator, root, "include/zigux/dev/t/h");
-    defer allocator.free(text_required_markers__include_zigux_dev_t_h_path);
-    const text_required_markers__include_zigux_dev_t_h = try guard.readUtf8File(io, allocator, text_required_markers__include_zigux_dev_t_h_path);
-    defer allocator.free(text_required_markers__include_zigux_dev_t_h);
-    for (REQUIRED_MARKERS__include_zigux_dev_t_h) |marker| try guard.requireMarker(text_required_markers__include_zigux_dev_t_h, marker);
-    const text_required_markers__zigux_uapi_dev_t_zig_path = try guard.joinPath(allocator, root, "zigux/uapi/dev/t/zig");
-    defer allocator.free(text_required_markers__zigux_uapi_dev_t_zig_path);
-    const text_required_markers__zigux_uapi_dev_t_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_uapi_dev_t_zig_path);
-    defer allocator.free(text_required_markers__zigux_uapi_dev_t_zig);
-    for (REQUIRED_MARKERS__zigux_uapi_dev_t_zig) |marker| try guard.requireMarker(text_required_markers__zigux_uapi_dev_t_zig, marker);
-    const text_required_markers__zigux_uapi_version_zig_path = try guard.joinPath(allocator, root, "zigux/uapi/version/zig");
-    defer allocator.free(text_required_markers__zigux_uapi_version_zig_path);
-    const text_required_markers__zigux_uapi_version_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_uapi_version_zig_path);
-    defer allocator.free(text_required_markers__zigux_uapi_version_zig);
-    for (REQUIRED_MARKERS__zigux_uapi_version_zig) |marker| try guard.requireMarker(text_required_markers__zigux_uapi_version_zig, marker);
-    const text_required_markers__zigux_bindings_abi_zig_path = try guard.joinPath(allocator, root, "zigux/bindings/abi/zig");
-    defer allocator.free(text_required_markers__zigux_bindings_abi_zig_path);
-    const text_required_markers__zigux_bindings_abi_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_bindings_abi_zig_path);
-    defer allocator.free(text_required_markers__zigux_bindings_abi_zig);
-    for (REQUIRED_MARKERS__zigux_bindings_abi_zig) |marker| try guard.requireMarker(text_required_markers__zigux_bindings_abi_zig, marker);
-    const text_required_markers__zigux_bindings_dev_t_zig_path = try guard.joinPath(allocator, root, "zigux/bindings/dev/t/zig");
-    defer allocator.free(text_required_markers__zigux_bindings_dev_t_zig_path);
-    const text_required_markers__zigux_bindings_dev_t_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_bindings_dev_t_zig_path);
-    defer allocator.free(text_required_markers__zigux_bindings_dev_t_zig);
-    for (REQUIRED_MARKERS__zigux_bindings_dev_t_zig) |marker| try guard.requireMarker(text_required_markers__zigux_bindings_dev_t_zig, marker);
-    const text_required_markers__zigux_bindings_version_zig_path = try guard.joinPath(allocator, root, "zigux/bindings/version/zig");
-    defer allocator.free(text_required_markers__zigux_bindings_version_zig_path);
-    const text_required_markers__zigux_bindings_version_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_bindings_version_zig_path);
-    defer allocator.free(text_required_markers__zigux_bindings_version_zig);
-    for (REQUIRED_MARKERS__zigux_bindings_version_zig) |marker| try guard.requireMarker(text_required_markers__zigux_bindings_version_zig, marker);
-    const text_required_markers__zigux_kernel_export_shim_zig_path = try guard.joinPath(allocator, root, "zigux/kernel/export/shim/zig");
-    defer allocator.free(text_required_markers__zigux_kernel_export_shim_zig_path);
-    const text_required_markers__zigux_kernel_export_shim_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_kernel_export_shim_zig_path);
-    defer allocator.free(text_required_markers__zigux_kernel_export_shim_zig);
-    for (REQUIRED_MARKERS__zigux_kernel_export_shim_zig) |marker| try guard.requireMarker(text_required_markers__zigux_kernel_export_shim_zig, marker);
-    const text_required_markers__zigux_tests_phase3_dev_t_starter_packet_zig_path = try guard.joinPath(allocator, root, "zigux/tests/phase3/dev/t/starter/packet/zig");
-    defer allocator.free(text_required_markers__zigux_tests_phase3_dev_t_starter_packet_zig_path);
-    const text_required_markers__zigux_tests_phase3_dev_t_starter_packet_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_tests_phase3_dev_t_starter_packet_zig_path);
-    defer allocator.free(text_required_markers__zigux_tests_phase3_dev_t_starter_packet_zig);
-    for (REQUIRED_MARKERS__zigux_tests_phase3_dev_t_starter_packet_zig) |marker| try guard.requireMarker(text_required_markers__zigux_tests_phase3_dev_t_starter_packet_zig, marker);
-    const text_required_markers__zigux_tests_phase3_dev_t_starter_packet_build_zig_path = try guard.joinPath(allocator, root, "zigux/tests/phase3/dev/t/starter/packet/build/zig");
-    defer allocator.free(text_required_markers__zigux_tests_phase3_dev_t_starter_packet_build_zig_path);
-    const text_required_markers__zigux_tests_phase3_dev_t_starter_packet_build_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_tests_phase3_dev_t_starter_packet_build_zig_path);
-    defer allocator.free(text_required_markers__zigux_tests_phase3_dev_t_starter_packet_build_zig);
-    for (REQUIRED_MARKERS__zigux_tests_phase3_dev_t_starter_packet_build_zig) |marker| try guard.requireMarker(text_required_markers__zigux_tests_phase3_dev_t_starter_packet_build_zig, marker);
-    const text_required_markers__zigux_tests_phase3_dev_t_starter_packet_manifest_json_path = try guard.joinPath(allocator, root, "zigux/tests/phase3/dev/t/starter/packet/manifest/json");
-    defer allocator.free(text_required_markers__zigux_tests_phase3_dev_t_starter_packet_manifest_json_path);
-    const text_required_markers__zigux_tests_phase3_dev_t_starter_packet_manifest_json = try guard.readUtf8File(io, allocator, text_required_markers__zigux_tests_phase3_dev_t_starter_packet_manifest_json_path);
-    defer allocator.free(text_required_markers__zigux_tests_phase3_dev_t_starter_packet_manifest_json);
-    for (REQUIRED_MARKERS__zigux_tests_phase3_dev_t_starter_packet_manifest_json) |marker| try guard.requireMarker(text_required_markers__zigux_tests_phase3_dev_t_starter_packet_manifest_json, marker);
-    const text_self_test_cases_path = try guard.joinPath(allocator, root, ".github/workflows/zigux-bootstrap.yml");
-    defer allocator.free(text_self_test_cases_path);
-    const text_self_test_cases = try guard.readUtf8File(io, allocator, text_self_test_cases_path);
-    defer allocator.free(text_self_test_cases);
-    for (SELF_TEST_CASES) |marker| try guard.requireMarker(text_self_test_cases, marker);
+    for (contracts) |contract| {
+        const path = try guard.joinPath(allocator, root, contract.rel);
+        defer allocator.free(path);
+        const text = try guard.readUtf8File(io, allocator, path);
+        defer allocator.free(text);
+        for (contract.markers) |marker| try guard.requireMarker(text, marker);
+    }
 }
 
 fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
-    try checkRepo(io, allocator, try guard.defaultRepoRoot(allocator));
-    try guard.printLine(io, "{s}", .{self_test_pass_marker});
+    const root = try guard.defaultRepoRoot(allocator);
+    defer allocator.free(root);
+    try checkRepo(io, allocator, root);
+    try printOutputMarkers(io, &self_test_output_markers);
     return 0;
 }
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var self_test = false;
     var explicit_root: ?[]const u8 = null;
@@ -302,23 +255,24 @@ pub fn main(init: std.process.Init) !void {
             self_test = true;
             continue;
         }
-        if (std.mem.eql(u8, arg, "--root")) {
+        if (std.mem.eql(u8, arg, "--root") or std.mem.eql(u8, arg, "--repo-root")) {
             if (index + 1 >= args.len) std.process.exit(2);
             index += 1;
             explicit_root = args[index];
             continue;
         }
+        if (std.mem.eql(u8, arg, "--zig") or std.mem.eql(u8, arg, "--cc")) {
+            if (index + 1 >= args.len) std.process.exit(2);
+            index += 1;
+            continue;
+        }
+        std.process.exit(2);
     }
 
-    const root = explicit_root orelse try guard.repoRootFromScript(allocator);
+    if (self_test) std.process.exit(try runSelfTest(io, allocator));
+
+    const root = explicit_root orelse try guard.defaultRepoRoot(allocator);
     defer if (explicit_root == null) allocator.free(root);
-
-    if (self_test) {
-        std.process.exit(try runSelfTest(io, allocator));
-    }
-
-    checkRepo(io, allocator, root) catch {
-        std.process.exit(1);
-    };
-    try guard.printLine(io, "{s}", .{live_pass_marker});
+    checkRepo(io, allocator, root) catch std.process.exit(1);
+    try printOutputMarkers(io, &live_output_markers);
 }

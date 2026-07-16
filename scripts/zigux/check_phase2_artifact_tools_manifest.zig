@@ -39,7 +39,7 @@ const markers_3 = [_][]const u8{
 };
 
 const markers_4 = [_][]const u8{
-    "check_phase2_artifact_tools_manifest.zig --self-test",
+    "check_phase2_artifact_tools_manifest.zig -- --self-test",
     "check_phase2_artifact_tools_manifest.zig",
 };
 

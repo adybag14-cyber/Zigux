@@ -129,6 +129,13 @@ const SAMPLE_PHASE4_VALIDATION_MATRIX_LINES = [_][]const u8{
     "make -C zigux phase4-perf-baseline-survey",
 };
 
+const REQUIRED_RUNTIME_ATOMIC64_PACKET_MARKERS = [_][]const u8{
+    "zigux/tests/atomic64_diff.zig",
+    "zigux/tests/runtime_atomic64_diff.zig",
+    "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+    "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+};
+
 const CHECKS = [_][]const u8{
     "CheckSpecphase4-repo-reality-warning-self-testpythonscripts\\zigux/check_phase4_repo_reality_warning.zig--self-test",
     "CheckSpecphase4-repo-reality-warningpythonscripts\\zigux/check_phase4_repo_reality_warning.zig",
@@ -195,6 +202,11 @@ fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {
     const text_sample_phase4_validation_matrix_lines = try guard.readUtf8File(io, allocator, text_sample_phase4_validation_matrix_lines_path);
     defer allocator.free(text_sample_phase4_validation_matrix_lines);
     for (SAMPLE_PHASE4_VALIDATION_MATRIX_LINES) |marker| try guard.requireExactLineCount(text_sample_phase4_validation_matrix_lines, marker, 1);
+    const text_runtime_atomic64_packet_path = try guard.joinPath(allocator, root, "Documentation/zigux/phase4-validation-matrix.md");
+    defer allocator.free(text_runtime_atomic64_packet_path);
+    const text_runtime_atomic64_packet = try guard.readUtf8File(io, allocator, text_runtime_atomic64_packet_path);
+    defer allocator.free(text_runtime_atomic64_packet);
+    for (REQUIRED_RUNTIME_ATOMIC64_PACKET_MARKERS) |marker| try guard.requireMarker(text_runtime_atomic64_packet, marker);
     const text_checks_path = try guard.joinPath(allocator, root, ".github/workflows/zigux-bootstrap.yml");
     defer allocator.free(text_checks_path);
     const text_checks = try guard.readUtf8File(io, allocator, text_checks_path);

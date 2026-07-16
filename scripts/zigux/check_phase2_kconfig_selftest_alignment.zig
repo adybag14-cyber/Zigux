@@ -35,8 +35,8 @@ const markers_3 = [_][]const u8{
 };
 
 const markers_4 = [_][]const u8{
-    "check_kconfig_bridge.zig --self-test",
-    "check_phase2_kconfig_selftest_alignment.zig --self-test",
+    "check_kconfig_bridge.zig -- --self-test",
+    "check_phase2_kconfig_selftest_alignment.zig -- --self-test",
 };
 
 const contracts = [_]FileContract{

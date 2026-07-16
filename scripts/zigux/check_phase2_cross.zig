@@ -20,7 +20,7 @@ const markers_0 = [_][]const u8{
 
 const markers_1 = [_][]const u8{
     "phase2-cross:",
-    "check_phase2_cross.zig --self-test",
+    "check_phase2_cross.zig -- --self-test",
     "check_phase2_cross.zig",
 };
 

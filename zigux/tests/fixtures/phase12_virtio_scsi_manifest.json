@@ -14,7 +14,7 @@
     "zigux/tests/fixtures/phase12_virtio_scsi_manifest.json",
     "zigux/tests/phase12_virtio_scsi_manifest.json",
     "zigux/tests/phase12_virtio_scsi_survey.zig",
-    "scripts\zigux/check_phase12_virtio_scsi_packet.zig",
+    "scripts/zigux/check_phase12_virtio_scsi_packet.zig",
     "zigux/tests/phase12_virtio_scsi_survey_build.zig",
     "zigux/tests/phase12_build.zig",
     "zigux/Makefile"

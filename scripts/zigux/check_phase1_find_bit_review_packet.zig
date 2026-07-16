@@ -240,7 +240,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
     const root = try tmp.rootPath(allocator);
     defer allocator.free(root);
     {
-        const relative_path = "zigux/tests/fixtures/phase1_helper_manifest.json";
+        const relative_path = LANE_NOTE_REL;
         const full_path = try guard.joinPath(allocator, root, relative_path);
         defer allocator.free(full_path);
         var content = std.ArrayList(u8).empty;
@@ -252,7 +252,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
         try guard.writeUtf8File(io, full_path, content.items);
     }
     {
-        const relative_path = "zigux/tests/fixtures/phase1_helper_manifest.json";
+        const relative_path = CLOSURE_NOTE_REL;
         const full_path = try guard.joinPath(allocator, root, relative_path);
         defer allocator.free(full_path);
         var content = std.ArrayList(u8).empty;
@@ -276,17 +276,21 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
         try guard.writeUtf8File(io, full_path, content.items);
     }
     {
-        const relative_path = "Documentation/zigux/phase1-host-helper-lane-sequencing.md";
+        const relative_path = MANIFEST_REL;
         const full_path = try guard.joinPath(allocator, root, relative_path);
         defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
+        try guard.writeUtf8File(io, full_path, "{}\n");
     }
     var failures = try collectFailures(io, allocator, root);
     defer {
         for (failures.items) |item| allocator.free(item);
         failures.deinit(allocator);
     }
-    try guard.expectSelfTest(failures.items.len == 0);
+    if (failures.items.len != 0) {
+        try guard.printLine(io, "PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST=fail", .{});
+        for (failures.items) |failure| try guard.printLine(io, "{s}", .{failure});
+        return guard.GuardError.SelfTestFailed;
+    }
     try guard.printLine(io, "{s}", .{pass_marker});
     try guard.printLine(io, "PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT={d}", .{@as(usize, 1)});
     return 0;
@@ -295,7 +299,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var explicit_root: ?[]const u8 = null;
     var self_test = false;

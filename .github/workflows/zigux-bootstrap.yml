@@ -228,16 +228,48 @@ jobs:
           #!/usr/bin/env bash
           set -euo pipefail
           real_zig="${ZIGUX_REAL_ZIG:?ZIGUX_REAL_ZIG is not set}"
+          args=("$@")
+          if { [ "${1:-}" = "run" ] || [ "${1:-}" = "test" ]; } &&
+             [ -n "${2:-}" ] &&
+             [[ "${args[1]}" != */* ]] &&
+             [ ! -e "${args[1]}" ] &&
+             [ -f "scripts/zigux/${args[1]}" ]; then
+            args[1]="scripts/zigux/${args[1]}"
+          fi
+          if [ "${1:-}" = "build" ]; then
+            build_file=""
+            has_cache_dir=0
+            for ((index = 1; index < ${#args[@]}; index++)); do
+              case "${args[$index]}" in
+                --build-file)
+                  if [ "$((index + 1))" -lt "${#args[@]}" ]; then
+                    build_file="${args[$((index + 1))]}"
+                  fi
+                  ;;
+                --build-file=*)
+                  build_file="${args[$index]#--build-file=}"
+                  ;;
+                --cache-dir|--cache-dir=*)
+                  has_cache_dir=1
+                  ;;
+              esac
+            done
+            if [ -n "$build_file" ] && [ "$has_cache_dir" -eq 0 ]; then
+              cache_key="$(printf '%s' "$build_file" | sed 's/[^A-Za-z0-9_.-]/_/g')"
+              cache_root="${ZIGUX_BUILD_CACHE_ROOT:-${RUNNER_TEMP:-${GITHUB_WORKSPACE:-$PWD}/.zig-cache}/zigux-build-files}"
+              mkdir -p "$cache_root/$cache_key"
+              args+=(--cache-dir "$cache_root/$cache_key")
+            fi
+          fi
           if [ "${1:-}" = "run" ]; then
             has_separator=0
-            for arg in "$@"; do
+            for arg in "${args[@]}"; do
               if [ "$arg" = "--" ]; then
                 has_separator=1
                 break
               fi
             done
             if [ "$has_separator" -eq 0 ]; then
-              args=("$@")
               for ((index = 2; index < ${#args[@]}; index++)); do
                 if [ "${args[$index]}" = "--self-test" ]; then
                   exec "$real_zig" "${args[@]:0:$index}" -- "${args[@]:$index}"
@@ -245,11 +277,13 @@ jobs:
               done
             fi
           fi
-          exec "$real_zig" "$@"
+          exec "$real_zig" "${args[@]}"
           SH
           chmod +x "$zig_path"
           export ZIGUX_REAL_ZIG="$real_zig_path"
+          export ZIG="$zig_path"
           echo "ZIGUX_REAL_ZIG=$real_zig_path" >> "$GITHUB_ENV"
+          echo "ZIG=$zig_path" >> "$GITHUB_ENV"
           echo "$extract_root" >> "$GITHUB_PATH"
           "$zig_path" version
 

@@ -18,7 +18,7 @@ const markers_0 = [_][]const u8{
 
 const markers_1 = [_][]const u8{
     "phase2-tools:",
-    "check_phase2_kbuild_routes.zig --self-test",
+    "check_phase2_kbuild_routes.zig -- --self-test",
     "check_phase2_kbuild_routes.zig",
 };
 

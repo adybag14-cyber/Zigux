@@ -183,7 +183,7 @@ test "phase10 virtio input slice companions keep the replay inventory and blocke
     );
     defer allocator.free(module_note);
 
-    try expectContains(slice_note, "scripts\zigux/check_phase10_input_packet.zig");
+    try expectContains(slice_note, "scripts\\zigux/check_phase10_input_packet.zig");
     try expectContains(slice_note, "drivers/virtio/virtio_input_registration_preflight.zig");
     try expectContains(slice_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig");
     try expectContains(slice_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig");

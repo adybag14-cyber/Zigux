@@ -481,7 +481,13 @@ pub fn readZigVersion(io: Io, allocator: std.mem.Allocator, zig: []const u8) ![]
         .stdout_limit = .limited(256),
         .stderr_limit = .limited(256),
     }) catch |err| switch (err) {
-        error.FileNotFound => return ResolverError.InvalidArgument,
+        error.FileNotFound,
+        error.AccessDenied,
+        error.PermissionDenied,
+        error.InvalidExe,
+        error.IsDir,
+        error.NotDir,
+        => return ResolverError.InvalidArgument,
         else => return err,
     };
     defer allocator.free(result.stderr);

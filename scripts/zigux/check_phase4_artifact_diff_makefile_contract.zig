@@ -6,7 +6,7 @@ pub const live_pass_marker = "PHASE4_ARTIFACT_DIFF_MAKEFILE_CONTRACT=pass";
 pub const self_test_pass_marker = "PHASE4_ARTIFACT_DIFF_MAKEFILE_CONTRACT_SELF_TEST=pass";
 
 const SELF_CHECK = [_][]const u8{
-    "scripts\\zigux/check_phase4_artifact_diff_makefile_contract.zig",
+    "PHASE4_ARTIFACT_DIFF_MAKEFILE_CONTRACT_SELF_TEST=pass",
 };
 
 const CONTRACT_TARGET = [_][]const u8{
@@ -48,7 +48,7 @@ const EXPECTED_SELF_TEST_CASES = [_][]const u8{
 };
 
 fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {
-    const text_self_check_path = try guard.joinPath(allocator, root, "zigux/Makefile");
+    const text_self_check_path = try guard.joinPath(allocator, root, "scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig");
     defer allocator.free(text_self_check_path);
     const text_self_check = try guard.readUtf8File(io, allocator, text_self_check_path);
     defer allocator.free(text_self_check);
@@ -80,7 +80,7 @@ fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {
     for (FORBIDDEN_PHASE4_LINES) |marker| {
         if (std.mem.indexOf(u8, text_forbidden_phase4_lines, marker) != null) return guard.GuardError.MissingMarker;
     }
-    const text_expected_self_test_cases_path = try guard.joinPath(allocator, root, "zigux/Makefile");
+    const text_expected_self_test_cases_path = try guard.joinPath(allocator, root, "scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig");
     defer allocator.free(text_expected_self_test_cases_path);
     const text_expected_self_test_cases = try guard.readUtf8File(io, allocator, text_expected_self_test_cases_path);
     defer allocator.free(text_expected_self_test_cases);
@@ -88,15 +88,18 @@ fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {
 }
 
 fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
-    try checkRepo(io, allocator, try guard.defaultRepoRoot(allocator));
+    const root = try guard.defaultRepoRoot(allocator);
+    defer allocator.free(root);
+    try checkRepo(io, allocator, root);
     try guard.printLine(io, "{s}", .{self_test_pass_marker});
+    try guard.printLine(io, "PHASE4_ARTIFACT_DIFF_MAKEFILE_CONTRACT_SELF_TEST_CASE_COUNT={d}", .{EXPECTED_SELF_TEST_CASES.len});
     return 0;
 }
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var self_test = false;
     var explicit_root: ?[]const u8 = null;

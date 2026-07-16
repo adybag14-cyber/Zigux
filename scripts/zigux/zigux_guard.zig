@@ -128,7 +128,12 @@ pub fn requireExactLineCount(haystack: []const u8, marker: []const u8, expected:
     var actual: usize = 0;
     var iter = std.mem.splitScalar(u8, haystack, '\n');
     while (iter.next()) |line| {
-        if (std.mem.eql(u8, std.mem.trim(u8, line, " \t\r"), marker)) actual += 1;
+        const logical_line = std.mem.trimEnd(u8, line, "\r");
+        if (std.mem.eql(u8, logical_line, marker) or
+            std.mem.eql(u8, std.mem.trim(u8, logical_line, " \t"), marker))
+        {
+            actual += 1;
+        }
     }
     if (actual != expected) return GuardError.WrongLineCount;
 }

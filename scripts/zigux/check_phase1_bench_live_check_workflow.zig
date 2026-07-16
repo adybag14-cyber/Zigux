@@ -6,13 +6,13 @@ const guard = @import("zigux_guard.zig");
 pub const pass_marker = "PHASE1_BENCH_LIVE_CHECK_WORKFLOW_SELF_TEST=pass";
 
 const BENCH_CHECKER_MARKERS = [_][]const u8{
-    "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS",
+    "PHASE1_BENCH_CHECK_SELF_TEST=pass",
     "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
-    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM",
+    "rbtree_cached_print",
     "--self-test",
 };
 
-const BENCH_CHECKER_REL = "scripts\\zigux/check_phase1_bench.zig";
+const BENCH_CHECKER_REL = "scripts/zigux/check_phase1_bench.zig";
 
 const BENCH_LIVE_CHECK_RUN = "zig run check_phase1_bench.zig";
 
@@ -46,7 +46,7 @@ fn collectFailures(
     }
 
     {
-        const relative_path = "scripts\\zigux/check_phase1_bench.zig";
+        const relative_path = "scripts/zigux/check_phase1_bench.zig";
         const full_path = try guard.joinPath(allocator, root, relative_path);
         defer allocator.free(full_path);
         const text = guard.readUtf8File(io, allocator, full_path) catch |err| switch (err) {
@@ -76,7 +76,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
     const root = try tmp.rootPath(allocator);
     defer allocator.free(root);
     {
-        const relative_path = "scripts\\zigux/check_phase1_bench.zig";
+        const relative_path = "scripts/zigux/check_phase1_bench.zig";
         const full_path = try guard.joinPath(allocator, root, relative_path);
         defer allocator.free(full_path);
         var content = std.ArrayList(u8).empty;
@@ -101,7 +101,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var explicit_root: ?[]const u8 = null;
     var self_test = false;

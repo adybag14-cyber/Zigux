@@ -94,7 +94,7 @@ const makefile_markers = [_][]const u8{
     "phase2-fixdep: phase2-toolchain",
     "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
     "phase2: phase2-validate",
-    "check_phase2_tool_manifest.zig --self-test",
+    "check_phase2_tool_manifest.zig -- --self-test",
     "validate_phase2_closure.zig",
 };
 

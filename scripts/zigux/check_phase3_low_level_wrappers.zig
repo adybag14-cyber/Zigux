@@ -5,7 +5,26 @@ const guard = @import("zigux_guard.zig");
 pub const live_pass_marker = "PHASE3_LOW_LEVEL_WRAPPERS=pass";
 pub const self_test_pass_marker = "PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST=pass";
 
-const REQUIRED_MARKERS__zigux_tests_phase3_low_level_wrappers_zig = [_][]const u8{
+const self_test_output_markers = [_][]const u8{
+    "PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST=pass",
+    "PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST_CASES=",
+};
+
+const live_output_markers = [_][]const u8{
+    "validated zigux/tests/phase3_low_level_wrappers.zig",
+    "validated zigux/tests/phase3_low_level_wrappers_build.zig",
+    "validated zigux/tests/build.zig",
+    "validated zigux/Makefile",
+    "validated zigux/helpers/atomic.zig",
+    "validated zigux/helpers/barrier.zig",
+};
+
+const FileContract = struct {
+    rel: []const u8,
+    markers: []const []const u8,
+};
+
+const markers_0 = [_][]const u8{
     "const atomic = @import(\"atomic\");",
     "const barrier = @import(\"barrier\");",
     "const layout_assert = @import(\"layout_assert\");",
@@ -25,7 +44,7 @@ const REQUIRED_MARKERS__zigux_tests_phase3_low_level_wrappers_zig = [_][]const u
     "test \"phase3 low-level wrappers keep atomic order-gate failures explicit before MMIO publish\" {",
 };
 
-const REQUIRED_MARKERS__zigux_tests_phase3_low_level_wrappers_build_zig = [_][]const u8{
+const markers_1 = [_][]const u8{
     ".root_source_file = b.path(\"../helpers/atomic.zig\"),",
     ".root_source_file = b.path(\"../helpers/barrier.zig\"),",
     ".root_source_file = b.path(\"../helpers/layout_assert.zig\"),",
@@ -42,7 +61,7 @@ const REQUIRED_MARKERS__zigux_tests_phase3_low_level_wrappers_build_zig = [_][]c
     "\"phase3-low-level-wrappers-test\"",
 };
 
-const REQUIRED_MARKERS__zigux_tests_build_zig = [_][]const u8{
+const markers_2 = [_][]const u8{
     "fn addPhase3LowLevelWrappers(",
     "\"phase3-low-level-wrappers\"",
     "\"phase3-test\"",
@@ -50,7 +69,7 @@ const REQUIRED_MARKERS__zigux_tests_build_zig = [_][]const u8{
     "phase3_test_step.dependOn(&phase3_low_level_wrappers.step);",
 };
 
-const REQUIRED_MARKERS__zigux_Makefile = [_][]const u8{
+const markers_3 = [_][]const u8{
     "phase3-low-level-wrappers:",
     "phase3-low-level-wrappers-test:",
     "$(ZIG_REPO_ROOT) build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
@@ -58,16 +77,14 @@ const REQUIRED_MARKERS__zigux_Makefile = [_][]const u8{
     "phase3: phase3-validate phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase3-policy-unsafe-test phase3-test phase3-policy-dump phase3-dump",
 };
 
-const REQUIRED_MARKERS___github_workflows_zigux-bootstrap_yml = [_][]const u8{
-    "zig run scripts\\zigux/validate_phase3_low_level_wrapper_survey.zig --self-test",
-    "zig run scripts\\zigux/validate_phase3_low_level_wrapper_survey.zig",
+const markers_4 = [_][]const u8{
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-low-level-wrappers",
     "make -C zigux phase3-low-level-wrappers-test",
     "zig build phase3-test --build-file zigux/tests/build.zig",
 };
 
-const REQUIRED_MARKERS__zigux_helpers_atomic_zig = [_][]const u8{
+const markers_5 = [_][]const u8{
     "pub fn validateCompareExchangeOrders(",
     "pub fn load(comptime T: type, ptr: *const T, comptime order: Ordering) LoadError!T {",
     "pub fn strongestAllowedFailureOrder(success: Ordering) ?Ordering {",
@@ -75,7 +92,7 @@ const REQUIRED_MARKERS__zigux_helpers_atomic_zig = [_][]const u8{
     "pub fn fetchMax(",
 };
 
-const REQUIRED_MARKERS__zigux_helpers_barrier_zig = [_][]const u8{
+const markers_6 = [_][]const u8{
     "pub fn fence(comptime order: Ordering) FenceError!void {",
     "pub fn validateFenceOrder(comptime order: Ordering) FenceError!void {",
     "pub fn acquireAfterControlDependency() void {",
@@ -86,12 +103,12 @@ const REQUIRED_MARKERS__zigux_helpers_barrier_zig = [_][]const u8{
     "test \"phase3 barrier wrappers keep post-atomic full barriers explicit\" {",
 };
 
-const REQUIRED_MARKERS__zigux_helpers_layout_assert_zig = [_][]const u8{
+const markers_7 = [_][]const u8{
     "pub const MmioRange = extern struct {",
     "pub fn assertMmioRangeLayout() LayoutError!void {",
 };
 
-const REQUIRED_MARKERS__zigux_helpers_mmio_zig = [_][]const u8{
+const markers_8 = [_][]const u8{
     "pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {",
     "pub fn requireInteropPolicy(policy: abi.InteropPolicy) PolicyError!void {",
     "pub fn rangeScoped(base_addr: usize, length: u32, stride: u32, scope: abi.UnsafeScope) PolicyError!MmioRange {",
@@ -111,7 +128,7 @@ const REQUIRED_MARKERS__zigux_helpers_mmio_zig = [_][]const u8{
     "test \"phase3 mmio helper rejects overflowing range windows before blessing unsafe access\" {",
 };
 
-const REQUIRED_MARKERS__zigux_helpers_unsafe_policy_zig = [_][]const u8{
+const markers_9 = [_][]const u8{
     "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {",
     "pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {",
     "pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {",
@@ -120,7 +137,7 @@ const REQUIRED_MARKERS__zigux_helpers_unsafe_policy_zig = [_][]const u8{
     "pub fn requireRawPointerBridgeByte(scope: u8) UnsafeScopeError!void {",
 };
 
-const REQUIRED_MARKERS__zigux_unsafe_narrow_zig = [_][]const u8{
+const markers_10 = [_][]const u8{
     "pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag {",
     "pub fn permitsRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) bool {",
     "pub fn pointerAtInteropPolicyBytes(comptime T: type, address: usize, byte_len: usize, unsafe_scope: u8, reserved: u8) RawPointerBridgeError!*align(1) T {",
@@ -132,97 +149,52 @@ const REQUIRED_MARKERS__zigux_unsafe_narrow_zig = [_][]const u8{
     "pub fn exchangeValueAtByte(comptime T: type, address: usize, byte_len: usize, value: T, scope: u8) RawPointerBridgeError!T {",
 };
 
-const SELF_TEST_CASES = [_][]const u8{
-    "const layout_assert = @import(\"layout_assert\");",
-    "const narrow = @import(\"narrow\");",
-    "test \"phase3 low-level wrappers keep MMIO range helpers and width aliases explicit beside raw bridge gates\" {",
-    "root_module.addImport(\"layout_assert\", layout_assert);",
-    "root_module.addImport(\"unsafe_policy\", unsafe_policy);",
-    "root_module.addImport(\"narrow\", narrow);",
-    "phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);",
-    "phase3: phase3-validate phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase3-policy-unsafe-test phase3-test phase3-policy-dump phase3-dump",
-    "zig run scripts\\zigux/validate_phase3_low_level_wrapper_survey.zig --self-test",
-    "pub fn afterAtomic() void {",
-    "test \"phase3 barrier wrappers keep post-atomic full barriers explicit\" {",
-    "pub fn assertMmioRangeLayout() LayoutError!void {",
-    "pub fn readAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!T {",
-    "pub fn permitsRawPointerBridgeByte(scope: u8) bool {",
-    "pub fn pointerAtInteropPolicyBytes(comptime T: type, address: usize, byte_len: usize, unsafe_scope: u8, reserved: u8) RawPointerBridgeError!*align(1) T {",
+const contracts = [_]FileContract{
+    .{ .rel = "zigux/tests/phase3_low_level_wrappers.zig", .markers = &markers_0 },
+    .{ .rel = "zigux/tests/phase3_low_level_wrappers_build.zig", .markers = &markers_1 },
+    .{ .rel = "zigux/tests/build.zig", .markers = &markers_2 },
+    .{ .rel = "zigux/Makefile", .markers = &markers_3 },
+    .{ .rel = ".github/workflows/zigux-bootstrap.yml", .markers = &markers_4 },
+    .{ .rel = "zigux/helpers/atomic.zig", .markers = &markers_5 },
+    .{ .rel = "zigux/helpers/barrier.zig", .markers = &markers_6 },
+    .{ .rel = "zigux/helpers/layout_assert.zig", .markers = &markers_7 },
+    .{ .rel = "zigux/helpers/mmio.zig", .markers = &markers_8 },
+    .{ .rel = "zigux/helpers/unsafe_policy.zig", .markers = &markers_9 },
+    .{ .rel = "zigux/unsafe/narrow.zig", .markers = &markers_10 },
 };
 
+fn printOutputMarkers(io: Io, markers: []const []const u8) !void {
+    for (markers) |marker| {
+        if (std.mem.endsWith(u8, marker, "=")) {
+            try guard.printLine(io, "{s}{d}", .{ marker, contracts.len });
+        } else {
+            try guard.printLine(io, "{s}", .{marker});
+        }
+    }
+}
+
 fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {
-    const text_required_markers__zigux_tests_phase3_low_level_wrappers_zig_path = try guard.joinPath(allocator, root, "zigux/tests/phase3/low/level/wrappers/zig");
-    defer allocator.free(text_required_markers__zigux_tests_phase3_low_level_wrappers_zig_path);
-    const text_required_markers__zigux_tests_phase3_low_level_wrappers_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_tests_phase3_low_level_wrappers_zig_path);
-    defer allocator.free(text_required_markers__zigux_tests_phase3_low_level_wrappers_zig);
-    for (REQUIRED_MARKERS__zigux_tests_phase3_low_level_wrappers_zig) |marker| try guard.requireMarker(text_required_markers__zigux_tests_phase3_low_level_wrappers_zig, marker);
-    const text_required_markers__zigux_tests_phase3_low_level_wrappers_build_zig_path = try guard.joinPath(allocator, root, "zigux/tests/phase3/low/level/wrappers/build/zig");
-    defer allocator.free(text_required_markers__zigux_tests_phase3_low_level_wrappers_build_zig_path);
-    const text_required_markers__zigux_tests_phase3_low_level_wrappers_build_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_tests_phase3_low_level_wrappers_build_zig_path);
-    defer allocator.free(text_required_markers__zigux_tests_phase3_low_level_wrappers_build_zig);
-    for (REQUIRED_MARKERS__zigux_tests_phase3_low_level_wrappers_build_zig) |marker| try guard.requireMarker(text_required_markers__zigux_tests_phase3_low_level_wrappers_build_zig, marker);
-    const text_required_markers__zigux_tests_build_zig_path = try guard.joinPath(allocator, root, "zigux/tests/build/zig");
-    defer allocator.free(text_required_markers__zigux_tests_build_zig_path);
-    const text_required_markers__zigux_tests_build_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_tests_build_zig_path);
-    defer allocator.free(text_required_markers__zigux_tests_build_zig);
-    for (REQUIRED_MARKERS__zigux_tests_build_zig) |marker| try guard.requireMarker(text_required_markers__zigux_tests_build_zig, marker);
-    const text_required_markers__zigux_makefile_path = try guard.joinPath(allocator, root, "zigux/Makefile");
-    defer allocator.free(text_required_markers__zigux_makefile_path);
-    const text_required_markers__zigux_makefile = try guard.readUtf8File(io, allocator, text_required_markers__zigux_makefile_path);
-    defer allocator.free(text_required_markers__zigux_makefile);
-    for (REQUIRED_MARKERS__zigux_Makefile) |marker| try guard.requireMarker(text_required_markers__zigux_makefile, marker);
-    const text_required_markers___github_workflows_zigux-bootstrap_yml_path = try guard.joinPath(allocator, root, "/github/workflows/zigux-bootstrap/yml");
-    defer allocator.free(text_required_markers___github_workflows_zigux-bootstrap_yml_path);
-    const text_required_markers___github_workflows_zigux-bootstrap_yml = try guard.readUtf8File(io, allocator, text_required_markers___github_workflows_zigux-bootstrap_yml_path);
-    defer allocator.free(text_required_markers___github_workflows_zigux-bootstrap_yml);
-    for (REQUIRED_MARKERS___github_workflows_zigux-bootstrap_yml) |marker| try guard.requireMarker(text_required_markers___github_workflows_zigux-bootstrap_yml, marker);
-    const text_required_markers__zigux_helpers_atomic_zig_path = try guard.joinPath(allocator, root, "zigux/helpers/atomic/zig");
-    defer allocator.free(text_required_markers__zigux_helpers_atomic_zig_path);
-    const text_required_markers__zigux_helpers_atomic_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_helpers_atomic_zig_path);
-    defer allocator.free(text_required_markers__zigux_helpers_atomic_zig);
-    for (REQUIRED_MARKERS__zigux_helpers_atomic_zig) |marker| try guard.requireMarker(text_required_markers__zigux_helpers_atomic_zig, marker);
-    const text_required_markers__zigux_helpers_barrier_zig_path = try guard.joinPath(allocator, root, "zigux/helpers/barrier/zig");
-    defer allocator.free(text_required_markers__zigux_helpers_barrier_zig_path);
-    const text_required_markers__zigux_helpers_barrier_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_helpers_barrier_zig_path);
-    defer allocator.free(text_required_markers__zigux_helpers_barrier_zig);
-    for (REQUIRED_MARKERS__zigux_helpers_barrier_zig) |marker| try guard.requireMarker(text_required_markers__zigux_helpers_barrier_zig, marker);
-    const text_required_markers__zigux_helpers_layout_assert_zig_path = try guard.joinPath(allocator, root, "zigux/helpers/layout/assert/zig");
-    defer allocator.free(text_required_markers__zigux_helpers_layout_assert_zig_path);
-    const text_required_markers__zigux_helpers_layout_assert_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_helpers_layout_assert_zig_path);
-    defer allocator.free(text_required_markers__zigux_helpers_layout_assert_zig);
-    for (REQUIRED_MARKERS__zigux_helpers_layout_assert_zig) |marker| try guard.requireMarker(text_required_markers__zigux_helpers_layout_assert_zig, marker);
-    const text_required_markers__zigux_helpers_mmio_zig_path = try guard.joinPath(allocator, root, "zigux/helpers/mmio/zig");
-    defer allocator.free(text_required_markers__zigux_helpers_mmio_zig_path);
-    const text_required_markers__zigux_helpers_mmio_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_helpers_mmio_zig_path);
-    defer allocator.free(text_required_markers__zigux_helpers_mmio_zig);
-    for (REQUIRED_MARKERS__zigux_helpers_mmio_zig) |marker| try guard.requireMarker(text_required_markers__zigux_helpers_mmio_zig, marker);
-    const text_required_markers__zigux_helpers_unsafe_policy_zig_path = try guard.joinPath(allocator, root, "zigux/helpers/unsafe/policy/zig");
-    defer allocator.free(text_required_markers__zigux_helpers_unsafe_policy_zig_path);
-    const text_required_markers__zigux_helpers_unsafe_policy_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_helpers_unsafe_policy_zig_path);
-    defer allocator.free(text_required_markers__zigux_helpers_unsafe_policy_zig);
-    for (REQUIRED_MARKERS__zigux_helpers_unsafe_policy_zig) |marker| try guard.requireMarker(text_required_markers__zigux_helpers_unsafe_policy_zig, marker);
-    const text_required_markers__zigux_unsafe_narrow_zig_path = try guard.joinPath(allocator, root, "zigux/unsafe/narrow/zig");
-    defer allocator.free(text_required_markers__zigux_unsafe_narrow_zig_path);
-    const text_required_markers__zigux_unsafe_narrow_zig = try guard.readUtf8File(io, allocator, text_required_markers__zigux_unsafe_narrow_zig_path);
-    defer allocator.free(text_required_markers__zigux_unsafe_narrow_zig);
-    for (REQUIRED_MARKERS__zigux_unsafe_narrow_zig) |marker| try guard.requireMarker(text_required_markers__zigux_unsafe_narrow_zig, marker);
-    const text_self_test_cases_path = try guard.joinPath(allocator, root, ".github/workflows/zigux-bootstrap.yml");
-    defer allocator.free(text_self_test_cases_path);
-    const text_self_test_cases = try guard.readUtf8File(io, allocator, text_self_test_cases_path);
-    defer allocator.free(text_self_test_cases);
-    for (SELF_TEST_CASES) |marker| try guard.requireMarker(text_self_test_cases, marker);
+    for (contracts) |contract| {
+        const path = try guard.joinPath(allocator, root, contract.rel);
+        defer allocator.free(path);
+        const text = try guard.readUtf8File(io, allocator, path);
+        defer allocator.free(text);
+        for (contract.markers) |marker| try guard.requireMarker(text, marker);
+    }
 }
 
 fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
-    try checkRepo(io, allocator, try guard.defaultRepoRoot(allocator));
-    try guard.printLine(io, "{s}", .{self_test_pass_marker});
+    const root = try guard.defaultRepoRoot(allocator);
+    defer allocator.free(root);
+    try checkRepo(io, allocator, root);
+    try printOutputMarkers(io, &self_test_output_markers);
     return 0;
 }
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var self_test = false;
     var explicit_root: ?[]const u8 = null;
@@ -233,23 +205,24 @@ pub fn main(init: std.process.Init) !void {
             self_test = true;
             continue;
         }
-        if (std.mem.eql(u8, arg, "--root")) {
+        if (std.mem.eql(u8, arg, "--root") or std.mem.eql(u8, arg, "--repo-root")) {
             if (index + 1 >= args.len) std.process.exit(2);
             index += 1;
             explicit_root = args[index];
             continue;
         }
+        if (std.mem.eql(u8, arg, "--zig") or std.mem.eql(u8, arg, "--cc")) {
+            if (index + 1 >= args.len) std.process.exit(2);
+            index += 1;
+            continue;
+        }
+        std.process.exit(2);
     }
 
-    const root = explicit_root orelse try guard.repoRootFromScript(allocator);
+    if (self_test) std.process.exit(try runSelfTest(io, allocator));
+
+    const root = explicit_root orelse try guard.defaultRepoRoot(allocator);
     defer if (explicit_root == null) allocator.free(root);
-
-    if (self_test) {
-        std.process.exit(try runSelfTest(io, allocator));
-    }
-
-    checkRepo(io, allocator, root) catch {
-        std.process.exit(1);
-    };
-    try guard.printLine(io, "{s}", .{live_pass_marker});
+    checkRepo(io, allocator, root) catch std.process.exit(1);
+    try printOutputMarkers(io, &live_output_markers);
 }

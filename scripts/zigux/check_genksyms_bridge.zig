@@ -37,7 +37,7 @@ const markers_3 = [_][]const u8{
 
 const markers_4 = [_][]const u8{
     "phase2-genksyms: phase2-toolchain",
-    "check_genksyms_bridge.zig --self-test",
+    "check_genksyms_bridge.zig -- --self-test",
 };
 
 const contracts = [_]FileContract{

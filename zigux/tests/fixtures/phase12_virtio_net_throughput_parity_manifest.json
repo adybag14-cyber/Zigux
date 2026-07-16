@@ -11,7 +11,7 @@
     "drivers/net/virtio_net_throughput_parity.zig",
     "zigux/tests/phase12_virtio_net_throughput_parity.zig",
     "zigux/tests/fixtures/phase12_virtio_net_throughput_parity_manifest.json",
-    "scripts\zigux/check_phase12_virtio_net_throughput_parity_packet.zig"
+    "scripts/zigux/check_phase12_virtio_net_throughput_parity_packet.zig"
   ],
   "replay_routes": [
     "zig run check_phase12_virtio_net_throughput_parity_packet.zig --self-test",

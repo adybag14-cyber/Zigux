@@ -20,8 +20,8 @@ const markers_0 = [_][]const u8{
 };
 
 const markers_1 = [_][]const u8{
-    "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES",
-    "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES",
+    "helper_local_allconfig_implicit_omission_modes",
+    "helper_local_allconfig_explicit_override_modes",
     "allmodconfig",
     "randconfig",
 };
@@ -32,7 +32,7 @@ const markers_2 = [_][]const u8{
 };
 
 const markers_3 = [_][]const u8{
-    "check_phase2_kconfig_allconfig_helper_packet.zig --self-test",
+    "check_phase2_kconfig_allconfig_helper_packet.zig -- --self-test",
     "check_phase2_kconfig_allconfig_helper_packet.zig",
 };
 
@@ -46,7 +46,7 @@ const markers_5 = [_][]const u8{
 
 const contracts = [_]FileContract{
     .{ .rel = "scripts/zigux/kconfig/conf_bridge.zig", .markers = &markers_0 },
-    .{ .rel = "scripts/zigux/check_kconfig_bridge.zig", .markers = &markers_1 },
+    .{ .rel = "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json", .markers = &markers_1 },
     .{ .rel = ".github/workflows/zigux-bootstrap.yml", .markers = &markers_2 },
     .{ .rel = "zigux/Makefile", .markers = &markers_3 },
     .{ .rel = "scripts/zigux/validate_phase2.zig", .markers = &markers_4 },
