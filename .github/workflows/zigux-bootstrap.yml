@@ -222,6 +222,34 @@ jobs:
             exit 1
           fi
           zig_path="$extract_root/zig"
+          real_zig_path="$extract_root/zig.real"
+          mv "$zig_path" "$real_zig_path"
+          cat > "$zig_path" <<'SH'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          real_zig="${ZIGUX_REAL_ZIG:?ZIGUX_REAL_ZIG is not set}"
+          if [ "${1:-}" = "run" ]; then
+            has_separator=0
+            for arg in "$@"; do
+              if [ "$arg" = "--" ]; then
+                has_separator=1
+                break
+              fi
+            done
+            if [ "$has_separator" -eq 0 ]; then
+              args=("$@")
+              for ((index = 2; index < ${#args[@]}; index++)); do
+                if [ "${args[$index]}" = "--self-test" ]; then
+                  exec "$real_zig" "${args[@]:0:$index}" -- "${args[@]:$index}"
+                fi
+              done
+            fi
+          fi
+          exec "$real_zig" "$@"
+          SH
+          chmod +x "$zig_path"
+          export ZIGUX_REAL_ZIG="$real_zig_path"
+          echo "ZIGUX_REAL_ZIG=$real_zig_path" >> "$GITHUB_ENV"
           echo "$extract_root" >> "$GITHUB_PATH"
           "$zig_path" version
 
