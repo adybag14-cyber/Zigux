@@ -136,16 +136,25 @@ pub fn evaluateToolchainVersion(
     return .{ .status = .present, .note = null };
 }
 
+pub fn policyArchiveExtension(target: []const u8) []const u8 {
+    return if (std.mem.endsWith(u8, target, "-windows")) ".zip" else ".tar.xz";
+}
+
 pub fn policyArchiveFilename(target: []const u8, channel: []const u8, buffer: []u8) ![]const u8 {
-    return std.fmt.bufPrint(buffer, "zig-{s}-{s}.tar.xz", .{ target, channel });
+    return std.fmt.bufPrint(buffer, "zig-{s}-{s}{s}", .{ target, channel, policyArchiveExtension(target) });
 }
 
 pub fn archiveNameHasDuplicateSuffix(path_name: []const u8, expected_filename: []const u8) bool {
-    if (!std.mem.endsWith(u8, expected_filename, ".tar.xz")) return false;
-    if (!std.mem.endsWith(u8, path_name, ".tar.xz")) return false;
+    const extension: []const u8 = if (std.mem.endsWith(u8, expected_filename, ".tar.xz"))
+        ".tar.xz"
+    else if (std.mem.endsWith(u8, expected_filename, ".zip"))
+        ".zip"
+    else
+        return false;
+    if (!std.mem.endsWith(u8, path_name, extension)) return false;
 
-    const stem = expected_filename[0 .. expected_filename.len - ".tar.xz".len];
-    const candidate_stem_end = path_name.len - ".tar.xz".len;
+    const stem = expected_filename[0 .. expected_filename.len - extension.len];
+    const candidate_stem_end = path_name.len - extension.len;
     if (candidate_stem_end <= stem.len + 3) return false;
 
     const copy_open = candidate_stem_end - 1;
@@ -371,6 +380,13 @@ test "archive duplicate suffix detection stays exact" {
         expected,
     ));
     try std.testing.expect(!archiveNameMatchesPolicy("zig-x86_64-linux-other.tar.xz", expected));
+
+    const windows_expected = "zig-x86_64-windows-0.17.0-dev.1415+64dfaa568.zip";
+    try std.testing.expect(archiveNameMatchesPolicy(windows_expected, windows_expected));
+    try std.testing.expect(archiveNameMatchesPolicy(
+        "zig-x86_64-windows-0.17.0-dev.1415+64dfaa568 (1).zip",
+        windows_expected,
+    ));
 }
 
 test "loadPolicyFromJson validates live policy shape" {
@@ -380,15 +396,18 @@ test "loadPolicyFromJson validates live policy shape" {
 
     try std.testing.expectEqualStrings("Phase 2", policy.phase);
     try std.testing.expect(policy.upgrade_policy.channel_minimum_lockstep);
-    try std.testing.expectEqual(@as(usize, 1), policy.upgrade_policy.archive_target_scope.len);
+    try std.testing.expectEqual(@as(usize, 2), policy.upgrade_policy.archive_target_scope.len);
     try std.testing.expectEqualStrings("x86_64-linux", policy.upgrade_policy.archive_target_scope[0]);
+    try std.testing.expectEqualStrings("x86_64-windows", policy.upgrade_policy.archive_target_scope[1]);
 
     var filename_buffer: [128]u8 = undefined;
-    const filename = try policyArchiveFilename(
-        policy.upgrade_policy.archive_target_scope[0],
-        policy.channel,
-        &filename_buffer,
-    );
-    try std.testing.expect(std.mem.startsWith(u8, filename, "zig-x86_64-linux-"));
-    try std.testing.expect(std.mem.endsWith(u8, filename, ".tar.xz"));
+    const linux_filename = try policyArchiveFilename("x86_64-linux", policy.channel, &filename_buffer);
+    try std.testing.expect(std.mem.startsWith(u8, linux_filename, "zig-x86_64-linux-"));
+    try std.testing.expect(std.mem.endsWith(u8, linux_filename, ".tar.xz"));
+
+    var windows_filename_buffer: [128]u8 = undefined;
+    const windows_filename = try policyArchiveFilename("x86_64-windows", policy.channel, &windows_filename_buffer);
+    try std.testing.expect(std.mem.startsWith(u8, windows_filename, "zig-x86_64-windows-"));
+    try std.testing.expect(std.mem.endsWith(u8, windows_filename, ".zip"));
+    try std.testing.expectEqual(@as(usize, 64), policy.archive_sha256.get("x86_64-windows").?.len);
 }

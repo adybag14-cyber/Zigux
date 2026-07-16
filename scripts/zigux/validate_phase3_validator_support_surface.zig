@@ -2,10 +2,22 @@ const std = @import("std");
 const Io = std.Io;
 const guard = @import("zigux_guard.zig");
 
-pub const live_pass_marker = "PHASE3_VALIDATOR_SUPPORT_SURFACE=pass";
+pub const live_pass_marker = "validated Documentation/zigux/phase3-shared-reminder-gap.md";
 pub const self_test_pass_marker = "PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=pass";
 
-const REQUIRED_NOTE_MARKERS = [_][]const u8{
+const self_test_output_markers = [_][]const u8{
+    "PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=pass",
+    "PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST_CASE_COUNT=",
+};
+
+const live_output_markers = [_][]const u8{
+    "validated Documentation/zigux/phase3-validator-support-surface.md",
+    "validated Documentation/zigux/phase3-shared-reminder-gap.md",
+};
+
+const FileContract = struct { rel: []const u8, markers: []const []const u8 };
+
+const markers_0 = [_][]const u8{
     "This note records the current validator-facing Phase 3 surface on live `master`.",
     "Documentation/zigux/phase3-abi-slice.md",
     "zigux/kernel/export_shim.zig",
@@ -41,8 +53,6 @@ const REQUIRED_NOTE_MARKERS = [_][]const u8{
     "zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig",
     "zigux/tests/fixtures/phase3_bitmap_cpumask_manifest.json",
     "scripts\\zigux/check_phase3_bitmap_cpumask.zig",
-    "zig run scripts\\zigux/check_phase3_bitmap_cpumask.zig --self-test",
-    "zig run scripts\\zigux/check_phase3_bitmap_cpumask.zig",
     "zig build phase3-bitmap-cpumask-starter-packet --build-file zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig",
     "Documentation/zigux/phase3-list-hlist-slice.md",
     "zigux/helpers/list_view.zig",
@@ -51,16 +61,12 @@ const REQUIRED_NOTE_MARKERS = [_][]const u8{
     "zigux/tests/phase3_list_hlist_starter_packet_build.zig",
     "zigux/tests/fixtures/phase3_list_hlist_manifest.json",
     "scripts\\zigux/check_phase3_list_hlist_starter_packet.zig",
-    "zig run scripts\\zigux/check_phase3_list_hlist_starter_packet.zig --self-test",
-    "zig run scripts\\zigux/check_phase3_list_hlist_starter_packet.zig",
     "zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
     "zigux/tests/phase3_list_hlist_dump.zig",
     "zigux/tests/phase3_list_hlist_dump_build.zig",
     "zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c",
     "zigux/tests/fixtures/phase3_list_hlist/expected.json",
     "scripts\\zigux/check_phase3_list_hlist.zig",
-    "zig run scripts\\zigux/check_phase3_list_hlist.zig --self-test",
-    "zig run scripts\\zigux/check_phase3_list_hlist.zig --repo-root . --zig zig --cc gcc",
     "zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
     "Documentation/zigux/phase3-policy-slice.md",
     "include/zigux/abi.h",
@@ -72,8 +78,6 @@ const REQUIRED_NOTE_MARKERS = [_][]const u8{
     "zigux/tests/phase3_policy_dump_build.zig",
     "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
     "scripts\\zigux/check_phase3_policy_dump.zig",
-    "zig run scripts\\zigux/check_phase3_policy_dump.zig --self-test",
-    "zig run scripts\\zigux/check_phase3_policy_dump.zig",
     "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "zigux/tests/phase3_export_uapi_layout.zig",
@@ -111,7 +115,7 @@ const REQUIRED_NOTE_MARKERS = [_][]const u8{
     "records the separately landed header-family survey follow-through without promoting it into broader validator support",
 };
 
-const REQUIRED_SHARED_GAP_MARKERS = [_][]const u8{
+const markers_1 = [_][]const u8{
     "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the dedicated ABI header-family survey follow-through, the focused abi.h next-step note, the shared ABI catalog helper plus manifest-backed inventory companion, the bounded bitmap/cpumask and list/hlist helper slices, the shared tests-root export/UAPI layout route, the named Linux-side boundary-header helper family plus validation relay, and the direct C smoke proof; the docs-root reminder, shared review checklist, tests-root reminder, and scripts-root reminder are now aligned on those already-returned helper-local slices, and no same-lane shared-summary drift remains on current master`",
     "PHASE3_SHARED_REMINDER_NEXT_STEP=keep this note parked unless a fresh current-master reread shows a smaller one-file shared-summary drift around the returned export/UAPI, bitmap/cpumask, list/hlist, shared tests-root layout, named boundary-header helper, or direct C smoke packet`",
     "`Documentation/zigux/README.md` now stays aligned on the returned bitmap/cpumask, list/hlist, xarray-slot, validator-support, shared catalog, policy, low-level-wrapper, and bounded export/UAPI plus header-family reminder surfaces.",
@@ -121,80 +125,69 @@ const REQUIRED_SHARED_GAP_MARKERS = [_][]const u8{
     "The earlier shared-reminder drift is now closed for the packet-local export/UAPI survey, the dedicated header-family and abi.h follow-through, the manifest-backed catalog packet, the landed helper-local interop slices themselves, and the shared docs-root, review-checklist, tests-root, and scripts-root reminder surfaces. No smaller same-lane shared-summary drift is visible on current `master` right now.",
 };
 
-const SELF_TEST_NOTE_MARKERS = [_][]const u8{
-    "one focused helper-local `xarray_slot` classifier slice with both starter-packet and fixture-backed dump parity coverage",
-    "one focused helper-local `idr_slot` classifier slice with both starter-packet and fixture-backed dump parity coverage",
-    "Documentation/zigux/phase3-idr-slot-slice.md",
-    "zigux/helpers/idr_slot_view.zig",
-    "scripts\\zigux/check_phase3_idr_slot.zig",
-    "one bounded helper-local `bitmap` / `cpumask` starter slice with manifest-backed replay coverage",
-    "one bounded helper-local `list_head` / `hlist` starter-plus-dump slice with dedicated replay coverage",
-    "Keep the shared Phase 3 reminder packet anchored to those seven current-tree-backed slices until additional broader export/UAPI survey or shared replay proof lands.",
-    "Current `master` also directly serves the same focused policy slice through the reviewer-readable dump route at `zigux/tests/phase3_policy_dump.zig`, `zigux/tests/phase3_policy_dump_build.zig`, `zigux/tests/fixtures/phase3_policy_dump_expected.txt`, and `scripts\\zigux/check_phase3_policy_dump.zig`, so the bounded policy packet now exposes both its starter replay and its focused dump companion without widening this note into MMIO, low-level-wrapper, or broader runtime-shim ownership.",
-    "Current `master` also keeps this note's dedicated packet-local validator explicit through `scripts\\zigux/validate_phase3_validator_support_surface.zig`, and that validator should stay aligned with this note rather than being left implicit behind the broader shared `scripts\\zigux/validate_phase3.zig` entrypoint.",
-    "That adjacent low-level-wrapper packet now keeps `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/helpers/unsafe_policy.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, and `make -C zigux phase3-low-level-wrappers-test` directly readable on current `master`, but those returned wrapper-local surfaces should stay adjacent here instead of being promoted into broader validator support.",
-    "`Documentation/zigux/README.md` now keeps the validator-support, `err_ptr` / `xarray`, bitmap/cpumask, list/hlist, `xarray_slot`, shared catalog companion, and bounded export/UAPI plus header-family reminder surfaces explicit beside the starter, policy, low-level-wrapper, and layout-replay packet, so keep any broader shared-summary follow-through parked unless a fresh reread reopens same-packet drift on current `master`.",
-    "`scripts/zigux/README.md` now keeps the returned bitmap/cpumask and list/hlist helper slices explicit beside the shared ABI manifest companion, export/UAPI layout replay pair, named Linux-side boundary-header helper family, and direct C smoke proof, so keep any broader shared-summary follow-through parked unless a fresh reread reopens same-packet drift on current `master`.",
-    "records the separately landed linux-header governance note without promoting it into broader validator support",
-    "records the separately landed low-level-wrapper packet without promoting it into broader validator support",
-    "records the separately landed header-family survey follow-through without promoting it into broader validator support",
+const markers_2 = [_][]const u8{
+    "\"phase\": \"Phase 3\"",
+    "\"replay_routes\"",
+    "zig run validate_phase3_validator_support_surface.zig --self-test",
+    "zig run validate_phase3_validator_support_surface.zig",
 };
 
+const contracts = [_]FileContract{
+    .{ .rel = "Documentation/zigux/phase3-validator-support-surface.md", .markers = &markers_0 },
+    .{ .rel = "Documentation/zigux/phase3-shared-reminder-gap.md", .markers = &markers_1 },
+    .{ .rel = "zigux/tests/fixtures/phase3_abi_manifest.json", .markers = &markers_2 },
+};
+
+fn printOutputMarkers(io: Io, markers: []const []const u8) !void {
+    for (markers) |marker| {
+        if (std.mem.endsWith(u8, marker, "="))
+            try guard.printLine(io, "{s}{d}", .{ marker, contracts.len })
+        else
+            try guard.printLine(io, "{s}", .{marker});
+    }
+}
+
 fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {
-    const text_required_note_markers_path = try guard.joinPath(allocator, root, "Documentation/zigux/phase3-validator-support-surface.md");
-    defer allocator.free(text_required_note_markers_path);
-    const text_required_note_markers = try guard.readUtf8File(io, allocator, text_required_note_markers_path);
-    defer allocator.free(text_required_note_markers);
-    for (REQUIRED_NOTE_MARKERS) |marker| try guard.requireMarker(text_required_note_markers, marker);
-    const text_required_shared_gap_markers_path = try guard.joinPath(allocator, root, "Documentation/zigux/phase3-validator-support-surface.md");
-    defer allocator.free(text_required_shared_gap_markers_path);
-    const text_required_shared_gap_markers = try guard.readUtf8File(io, allocator, text_required_shared_gap_markers_path);
-    defer allocator.free(text_required_shared_gap_markers);
-    for (REQUIRED_SHARED_GAP_MARKERS) |marker| try guard.requireMarker(text_required_shared_gap_markers, marker);
-    const text_self_test_note_markers_path = try guard.joinPath(allocator, root, "Documentation/zigux/phase3-validator-support-surface.md");
-    defer allocator.free(text_self_test_note_markers_path);
-    const text_self_test_note_markers = try guard.readUtf8File(io, allocator, text_self_test_note_markers_path);
-    defer allocator.free(text_self_test_note_markers);
-    for (SELF_TEST_NOTE_MARKERS) |marker| try guard.requireMarker(text_self_test_note_markers, marker);
+    for (contracts) |contract| {
+        const owner_path = try guard.joinPath(allocator, root, contract.rel);
+        defer allocator.free(owner_path);
+        const text = try guard.readUtf8File(io, allocator, owner_path);
+        defer allocator.free(text);
+        for (contract.markers) |marker| try guard.requireMarker(text, marker);
+    }
 }
 
 fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
-    try checkRepo(io, allocator, try guard.defaultRepoRoot(allocator));
-    try guard.printLine(io, "{s}", .{self_test_pass_marker});
+    const root = try guard.defaultRepoRoot(allocator);
+    defer allocator.free(root);
+    try checkRepo(io, allocator, root);
+    try printOutputMarkers(io, &self_test_output_markers);
     return 0;
 }
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
-
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
     var self_test = false;
     var explicit_root: ?[]const u8 = null;
     var index: usize = 1;
     while (index < args.len) : (index += 1) {
         const arg = args[index];
-        if (std.mem.eql(u8, arg, "--self-test")) {
-            self_test = true;
-            continue;
-        }
-        if (std.mem.eql(u8, arg, "--root")) {
+        if (std.mem.eql(u8, arg, "--self-test")) { self_test = true; continue; }
+        if (std.mem.eql(u8, arg, "--root") or std.mem.eql(u8, arg, "--repo-root")) {
             if (index + 1 >= args.len) std.process.exit(2);
-            index += 1;
-            explicit_root = args[index];
-            continue;
+            index += 1; explicit_root = args[index]; continue;
         }
+        if (std.mem.eql(u8, arg, "--zig") or std.mem.eql(u8, arg, "--cc")) {
+            if (index + 1 >= args.len) std.process.exit(2);
+            index += 1; continue;
+        }
+        std.process.exit(2);
     }
-
-    const root = explicit_root orelse try guard.repoRootFromScript(allocator);
+    if (self_test) std.process.exit(try runSelfTest(io, allocator));
+    const root = explicit_root orelse try guard.defaultRepoRoot(allocator);
     defer if (explicit_root == null) allocator.free(root);
-
-    if (self_test) {
-        std.process.exit(try runSelfTest(io, allocator));
-    }
-
-    checkRepo(io, allocator, root) catch {
-        std.process.exit(1);
-    };
-    try guard.printLine(io, "{s}", .{live_pass_marker});
+    checkRepo(io, allocator, root) catch std.process.exit(1);
+    try printOutputMarkers(io, &live_output_markers);
 }

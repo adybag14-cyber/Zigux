@@ -105,22 +105,22 @@ fn collectMissingMarkers(allocator: std.mem.Allocator, readme: []const u8, roadm
 
 fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
     var case_count: usize = 0;
-    var missing = try collectMissingMarkers(allocator, sample_readme, sample_roadmap, sample_ledger);
+    var good_missing = try collectMissingMarkers(allocator, sample_readme, sample_roadmap, sample_ledger);
     defer {
-        for (missing.items) |item| allocator.free(item);
-        missing.deinit(allocator);
+        for (good_missing.items) |item| allocator.free(item);
+        good_missing.deinit(allocator);
     }
-    if (missing.items.len != 0) return error.SelfTestFailed;
+    if (good_missing.items.len != 0) return error.SelfTestFailed;
     case_count += 1;
 
     const bad_readme = try std.mem.replaceOwned(u8, allocator, sample_readme, README_MARKERS[1], "");
     defer allocator.free(bad_readme);
-    missing = try collectMissingMarkers(allocator, bad_readme, sample_roadmap, sample_ledger);
+    var bad_missing = try collectMissingMarkers(allocator, bad_readme, sample_roadmap, sample_ledger);
     defer {
-        for (missing.items) |item| allocator.free(item);
-        missing.deinit(allocator);
+        for (bad_missing.items) |item| allocator.free(item);
+        bad_missing.deinit(allocator);
     }
-    if (missing.items.len != 1) return error.SelfTestFailed;
+    if (bad_missing.items.len != 1) return error.SelfTestFailed;
     case_count += 1;
 
     try guard.printLine(io, "{s}", .{self_test_pass_marker});
@@ -131,7 +131,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var self_test = false;
     var repo_root: ?[]const u8 = null;
@@ -153,11 +153,19 @@ pub fn main(init: std.process.Init) !void {
     const root = repo_root orelse try guard.repoRootFromScript(allocator);
     defer if (repo_root == null) allocator.free(root);
 
-    const readme = try guard.readUtf8File(io, allocator, try guard.joinPath(allocator, root, "zigux-alpha/README.md"));
+    const readme_path = try guard.joinPath(allocator, root, "zigux-alpha/README.md");
+    defer allocator.free(readme_path);
+    const readme = try guard.readUtf8File(io, allocator, readme_path);
     defer allocator.free(readme);
-    const roadmap = try guard.readUtf8File(io, allocator, try guard.joinPath(allocator, root, "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md"));
+
+    const roadmap_path = try guard.joinPath(allocator, root, "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md");
+    defer allocator.free(roadmap_path);
+    const roadmap = try guard.readUtf8File(io, allocator, roadmap_path);
     defer allocator.free(roadmap);
-    const ledger = try guard.readUtf8File(io, allocator, try guard.joinPath(allocator, root, "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md"));
+
+    const ledger_path = try guard.joinPath(allocator, root, "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md");
+    defer allocator.free(ledger_path);
+    const ledger = try guard.readUtf8File(io, allocator, ledger_path);
     defer allocator.free(ledger);
 
     var missing = try collectMissingMarkers(allocator, readme, roadmap, ledger);

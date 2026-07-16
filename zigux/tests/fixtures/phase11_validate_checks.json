@@ -1,212 +1,500 @@
 {
   "lane_key": "P11-L15",
   "phase": "Phase 11",
-  "validate_script": "scripts\zigux/validate_phase11.zig",
+  "validate_script": "scripts/zigux/validate_phase11.zig",
   "validate_route": "make -C zigux phase11-validate",
   "exact_checks": [
     {
       "name": "phase11-validation-self-test",
-      "command": ["python", "scripts\zigux/validate_phase11.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/validate_phase11.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-validate-manifest-roster-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_validate_manifest_roster.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_validate_manifest_roster.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-validate-manifest-roster",
-      "command": ["python", "scripts\zigux/check_phase11_validate_manifest_roster.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_validate_manifest_roster.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-validate-check-roster-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_validate_check_roster.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_validate_check_roster.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-validate-check-roster",
-      "command": ["python", "scripts\zigux/check_phase11_validate_check_roster.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_validate_check_roster.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-validate-route-alignment-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_validate_route_alignment.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_validate_route_alignment.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-validate-route-alignment",
-      "command": ["python", "scripts\zigux/check_phase11_validate_route_alignment.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_validate_route_alignment.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-shared-tooling-manifest-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_shared_tooling_manifest.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_shared_tooling_manifest.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-shared-tooling-manifest",
-      "command": ["python", "scripts\zigux/check_phase11_shared_tooling_manifest.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_shared_tooling_manifest.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-build-inventory-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_build_inventory.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_build_inventory.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-build-inventory",
-      "command": ["python", "scripts\zigux/check_phase11_build_inventory.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_build_inventory.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-focused-direct-build-replays-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_focused_direct_build_replays.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_focused_direct_build_replays.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-focused-direct-build-replays",
-      "command": ["python", "scripts\zigux/check_phase11_focused_direct_build_replays.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_focused_direct_build_replays.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-shared-replay-contract-counts-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_shared_replay_contract_counts.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_shared_replay_contract_counts.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-shared-replay-contract-counts",
-      "command": ["python", "scripts\zigux/check_phase11_shared_replay_contract_counts.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_shared_replay_contract_counts.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-matrix-gap-survey-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_matrix_gap_survey.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_matrix_gap_survey.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-matrix-gap-survey",
-      "command": ["python", "scripts\zigux/check_phase11_matrix_gap_survey.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_matrix_gap_survey.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-validation-matrix-gap-survey-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_validation_matrix_gap_survey.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_validation_matrix_gap_survey.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-validation-matrix-gap-survey",
-      "command": ["python", "scripts\zigux/check_phase11_validation_matrix_gap_survey.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_validation_matrix_gap_survey.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-watchdog-lifecycle-parity-gap-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_watchdog_lifecycle_parity_gap.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_watchdog_lifecycle_parity_gap.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-watchdog-lifecycle-parity-gap",
-      "command": ["python", "scripts\zigux/check_phase11_watchdog_lifecycle_parity_gap.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_watchdog_lifecycle_parity_gap.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-header-boundary-packet-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_header_boundary_packet.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_header_boundary_packet.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-header-boundary-packet",
-      "command": ["python", "scripts\zigux/check_phase11_header_boundary_packet.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_header_boundary_packet.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-hvc-cleanup-current-head-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_hvc_cleanup_current_head.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_hvc_cleanup_current_head.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-hvc-cleanup-current-head",
-      "command": ["python", "scripts\zigux/check_phase11_hvc_cleanup_current_head.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_hvc_cleanup_current_head.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-hvc-cleanup-prerequisite-packet-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_hvc_cleanup_prerequisite_packet.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_hvc_cleanup_prerequisite_packet.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-hvc-cleanup-prerequisite-packet",
-      "command": ["python", "scripts\zigux/check_phase11_hvc_cleanup_prerequisite_packet.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_hvc_cleanup_prerequisite_packet.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-hvc-targetless-unregister-witness-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_hvc_targetless_unregister_witness.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_hvc_targetless_unregister_witness.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-hvc-targetless-unregister-witness",
-      "command": ["python", "scripts\zigux/check_phase11_hvc_targetless_unregister_witness.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_hvc_targetless_unregister_witness.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-hvc-current-head-manifest-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_hvc_current_head_manifest.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_hvc_current_head_manifest.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-hvc-current-head-manifest",
-      "command": ["python", "scripts\zigux/check_phase11_hvc_current_head_manifest.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_hvc_current_head_manifest.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-dw-wdt-teardown-packet-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_dw_wdt_teardown_packet.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_dw_wdt_teardown_packet.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-dw-wdt-teardown-packet",
-      "command": ["python", "scripts\zigux/check_phase11_dw_wdt_teardown_packet.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_dw_wdt_teardown_packet.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-dw-wdt-verify-alignment-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_dw_wdt_verify_alignment.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_dw_wdt_verify_alignment.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-dw-wdt-verify-alignment",
-      "command": ["python", "scripts\zigux/check_phase11_dw_wdt_verify_alignment.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_dw_wdt_verify_alignment.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-dw-wdt-build-route-self-test",
-      "command": ["python", "scripts\zigux/check_phase11_dw_wdt_build_route.zig", "--self-test"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_dw_wdt_build_route.zig",
+        "--",
+        "--self-test"
+      ]
     },
     {
       "name": "phase11-dw-wdt-build-route",
-      "command": ["python", "scripts\zigux/check_phase11_dw_wdt_build_route.zig"]
+      "command": [
+        "zig",
+        "run",
+        "scripts/zigux/check_phase11_dw_wdt_build_route.zig",
+        "--"
+      ]
     },
     {
       "name": "phase11-bcm2835-wdt-manifest-packet-survey-build",
-      "command": ["zig", "build", "test", "--build-file", "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig"]
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig"
+      ]
     },
     {
       "name": "phase11-dw-wdt-build",
-      "command": ["zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_build.zig"]
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_dw_wdt_build.zig"
+      ]
     },
     {
       "name": "phase11-dw-wdt-restart-build",
-      "command": ["zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_restart_build.zig"]
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_dw_wdt_restart_build.zig"
+      ]
     },
     {
       "name": "phase11-dw-wdt-pm-build",
-      "command": ["zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_pm_build.zig"]
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_dw_wdt_pm_build.zig"
+      ]
     },
     {
       "name": "phase11-gpio-wdt-verify-helper-build",
-      "command": ["zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_verify_helper_build.zig"]
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_gpio_wdt_verify_helper_build.zig"
+      ]
     },
     {
       "name": "phase11-gpio-wdt-preflight-review-build",
-      "command": ["zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig"]
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig"
+      ]
     },
     {
       "name": "phase11-gpio-wdt-register-device-glue-review-build",
-      "command": ["zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig"]
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig"
+      ]
     },
     {
       "name": "phase11-gpio-wdt-nowayout-policy-review-build",
-      "command": ["zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig"]
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig"
+      ]
     },
     {
       "name": "phase11-gpio-wdt-remove-handoff-review-build",
-      "command": ["zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig"]
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig"
+      ]
     },
     {
       "name": "phase11-hvc-hv-ops-layout-build",
-      "command": ["zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_hv_ops_layout_build.zig"]
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_hvc_hv_ops_layout_build.zig"
+      ]
     },
     {
       "name": "phase11-hvc-export-surface-layout-build",
-      "command": ["zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_export_surface_layout_build.zig"]
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_hvc_export_surface_layout_build.zig"
+      ]
     },
     {
       "name": "phase11-hvc-cleanup-packet-build",
-      "command": ["zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_cleanup_packet_build.zig"]
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_hvc_cleanup_packet_build.zig"
+      ]
     },
     {
       "name": "phase11-hvc-modem-control-proof-build",
-      "command": ["zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_modem_control_proof_build.zig"]
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_hvc_modem_control_proof_build.zig"
+      ]
     },
     {
       "name": "phase11-hvc-targetless-unregister-gap-build",
-      "command": ["zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"]
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
+      ]
     }
   ]
 }

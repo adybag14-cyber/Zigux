@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const Io = std.Io;
 const policy = @import("toolchain_policy.zig");
 
@@ -375,13 +376,29 @@ fn appendZigCandidate(
     list: *std.ArrayList([]const u8),
     base: []const u8,
 ) !void {
-    const zig_path = try std.fmt.allocPrint(allocator, "{s}/zig", .{base});
-    defer allocator.free(zig_path);
-    try appendUnique(allocator, list, zig_path);
+    inline for (.{ "zig", "zig.exe", "bin/zig", "bin/zig.exe" }) |relative| {
+        const candidate = try std.fmt.allocPrint(allocator, "{s}/{s}", .{ base, relative });
+        defer allocator.free(candidate);
+        try appendUnique(allocator, list, candidate);
+    }
+}
 
-    const bin_zig_path = try std.fmt.allocPrint(allocator, "{s}/bin/zig", .{base});
-    defer allocator.free(bin_zig_path);
-    try appendUnique(allocator, list, bin_zig_path);
+pub fn hostArchiveTarget() ?[]const u8 {
+    return switch (builtin.cpu.arch) {
+        .x86_64 => switch (builtin.os.tag) {
+            .linux => "x86_64-linux",
+            .windows => "x86_64-windows",
+            .macos => "x86_64-macos",
+            else => null,
+        },
+        .aarch64 => switch (builtin.os.tag) {
+            .linux => "aarch64-linux",
+            .windows => "aarch64-windows",
+            .macos => "aarch64-macos",
+            else => null,
+        },
+        else => null,
+    };
 }
 
 pub fn iterRepoLocalZigCandidates(
@@ -401,10 +418,12 @@ pub fn iterRepoLocalZigCandidates(
     defer freeSearchRoots(allocator, search_roots);
 
     if (pinned_channel) |channel| {
-        for (search_roots) |base| {
-            const pinned_dir = try std.fmt.allocPrint(allocator, "{s}/zig-x86_64-linux-{s}", .{ base, channel });
-            defer allocator.free(pinned_dir);
-            try appendZigCandidate(allocator, &list, pinned_dir);
+        if (hostArchiveTarget()) |target| {
+            for (search_roots) |base| {
+                const pinned_dir = try std.fmt.allocPrint(allocator, "{s}/zig-{s}-{s}", .{ base, target, channel });
+                defer allocator.free(pinned_dir);
+                try appendZigCandidate(allocator, &list, pinned_dir);
+            }
         }
     }
 
@@ -462,7 +481,13 @@ pub fn readZigVersion(io: Io, allocator: std.mem.Allocator, zig: []const u8) ![]
         .stdout_limit = .limited(256),
         .stderr_limit = .limited(256),
     }) catch |err| switch (err) {
-        error.FileNotFound => return ResolverError.InvalidArgument,
+        error.FileNotFound,
+        error.AccessDenied,
+        error.PermissionDenied,
+        error.InvalidExe,
+        error.IsDir,
+        error.NotDir,
+        => return ResolverError.InvalidArgument,
         else => return err,
     };
     defer allocator.free(result.stderr);
@@ -640,4 +665,15 @@ test "validate policy archive accepts live metadata shape" {
     const meta = try expectedArchiveMetadata(&loaded, "x86_64-linux", &filename_buffer);
     try std.testing.expect(std.mem.endsWith(u8, meta.expected_filename, ".tar.xz"));
     try std.testing.expectEqual(@as(usize, 64), meta.expected_sha.len);
+
+    var windows_filename_buffer: [160]u8 = undefined;
+    const windows_meta = try expectedArchiveMetadata(&loaded, "x86_64-windows", &windows_filename_buffer);
+    try std.testing.expect(std.mem.endsWith(u8, windows_meta.expected_filename, ".zip"));
+    try std.testing.expectEqual(@as(usize, 64), windows_meta.expected_sha.len);
+}
+
+test "host archive target matches supported native platform" {
+    const target = hostArchiveTarget() orelse return error.SkipZigTest;
+    try std.testing.expect(std.mem.indexOf(u8, target, @tagName(builtin.cpu.arch)) != null);
+    try std.testing.expect(std.mem.endsWith(u8, target, @tagName(builtin.os.tag)));
 }

@@ -186,54 +186,23 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
         defer allocator.free(updated);
         try guard.writeUtf8File(io, full_path, updated);
     }
-    {
-        const relative_path = "Documentation/zigux/README.md";
+    for (REQUIRED_FILES) |relative_path| {
         const full_path = try guard.joinPath(allocator, root, relative_path);
         defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "Documentation/zigux/phase1-closure.md";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "Documentation/zigux/phase1-host-helper-lane-sequencing.md";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "scripts/zigux/README.md";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "zigux/tests/README.md";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "zigux/Makefile";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = ".github/workflows/zigux-bootstrap.yml";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
+        if (!guard.pathExists(io, full_path)) {
+            try guard.writeUtf8File(io, full_path, "# sample\n");
+        }
     }
     var failures = try collectFailures(io, allocator, root);
     defer {
         for (failures.items) |item| allocator.free(item);
         failures.deinit(allocator);
     }
-    try guard.expectSelfTest(failures.items.len == 0);
+    if (failures.items.len != 0) {
+        try guard.printLine(io, "PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST=fail", .{});
+        for (failures.items) |failure| try guard.printLine(io, "{s}", .{failure});
+        return guard.GuardError.SelfTestFailed;
+    }
     try guard.printLine(io, "{s}", .{pass_marker});
     try guard.printLine(io, "PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST_CASE_COUNT={d}", .{@as(usize, 1)});
     return 0;
@@ -242,7 +211,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var explicit_root: ?[]const u8 = null;
     var self_test = false;

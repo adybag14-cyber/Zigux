@@ -51,7 +51,7 @@ fn checkReadme(io: Io, allocator: std.mem.Allocator, root: []const u8, target: [
         target,
         channel,
         sha256,
-        "59581484",
+        "59264068",
     };
     for (markers) |marker| try guard.requireMarker(readme, marker);
 }
@@ -63,7 +63,12 @@ fn loadContract(io: Io, allocator: std.mem.Allocator, root: []const u8) !struct 
     defer allocator.free(json_bytes);
     var loaded = try policy.loadPolicyFromJson(allocator, json_bytes);
     defer policy.freePolicy(allocator, &loaded);
-    const target = loaded.upgrade_policy.archive_target_scope[0];
+    const target = blk: {
+        for (loaded.upgrade_policy.archive_target_scope) |candidate| {
+            if (std.mem.eql(u8, candidate, "x86_64-linux")) break :blk candidate;
+        }
+        return error.MissingLinuxTarget;
+    };
     const sha = loaded.archive_sha256.get(target) orelse return error.MissingSha;
     return .{
         .target = try allocator.dupe(u8, target),
@@ -89,7 +94,9 @@ fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {
 }
 
 fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
-    try checkRepo(io, allocator, try guard.defaultRepoRoot(allocator));
+    const root = try guard.defaultRepoRoot(allocator);
+    defer allocator.free(root);
+    try checkRepo(io, allocator, root);
     try guard.printLine(io, "{s}", .{self_test_pass_marker});
     return 0;
 }
@@ -97,7 +104,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var self_test = false;
     var explicit_root: ?[]const u8 = null;
@@ -116,7 +123,8 @@ pub fn main(init: std.process.Init) !void {
     defer if (explicit_root == null) allocator.free(root);
 
     if (self_test) {
-        std.process.exit(try runSelfTest(io, allocator));
+        _ = try runSelfTest(io, allocator);
+        return;
     }
 
     checkRepo(io, allocator, root) catch {

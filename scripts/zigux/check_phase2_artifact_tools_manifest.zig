@@ -5,35 +5,66 @@ const guard = @import("zigux_guard.zig");
 pub const live_pass_marker = "PHASE2_ARTIFACT_TOOLS_MANIFEST=pass";
 pub const self_test_pass_marker = "PHASE2_ARTIFACT_TOOLS_MANIFEST_SELF_TEST=pass";
 
-const PRIMARY_TOOL_MARKERS = [_][]const u8{
-    "LEGACY_MODE_ALIASES = {\"sha256\": \"bytes\"}",
-    "    \"legacy_sha256_alias\",",
-    "def normalize_mode(mode: str) -> str:",
-    "    return LEGACY_MODE_ALIASES.get(mode, mode)",
+const FileContract = struct {
+    rel: []const u8,
+    markers: []const []const u8,
 };
 
-const REQUIRED_NOTE_MARKERS = [_][]const u8{
-    "The artifact diff helper provides deterministic comparison output for fixture-backed scripts-root checks in both the kconfig bridge and fixdep parity packets.",
-    "Keep `scripts\\zigux/check_phase2_artifact_tools_manifest.zig` explicit so the bounded Phase 2 artifact-support manifest fails closed beside the broader Phase 2 tool packet.",
-    "Keep future Phase 2 artifact-diff follow-up bounded to live consumers like `scripts\\zigux/check_kconfig_bridge.zig` and `scripts\\zigux/check_fixdep_diff.zig` plus directly readable fixture packets before widening into broader closure routes.",
-    "Keep the legacy `sha256` compatibility alias explicit as the path that normalizes to the shipped `bytes` comparison surface in `scripts/zigux/artifact_diff.zig`.",
+const markers_0 = [_][]const u8{
+    "scripts/zigux/artifact_diff.zig",
+    "scripts\\zigux/check_kconfig_bridge.zig",
+    "scripts\\zigux/check_fixdep_diff.zig",
+    "\"text\"",
+    "\"json\"",
+    "\"bytes\"",
+    "legacy `sha256` compatibility alias",
+};
+
+const markers_1 = [_][]const u8{
+    "pub const Mode = enum",
+    "if (std.mem.eql(u8, raw, \"sha256\")) return .bytes",
+    "EXPECTED_SHA256=",
+    "ACTUAL_SHA256=",
+    "self_test_case_names",
+};
+
+const markers_2 = [_][]const u8{
+    "legacy sha256 compatibility",
+    "bytes_pass",
+    "bytes_drift",
+};
+
+const markers_3 = [_][]const u8{
+    "Check current Phase 2 artifact tools manifest packet",
+};
+
+const markers_4 = [_][]const u8{
+    "check_phase2_artifact_tools_manifest.zig -- --self-test",
+    "check_phase2_artifact_tools_manifest.zig",
+};
+
+const contracts = [_]FileContract{
+    .{ .rel = "zigux/tests/fixtures/phase2_artifact_tools_manifest.json", .markers = &markers_0 },
+    .{ .rel = "scripts/zigux/artifact_diff.zig", .markers = &markers_1 },
+    .{ .rel = "scripts/zigux/artifact_diff_bytes_contract.zig", .markers = &markers_2 },
+    .{ .rel = ".github/workflows/zigux-bootstrap.yml", .markers = &markers_3 },
+    .{ .rel = "zigux/Makefile", .markers = &markers_4 },
 };
 
 fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {
-    const text_primary_tool_markers_path = try guard.joinPath(allocator, root, "scripts/zigux/artifact_diff.zig");
-    defer allocator.free(text_primary_tool_markers_path);
-    const text_primary_tool_markers = try guard.readUtf8File(io, allocator, text_primary_tool_markers_path);
-    defer allocator.free(text_primary_tool_markers);
-    for (PRIMARY_TOOL_MARKERS) |marker| try guard.requireMarker(text_primary_tool_markers, marker);
-    const text_required_note_markers_path = try guard.joinPath(allocator, root, "zigux/tests/fixtures/phase2_artifact_tools_manifest.json");
-    defer allocator.free(text_required_note_markers_path);
-    const text_required_note_markers = try guard.readUtf8File(io, allocator, text_required_note_markers_path);
-    defer allocator.free(text_required_note_markers);
-    for (REQUIRED_NOTE_MARKERS) |marker| try guard.requireMarker(text_required_note_markers, marker);
+    for (contracts) |contract| {
+        const path = try guard.joinPath(allocator, root, contract.rel);
+        defer allocator.free(path);
+        const text = try guard.readUtf8File(io, allocator, path);
+        defer allocator.free(text);
+        for (contract.markers) |marker| try guard.requireMarker(text, marker);
+    }
 }
 
 fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
-    try checkRepo(io, allocator, try guard.defaultRepoRoot(allocator));
+    const root = try guard.defaultRepoRoot(allocator);
+    defer allocator.free(root);
+    try checkRepo(io, allocator, root);
     try guard.printLine(io, "{s}", .{self_test_pass_marker});
     return 0;
 }
@@ -41,7 +72,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var self_test = false;
     var explicit_root: ?[]const u8 = null;
@@ -58,17 +89,15 @@ pub fn main(init: std.process.Init) !void {
             explicit_root = args[index];
             continue;
         }
+        std.process.exit(2);
     }
-
-    const root = explicit_root orelse try guard.repoRootFromScript(allocator);
-    defer if (explicit_root == null) allocator.free(root);
 
     if (self_test) {
         std.process.exit(try runSelfTest(io, allocator));
     }
 
-    checkRepo(io, allocator, root) catch {
-        std.process.exit(1);
-    };
+    const root = explicit_root orelse try guard.repoRootFromScript(allocator);
+    defer if (explicit_root == null) allocator.free(root);
+    checkRepo(io, allocator, root) catch std.process.exit(1);
     try guard.printLine(io, "{s}", .{live_pass_marker});
 }

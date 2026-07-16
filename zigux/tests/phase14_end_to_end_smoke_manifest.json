@@ -9,8 +9,8 @@
     "Current readable .github/workflows/zigux-bootstrap.yml still reruns make -C zigux phase14-validate and does not rerun a dedicated Phase 14 build or smoke-shard workflow step.",
     "Current readable shared smoke manifest still records zig build phase14-smoke --build-file zigux/tests/phase14_build.zig only as a focused raw build-file shard, not as a Makefile-backed shared smoke route.",
     "P14-L05 current-master readback on 2026-05-29 confirmed the returned smoke route remains bounded to make -C zigux phase14-validate, with no phase14-smoke, phase14-test, or phase14 Makefile wrapper promoted.",
-    "P14-L03 current-master readback on 2026-05-29 confirmed the productization behavior remains study-only and bounded to the single make -C zigux phase14-validate gate; the exact same readback also captured the then-open checker-only repair for scripts\zigux/check_phase14_shared_smoke_route.zig.",
-    "P14-L13 current-master readback on 2026-05-29 superseded that older checker-gap note: scripts\zigux/check_phase14_shared_smoke_route.zig now fail-closes on RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH, its validator-side run_guardrail_checker call, and the phase14_validate_runs_ring_buffer_compile_route_checker plus shared_manifest_records_ring_buffer_compile_route_checker manifest booleans."
+    "P14-L03 current-master readback on 2026-05-29 confirmed the productization behavior remains study-only and bounded to the single make -C zigux phase14-validate gate; the exact same readback also captured the then-open checker-only repair for scripts/zigux/check_phase14_shared_smoke_route.zig.",
+    "P14-L13 current-master readback on 2026-05-29 superseded that older checker-gap note: scripts/zigux/check_phase14_shared_smoke_route.zig now fail-closes on RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH, its validator-side run_guardrail_checker call, and the phase14_validate_runs_ring_buffer_compile_route_checker plus shared_manifest_records_ring_buffer_compile_route_checker manifest booleans."
   ],
   "p14_l05_anti_regression_readback": {
     "readback_on": "2026-05-29",
@@ -27,7 +27,7 @@
       "make -C zigux phase14-test",
       "make -C zigux phase14"
     ],
-    "observed_checker_gap": "Historical readback note retained for provenance: at this P14-L05 readback, scripts\zigux/validate_phase14.zig already ran the ring-buffer compile-route checker and this manifest already recorded the ring-buffer summary booleans, while scripts\zigux/check_phase14_shared_smoke_route.zig still fail-closed only the validator-side skbuff and RCU compile-route calls.",
+    "observed_checker_gap": "Historical readback note retained for provenance: at this P14-L05 readback, scripts/zigux/validate_phase14.zig already ran the ring-buffer compile-route checker and this manifest already recorded the ring-buffer summary booleans, while scripts/zigux/check_phase14_shared_smoke_route.zig still fail-closed only the validator-side skbuff and RCU compile-route calls.",
     "next_checker_only_repair": "Superseded by the P14-L13 current-master readback in this manifest: the shared smoke route checker now requires the ring-buffer compile-route path, validator call, and manifest booleans."
   },
   "p14_l03_productization_readback": {
@@ -63,12 +63,12 @@
       "make -C zigux phase14"
     ],
     "validator_side_checks_confirmed_by_readback": [
-      "scripts\zigux/check_phase14_skbuff_compile_route.zig",
-      "scripts\zigux/check_phase14_ring_buffer_compile_route.zig",
-      "scripts\zigux/check_phase14_rcu_compile_route.zig"
+      "scripts/zigux/check_phase14_skbuff_compile_route.zig",
+      "scripts/zigux/check_phase14_ring_buffer_compile_route.zig",
+      "scripts/zigux/check_phase14_rcu_compile_route.zig"
     ],
     "productization_behavior": "The current bounded productization behavior is still evidence absorption and fail-closed reminder validation, not a Phase 14 implementation or parity claim.",
-    "observed_checker_gap": "Historical readback note retained for provenance: at this P14-L03 readback, scripts\zigux/validate_phase14.zig included the ring-buffer compile-route checker in SUBCHECKER_PATHS, while scripts\zigux/check_phase14_shared_smoke_route.zig still required only the validator-side skbuff and RCU compile-route markers.",
+    "observed_checker_gap": "Historical readback note retained for provenance: at this P14-L03 readback, scripts/zigux/validate_phase14.zig included the ring-buffer compile-route checker in SUBCHECKER_PATHS, while scripts/zigux/check_phase14_shared_smoke_route.zig still required only the validator-side skbuff and RCU compile-route markers.",
     "next_checker_only_repair": "Superseded by the P14-L13 current-master readback in this manifest: the shared smoke route checker now requires the ring-buffer compile-route path, validator call, and manifest booleans."
   },
   "p14_l13_rollback_trigger_readback": {
@@ -84,7 +84,7 @@
       "phase14_validate_runs_ring_buffer_compile_route_checker",
       "shared_manifest_records_ring_buffer_compile_route_checker"
     ],
-    "rollback_trigger_result": "The previous shared-route ring-buffer checker gap is now closed on current master; future rollback-threshold follow-through should keep this manifest, scripts\zigux/check_phase14_rollback_threshold_sequencing.zig, and Documentation/zigux/phase14-end-to-end-smoke-survey.md aligned around the closed ring-buffer compile-route evidence instead of reopening the older checker-only repair."
+    "rollback_trigger_result": "The previous shared-route ring-buffer checker gap is now closed on current master; future rollback-threshold follow-through should keep this manifest, scripts/zigux/check_phase14_rollback_threshold_sequencing.zig, and Documentation/zigux/phase14-end-to-end-smoke-survey.md aligned around the closed ring-buffer compile-route evidence instead of reopening the older checker-only repair."
   },
   "productization": {
     "owner": "Core-Adjacent Pod",
@@ -94,16 +94,16 @@
     "transfer_rationale": "Absorb ZAR runtime research as product discipline only: keep exported evidence packets, machine-checked surveyed commits, and explicit blocker posture without importing ZAR runtime-core behavior into Zigux."
   },
   "shared_smoke_surfaces": [
-    "scripts\zigux/validate_phase14.zig",
-    "scripts\zigux/check_phase14_shared_smoke_route.zig",
-    "scripts\zigux/check_phase14_tests_readme_smoke_summary.zig",
-    "scripts\zigux/check_phase14_rollback_threshold_sequencing.zig",
-    "scripts\zigux/check_phase14_skbuff_stay_in_c_guardrail.zig",
-    "scripts\zigux/check_phase14_skbuff_compile_route.zig",
-    "scripts\zigux/check_phase14_ring_buffer_compile_route.zig",
-    "scripts\zigux/check_phase14_rcu_compile_route.zig",
-    "scripts\zigux/check_phase14_rcu_rollback_guardrail.zig",
-    "scripts\zigux/check_phase14_release_boundary_exact_counts.zig",
+    "scripts/zigux/validate_phase14.zig",
+    "scripts/zigux/check_phase14_shared_smoke_route.zig",
+    "scripts/zigux/check_phase14_tests_readme_smoke_summary.zig",
+    "scripts/zigux/check_phase14_rollback_threshold_sequencing.zig",
+    "scripts/zigux/check_phase14_skbuff_stay_in_c_guardrail.zig",
+    "scripts/zigux/check_phase14_skbuff_compile_route.zig",
+    "scripts/zigux/check_phase14_ring_buffer_compile_route.zig",
+    "scripts/zigux/check_phase14_rcu_compile_route.zig",
+    "scripts/zigux/check_phase14_rcu_rollback_guardrail.zig",
+    "scripts/zigux/check_phase14_release_boundary_exact_counts.zig",
     "scripts/zigux/README.md",
     "zigux/tests/phase14_end_to_end_smoke_manifest.json",
     "zigux/tests/phase14_end_to_end_smoke_survey.zig",

@@ -69,16 +69,13 @@ fn hasOutputMarker(stdout: []const u8, marker: []const u8) bool {
     return std.mem.indexOf(u8, stdout, marker) != null;
 }
 
-fn missingOutputMarkers(stdout: []const u8, markers: []const []const u8) []const []const u8 {
-    var missing: [32][]const u8 = undefined;
-    var count: usize = 0;
+fn missingOutputMarkers(allocator: std.mem.Allocator, stdout: []const u8, markers: []const []const u8) ![]const []const u8 {
+    var missing: std.ArrayList([]const u8) = .empty;
+    errdefer missing.deinit(allocator);
     for (markers) |marker| {
-        if (!hasOutputMarker(stdout, marker)) {
-            missing[count] = marker;
-            count += 1;
-        }
+        if (!hasOutputMarker(stdout, marker)) try missing.append(allocator, marker);
     }
-    return missing[0..count];
+    return try missing.toOwnedSlice(allocator);
 }
 
 fn validateScriptList(io: Io, allocator: std.mem.Allocator, repo_root: []const u8) ![]const []const u8 {
@@ -198,7 +195,8 @@ fn runPacket(io: Io, allocator: std.mem.Allocator, repo_root: []const u8, zig_bi
             return 1;
         }
 
-        const marker_issues = missingOutputMarkers(output.stdout, command.output_markers);
+        const marker_issues = try missingOutputMarkers(allocator, output.stdout, command.output_markers);
+        defer allocator.free(marker_issues);
         if (marker_issues.len != 0) {
             try guard.printLine(io, "PHASE3_VALIDATE_SELFTEST=fail", .{});
             for (marker_issues) |marker| {
@@ -380,7 +378,9 @@ fn expectMissingMarker(io: Io, allocator: std.mem.Allocator, root: []const u8, z
     defer allocator.free(output.stdout);
     defer allocator.free(output.stderr);
     if (output.exit_code != 0) return true;
-    return missingOutputMarkers(output.stdout, command.output_markers).len != 0;
+    const marker_issues = try missingOutputMarkers(allocator, output.stdout, command.output_markers);
+    defer allocator.free(marker_issues);
+    return marker_issues.len != 0;
 }
 
 fn runSelfTest(io: Io, allocator: std.mem.Allocator, zig_bin: []const u8) !u8 {
@@ -518,7 +518,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator, zig_bin: []const u8) !u8 {
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var self_test = false;
     var repo_root: ?[]const u8 = null;
@@ -549,8 +549,9 @@ pub fn main(init: std.process.Init) !void {
     const root = repo_root orelse try guard.repoRootFromScript(allocator);
     defer if (repo_root == null) allocator.free(root);
 
-    const zig = zig_bin orelse try guard.findZigExecutable(io, allocator, root, null);
-    defer if (zig_bin == null) allocator.free(zig);
+    const environment_zig = init.environ_map.get("ZIG");
+    const zig = zig_bin orelse environment_zig orelse try guard.findZigExecutable(io, allocator, root, null);
+    defer if (zig_bin == null and environment_zig == null) allocator.free(zig);
 
     if (self_test) {
         std.process.exit(try runSelfTest(io, allocator, zig));

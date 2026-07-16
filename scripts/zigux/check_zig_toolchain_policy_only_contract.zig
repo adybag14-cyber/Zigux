@@ -8,12 +8,13 @@ test "policy-only summary keeps machine-readable phase route and pin fields" {
     defer policy.freePolicy(std.testing.allocator, &loaded);
 
     try std.testing.expectEqualStrings("Phase 2", loaded.phase);
-    try std.testing.expectEqualStrings("0.17.0-dev.877+a3ae499dc", loaded.channel);
-    try std.testing.expectEqualStrings("0.17.0-dev.877+a3ae499dc", loaded.minimum_version);
+    try std.testing.expectEqualStrings("0.17.0-dev.1415+64dfaa568", loaded.channel);
+    try std.testing.expectEqualStrings("0.17.0-dev.1415+64dfaa568", loaded.minimum_version);
     try std.testing.expect(loaded.upgrade_policy.channel_minimum_lockstep);
-    try std.testing.expectEqual(@as(usize, 1), loaded.upgrade_policy.archive_target_scope.len);
+    try std.testing.expectEqual(@as(usize, 2), loaded.upgrade_policy.archive_target_scope.len);
     try std.testing.expectEqual(@as(usize, 7), loaded.upgrade_policy.required_make_routes.len);
     try std.testing.expectEqualStrings("x86_64-linux", loaded.upgrade_policy.archive_target_scope[0]);
+    try std.testing.expectEqualStrings("x86_64-windows", loaded.upgrade_policy.archive_target_scope[1]);
 }
 
 test "policy-only CLI path validates policy before archive or zig probing" {

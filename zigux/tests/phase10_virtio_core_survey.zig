@@ -66,7 +66,7 @@ test "phase10 virtio core survey gate keeps verify, checker, driver-model, and f
 
     const core_packet_checker = try readRepoRelative(
         allocator,
-        "scripts\zigux/check_phase10_core_packet.zig",
+        "scripts/zigux/check_phase10_core_packet.zig",
     );
     defer allocator.free(core_packet_checker);
 

@@ -134,7 +134,7 @@ test "phase10 virtio mmio survey packet keeps the config-write companion and sli
         "`error.ConfigWritePlanUnavailable` when no current staged plan is available",
     );
     try expectContains(slice_note, "# Phase 10 Virtio MMIO Slice");
-    try expectContains(slice_note, "scripts\zigux/check_phase10_mmio_packet.zig");
+    try expectContains(slice_note, "scripts\\zigux/check_phase10_mmio_packet.zig");
     try expectContains(slice_note, "planning-only config-write observation");
     try expectContains(
         slice_note,
@@ -160,7 +160,7 @@ test "phase10 virtio mmio survey packet keeps the shared review companion aligne
     try expectContains(review_companion, "`zigux/tests/phase10_virtio_mmio_manifest.json`");
     try expectContains(review_companion, "`zigux/tests/phase10_virtio_mmio.zig`");
     try expectContains(review_companion, "`zigux/tests/phase10_virtio_mmio_survey.zig`");
-    try expectContains(review_companion, "`scripts\zigux/check_phase10_mmio_packet.zig`");
+    try expectContains(review_companion, "`scripts\\zigux/check_phase10_mmio_packet.zig`");
     try expectContains(review_companion, "`zigux/tests/phase10_build.zig`");
 }
 

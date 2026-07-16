@@ -28,9 +28,9 @@ const EXACT_ONCE_MARKERS = [_][]const u8{
 };
 
 const WORKFLOW_MARKERS = [_][]const u8{
-    "zig run scripts/zigux/split_pinned_zig_archive.zig --self-test",
-    "zig run scripts/zigux/check_lane05_split_helper_selftest.zig --self-test",
-    "zig run scripts/zigux/check_lane05_split_helper_workflow.zig --self-test",
+    "zig run scripts/zigux/split_pinned_zig_archive.zig -- --self-test",
+    "zig run scripts/zigux/check_lane05_split_helper_selftest.zig -- --self-test",
+    "zig run scripts/zigux/check_lane05_split_helper_workflow.zig -- --self-test",
 };
 
 fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {
@@ -59,7 +59,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var self_test = false;
     var explicit_root: ?[]const u8 = null;

@@ -15,18 +15,18 @@
     "zigux/tests/phase6_build.zig",
     "zigux/tests/phase6_helper_evidence_manifest.json",
     "zigux/tests/phase6_helper_parity_manifest.json",
-    "scripts\zigux/check_phase6_shared_surface.zig",
-    "scripts\zigux/check_phase6_present_entrypoints.zig",
-    "scripts\zigux/check_phase6_base64_bsearch_perf_markers.zig",
-    "scripts\zigux/validate_phase6.zig",
-    "scripts\zigux/check_phase6_checksum_hexdump_perf_markers.zig",
-    "scripts\zigux/check_phase6_perf_threshold_markers.zig",
-    "scripts\zigux/check_phase6_hexdump_packet.zig",
-    "scripts\zigux/check_phase6_hexdump_route.zig"
+    "scripts/zigux/check_phase6_shared_surface.zig",
+    "scripts/zigux/check_phase6_present_entrypoints.zig",
+    "scripts/zigux/check_phase6_base64_bsearch_perf_markers.zig",
+    "scripts/zigux/validate_phase6.zig",
+    "scripts/zigux/check_phase6_checksum_hexdump_perf_markers.zig",
+    "scripts/zigux/check_phase6_perf_threshold_markers.zig",
+    "scripts/zigux/check_phase6_hexdump_packet.zig",
+    "scripts/zigux/check_phase6_hexdump_route.zig"
   ],
   "public_tree_backed_shared_companions": [],
-  "coverage_verification_note": "Authenticated GitHub contents readback on 2026-05-20 reconfirmed direct access to Documentation/zigux/phase6-helper-evidence-catalog.md, Documentation/zigux/phase6-helper-parity-catalog.md, Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, scripts\zigux/check_phase6_shared_surface.zig, scripts\zigux/validate_phase6.zig, and zigux/tests/phase6_build.zig. A follow-up authenticated current-master readback on 2026-05-21 also directly recovered Documentation/zigux/phase6-perf-gate-survey.md, zigux/tests/phase6_helper_parity_manifest.json, zigux/tests/phase6_helper_evidence_manifest.json, and scripts\zigux/check_phase6_perf_threshold_markers.zig. A later authenticated current-master readback on 2026-05-22 directly recovered zigux/tests/phase6_base64_c_parity.zig, zigux/tests/fixtures/phase6_base64_c_harness.c, and scripts\zigux/check_phase6_base64_c_parity.zig. A targeted authenticated current-master reread on 2026-05-27 also directly recovered zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig and zigux/tests/phase6_base64_c_casegen.zig, so the base64 helper row no longer carries a known generator-side direct-readback gap. The checksum helper row also keeps scripts\zigux/check_phase6_checksum_c_parity.zig inside the current directly readable parity packet.",
-  "perf_evidence_readback_note": "Verified the current Phase 6 perf packet on 2026-05-20 from direct current-master readback of zigux/tests/phase6_base64_perf.zig, zigux/tests/fixtures/phase6_base64_vectors.zig, zigux/tests/phase6_bsearch.zig, zigux/tests/phase6_bsearch_perf.zig, zigux/tests/phase6_bsearch_lower_bound_c_abi.zig, zigux/tests/phase6_bsearch_c_abi_budget.zig, zigux/tests/fixtures/phase6_bsearch_vectors.zig, zigux/tests/phase6_checksum_perf.zig, zigux/tests/fixtures/phase6_checksum_vectors.zig, zigux/tests/phase6_hexdump_perf.zig, zigux/tests/phase6_hexdump_perf_matrix.zig, zigux/tests/fixtures/phase6_hexdump_vectors.zig, Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, zigux/tests/phase6_build.zig, and zigux/Makefile. A later direct perf-packet reread on 2026-05-25 also reconfirmed Documentation/zigux/phase6-perf-gate-survey.md, scripts\zigux/validate_phase6.zig, scripts\zigux/check_phase6_shared_surface.zig, the three dedicated Phase 6 perf-marker guards, zigux/tests/phase6_build.zig, zigux/Makefile, and .github/workflows/zigux-bootstrap.yml still line up on current master, so this parity companion should keep treating the shared perf survey as a live directly readable surface rather than only a one-time 2026-05-22 recovery note.",
+  "coverage_verification_note": "Authenticated GitHub contents readback on 2026-05-20 reconfirmed direct access to Documentation/zigux/phase6-helper-evidence-catalog.md, Documentation/zigux/phase6-helper-parity-catalog.md, Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, scripts/zigux/check_phase6_shared_surface.zig, scripts/zigux/validate_phase6.zig, and zigux/tests/phase6_build.zig. A follow-up authenticated current-master readback on 2026-05-21 also directly recovered Documentation/zigux/phase6-perf-gate-survey.md, zigux/tests/phase6_helper_parity_manifest.json, zigux/tests/phase6_helper_evidence_manifest.json, and scripts/zigux/check_phase6_perf_threshold_markers.zig. A later authenticated current-master readback on 2026-05-22 directly recovered zigux/tests/phase6_base64_c_parity.zig, zigux/tests/fixtures/phase6_base64_c_harness.c, and scripts/zigux/check_phase6_base64_c_parity.zig. A targeted authenticated current-master reread on 2026-05-27 also directly recovered zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig and zigux/tests/phase6_base64_c_casegen.zig, so the base64 helper row no longer carries a known generator-side direct-readback gap. The checksum helper row also keeps scripts/zigux/check_phase6_checksum_c_parity.zig inside the current directly readable parity packet.",
+  "perf_evidence_readback_note": "Verified the current Phase 6 perf packet on 2026-05-20 from direct current-master readback of zigux/tests/phase6_base64_perf.zig, zigux/tests/fixtures/phase6_base64_vectors.zig, zigux/tests/phase6_bsearch.zig, zigux/tests/phase6_bsearch_perf.zig, zigux/tests/phase6_bsearch_lower_bound_c_abi.zig, zigux/tests/phase6_bsearch_c_abi_budget.zig, zigux/tests/fixtures/phase6_bsearch_vectors.zig, zigux/tests/phase6_checksum_perf.zig, zigux/tests/fixtures/phase6_checksum_vectors.zig, zigux/tests/phase6_hexdump_perf.zig, zigux/tests/phase6_hexdump_perf_matrix.zig, zigux/tests/fixtures/phase6_hexdump_vectors.zig, Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, zigux/tests/phase6_build.zig, and zigux/Makefile. A later direct perf-packet reread on 2026-05-25 also reconfirmed Documentation/zigux/phase6-perf-gate-survey.md, scripts/zigux/validate_phase6.zig, scripts/zigux/check_phase6_shared_surface.zig, the three dedicated Phase 6 perf-marker guards, zigux/tests/phase6_build.zig, zigux/Makefile, and .github/workflows/zigux-bootstrap.yml still line up on current master, so this parity companion should keep treating the shared perf survey as a live directly readable surface rather than only a one-time 2026-05-22 recovery note.",
   "roadmap_anchors": [
     "lib/base64.c",
     "lib/bsearch.c",
@@ -46,8 +46,8 @@
         "zigux/tests/fixtures/phase6_base64_vectors.zig"
       ],
       "checker_surfaces": [
-        "scripts\zigux/check_phase6_base64_corpus_determinism.zig",
-        "scripts\zigux/check_phase6_base64_c_parity.zig"
+        "scripts/zigux/check_phase6_base64_corpus_determinism.zig",
+        "scripts/zigux/check_phase6_base64_c_parity.zig"
       ],
       "slice_note": "Documentation/zigux/phase6-base64-slice.md",
       "current_review_posture": "direct-helper-readback-restored",
@@ -87,8 +87,8 @@
         "zigux/tests/fixtures/phase6_bsearch_vectors.zig"
       ],
       "checker_surfaces": [
-        "scripts\zigux/check_phase6_bsearch_corpus_evidence.zig",
-        "scripts\zigux/check_phase6_bsearch_c_parity.zig"
+        "scripts/zigux/check_phase6_bsearch_corpus_evidence.zig",
+        "scripts/zigux/check_phase6_bsearch_c_parity.zig"
       ],
       "direct_c_parity_case_count": 17,
       "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
@@ -143,8 +143,8 @@
         "zigux/tests/fixtures/phase6_checksum_vectors.zig"
       ],
       "checker_surfaces": [
-        "scripts\zigux/check_phase6_checksum_corpus_evidence.zig",
-        "scripts\zigux/check_phase6_checksum_c_parity.zig"
+        "scripts/zigux/check_phase6_checksum_corpus_evidence.zig",
+        "scripts/zigux/check_phase6_checksum_c_parity.zig"
       ],
       "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
       "current_review_posture": "direct-helper-readback-restored",
@@ -214,8 +214,8 @@
         "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
       ],
       "checker_surfaces": [
-        "scripts\zigux/check_phase6_hexdump_packet.zig",
-        "scripts\zigux/check_phase6_hexdump_route.zig"
+        "scripts/zigux/check_phase6_hexdump_packet.zig",
+        "scripts/zigux/check_phase6_hexdump_route.zig"
       ],
       "slice_note": "Documentation/zigux/phase6-hexdump-slice.md",
       "perf_refresh_note": "Documentation/zigux/phase6-hexdump-perf-refresh.md",

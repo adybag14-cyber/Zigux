@@ -107,7 +107,7 @@ const MANIFEST_REL = "zigux/tests/fixtures/phase1_helper_manifest.json";
 
 const PHASE1_CLOSURE_REL = "Documentation/zigux/phase1-closure.md";
 
-const PHASE1_CLOSURE_VALIDATOR_REL = "scripts\\zigux/validate_phase1_closure.zig";
+const PHASE1_CLOSURE_VALIDATOR_REL = "scripts/zigux/validate_phase1_closure.zig";
 
 const RBTREE_HELPER_REL = "tools/lib/rbtree.zig";
 
@@ -180,8 +180,8 @@ const REQUIRED_FILES = [_][]const u8{
     "Documentation/zigux/review-checklist.md",
     "zigux/tests/README.md",
     "scripts/zigux/README.md",
-    "scripts\\zigux/validate_phase1_closure.zig",
-    "scripts\\zigux/check_phase1_shared_reminder_packet.zig",
+    "scripts/zigux/validate_phase1_closure.zig",
+    "scripts/zigux/check_phase1_shared_reminder_packet.zig",
     "zigux/tests/fixtures/phase1_helper_manifest.json",
     "tools/lib/bitmap.zig",
     "tools/lib/find_bit.zig",
@@ -193,7 +193,7 @@ const REVIEW_CHECKLIST_REL = "Documentation/zigux/review-checklist.md";
 
 const SCRIPTS_README_REL = "scripts/zigux/README.md";
 
-const SHARED_REMINDER_CHECKER_REL = "scripts\\zigux/check_phase1_shared_reminder_packet.zig";
+const SHARED_REMINDER_CHECKER_REL = "scripts/zigux/check_phase1_shared_reminder_packet.zig";
 
 const STRING_HELPER_REL = "tools/lib/string.zig";
 
@@ -210,116 +210,7 @@ fn collectFailures(
         failures.deinit(allocator);
     }
 
-    {
-        const relative_path = "Documentation/zigux/phase1-host-helper-lane-sequencing.md";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        if (!guard.pathExists(io, full_path)) {
-            const issue = try std.fmt.allocPrint(allocator, "missing_file:{s}", .{relative_path});
-            try failures.append(allocator, issue);
-        }
-    }
-    {
-        const relative_path = "Documentation/zigux/README.md";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        if (!guard.pathExists(io, full_path)) {
-            const issue = try std.fmt.allocPrint(allocator, "missing_file:{s}", .{relative_path});
-            try failures.append(allocator, issue);
-        }
-    }
-    {
-        const relative_path = "Documentation/zigux/phase1-closure.md";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        if (!guard.pathExists(io, full_path)) {
-            const issue = try std.fmt.allocPrint(allocator, "missing_file:{s}", .{relative_path});
-            try failures.append(allocator, issue);
-        }
-    }
-    {
-        const relative_path = "Documentation/zigux/review-checklist.md";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        if (!guard.pathExists(io, full_path)) {
-            const issue = try std.fmt.allocPrint(allocator, "missing_file:{s}", .{relative_path});
-            try failures.append(allocator, issue);
-        }
-    }
-    {
-        const relative_path = "zigux/tests/README.md";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        if (!guard.pathExists(io, full_path)) {
-            const issue = try std.fmt.allocPrint(allocator, "missing_file:{s}", .{relative_path});
-            try failures.append(allocator, issue);
-        }
-    }
-    {
-        const relative_path = "scripts/zigux/README.md";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        if (!guard.pathExists(io, full_path)) {
-            const issue = try std.fmt.allocPrint(allocator, "missing_file:{s}", .{relative_path});
-            try failures.append(allocator, issue);
-        }
-    }
-    {
-        const relative_path = "scripts\\zigux/validate_phase1_closure.zig";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        if (!guard.pathExists(io, full_path)) {
-            const issue = try std.fmt.allocPrint(allocator, "missing_file:{s}", .{relative_path});
-            try failures.append(allocator, issue);
-        }
-    }
-    {
-        const relative_path = "scripts\\zigux/check_phase1_shared_reminder_packet.zig";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        if (!guard.pathExists(io, full_path)) {
-            const issue = try std.fmt.allocPrint(allocator, "missing_file:{s}", .{relative_path});
-            try failures.append(allocator, issue);
-        }
-    }
-    {
-        const relative_path = "zigux/tests/fixtures/phase1_helper_manifest.json";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        if (!guard.pathExists(io, full_path)) {
-            const issue = try std.fmt.allocPrint(allocator, "missing_file:{s}", .{relative_path});
-            try failures.append(allocator, issue);
-        }
-    }
-    {
-        const relative_path = "tools/lib/bitmap.zig";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        if (!guard.pathExists(io, full_path)) {
-            const issue = try std.fmt.allocPrint(allocator, "missing_file:{s}", .{relative_path});
-            try failures.append(allocator, issue);
-        }
-    }
-    {
-        const relative_path = "tools/lib/find_bit.zig";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        if (!guard.pathExists(io, full_path)) {
-            const issue = try std.fmt.allocPrint(allocator, "missing_file:{s}", .{relative_path});
-            try failures.append(allocator, issue);
-        }
-    }
-    {
-        const relative_path = "tools/lib/rbtree.zig";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        if (!guard.pathExists(io, full_path)) {
-            const issue = try std.fmt.allocPrint(allocator, "missing_file:{s}", .{relative_path});
-            try failures.append(allocator, issue);
-        }
-    }
-    {
-        const relative_path = "tools/lib/string.zig";
+    for (REQUIRED_FILES) |relative_path| {
         const full_path = try guard.joinPath(allocator, root, relative_path);
         defer allocator.free(full_path);
         if (!guard.pathExists(io, full_path)) {
@@ -366,90 +257,23 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
         defer allocator.free(updated);
         try guard.writeUtf8File(io, full_path, updated);
     }
-    {
-        const relative_path = "Documentation/zigux/phase1-host-helper-lane-sequencing.md";
+    for (REQUIRED_FILES) |relative_path| {
         const full_path = try guard.joinPath(allocator, root, relative_path);
         defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "Documentation/zigux/README.md";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "Documentation/zigux/phase1-closure.md";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "Documentation/zigux/review-checklist.md";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "zigux/tests/README.md";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "scripts/zigux/README.md";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "scripts\\zigux/validate_phase1_closure.zig";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "scripts\\zigux/check_phase1_shared_reminder_packet.zig";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "zigux/tests/fixtures/phase1_helper_manifest.json";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "tools/lib/bitmap.zig";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "tools/lib/find_bit.zig";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "tools/lib/rbtree.zig";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
-    }
-    {
-        const relative_path = "tools/lib/string.zig";
-        const full_path = try guard.joinPath(allocator, root, relative_path);
-        defer allocator.free(full_path);
-        try guard.writeUtf8File(io, full_path, "\n");
+        if (!guard.pathExists(io, full_path)) {
+            try guard.writeUtf8File(io, full_path, "# sample\n");
+        }
     }
     var failures = try collectFailures(io, allocator, root);
     defer {
         for (failures.items) |item| allocator.free(item);
         failures.deinit(allocator);
     }
-    try guard.expectSelfTest(failures.items.len == 0);
+    if (failures.items.len != 0) {
+        try guard.printLine(io, "PHASE1_DIRECT_OWNER_MARKERS_SELF_TEST=fail", .{});
+        for (failures.items) |failure| try guard.printLine(io, "{s}", .{failure});
+        return guard.GuardError.SelfTestFailed;
+    }
     try guard.printLine(io, "{s}", .{pass_marker});
     try guard.printLine(io, "PHASE1_DIRECT_OWNER_MARKERS_SELF_TEST_CASE_COUNT={d}", .{@as(usize, 1)});
     return 0;
@@ -458,7 +282,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var explicit_root: ?[]const u8 = null;
     var self_test = false;

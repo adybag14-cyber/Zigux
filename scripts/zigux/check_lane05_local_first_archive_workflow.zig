@@ -80,13 +80,12 @@ const repo_archive_check_pair = guard.RoutePair{
 };
 
 const POLICY_MARKERS = [_][]const u8{
-
     "policy = json.loads(Path(\"scripts/zigux/zig-toolchain-policy.json\").read_text(encoding=\"utf-8\"))",
     "targets = policy[\"upgrade_policy\"][\"archive_target_scope\"]",
     "channel = policy[\"channel\"]",
     "filename = f\"zig-{target}-{channel}.tar.xz\"",
     "canonical_repo = \"adybag14-cyber/zig\"",
-    "canonical_tag = \"upstream-a3ae499dc297\"",
+    "canonical_tag = \"upstream-64dfaa568db0\"",
     "url = f\"https://ziglang.org/builds/{filename}\"",
     "canonical_url = f\"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}\"",
     "print(f\"ZIGUX_ZIG_TARGET='{target}'\")",
@@ -641,4 +640,3 @@ pub fn main(init: std.process.Init) !void {
     try checkWorkflow(io, allocator, text);
     try guard.printLine(io, "{s}", .{pass_marker});
 }
-

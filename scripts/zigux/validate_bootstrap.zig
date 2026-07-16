@@ -15,7 +15,6 @@ const REQUIRED_PATHS = [_][]const u8{
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/freeze-map.md",
     "scripts/zigux/README.md",
-    "scripts\\zigux/check_zig_toolchain.zig",
     "scripts/zigux/check_zig_toolchain.zig",
     "scripts/zigux/check_lane01_bootstrap_charter_alignment.zig",
     "scripts/zigux/check_lane05_local_first_archive_workflow.zig",
@@ -36,7 +35,7 @@ const REQUIRED_PATHS = [_][]const u8{
 const README_MARKERS = [_][]const u8{
     "`zigux-alpha` is the Zigux bootstrap workspace.",
     "Use the roadmap and bootstrap commit ledger together when choosing the next bootstrap lane.",
-    "`scripts\\zigux/check_lane01_bootstrap_charter_alignment.zig` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet.",
+    "`scripts/zigux/check_lane01_bootstrap_charter_alignment.zig` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet.",
 };
 
 const ROADMAP_MARKERS = [_][]const u8{
@@ -213,7 +212,7 @@ fn runSelfTest(io: Io) !u8 {
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var self_test = false;
     var explicit_root: ?[]const u8 = null;

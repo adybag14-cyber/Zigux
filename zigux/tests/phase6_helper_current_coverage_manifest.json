@@ -30,7 +30,7 @@
         "zigux/tests/fixtures/phase6_base64_c_harness.c",
         "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
         "zigux/tests/phase6_base64_c_casegen.zig",
-        "scripts\zigux/check_phase6_base64_c_parity.zig"
+        "scripts/zigux/check_phase6_base64_c_parity.zig"
       ]
     },
     {
@@ -51,7 +51,7 @@
         "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
         "zigux/tests/phase6_bsearch_c_abi_budget.zig",
         "zigux/tests/fixtures/phase6_bsearch_c_harness.c",
-        "scripts\zigux/check_phase6_bsearch_c_parity.zig"
+        "scripts/zigux/check_phase6_bsearch_c_parity.zig"
       ]
     },
     {
@@ -70,7 +70,7 @@
         "zigux/tests/phase6_checksum_perf.zig",
         "zigux/tests/phase6_checksum_c_parity.zig",
         "zigux/tests/fixtures/phase6_checksum_c_harness.c",
-        "scripts\zigux/check_phase6_checksum_c_parity.zig"
+        "scripts/zigux/check_phase6_checksum_c_parity.zig"
       ]
     },
     {
@@ -90,9 +90,9 @@
         "zigux/tests/phase6_hexdump_perf_matrix.zig",
         "zigux/tests/phase6_hexdump_c_parity.zig",
         "zigux/tests/fixtures/phase6_hexdump_c_harness.c",
-        "scripts\zigux/check_phase6_hexdump_c_parity.zig",
-        "scripts\zigux/check_phase6_hexdump_packet.zig",
-        "scripts\zigux/check_phase6_hexdump_route.zig"
+        "scripts/zigux/check_phase6_hexdump_c_parity.zig",
+        "scripts/zigux/check_phase6_hexdump_packet.zig",
+        "scripts/zigux/check_phase6_hexdump_route.zig"
       ]
     }
   ]

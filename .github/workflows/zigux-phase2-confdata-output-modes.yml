@@ -5,14 +5,14 @@ on:
     branches: [ master ]
     paths:
       - 'scripts/zigux/kconfig/confdata_bridge.zig'
-      - 'scripts\zigux/check_phase2_confdata_output_modes.zig'
+      - 'scripts/zigux/check_phase2_confdata_output_modes.zig'
       - '.github/workflows/zigux-phase2-confdata-output-modes.yml'
       - 'scripts/zigux/zig-toolchain-policy.json'
       - 'third_party/**'
   pull_request:
     paths:
       - 'scripts/zigux/kconfig/confdata_bridge.zig'
-      - 'scripts\zigux/check_phase2_confdata_output_modes.zig'
+      - 'scripts/zigux/check_phase2_confdata_output_modes.zig'
       - '.github/workflows/zigux-phase2-confdata-output-modes.yml'
       - 'scripts/zigux/zig-toolchain-policy.json'
       - 'third_party/**'
@@ -43,13 +43,57 @@ jobs:
           python-version: '3.x'
 
       - name: Setup pinned Zig toolchain
-        run: zig run scripts/zigux/install_zig.zig
+        run: |
+          set -euxo pipefail
+          eval "$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))
+          target = "x86_64-linux"
+          if target not in policy["upgrade_policy"]["archive_target_scope"]:
+              raise SystemExit(f"missing required Linux CI archive target: {target}")
+          channel = policy["channel"]
+          filename = f"zig-{target}-{channel}.tar.xz"
+          canonical_repo = "adybag14-cyber/zig"
+          canonical_tag = "upstream-64dfaa568db0"
+          canonical_url = f"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}"
+          print(f"ZIGUX_ZIG_TARGET='{target}'")
+          print(f"ZIGUX_ZIG_CHANNEL='{channel}'")
+          print(f"ZIGUX_ZIG_FILENAME='{filename}'")
+          print(f"ZIGUX_ZIG_CANONICAL_URL='{canonical_url}'")
+          PY
+          )"
+          archive="$RUNNER_TEMP/$ZIGUX_ZIG_FILENAME"
+          install_parent="$RUNNER_TEMP/zigux-toolchain"
+          extract_root="$install_parent/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL"
+          rm -f "$archive"
+          rm -rf "$install_parent"
+          mkdir -p "$install_parent"
+          curl --fail             --location             --retry 5             --retry-all-errors             --retry-delay 3             "$ZIGUX_ZIG_CANONICAL_URL"             -o "$archive"
+          python3 - "$archive" "$ZIGUX_ZIG_TARGET" <<'PY'
+          import hashlib
+          import json
+          import sys
+          from pathlib import Path
+
+          archive, target = sys.argv[1], sys.argv[2]
+          policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))
+          expected = policy["archive_sha256"][target]
+          actual = hashlib.sha256(Path(archive).read_bytes()).hexdigest()
+          if actual != expected:
+              raise SystemExit(f"pinned archive sha256 mismatch: expected {expected}, got {actual}")
+          PY
+          tar -xJf "$archive" -C "$install_parent"
+          test -x "$extract_root/zig"
+          echo "$extract_root" >> "$GITHUB_PATH"
+          "$extract_root/zig" version
 
       - name: Compile confdata output-mode gate
-        run: python3 -m py_compile scripts\zigux/check_phase2_confdata_output_modes.zig
+        run: zig test scripts/zigux/check_phase2_confdata_output_modes.zig
 
       - name: Self-test confdata output-mode gate
-        run: zig run check_phase2_confdata_output_modes.zig --self-test
+        run: zig run scripts/zigux/check_phase2_confdata_output_modes.zig -- --self-test
 
       - name: Check deterministic confdata output modes
-        run: zig run check_phase2_confdata_output_modes.zig
+        run: zig run scripts/zigux/check_phase2_confdata_output_modes.zig

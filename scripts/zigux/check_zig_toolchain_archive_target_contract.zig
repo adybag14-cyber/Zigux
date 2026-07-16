@@ -28,10 +28,20 @@ test "expected archive metadata rejects out-of-scope targets" {
     try std.testing.expectError(resolver.ResolverError.InvalidArgument, result);
 }
 
-test "single-target policy can infer archive target for explicit archive path" {
+test "multi-target policy requires an explicit target for an explicit archive path" {
     const json = @embedFile("zig-toolchain-policy.json");
     var loaded = try policy.loadPolicyFromJson(std.testing.allocator, json);
     defer policy.freePolicy(std.testing.allocator, &loaded);
+
+    const ambiguous = resolver.resolvePolicyArchive(
+        std.testing.io,
+        std.testing.allocator,
+        &loaded,
+        ".",
+        "third_party/explicit.tar.xz",
+        null,
+    );
+    try std.testing.expectError(resolver.ResolverError.InvalidArgument, ambiguous);
 
     const resolved = try resolver.resolvePolicyArchive(
         std.testing.io,
@@ -39,7 +49,7 @@ test "single-target policy can infer archive target for explicit archive path" {
         &loaded,
         ".",
         "third_party/explicit.tar.xz",
-        null,
+        "x86_64-linux",
     );
     defer resolver.freeResolvedArchive(std.testing.allocator, resolved);
     try std.testing.expectEqualStrings("x86_64-linux", resolved.target.?);

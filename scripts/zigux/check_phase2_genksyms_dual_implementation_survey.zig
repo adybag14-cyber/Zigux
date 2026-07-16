@@ -29,7 +29,9 @@ fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {
 }
 
 fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
-    try checkRepo(io, allocator, try guard.defaultRepoRoot(allocator));
+    const root = try guard.defaultRepoRoot(allocator);
+    defer allocator.free(root);
+    try checkRepo(io, allocator, root);
     try guard.printLine(io, "{s}", .{self_test_pass_marker});
     return 0;
 }
@@ -37,7 +39,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var self_test = false;
     var explicit_root: ?[]const u8 = null;

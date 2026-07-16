@@ -90,7 +90,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var explicit_root: ?[]const u8 = null;
     var explicit_zig: ?[]const u8 = null;
@@ -157,7 +157,8 @@ pub fn main(init: std.process.Init) !void {
         std.process.exit(1);
     }
 
-    const zig_path = guard.findZigExecutable(io, allocator, root, explicit_zig) catch {
+    const requested_zig = explicit_zig orelse init.environ_map.get("ZIG");
+    const zig_path = guard.findZigExecutable(io, allocator, root, requested_zig) catch {
         try guard.printLine(io, "zig not found; pass --zig or add zig to PATH", .{});
         std.process.exit(1);
     };

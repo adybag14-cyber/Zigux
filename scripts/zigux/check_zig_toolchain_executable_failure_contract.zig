@@ -6,7 +6,7 @@ test "readZigVersion rejects missing executables" {
     try std.testing.expectError(resolver.ResolverError.InvalidArgument, result);
 }
 
-test "readZigVersion rejects empty version output contractually" {
+test "readZigVersion rejects directory executable paths contractually" {
     const result = resolver.readZigVersion(std.testing.io, std.testing.allocator, ".");
     try std.testing.expectError(resolver.ResolverError.InvalidArgument, result);
 }

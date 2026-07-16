@@ -25,82 +25,82 @@ phase1-route-summary:
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase1_route_summary_counts.zig
 
 phase2-toolchain:
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/toolchain_policy.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/toolchain_resolver.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_policy_validation_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_version_evaluation_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_policy_only_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_policy_schema_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_allow_missing_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_archive_only_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_archive_report_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_archive_target_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_executable_failure_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_explicit_archive_path_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_explicit_archive_target_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_explicit_zig_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_repo_local_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_repo_local_priority_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_resolver_priority_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_search_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain_version_status_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/lane03_archive_candidate_ambiguity_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/lane03_toolchain_policy_schema_contract.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig
-	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig -- --self-test
-	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig -- --policy-only
-	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig -- --archive-only --allow-missing
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_lane05_local_first_archive_workflow.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_lane05_local_first_archive_workflow.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_lane05_local_archive_readme.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_lane05_local_archive_readme.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_lane05_install_zig_archive_verification.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_lane05_install_zig_archive_verification.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/install_zig.zig
-	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run $(PHASE2_SCRIPT_ROOT)/install_zig.zig -- --self-test
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/stage_pinned_zig_archive.zig
-	$(ZIG_REPO_ROOT) test $(PHASE2_SCRIPT_ROOT)/lane03_stage_parts_manifest_contract.zig
-	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run $(PHASE2_SCRIPT_ROOT)/stage_pinned_zig_archive.zig -- --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_lane05_stage_helper_contract.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_lane05_stage_helper_contract.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_lane05_stage_helper_selftest.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_lane05_stage_helper_selftest.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_toolchain_pinning.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_toolchain_pinning.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_toolchain_pin_scope.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_toolchain_pin_scope.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/toolchain_policy.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/toolchain_resolver.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_policy_validation_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_version_evaluation_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_policy_only_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_policy_schema_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_allow_missing_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_archive_only_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_archive_report_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_archive_target_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_executable_failure_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_explicit_archive_path_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_explicit_archive_target_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_explicit_zig_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_repo_local_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_repo_local_priority_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_resolver_priority_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_search_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain_version_status_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/lane03_archive_candidate_ambiguity_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/lane03_toolchain_policy_schema_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/check_zig_toolchain.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run scripts/zigux/check_zig_toolchain.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run scripts/zigux/check_zig_toolchain.zig -- --policy-only
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_lane05_local_first_archive_workflow.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_lane05_local_first_archive_workflow.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_lane05_local_archive_readme.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_lane05_local_archive_readme.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_lane05_install_zig_archive_verification.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_lane05_install_zig_archive_verification.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/install_zig.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run scripts/zigux/install_zig.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/stage_pinned_zig_archive.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/lane03_stage_parts_manifest_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run scripts/zigux/stage_pinned_zig_archive.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_lane05_stage_helper_contract.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_lane05_stage_helper_contract.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_lane05_stage_helper_selftest.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_lane05_stage_helper_selftest.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_toolchain_pinning.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_toolchain_pinning.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_toolchain_pin_scope.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_toolchain_pin_scope.zig
 
 phase2-tools:
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_docs_shared_reminder.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_docs_shared_reminder.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_required_make_routes.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_required_make_routes.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_bootstrap_workflow_routes.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_bootstrap_workflow_routes.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_artifact_tools_manifest.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_artifact_tools_manifest.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_kbuild_routes.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_kbuild_routes.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_docs_shared_reminder.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_docs_shared_reminder.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_required_make_routes.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_required_make_routes.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_artifact_tools_manifest.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_artifact_tools_manifest.zig
 
 phase2-kconfig: phase2-toolchain
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_kconfig_bridge.zig --self-test
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_kconfig_bridge.zig --zig "$(ZIG_REPO_ROOT)"
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_kconfig_bridge.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_kconfig_bridge.zig
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/kconfig/conf_bridge.zig
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/kconfig/conf_bridge_savedefconfig_mode_arg_escape_surface_test.zig
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/kconfig/confdata_bridge.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kconfig_selftest_alignment.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kconfig_selftest_alignment.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kconfig_allconfig_helper_packet.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kconfig_allconfig_helper_packet.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_kconfig_selftest_alignment.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_kconfig_selftest_alignment.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig
 
 phase2-cross:
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_cross.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_cross.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_cross_selftest_alignment.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_cross_selftest_alignment.zig
 
 phase2-genksyms: phase2-toolchain
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_genksyms_bridge.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_genksyms_bridge.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_genksyms_bridge.zig
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms.zig
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_version_before_invalid_long_option_test.zig
@@ -108,24 +108,24 @@ phase2-genksyms: phase2-toolchain
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_inline_short_option_argument_test.zig
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_repeated_version_before_abbrev_argument_failure_test.zig
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms_abbreviated_warning_quiet_terminator_test.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_genksyms_selftest_alignment.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_genksyms_selftest_alignment.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_genksyms_dual_implementation_survey.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_genksyms_dual_implementation_survey.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_genksyms_selftest_alignment.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_genksyms_selftest_alignment.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig
 
 phase2-fixdep: phase2-toolchain
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_fixdep_gate.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_fixdep_gate.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_fixdep_gate.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_fixdep_diff.zig --self-test
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_fixdep_diff.zig --zig "$(ZIG_REPO_ROOT)"
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_fixdep_diff.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_fixdep_diff.zig -- --zig "$(ZIG_REPO_ROOT)"
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/fixdep.zig
 
 phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_tests_readme_alignment.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_tests_readme_alignment.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_tool_manifest.zig --self-test
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_tool_manifest.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase2_closure.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_tests_readme_alignment.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_tests_readme_alignment.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_tool_manifest.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_tool_manifest.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase2_closure.zig
 
 phase2: phase2-validate
 

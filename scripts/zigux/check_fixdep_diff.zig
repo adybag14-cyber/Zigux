@@ -36,6 +36,39 @@ const EXPECTED_CASES = [_]ExpectedCase{
     .{ .name = "sample_output_write", .depfile = "sample.d", .target = "sample_output_write.o", .cmdline = "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_output_write.o", .expected = "sample_output_write_expected.txt", .expected_stderr = "sample_output_write_expected.stderr.txt", .expected_exit_code = 1, .stdout_mode = "dev_full" },
 };
 
+const WINDOWS_UNREPRESENTABLE_FIXTURE_FILES = [_][]const u8{
+    "dep:colon.so",
+    "dep\\ name.rmeta",
+    "escaped\\ space-config.h",
+    "shared:config.h",
+};
+
+const WINDOWS_UNRUNNABLE_CASES = [_][]const u8{
+    "sample_escaped_space",
+    "sample_escaped_colon",
+    "sample_concatenated",
+    "sample_dependency_continuation",
+    "sample_comment_only_stdout_full",
+    "sample_missing_dep_stdout_full",
+    "sample_output_write",
+};
+
+fn fixtureRepresentableOnHost(name: []const u8) bool {
+    if (builtin.os.tag != .windows) return true;
+    for (WINDOWS_UNREPRESENTABLE_FIXTURE_FILES) |invalid_name| {
+        if (std.mem.eql(u8, name, invalid_name)) return false;
+    }
+    return true;
+}
+
+fn caseRunnableOnHost(name: []const u8) bool {
+    if (builtin.os.tag != .windows) return true;
+    for (WINDOWS_UNRUNNABLE_CASES) |invalid_case| {
+        if (std.mem.eql(u8, name, invalid_case)) return false;
+    }
+    return true;
+}
+
 const SUPPORT_FIXTURE_FILES = [_][]const u8{
     "cases.json",
     "dep:colon.so",
@@ -76,7 +109,10 @@ fn findZig(io: Io, allocator: std.mem.Allocator, root: []const u8, explicit: ?[]
 
 fn expectedFixtureFiles(allocator: std.mem.Allocator) !std.StringHashMap(void) {
     var files = std.StringHashMap(void).init(allocator);
-    for (SUPPORT_FIXTURE_FILES) |name| try files.put(name, {});
+    for (SUPPORT_FIXTURE_FILES) |name| {
+        if (!fixtureRepresentableOnHost(name)) continue;
+        try files.put(name, {});
+    }
     try files.put("cases.json", {});
     for (EXPECTED_CASES) |case_item| {
         try files.put(case_item.depfile, {});
@@ -96,11 +132,17 @@ fn validateFixtureInventory(io: Io, allocator: std.mem.Allocator, fixture_dir: [
     var dir = try std.Io.Dir.cwd().openDir(io, fixture_dir, .{ .iterate = true });
     defer dir.close(io);
     var actual = std.StringHashMap(void).init(allocator);
-    defer actual.deinit();
+    defer {
+        var keys = actual.keyIterator();
+        while (keys.next()) |key| allocator.free(key.*);
+        actual.deinit();
+    }
     var it = dir.iterate();
     while (try it.next(io)) |entry| {
         if (entry.kind != .file) continue;
-        try actual.put(entry.name, {});
+        const owned_name = try allocator.dupe(u8, entry.name);
+        errdefer allocator.free(owned_name);
+        try actual.put(owned_name, {});
     }
     var eit = expected.iterator();
     while (eit.next()) |entry| {
@@ -220,8 +262,50 @@ fn expectFailure(io: Io, allocator: std.mem.Allocator, label: []const u8, expect
 }
 
 fn runRedirected(io: Io, allocator: std.mem.Allocator, argv: []const []const u8, cwd: []const u8, stdout_mode: ?[]const u8) !guard.ProcessOutput {
-    _ = stdout_mode;
-    return guard.runProcessCapture(io, allocator, argv, cwd);
+    const mode = stdout_mode orelse return guard.runProcessCapture(io, allocator, argv, cwd);
+    if (!std.mem.eql(u8, mode, "dev_full")) return error.UnsupportedStdoutMode;
+    if (builtin.os.tag == .windows) return error.UnsupportedStdoutMode;
+
+    var full = try std.Io.Dir.cwd().openFile(io, "/dev/full", .{ .mode = .write_only });
+    defer full.close(io);
+
+    var child = try std.process.spawn(io, .{
+        .argv = argv,
+        .cwd = .{ .path = cwd },
+        .stdin = .ignore,
+        .stdout = .{ .file = full },
+        .stderr = .pipe,
+    });
+    defer child.kill(io);
+
+    var multi_reader_buffer: Io.File.MultiReader.Buffer(1) = undefined;
+    var multi_reader: Io.File.MultiReader = undefined;
+    multi_reader.init(allocator, io, multi_reader_buffer.toStreams(), &.{child.stderr.?});
+    defer multi_reader.deinit();
+
+    const stderr_reader = multi_reader.reader(0);
+    while (multi_reader.fill(64, .none)) |_| {
+        if (stderr_reader.buffered().len > 8 * 1024 * 1024) return error.StreamTooLong;
+    } else |err| switch (err) {
+        error.EndOfStream => {},
+        else => |e| return e,
+    }
+    try multi_reader.checkAnyError();
+
+    const term = try child.wait(io);
+    const stdout_slice = try allocator.alloc(u8, 0);
+    errdefer allocator.free(stdout_slice);
+    const stderr_slice = try multi_reader.toOwnedSlice(0);
+    errdefer allocator.free(stderr_slice);
+    const exit_code: u8 = switch (term) {
+        .exited => |code| code,
+        else => 1,
+    };
+    return .{
+        .stdout = stdout_slice,
+        .stderr = stderr_slice,
+        .exit_code = exit_code,
+    };
 }
 
 fn runZig(io: Io, allocator: std.mem.Allocator, root: []const u8, zig: []const u8, tmp_dir: []const u8, depfile: []const u8, target: []const u8, cmdline: []const u8, stdout_mode: ?[]const u8) !guard.ProcessOutput {
@@ -251,7 +335,13 @@ fn diffText(io: Io, allocator: std.mem.Allocator, root: []const u8, zig: []const
         allocator.free(output.stdout);
         allocator.free(output.stderr);
     }
-    if (output.exit_code != 0) return error.DiffFailed;
+    if (output.exit_code != 0) {
+        try guard.printLine(io, "FIXDEP_DIFF_FAILED_EXPECTED={s}", .{expected});
+        try guard.printLine(io, "FIXDEP_DIFF_FAILED_ACTUAL={s}", .{actual});
+        if (output.stdout.len != 0) try guard.printLine(io, "FIXDEP_DIFF_STDOUT={s}", .{output.stdout});
+        if (output.stderr.len != 0) try guard.printLine(io, "FIXDEP_DIFF_STDERR={s}", .{output.stderr});
+        return error.DiffFailed;
+    }
 }
 
 fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
@@ -307,14 +397,23 @@ fn runLive(io: Io, allocator: std.mem.Allocator, root: []const u8, zig: []const 
     var expected_files = try expectedFixtureFiles(allocator);
     defer expected_files.deinit();
     try validateFixtureInventory(io, allocator, fixture_dir, &expected_files);
-    const cases_text = try guard.readUtf8File(io, allocator, try guard.joinPath(allocator, root, CASES_REL));
+    const cases_path = try guard.joinPath(allocator, root, CASES_REL);
+    defer allocator.free(cases_path);
+    const cases_text = try guard.readUtf8File(io, allocator, cases_path);
     defer allocator.free(cases_text);
     const parsed = try guard.parseJsonValue(allocator, cases_text);
     defer parsed.deinit();
     try validateCases(io, allocator, root, parsed.value);
     try validateToolSource(zig_fixdep, zig_fixdep);
 
+    var executed_cases: usize = 0;
+    var skipped_host_cases: usize = 0;
     for (EXPECTED_CASES) |case_item| {
+        if (!caseRunnableOnHost(case_item.name)) {
+            skipped_host_cases += 1;
+            continue;
+        }
+        executed_cases += 1;
         var tmp = try guard.TempWorkspace.init(io, allocator, case_item.name);
         const tmp_dir = try tmp.rootPath(allocator);
         defer {
@@ -357,7 +456,10 @@ fn runLive(io: Io, allocator: std.mem.Allocator, root: []const u8, zig: []const 
             allocator.free(zig_repeat.stdout);
             allocator.free(zig_repeat.stderr);
         }
-        if (zig_result.exit_code != case_item.expected_exit_code or zig_repeat.exit_code != zig_result.exit_code) return 1;
+        if (zig_result.exit_code != case_item.expected_exit_code or zig_repeat.exit_code != zig_result.exit_code) {
+            try guard.printLine(io, "FIXDEP_CASE_EXIT_MISMATCH={s}:expected={d}:first={d}:repeat={d}", .{ case_item.name, case_item.expected_exit_code, zig_result.exit_code, zig_repeat.exit_code });
+            return 1;
+        }
 
         const repeat_stdout_path = try std.fmt.allocPrint(allocator, "{s}/fixdep.zig.repeat.txt", .{tmp_dir});
         defer allocator.free(repeat_stdout_path);
@@ -380,6 +482,8 @@ fn runLive(io: Io, allocator: std.mem.Allocator, root: []const u8, zig: []const 
     } else {
         try guard.printLine(io, "FIXDEP_DIFF=pass", .{});
         try guard.printLine(io, "FIXDEP_DETERMINISM=pass", .{});
+        try guard.printLine(io, "FIXDEP_EXECUTED_CASE_COUNT={d}", .{executed_cases});
+        try guard.printLine(io, "FIXDEP_HOST_SKIPPED_CASE_COUNT={d}", .{skipped_host_cases});
         try guard.printLine(io, "FIXTURE_DIR={s}", .{fixture_dir});
     }
     return 0;
@@ -388,7 +492,7 @@ fn runLive(io: Io, allocator: std.mem.Allocator, root: []const u8, zig: []const 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(allocator);
+    const args = try init.minimal.args.toSlice(init.arena.allocator());
 
     var self_test = false;
     var refresh = false;

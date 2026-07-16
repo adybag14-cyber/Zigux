@@ -204,7 +204,7 @@
       "id": "phase14-workqueue-study-only-guardrail",
       "status": "starter_landed",
       "kind": "validation",
-      "zigux_destination": "scripts\zigux/check_phase14_workqueue_study_only_guardrail.zig",
+      "zigux_destination": "scripts/zigux/check_phase14_workqueue_study_only_guardrail.zig",
       "why_now": "A dedicated study-only guardrail keeps the survey and manifest fail-closed on the direct bridge-local trust gate, the blocked-maintenance posture, and the live-execution blocker instead of letting shared-route presence read as stronger workqueue evidence."
     },
     {
