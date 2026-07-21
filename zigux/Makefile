@@ -18,7 +18,7 @@ PHONY += phase3-abi-core-packet phase3-abi-export phase3-list-hlist-starter-pack
 PHONY += phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4
 PHONY += phase10-validate phase10-test phase10
 
-.PHONY: phase1-route-summary phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2 phase3-validate phase3 phase3-abi-core-packet phase3-abi-export phase3-list-hlist-starter-packet phase3-list-hlist-dump phase3-idr-slot-starter-packet-test phase3-idr-slot-dump phase3-xarray-slot-starter-packet phase3-xarray-slot-starter-packet-test phase3-xarray-slot-dump phase3-test phase3-dump phase3-policy-dump phase3-policy-unsafe-test phase3-export-uapi-layout phase3-low-level-wrappers phase3-export-uapi-layout-test phase3-low-level-wrappers-test phase3-policy-starter-packet-test phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4 phase6-validate phase6-base64-test phase6-base64-perf phase6-bsearch-test phase6-bsearch-perf phase6-checksum-test phase6-checksum-perf-matrix-test phase6-checksum-perf phase6-hexdump-review phase6-hexdump-perf-matrix-test phase6-hexdump-test phase6-hexdump-perf phase6-perf phase7-validate phase7-rbtree-test phase7-rbtree-survey phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-file-path-handle-bridge-test phase8-perf-buffer-poll-test phase8-test phase8 phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-loader-command-env-boundary-guard-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test phase9-test phase10-validate phase10-test phase10 phase11-validate phase12-validate phase12-smoke phase12-test phase12-virtio-net-syntax-lab-test phase12-virtio-net-throughput-parity-test phase12-nvme-pci-direct-test phase12-nvme-pci-survey-test phase12 phase14-validate
+.PHONY: phase1-route-summary phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2 phase3-validate phase3 phase3-abi-core-packet phase3-abi-export phase3-list-hlist-starter-packet phase3-list-hlist-dump phase3-idr-slot-starter-packet-test phase3-idr-slot-dump phase3-xarray-slot-starter-packet phase3-xarray-slot-starter-packet-test phase3-xarray-slot-dump phase3-test phase3-dump phase3-policy-dump phase3-policy-unsafe-test phase3-export-uapi-layout phase3-low-level-wrappers phase3-export-uapi-layout-test phase3-low-level-wrappers-test phase3-policy-starter-packet-test phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4 phase6-validate phase6-base64-test phase6-base64-perf phase6-bsearch-test phase6-bsearch-perf phase6-checksum-test phase6-checksum-perf-matrix-test phase6-checksum-perf phase6-hexdump-review phase6-hexdump-perf-matrix-test phase6-hexdump-test phase6-hexdump-perf phase6-perf phase7-validate phase7-rbtree-test phase7-rbtree-survey phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-file-path-handle-bridge-test phase8-perf-buffer-poll-test phase8-test phase8 phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-loader-command-env-boundary-guard-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test phase9-test phase10-validate phase10-test phase10 phase11-validate phase12-validate phase12-smoke phase12-test phase12-virtio-net-syntax-lab-test phase12-virtio-net-throughput-parity-test phase12-nvme-pci-direct-test phase12-nvme-pci-survey-test phase12 phase14-validate phase15-validate phase15-test phase15
 
 phase1-route-summary:
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test
@@ -434,3 +434,34 @@ phase14-validate:
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_rcu_rollback_guardrail.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_release_boundary_exact_counts.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_release_boundary_exact_counts.zig
+
+
+phase15-validate:
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_blocked_route_recovery.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_blocked_route_recovery.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_docs_readme_alignment.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_docs_readme_alignment.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_scripts_readme_alignment.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_scripts_readme_alignment.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_tests_readme_alignment.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_tests_readme_alignment.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_architecture_council_packet.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_architecture_council_packet.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_review_process_handoff.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_review_process_handoff.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_review_checklist_study_only_alignment.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_review_checklist_study_only_alignment.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_handoff_note_alignment.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_handoff_note_alignment.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_shared_summary_gap.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_shared_summary_gap.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_readiness_gate_packet.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase15_readiness_gate_packet.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase15.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase15.zig
+
+phase15-test:
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase15_build.zig --summary all
+	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build test --build-file zigux/tests/phase15_route_gap_boundary_contract_build.zig --summary all
+
+phase15: phase15-validate phase15-test

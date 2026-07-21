@@ -239,7 +239,7 @@ test "phase12 virtio net survey gate keeps the present files and shared routes e
     try expectNotContains(build_zig, "phase12_virtio_net.zig");
     try expectNotContains(build_zig, "phase12_virtio_net_syntax_lab.zig");
 
-    const makefile = try readFileAlloc("zigux/Makefile", 32 * 1024);
+    const makefile = try readFileAlloc("zigux/Makefile", 96 * 1024);
     defer std.testing.allocator.free(makefile);
     try expectContains(makefile, "phase12-validate:");
     try expectContains(makefile, "phase12-smoke:");

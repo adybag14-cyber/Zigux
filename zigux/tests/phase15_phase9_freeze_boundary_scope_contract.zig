@@ -63,6 +63,6 @@ test "docs root preserves phase9 freeze anchor and route split" {
     );
     try expectContains(
         docs_readme,
-        "keep `scripts\zigux/check_phase9_trace_events_direct_summary.zig` and `scripts\zigux/check_phase9_trace_events_summary_preservation.zig` explicit",
+        "keep `scripts\\zigux/check_phase9_trace_events_direct_summary.zig` and `scripts\\zigux/check_phase9_trace_events_summary_preservation.zig` explicit",
     );
 }

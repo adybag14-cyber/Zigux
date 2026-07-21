@@ -96,10 +96,12 @@ pub fn defaultRepoRoot(allocator: std.mem.Allocator) ![]const u8 {
     return try dupePath(allocator, ".");
 }
 
-var tmp_counter: std.atomic.Value(u32) = .init(0);
+var tmp_counter: std.atomic.Value(u64) = .init(0);
 
-fn tmpSuffix() u32 {
-    return tmp_counter.fetchAdd(1, .monotonic);
+fn tmpSuffix(io: Io) u64 {
+    var random_bytes: [8]u8 = undefined;
+    io.random(&random_bytes);
+    return std.mem.readInt(u64, &random_bytes, .little) ^ tmp_counter.fetchAdd(1, .monotonic);
 }
 
 pub fn duplicateArchiveName(
@@ -721,7 +723,7 @@ pub fn resolveSourceArchive(
     }
 
     const parts = parts_dir.?;
-    const temp_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/stage_archive_parts_{d}", .{tmpSuffix()});
+    const temp_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/stage_archive_parts_{d}", .{tmpSuffix(io)});
     try std.Io.Dir.cwd().createDirPath(io, temp_root);
     const reconstructed_source = try std.fmt.allocPrint(allocator, "{s}/{s}", .{ temp_root, metadata.filename });
     const reconstructed_sha = try reconstructArchiveFromParts(
@@ -835,7 +837,7 @@ const RuntimeTmp = struct {
     sub_path: []const u8,
 
     fn init(io: Io, allocator: std.mem.Allocator, prefix: []const u8) !RuntimeTmp {
-        const sub_path = try std.fmt.allocPrint(allocator, "stage_archive_{s}_{d}", .{ prefix, tmpSuffix() });
+        const sub_path = try std.fmt.allocPrint(allocator, "stage_archive_{s}_{d}", .{ prefix, tmpSuffix(io) });
         const root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/{s}", .{sub_path});
         defer allocator.free(root);
         std.Io.Dir.cwd().deleteTree(io, root) catch {};
@@ -1379,12 +1381,14 @@ test "duplicate archive suffix helper matches policy stem" {
 
 test "writeConstantByteFile writes expected archive size" {
     const io = std.testing.io;
-    const root = ".zig-cache/tmp/stage_archive_test_constant";
+    const root = try std.fmt.allocPrint(std.testing.allocator, ".zig-cache/tmp/stage_archive_test_constant_{d}", .{tmpSuffix(io)});
+    defer std.testing.allocator.free(root);
     std.Io.Dir.cwd().deleteTree(io, root) catch {};
     try std.Io.Dir.cwd().createDirPath(io, root);
     defer std.Io.Dir.cwd().deleteTree(io, root) catch {};
 
-    const destination = root ++ "/third_party/zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz";
+    const destination = try std.fmt.allocPrint(std.testing.allocator, "{s}/third_party/zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz", .{root});
+    defer std.testing.allocator.free(destination);
     const expected_size = expected_archive_sizes.get("x86_64-linux").?;
     try writeConstantByteFile(io, destination, 'y', expected_size);
 

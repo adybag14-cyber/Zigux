@@ -9,7 +9,7 @@ const phase4_runtime_atomic64_diff_survey_source = @embedFile("phase4_runtime_at
 // phase4_build_blob_sha=b544acbdc8e9302a18a3bdf5a9a4e5b163b34e99
 // phase4_validator_blob_sha=a90eb4722f6163e466db6db7f636b6f04ca2bf43
 // phase4_validation_matrix_blob_sha=be989762a66ca710e3283075958dcc9f8086dbe5
-// phase4_review_checklist_blob_sha=5d322ca368b4674ae1739f89873a73a8e851bc69
+// phase4_review_checklist_blob_sha=d6dbd42fdc8ead425f31631f8abdbdbbb5a5c750
 // phase9_build_blob_sha=0a093698e7bee23e37b6eb2fceae57bbe310ad29
 
 const Manifest = struct {

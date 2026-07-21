@@ -57,6 +57,76 @@ const phase15_targets = [_]Phase15Target{
         .description = "Run the focused Phase 15 readiness-gate test",
         .root_source_file = "phase15_readiness_gate.zig",
     },
+    .{
+        .step_name = "phase15-route-recovery",
+        .description = "Run the focused Phase 15 route-recovery contract",
+        .root_source_file = "phase15_route_recovery.zig",
+    },
+    .{
+        .step_name = "phase15-decision-index-no-approval-contract",
+        .description = "Run the Phase 15 zero-approval decision-index contract",
+        .root_source_file = "phase15_decision_index_no_approval_contract.zig",
+    },
+    .{
+        .step_name = "phase15-deep-core-blocker-contract",
+        .description = "Run the Phase 15 deep-core blocker contract",
+        .root_source_file = "phase15_deep_core_blocker_contract.zig",
+    },
+    .{
+        .step_name = "phase15-docs-readme-alignment-contract",
+        .description = "Run the Phase 15 docs-root alignment contract",
+        .root_source_file = "phase15_docs_readme_alignment_contract.zig",
+    },
+    .{
+        .step_name = "phase15-docs-root-approval-boundary-contract",
+        .description = "Run the Phase 15 docs-root approval boundary contract",
+        .root_source_file = "phase15_docs_root_approval_boundary_contract.zig",
+    },
+    .{
+        .step_name = "phase15-docs-root-route-gap-contract",
+        .description = "Run the Phase 15 recovered route contract",
+        .root_source_file = "phase15_docs_root_route_gap_contract.zig",
+    },
+    .{
+        .step_name = "phase15-governance-lane-sequencing-contract",
+        .description = "Run the Phase 15 governance sequencing contract",
+        .root_source_file = "phase15_governance_lane_sequencing_contract.zig",
+    },
+    .{
+        .step_name = "phase15-handoff-shared-summary-contract",
+        .description = "Run the Phase 15 handoff summary contract",
+        .root_source_file = "phase15_handoff_shared_summary_contract.zig",
+    },
+    .{
+        .step_name = "phase15-phase9-freeze-boundary-scope-contract",
+        .description = "Run the Phase 15 Phase 9 freeze-boundary contract",
+        .root_source_file = "phase15_phase9_freeze_boundary_scope_contract.zig",
+    },
+    .{
+        .step_name = "phase15-readiness-release-evidence-contract",
+        .description = "Run the Phase 15 release-evidence contract",
+        .root_source_file = "phase15_readiness_release_evidence_contract.zig",
+    },
+    .{
+        .step_name = "phase15-review-checklist-architecture-owner-contract",
+        .description = "Run the Phase 15 checklist owner contract",
+        .root_source_file = "phase15_review_checklist_arch_council_owner_contract.zig",
+    },
+    .{
+        .step_name = "phase15-scripts-readme-alignment-contract",
+        .description = "Run the Phase 15 scripts-root alignment contract",
+        .root_source_file = "phase15_scripts_readme_alignment_contract.zig",
+    },
+    .{
+        .step_name = "phase15-shared-reminder-ownership-contract",
+        .description = "Run the Phase 15 shared reminder ownership contract",
+        .root_source_file = "phase15_shared_reminder_ownership_contract.zig",
+    },
+    .{
+        .step_name = "phase15-validator-governance-contract",
+        .description = "Run the Phase 15 validator governance contract",
+        .root_source_file = "phase15_validator_governance_contract.zig",
+    },
 };
 
 pub fn build(b: *std.Build) void {

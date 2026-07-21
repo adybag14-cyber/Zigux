@@ -1,54 +1,12 @@
 const std = @import("std");
 
-const RepoEvidence = struct {
-    phase15_readiness_packet_checker_present: bool,
-    phase15_architecture_council_packet_checker_present: bool,
-    phase15_validator_script_present: bool,
-    phase15_docs_readme_checker_present: bool,
-    phase15_scripts_readme_checker_present: bool,
-    phase15_tests_readme_checker_present: bool,
-    phase15_review_checklist_study_only_alignment_checker_present: bool,
-    phase15_handoff_note_checker_present: bool,
-    phase15_governance_lane_manifest_present: bool,
-    phase15_governance_lane_replay_present: bool,
-    phase15_handoff_manifest_present: bool,
-    phase15_review_process_build_replay_present: bool,
-    phase15_build_zig_present: bool,
-    phase15_gap_matrix_present: bool,
-    phase15_indefinite_c_lane_owner_alignment_present: bool,
-    phase15_makefile_present: bool,
-    phase15_validate_target_present: bool,
-    phase15_test_target_present: bool,
-    phase15_aggregate_target_present: bool,
-    shared_ci_phase15_present: bool,
-    phase15_replay_green_on_current_master: bool,
-};
-
-const BlockedBroaderRoutes = struct {
-    makefile_path: []const u8,
-    missing_make_targets: []const []const u8,
-    workflow_path: []const u8,
-    missing_workflow_phase15_route: bool,
-};
-
-const Manifest = struct {
-    lane_key: []const u8,
-    phase: []const u8,
-    surveyed_commit_mode: []const u8,
-    surveyed_commit: []const u8,
-    readiness_packet_checker: []const u8,
-    roadmap_ledger_gap_matrix: []const u8,
-    direct_packet_paths: []const []const u8,
-    still_missing_broader_paths: []const []const u8,
-    blocked_broader_routes: BlockedBroaderRoutes,
-    repo_evidence: RepoEvidence,
-    phase15_validate_checkers: []const []const u8,
-};
-
-fn readRepoFile(path: []const u8, limit: usize) ![]u8 {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-    return std.Io.Dir.cwd().readFileAlloc(io_instance.io(), path, std.testing.allocator, .limited(limit));
+fn readRepoFile(path: []const u8) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        path,
+        std.testing.allocator,
+        .limited(1024 * 1024),
+    );
 }
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
@@ -56,138 +14,69 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
 }
 
 fn expectSliceContains(haystack: []const []const u8, needle: []const u8) !void {
-    for (haystack) |entry| {
-        if (std.mem.eql(u8, entry, needle)) return;
-    }
+    for (haystack) |item| if (std.mem.eql(u8, item, needle)) return;
     return error.TestUnexpectedResult;
 }
 
-test "phase 15 readiness manifest preserves the validator-first packet truth" {
-    const manifest_json = try readRepoFile("zigux/tests/phase15_readiness_gate_manifest.json", 24 * 1024);
-    defer std.testing.allocator.free(manifest_json);
+const RepoEvidence = struct {
+    phase15_validate_target_present: bool,
+    phase15_test_target_present: bool,
+    phase15_aggregate_target_present: bool,
+    shared_ci_phase15_present: bool,
+    phase15_replay_green_on_current_master: bool,
+};
+const BlockedBroaderRoutes = struct {
+    missing_make_targets: []const []const u8,
+    missing_workflow_phase15_route: bool,
+};
+const Manifest = struct {
+    surveyed_commit_mode: []const u8,
+    surveyed_commit: []const u8,
+    direct_packet_paths: []const []const u8,
+    still_missing_broader_paths: []const []const u8,
+    blocked_broader_routes: BlockedBroaderRoutes,
+    repo_evidence: RepoEvidence,
+    phase15_validate_checkers: []const []const u8,
+};
 
-    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
-        .ignore_unknown_fields = true,
-    });
+test "phase 15 readiness manifest records recovered wrapper and CI routes" {
+    const source = try readRepoFile("zigux/tests/phase15_readiness_gate_manifest.json");
+    defer std.testing.allocator.free(source);
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, source, .{ .ignore_unknown_fields = true });
     defer parsed.deinit();
-
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
-    try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-27", manifest.surveyed_commit);
-    try std.testing.expectEqualStrings(
-        "scripts\zigux/check_phase15_readiness_gate_packet.zig",
-        manifest.readiness_packet_checker,
-    );
-    try std.testing.expectEqual(@as(usize, 41), manifest.direct_packet_paths.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.phase15_validate_checkers.len);
+
+    try std.testing.expectEqualStrings("current_master_replay", manifest.surveyed_commit_mode);
+    try std.testing.expectEqualStrings("current-master-readback-2026-07-21", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 0), manifest.still_missing_broader_paths.len);
-
-    try expectSliceContains(manifest.direct_packet_paths, "scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig");
-    try expectSliceContains(manifest.direct_packet_paths, "scripts\zigux/check_phase15_readiness_gate_packet.zig");
-    try expectSliceContains(manifest.direct_packet_paths, "scripts\zigux/validate_phase15.zig");
-    try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_architecture_council_review_process_build.zig");
-    try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_freeze_map_governance.zig");
-    try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_handoff_next_steps_manifest.json");
-    try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
-    try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_build.zig");
-    try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_readiness_gate_manifest.json");
-    try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_readiness_gap_matrix.json");
-
-    try expectSliceContains(manifest.phase15_validate_checkers, "scripts\zigux/check_phase15_docs_readme_alignment.zig");
-    try expectSliceContains(manifest.phase15_validate_checkers, "scripts\zigux/check_phase15_architecture_council_packet.zig");
-    try expectSliceContains(manifest.phase15_validate_checkers, "scripts\zigux/check_phase15_handoff_note_alignment.zig");
-    try expectSliceContains(manifest.phase15_validate_checkers, "scripts\zigux/check_phase15_shared_summary_gap.zig");
-
-    try std.testing.expect(manifest.repo_evidence.phase15_readiness_packet_checker_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_architecture_council_packet_checker_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_validator_script_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_docs_readme_checker_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_scripts_readme_checker_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_tests_readme_checker_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_review_checklist_study_only_alignment_checker_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_handoff_note_checker_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_governance_lane_manifest_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_governance_lane_replay_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_handoff_manifest_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_review_process_build_replay_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_build_zig_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_gap_matrix_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_indefinite_c_lane_owner_alignment_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_makefile_present);
-    try std.testing.expect(!manifest.repo_evidence.phase15_validate_target_present);
-    try std.testing.expect(!manifest.repo_evidence.phase15_test_target_present);
-    try std.testing.expect(!manifest.repo_evidence.phase15_aggregate_target_present);
-    try std.testing.expect(!manifest.repo_evidence.shared_ci_phase15_present);
-    try std.testing.expect(!manifest.repo_evidence.phase15_replay_green_on_current_master);
+    try std.testing.expectEqual(@as(usize, 0), manifest.blocked_broader_routes.missing_make_targets.len);
+    try std.testing.expect(!manifest.blocked_broader_routes.missing_workflow_phase15_route);
+    try std.testing.expect(manifest.repo_evidence.phase15_validate_target_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_test_target_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_aggregate_target_present);
+    try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_replay_green_on_current_master);
+    try expectSliceContains(manifest.direct_packet_paths, "Documentation/zigux/phase15-route-recovery.md");
+    try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_route_recovery.zig");
+    try expectSliceContains(manifest.phase15_validate_checkers, "scripts\\zigux/check_phase15_blocked_route_recovery.zig");
 }
 
-test "phase 15 release blockers stay mirrored in manifest and gap matrix" {
-    const manifest_json = try readRepoFile("zigux/tests/phase15_readiness_gate_manifest.json", 24 * 1024);
-    defer std.testing.allocator.free(manifest_json);
-
-    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
-        .ignore_unknown_fields = true,
-    });
-    defer parsed.deinit();
-
-    const manifest = parsed.value;
-    try std.testing.expectEqualStrings("zigux/tests/phase15_readiness_gap_matrix.json", manifest.roadmap_ledger_gap_matrix);
-    try std.testing.expectEqualStrings("zigux/Makefile", manifest.blocked_broader_routes.makefile_path);
-    try std.testing.expectEqual(@as(usize, 3), manifest.blocked_broader_routes.missing_make_targets.len);
-    try expectSliceContains(manifest.blocked_broader_routes.missing_make_targets, "phase15-validate");
-    try expectSliceContains(manifest.blocked_broader_routes.missing_make_targets, "phase15-test");
-    try expectSliceContains(manifest.blocked_broader_routes.missing_make_targets, "phase15");
-    try std.testing.expectEqualStrings(".github/workflows/zigux-bootstrap.yml", manifest.blocked_broader_routes.workflow_path);
-    try std.testing.expect(manifest.blocked_broader_routes.missing_workflow_phase15_route);
-
-    const gap_matrix = try readRepoFile("zigux/tests/phase15_readiness_gap_matrix.json", 24 * 1024);
-    defer std.testing.allocator.free(gap_matrix);
-
-    try expectContains(gap_matrix, "\"remaining_readiness_gap_count\": 3");
-    try expectContains(gap_matrix, "\"release_evidence_count\": 4");
-    try expectContains(gap_matrix, "\"release_evidence\": [");
-    try expectContains(gap_matrix, "\"evidence\": \"validator_first_replay\"");
-    try expectContains(gap_matrix, "\"evidence\": \"readiness_packet_checker\"");
-    try expectContains(gap_matrix, "\"evidence\": \"shared_build_companion\"");
-    try expectContains(gap_matrix, "\"evidence\": \"readiness_gap_matrix\"");
-    try expectContains(gap_matrix, "keeps the roadmap-versus-ledger release blockers explicit as data rather than prose-only handoff notes");
-    try expectContains(gap_matrix, "\"gap\": \"missing_make_routes\"");
-    try expectContains(gap_matrix, "\"gap\": \"missing_workflow_route\"");
-    try expectContains(gap_matrix, "\"gap\": \"no_architecture_council_status_change_approval\"");
-    try expectContains(gap_matrix, "\"status\": \"blocked\"");
-    try expectContains(gap_matrix, "\"phase15-validate\"");
-    try expectContains(gap_matrix, "\"phase15-test\"");
-    try expectContains(gap_matrix, "without dedicated wrapper routes, the broader Phase 15 replay packet is not one-command ready");
-    try expectContains(gap_matrix, "without a dedicated workflow route, the broader Phase 15 replay packet is not shared-CI ready");
+test "phase 15 gap matrix leaves only the approval blocker" {
+    const gaps = try readRepoFile("zigux/tests/phase15_readiness_gap_matrix.json");
+    defer std.testing.allocator.free(gaps);
+    try expectContains(gaps, "\"remaining_readiness_gap_count\": 1");
+    try expectContains(gaps, "\"blocked_make_route_count\": 0");
+    try expectContains(gaps, "\"blocked_workflow_route_count\": 0");
+    try expectContains(gaps, "\"release_evidence_count\": 7");
+    try expectContains(gaps, "\"gap\": \"no_architecture_council_status_change_approval\"");
+    try expectContains(gaps, "\"status\": \"blocked\"");
 }
 
-test "phase 15 readiness note stays aligned with the validator-first packet" {
-    const readiness_note = try readRepoFile("Documentation/zigux/phase15-readiness-gate-survey.md", 24 * 1024);
-    defer std.testing.allocator.free(readiness_note);
-
-    try expectContains(readiness_note, "PHASE15_LANE_KEY=P15-L04");
-    try expectContains(readiness_note, "PHASE15_SLICE=validator_first_readiness_packet");
-    try expectContains(readiness_note, "current-master-readback-2026-05-27");
-    try expectContains(readiness_note, "the governance packet is materially landed and reviewable");
-    try expectContains(readiness_note, "the dedicated validator now exists as a directly readable maintenance gate");
-    try expectContains(readiness_note, "the dedicated shared-build companion is now directly readable current-master evidence");
-    try expectContains(
-        readiness_note,
-        "broader make-wrapper and workflow companions still block any claim that the larger Phase 15 replay route is one-command or shared-CI ready",
-    );
-    try expectContains(readiness_note, "`scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig`");
-    try expectContains(readiness_note, "`scripts\zigux/check_phase15_handoff_note_alignment.zig`");
-    try expectContains(readiness_note, "`scripts\zigux/check_phase15_readiness_gate_packet.zig`");
-    try expectContains(readiness_note, "`scripts\zigux/validate_phase15.zig`");
-    try expectContains(readiness_note, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
-    try expectContains(readiness_note, "`zigux/tests/phase15_freeze_map_governance.zig`");
-    try expectContains(readiness_note, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");
-    try expectContains(readiness_note, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
-    try expectContains(readiness_note, "`zigux/tests/phase15_build.zig`");
-    try expectContains(readiness_note, "`zigux/tests/phase15_readiness_gap_matrix.json`");
-    try expectContains(readiness_note, "`make -C zigux phase15-validate` remains blocked route vocabulary");
-    try expectContains(readiness_note, "`.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route");
-    try expectContains(readiness_note, "ready for maintenance-mode truthfulness refreshes, direct validator-first replay, shared-build companion review, and explicit roadmap-versus-ledger gap accounting only");
+test "phase 15 readiness note points to the current route contract" {
+    const note = try readRepoFile("Documentation/zigux/phase15-readiness-gate-survey.md");
+    defer std.testing.allocator.free(note);
+    try expectContains(note, "PHASE15_ROUTE_RECOVERY_STATUS=landed");
+    try expectContains(note, "Documentation/zigux/phase15-route-recovery.md");
+    try expectContains(note, "zigux/tests/phase15_route_recovery.zig");
+    try expectContains(note, "No Architecture Council approval is recorded by route recovery");
 }

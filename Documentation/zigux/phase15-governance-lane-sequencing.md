@@ -1,5 +1,18 @@
 # Phase 15 Governance Lane Sequencing
 
+<!-- PHASE15_ROUTE_RECOVERY_CURRENT_START -->
+## Current Phase 15 route recovery (2026-07-21)
+
+- `PHASE15_ROUTE_RECOVERY_STATUS=landed`
+- `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` are shipped replay routes.
+- `.github/workflows/zigux-bootstrap.yml` runs dedicated Phase 15 validate, test, and aggregate steps.
+- `Documentation/zigux/phase15-route-recovery.md` and `zigux/tests/phase15_route_recovery.zig` are the route-level source of truth.
+- No Architecture Council approval is recorded by route recovery; freeze-in-C and study-only boundaries are unchanged.
+
+Statements below dated 2026-05-27 or 2026-05-29 that describe the wrappers or shared-CI route as missing are historical survey findings superseded by this current-state block.
+<!-- PHASE15_ROUTE_RECOVERY_CURRENT_END -->
+
+
 This note records the bounded Phase 15 Architecture Council sequencing packet for the parked governance lanes that keep freeze-map decisions, review boundaries, and stay-in-C policy truthful.
 
 ## Status

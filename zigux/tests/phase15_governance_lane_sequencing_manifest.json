@@ -1,7 +1,7 @@
 {
   "lane_key": "arch-council",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-27",
+  "surveyed_commit": "current-master-readback-2026-07-21",
   "sequencing_note": "Documentation/zigux/phase15-governance-lane-sequencing.md",
   "readiness_manifest": "zigux/tests/phase15_readiness_gate_manifest.json",
   "shared_summary_gap_note": "Documentation/zigux/phase15-shared-summary-gap.md",
@@ -9,7 +9,7 @@
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/freeze-map.md",
-    "scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig",
+    "scripts\\zigux/check_phase15_review_checklist_study_only_alignment.zig",
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-deep-core-blocker-survey.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
@@ -23,15 +23,19 @@
     "Documentation/zigux/phase15-shared-summary-gap.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
-    "scripts\zigux/validate_phase15.zig",
-    "scripts\zigux/check_phase15_architecture_council_packet.zig",
+    "scripts\\zigux/validate_phase15.zig",
+    "scripts\\zigux/check_phase15_architecture_council_packet.zig",
     "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
     "zigux/tests/phase15_governance_lane_sequencing.zig",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "zigux/tests/phase15_build.zig",
-    "scripts\zigux/check_phase15_handoff_note_alignment.zig"
+    "scripts\\zigux/check_phase15_handoff_note_alignment.zig",
+    "Documentation/zigux/phase15-route-recovery.md",
+    "zigux/tests/phase15_route_recovery.zig",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml"
   ],
   "still_missing_broader_paths": [],
   "maintenance_replay_commands": [
@@ -45,6 +49,9 @@
     "zig run scripts/zigux/check_phase15_shared_summary_gap.zig",
     "zig run scripts/zigux/validate_phase15.zig",
     "zig build test --build-file zigux/tests/phase15_build.zig",
-    "zig test zigux/tests/phase15_governance_lane_sequencing.zig"
+    "zig test zigux/tests/phase15_governance_lane_sequencing.zig",
+    "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
+    "make -C zigux phase15"
   ]
 }

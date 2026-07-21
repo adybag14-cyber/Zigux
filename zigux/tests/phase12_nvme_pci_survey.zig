@@ -72,7 +72,7 @@ test "phase12 nvme pci survey gate keeps present packet files explicit" {
 test "phase12 nvme pci survey gate keeps the shared build and make wrapper surface explicit" {
     const shared_build = try readFileAlloc("zigux/tests/phase12_build.zig", 24 * 1024);
     defer std.testing.allocator.free(shared_build);
-    const makefile = try readFileAlloc("zigux/Makefile", 24 * 1024);
+    const makefile = try readFileAlloc("zigux/Makefile", 96 * 1024);
     defer std.testing.allocator.free(makefile);
 
     try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12_nvme_pci.zig") == null);

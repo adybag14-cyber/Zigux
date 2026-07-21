@@ -69,7 +69,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-indefinite-c-policy.md", manifest.indefinite_c_policy_note);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-handoff-next-steps-survey.md", manifest.handoff_note);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-shared-summary-gap.md", manifest.shared_summary_gap_note);
-    try std.testing.expectEqualStrings("scripts\zigux/check_phase15_review_process_handoff.zig", manifest.checker);
+    try std.testing.expectEqualStrings("scripts\\zigux/check_phase15_review_process_handoff.zig", manifest.checker);
     try std.testing.expectEqualStrings("zigux/tests/phase15_architecture_council_review_process_build.zig", manifest.build_gate);
     try std.testing.expectEqualStrings("if a freeze-map anchor is entering Architecture Council status review", manifest.review_checklist_entry_prompt);
     try expectContains(manifest.review_checklist_boundary_rule, "exact Architecture Council field inventory stays owned by this note");
@@ -125,19 +125,19 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try expectSliceContains(manifest.handoff_required_markers, "`zigux/tests/phase15_parity_scorecard.zig`");
     try expectSliceContains(manifest.handoff_required_markers, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");
     try expectSliceContains(manifest.handoff_required_markers, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
-    try expectSliceContains(manifest.handoff_required_markers, "`scripts\zigux/check_phase15_docs_readme_alignment.zig`");
-    try expectSliceContains(manifest.handoff_required_markers, "`scripts\zigux/check_phase15_readiness_gate_packet.zig`");
-    try expectSliceContains(manifest.handoff_required_markers, "`scripts\zigux/check_phase15_handoff_note_alignment.zig`");
-    try expectSliceContains(manifest.handoff_required_markers, "`scripts\zigux/check_phase15_shared_summary_gap.zig`");
+    try expectSliceContains(manifest.handoff_required_markers, "`scripts\\zigux/check_phase15_docs_readme_alignment.zig`");
+    try expectSliceContains(manifest.handoff_required_markers, "`scripts\\zigux/check_phase15_readiness_gate_packet.zig`");
+    try expectSliceContains(manifest.handoff_required_markers, "`scripts\\zigux/check_phase15_handoff_note_alignment.zig`");
+    try expectSliceContains(manifest.handoff_required_markers, "`scripts\\zigux/check_phase15_shared_summary_gap.zig`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`Documentation/zigux/phase15-architecture-council-review-process.md`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`Documentation/zigux/phase15-architecture-council-decision-index.md`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`Documentation/zigux/phase15-deep-core-blocker-survey.md`");
-    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts\zigux/check_phase15_docs_readme_alignment.zig`");
-    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts\zigux/check_phase15_scripts_readme_alignment.zig`");
-    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig`");
-    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts\zigux/check_phase15_readiness_gate_packet.zig`");
-    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts\zigux/check_phase15_shared_summary_gap.zig`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts\\zigux/check_phase15_docs_readme_alignment.zig`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts\\zigux/check_phase15_scripts_readme_alignment.zig`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts\\zigux/check_phase15_review_checklist_study_only_alignment.zig`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts\\zigux/check_phase15_readiness_gate_packet.zig`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts\\zigux/check_phase15_shared_summary_gap.zig`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_parity_scorecard.json`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_governance_lane_sequencing.zig`");
@@ -146,8 +146,8 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
-    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts\zigux/check_phase15_handoff_note_alignment.zig`");
-    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts\zigux/validate_phase15.zig`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts\\zigux/check_phase15_handoff_note_alignment.zig`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts\\zigux/validate_phase15.zig`");
 }
 
 test "phase 15 review-process note stays aligned with the focused replay packet" {
@@ -166,7 +166,7 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     const review_checklist = try readRepoFile("Documentation/zigux/review-checklist.md", 48 * 1024);
     defer std.testing.allocator.free(review_checklist);
 
-    const handoff_note = try readRepoFile("Documentation/zigux/phase15-handoff-next-steps-survey.md", 20 * 1024);
+    const handoff_note = try readRepoFile("Documentation/zigux/phase15-handoff-next-steps-survey.md", 64 * 1024);
     defer std.testing.allocator.free(handoff_note);
 
     const gap_note = try readRepoFile("Documentation/zigux/phase15-shared-summary-gap.md", 20 * 1024);
@@ -188,8 +188,8 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     try expectContains(review_process, "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`");
     try expectContains(review_process, manifest.decision_index_note);
     try expectContains(review_process, manifest.indefinite_c_policy_note);
-    try expectContains(review_process, "`scripts\zigux/check_phase15_review_process_handoff.zig`");
-    try expectContains(review_process, "`scripts\zigux/check_phase15_tests_readme_alignment.zig`");
+    try expectContains(review_process, "`scripts\\zigux/check_phase15_review_process_handoff.zig`");
+    try expectContains(review_process, "`scripts\\zigux/check_phase15_tests_readme_alignment.zig`");
     try expectContains(review_process, "`zigux/tests/phase15_architecture_council_review_process.zig`");
     try expectContains(review_process, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
     try expectContains(review_process, "the focused Zig replay, and the focused build-file replay are landed");
@@ -209,8 +209,8 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
         try expectContains(review_checklist, marker);
     }
     try expectContains(handoff_note, manifest.decision_index_note);
-    try expectContains(tests_readme, "## Phase 15 governance packet");
-    try expectContains(tests_readme, "`scripts\zigux/check_phase15_review_process_handoff.zig`");
+    try expectContains(tests_readme, "## Phase 15 shared governance packet");
+    try expectContains(tests_readme, "`scripts\\zigux/check_phase15_review_process_handoff.zig`");
     try expectContains(tests_readme, "`zigux/tests/phase15_architecture_council_review_process.zig`");
     try expectContains(tests_readme, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
     try expectContains(tests_readme, "Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay in the directly readable governance packet instead of undercounting the Architecture Council review-process evidence.");

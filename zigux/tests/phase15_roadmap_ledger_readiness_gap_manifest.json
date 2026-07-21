@@ -3,7 +3,7 @@
   "phase": "Phase 15",
   "surveyed_commit_mode": "dated_master_readback",
   "surveyed_commit": "current-master-readback-2026-05-26",
-  "checker_path": "scripts\zigux/check_phase15_roadmap_ledger_readiness_gap.zig",
+  "checker_path": "scripts\\zigux/check_phase15_roadmap_ledger_readiness_gap.zig",
   "direct_packet_paths": [
     "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md",
     "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md",
@@ -15,9 +15,9 @@
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
-    "scripts\zigux/check_phase15_readiness_gate_packet.zig",
-    "scripts\zigux/validate_phase15.zig",
-    "scripts\zigux/check_phase15_roadmap_ledger_readiness_gap.zig",
+    "scripts\\zigux/check_phase15_readiness_gate_packet.zig",
+    "scripts\\zigux/validate_phase15.zig",
+    "scripts\\zigux/check_phase15_roadmap_ledger_readiness_gap.zig",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_roadmap_ledger_readiness_gap_manifest.json"

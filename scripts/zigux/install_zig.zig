@@ -156,10 +156,12 @@ var self_test_state: SelfTestState = .{
     .curl_commands = .empty,
 };
 
-var install_tmp_counter: std.atomic.Value(u32) = .init(0);
+var install_tmp_counter: std.atomic.Value(u64) = .init(0);
 
-fn installTmpId() u32 {
-    return install_tmp_counter.fetchAdd(1, .monotonic);
+fn installTmpId(io: Io) u64 {
+    var random_bytes: [8]u8 = undefined;
+    io.random(&random_bytes);
+    return std.mem.readInt(u64, &random_bytes, .little) ^ install_tmp_counter.fetchAdd(1, .monotonic);
 }
 
 fn dupe(allocator: std.mem.Allocator, text: []const u8) InstallError![]const u8 {
@@ -665,7 +667,7 @@ pub fn openUrl(
             continue;
         };
 
-        const status: u16 = @intFromEnum(fetch_result.status);
+        const status: u16 = @backingInt(fetch_result.status);
         if (status >= 400) {
             if (!isRetryableStatus(status) or attempt + 1 == retries) return error.HttpStatus;
             sleepSeconds(io, retryDelaySeconds(attempt + 1, @min(0.5 * @as(f64, @floatFromInt(attempt + 1)), 2.0), null));
@@ -1185,7 +1187,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator, environ_map: std.proces
     case_count += 1;
     test_hooks.read_index_fn = original_read_index;
 
-    const policy_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_policy_{d}", .{installTmpId()});
+    const policy_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_policy_{d}", .{installTmpId(io)});
     defer allocator.free(policy_root);
     std.Io.Dir.cwd().deleteTree(io, policy_root) catch {};
     try std.Io.Dir.cwd().createDirPath(io, policy_root);
@@ -1232,7 +1234,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator, environ_map: std.proces
     try expectSelfTestError(io, error.DuplicatePolicyKey, loadPolicyArchiveSha256(io, allocator, policy_path, "x86_64-linux"));
     case_count += 1;
 
-    const sha_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_sha_{d}", .{installTmpId()});
+    const sha_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_sha_{d}", .{installTmpId(io)});
     defer allocator.free(sha_root);
     std.Io.Dir.cwd().deleteTree(io, sha_root) catch {};
     try std.Io.Dir.cwd().createDirPath(io, sha_root);
@@ -1278,7 +1280,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator, environ_map: std.proces
     resetSelfTestState(allocator);
     test_hooks.curl_available_fn = curlUnavailableHook;
     test_hooks.open_url_fn = resumableOpenHook;
-    const resume_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_selftest_{d}", .{installTmpId()});
+    const resume_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_selftest_{d}", .{installTmpId(io)});
     defer allocator.free(resume_root);
     std.Io.Dir.cwd().deleteTree(io, resume_root) catch {};
     try std.Io.Dir.cwd().createDirPath(io, resume_root);
@@ -1297,7 +1299,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator, environ_map: std.proces
 
     resetSelfTestState(allocator);
     test_hooks.open_url_fn = throttledDownloadOpenHook;
-    const throttled_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_throttle_{d}", .{installTmpId()});
+    const throttled_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_throttle_{d}", .{installTmpId(io)});
     defer allocator.free(throttled_root);
     std.Io.Dir.cwd().deleteTree(io, throttled_root) catch {};
     try std.Io.Dir.cwd().createDirPath(io, throttled_root);
@@ -1330,7 +1332,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator, environ_map: std.proces
     test_hooks.curl_available_fn = null;
     test_hooks.open_url_fn = original_open_url;
 
-    const layout_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_layout_{d}", .{installTmpId()});
+    const layout_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_layout_{d}", .{installTmpId(io)});
     defer allocator.free(layout_root);
     std.Io.Dir.cwd().deleteTree(io, layout_root) catch {};
     try std.Io.Dir.cwd().createDirPath(io, layout_root);
@@ -1363,7 +1365,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator, environ_map: std.proces
     try expectSelfTestError(io, error.MissingZigBinary, resolveBinDir(io, allocator, missing_layout));
     case_count += 1;
 
-    const stage_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_archive_stage_{d}", .{installTmpId()});
+    const stage_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_archive_stage_{d}", .{installTmpId(io)});
     defer allocator.free(stage_root);
     std.Io.Dir.cwd().deleteTree(io, stage_root) catch {};
     try std.Io.Dir.cwd().createDirPath(io, stage_root);
@@ -1387,7 +1389,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator, environ_map: std.proces
     resetSelfTestState(allocator);
     test_hooks.curl_available_fn = curlUnavailableHook;
     test_hooks.open_url_fn = downloadOpenHook;
-    const download_stage_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_download_stage_{d}", .{installTmpId()});
+    const download_stage_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_download_stage_{d}", .{installTmpId(io)});
     defer allocator.free(download_stage_root);
     std.Io.Dir.cwd().deleteTree(io, download_stage_root) catch {};
     try std.Io.Dir.cwd().createDirPath(io, download_stage_root);
@@ -1549,7 +1551,7 @@ pub fn main(init: std.process.Init) !void {
     const expanded_archive = if (local_archive) |value| try expandUserPath(allocator, environ_map, value) else null;
     defer if (expanded_archive) |value| allocator.free(value);
 
-    const tmp_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_{d}", .{installTmpId()});
+    const tmp_root = try std.fmt.allocPrint(allocator, ".zig-cache/tmp/zigux_install_zig_{d}", .{installTmpId(io)});
     defer allocator.free(tmp_root);
     std.Io.Dir.cwd().deleteTree(io, tmp_root) catch {};
     try std.Io.Dir.cwd().createDirPath(io, tmp_root);

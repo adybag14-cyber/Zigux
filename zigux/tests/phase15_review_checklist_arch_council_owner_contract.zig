@@ -25,7 +25,7 @@ test "review checklist routes Architecture Council prompts to owner notes" {
     try expectContains(checklist, "Documentation/zigux/phase15-architecture-council-review-process.md");
     try expectContains(checklist, "Documentation/zigux/phase15-architecture-council-decision-record-template.md");
     try expectContains(checklist, "Documentation/zigux/phase15-indefinite-c-policy.md");
-    try expectContains(checklist, "scripts\zigux/validate_phase15.zig");
+    try expectContains(checklist, "scripts\\zigux/validate_phase15.zig");
 }
 
 test "review process owns exact fields and no approval posture" {

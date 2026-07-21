@@ -1,5 +1,18 @@
 # Phase 15 Handoff Next Steps Survey
 
+<!-- PHASE15_ROUTE_RECOVERY_CURRENT_START -->
+## Current Phase 15 route recovery (2026-07-21)
+
+- `PHASE15_ROUTE_RECOVERY_STATUS=landed`
+- `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` are shipped replay routes.
+- `.github/workflows/zigux-bootstrap.yml` runs dedicated Phase 15 validate, test, and aggregate steps.
+- `Documentation/zigux/phase15-route-recovery.md` and `zigux/tests/phase15_route_recovery.zig` are the route-level source of truth.
+- No Architecture Council approval is recorded by route recovery; freeze-in-C and study-only boundaries are unchanged.
+
+Statements below dated 2026-05-27 or 2026-05-29 that describe the wrappers or shared-CI route as missing are historical survey findings superseded by this current-state block.
+<!-- PHASE15_ROUTE_RECOVERY_CURRENT_END -->
+
+
 This note records the bounded Phase 15 handoff surface for the existing governance packet on current `master`.
 
 ## Status
@@ -107,3 +120,11 @@ This note does not claim:
 ## Next bounded step
 
 Keep this note parked until one broad Phase 15 reminder surface drifts away from the materialized governance packet above, one existing governance packet changes enough that the roadmap-backed gap list or future-target inventory above becomes stale, the bootstrap ledger boundary changes enough that this handoff synthesis needs a narrower reminder, the blocked-route recovery checker starts failing against current `master`, or one of the broader dedicated `phase15*` wrapper routes or shared-CI routes returns on current `master`.
+
+## Route-recovery handoff
+
+PHASE15_ROUTE_RECOVERY_STATUS=landed
+
+- keep the recovered Phase 15 wrapper and shared-CI routes green
+- if a Phase 15 wrapper or shared-CI route drifts, rerun the route-recovery contract before updating readiness evidence
+- No Architecture Council approval is recorded by route recovery

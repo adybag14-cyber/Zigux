@@ -1,9 +1,9 @@
 {
   "lane_key": "P15-L04",
   "phase": "Phase 15",
-  "surveyed_commit_mode": "dated_master_readback",
-  "surveyed_commit": "current-master-readback-2026-05-27",
-  "readiness_packet_checker": "scripts\zigux/check_phase15_readiness_gate_packet.zig",
+  "surveyed_commit_mode": "current_master_replay",
+  "surveyed_commit": "current-master-readback-2026-07-21",
+  "readiness_packet_checker": "scripts\\zigux/check_phase15_readiness_gate_packet.zig",
   "roadmap_ledger_gap_matrix": "zigux/tests/phase15_readiness_gap_matrix.json",
   "direct_packet_paths": [
     "Documentation/zigux/freeze-map.md",
@@ -20,16 +20,16 @@
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-shared-summary-gap.md",
     "Documentation/zigux/review-checklist.md",
-    "scripts\zigux/check_phase15_docs_readme_alignment.zig",
-    "scripts\zigux/check_phase15_scripts_readme_alignment.zig",
-    "scripts\zigux/check_phase15_tests_readme_alignment.zig",
-    "scripts\zigux/check_phase15_architecture_council_packet.zig",
-    "scripts\zigux/check_phase15_review_process_handoff.zig",
-    "scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig",
-    "scripts\zigux/check_phase15_handoff_note_alignment.zig",
-    "scripts\zigux/check_phase15_shared_summary_gap.zig",
-    "scripts\zigux/check_phase15_readiness_gate_packet.zig",
-    "scripts\zigux/validate_phase15.zig",
+    "scripts\\zigux/check_phase15_docs_readme_alignment.zig",
+    "scripts\\zigux/check_phase15_scripts_readme_alignment.zig",
+    "scripts\\zigux/check_phase15_tests_readme_alignment.zig",
+    "scripts\\zigux/check_phase15_architecture_council_packet.zig",
+    "scripts\\zigux/check_phase15_review_process_handoff.zig",
+    "scripts\\zigux/check_phase15_review_checklist_study_only_alignment.zig",
+    "scripts\\zigux/check_phase15_handoff_note_alignment.zig",
+    "scripts\\zigux/check_phase15_shared_summary_gap.zig",
+    "scripts\\zigux/check_phase15_readiness_gate_packet.zig",
+    "scripts\\zigux/validate_phase15.zig",
     "zigux/tests/README.md",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_architecture_council_review_process.zig",
@@ -46,18 +46,19 @@
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_readiness_gate_manifest.json",
-    "zigux/tests/phase15_readiness_gap_matrix.json"
+    "zigux/tests/phase15_readiness_gap_matrix.json",
+    "Documentation/zigux/phase15-route-recovery.md",
+    "zigux/tests/phase15_route_recovery.zig",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
+    "scripts\\zigux/check_phase15_blocked_route_recovery.zig"
   ],
   "still_missing_broader_paths": [],
   "blocked_broader_routes": {
     "makefile_path": "zigux/Makefile",
-    "missing_make_targets": [
-      "phase15-validate",
-      "phase15-test",
-      "phase15"
-    ],
+    "missing_make_targets": [],
     "workflow_path": ".github/workflows/zigux-bootstrap.yml",
-    "missing_workflow_phase15_route": true
+    "missing_workflow_phase15_route": false
   },
   "repo_evidence": {
     "phase15_readiness_packet_checker_present": true,
@@ -76,21 +77,22 @@
     "phase15_gap_matrix_present": true,
     "phase15_indefinite_c_lane_owner_alignment_present": true,
     "phase15_makefile_present": true,
-    "phase15_validate_target_present": false,
-    "phase15_test_target_present": false,
-    "phase15_aggregate_target_present": false,
-    "shared_ci_phase15_present": false,
-    "phase15_replay_green_on_current_master": false
+    "phase15_validate_target_present": true,
+    "phase15_test_target_present": true,
+    "phase15_aggregate_target_present": true,
+    "shared_ci_phase15_present": true,
+    "phase15_replay_green_on_current_master": true
   },
   "phase15_validate_checkers": [
-    "scripts\zigux/check_phase15_docs_readme_alignment.zig",
-    "scripts\zigux/check_phase15_scripts_readme_alignment.zig",
-    "scripts\zigux/check_phase15_tests_readme_alignment.zig",
-    "scripts\zigux/check_phase15_architecture_council_packet.zig",
-    "scripts\zigux/check_phase15_review_process_handoff.zig",
-    "scripts\zigux/check_phase15_review_checklist_study_only_alignment.zig",
-    "scripts\zigux/check_phase15_handoff_note_alignment.zig",
-    "scripts\zigux/check_phase15_shared_summary_gap.zig",
-    "scripts\zigux/check_phase15_readiness_gate_packet.zig"
+    "scripts\\zigux/check_phase15_docs_readme_alignment.zig",
+    "scripts\\zigux/check_phase15_scripts_readme_alignment.zig",
+    "scripts\\zigux/check_phase15_tests_readme_alignment.zig",
+    "scripts\\zigux/check_phase15_architecture_council_packet.zig",
+    "scripts\\zigux/check_phase15_review_process_handoff.zig",
+    "scripts\\zigux/check_phase15_review_checklist_study_only_alignment.zig",
+    "scripts\\zigux/check_phase15_handoff_note_alignment.zig",
+    "scripts\\zigux/check_phase15_shared_summary_gap.zig",
+    "scripts\\zigux/check_phase15_readiness_gate_packet.zig",
+    "scripts\\zigux/check_phase15_blocked_route_recovery.zig"
   ]
 }

@@ -1,28 +1,28 @@
 {
   "lane_key": "P15-L01",
   "phase": "Phase 15",
-  "surveyed_commit_mode": "dated_master_readback",
-  "surveyed_commit": "current-master-readback-2026-05-27",
+  "surveyed_commit_mode": "current_master_replay",
+  "surveyed_commit": "current-master-readback-2026-07-21",
   "scope": "tranche readiness gate survey remaining readiness gaps vs roadmap and ledger",
   "summary_counts": {
     "roadmap_required_feature_count": 4,
     "ledger_anchor_count": 1,
-    "remaining_readiness_gap_count": 3,
-    "blocked_make_route_count": 3,
-    "blocked_workflow_route_count": 1,
-    "release_evidence_count": 4
+    "remaining_readiness_gap_count": 1,
+    "blocked_make_route_count": 0,
+    "blocked_workflow_route_count": 0,
+    "release_evidence_count": 7
   },
   "release_evidence": [
     {
       "evidence": "validator_first_replay",
       "status": "materialized",
-      "path": "scripts\zigux/validate_phase15.zig",
+      "path": "scripts\\zigux/validate_phase15.zig",
       "why_it_matters": "keeps the readiness packet replayable as a direct maintenance gate while broader make and workflow routes remain absent"
     },
     {
       "evidence": "readiness_packet_checker",
       "status": "materialized",
-      "path": "scripts\zigux/check_phase15_readiness_gate_packet.zig",
+      "path": "scripts\\zigux/check_phase15_readiness_gate_packet.zig",
       "why_it_matters": "keeps the readiness survey, manifest, gap matrix, blocked-route posture, and repo evidence aligned"
     },
     {
@@ -36,6 +36,24 @@
       "status": "materialized",
       "path": "zigux/tests/phase15_readiness_gap_matrix.json",
       "why_it_matters": "keeps the roadmap-versus-ledger release blockers explicit as data rather than prose-only handoff notes"
+    },
+    {
+      "evidence": "make_wrapper_routes",
+      "status": "materialized",
+      "path": "zigux/Makefile",
+      "why_it_matters": "makes Phase 15 validation, testing, and aggregate replay available through stable one-command wrappers"
+    },
+    {
+      "evidence": "shared_ci_routes",
+      "status": "materialized",
+      "path": ".github/workflows/zigux-bootstrap.yml",
+      "why_it_matters": "runs the Phase 15 validate, test, and aggregate routes in shared CI"
+    },
+    {
+      "evidence": "route_recovery_contract",
+      "status": "materialized",
+      "path": "zigux/tests/phase15_route_recovery.zig",
+      "why_it_matters": "fail-closes on wrapper, workflow, readiness-state, and no-approval boundary drift"
     }
   ],
   "roadmap_required_features": [
@@ -60,24 +78,24 @@
     },
     {
       "requirement": "parity scorecard",
-      "status": "landed_but_not_shared_route_ready",
+      "status": "landed_and_shared_route_ready",
       "evidence": [
         "Documentation/zigux/phase15-parity-scorecard.md",
         "Documentation/zigux/phase15-parity-scorecard-survey.md",
         "zigux/tests/phase15_parity_scorecard.json",
         "zigux/tests/phase15_parity_scorecard.zig"
       ],
-      "remaining_gap": "the broader Phase 15 replay route is still blocked on missing `phase15*` Makefile wrappers and a dedicated workflow route"
+      "remaining_gap": "none at the replay-route layer; Architecture Council approval remains separately required for any freeze-map status change"
     },
     {
       "requirement": "policy for code that remains in C indefinitely",
-      "status": "landed_but_not_one_command_or_ci_ready",
+      "status": "landed_and_one_command_and_ci_ready",
       "evidence": [
         "Documentation/zigux/phase15-indefinite-c-policy.md",
         "zigux/tests/phase15_indefinite_c_policy.json",
         "zigux/tests/phase15_indefinite_c_policy.zig"
       ],
-      "remaining_gap": "the indefinite-C policy is landed and replay-backed, but the broader reminder surface is still not one-command or shared-CI ready"
+      "remaining_gap": "none at the replay-route layer; the policy still does not authorize a deep-core status change"
     }
   ],
   "ledger_anchors": [
@@ -89,27 +107,10 @@
         "Documentation/zigux/review-checklist.md",
         "Documentation/zigux/phase15-readiness-gate-survey.md"
       ],
-      "remaining_gap": "none at the original docs-root anchor itself; the remaining readiness gaps now live in missing wrapper and workflow routes"
+      "remaining_gap": "none at the docs-root or route-replay layer; only the explicit Architecture Council status-change approval blocker remains"
     }
   ],
   "remaining_readiness_gaps": [
-    {
-      "gap": "missing_make_routes",
-      "status": "blocked",
-      "path": "zigux/Makefile",
-      "blocked_routes": [
-        "phase15-validate",
-        "phase15-test",
-        "phase15"
-      ],
-      "why_it_matters": "without dedicated wrapper routes, the broader Phase 15 replay packet is not one-command ready"
-    },
-    {
-      "gap": "missing_workflow_route",
-      "status": "blocked",
-      "path": ".github/workflows/zigux-bootstrap.yml",
-      "why_it_matters": "without a dedicated workflow route, the broader Phase 15 replay packet is not shared-CI ready"
-    },
     {
       "gap": "no_architecture_council_status_change_approval",
       "status": "blocked",

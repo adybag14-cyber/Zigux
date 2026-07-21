@@ -15,7 +15,7 @@ pub fn build(b: *std.Build) void {
     options.addOption([]const u8, "review_checklist", readRepoFile(b, "Documentation/zigux/review-checklist.md"));
     options.addOption([]const u8, "scripts_root", readRepoFile(b, "scripts/zigux/README.md"));
     options.addOption([]const u8, "readiness_survey", readRepoFile(b, "Documentation/zigux/phase15-readiness-gate-survey.md"));
-    options.addOption([]const u8, "validator", readRepoFile(b, "scripts\zigux/validate_phase15.zig"));
+    options.addOption([]const u8, "validator", readRepoFile(b, "scripts/zigux/validate_phase15.zig"));
     options.addOption([]const u8, "makefile", readRepoFile(b, "zigux/Makefile"));
     options.addOption([]const u8, "workflow", readRepoFile(b, ".github/workflows/zigux-bootstrap.yml"));
 
