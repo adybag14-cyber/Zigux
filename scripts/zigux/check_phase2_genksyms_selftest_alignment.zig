@@ -16,8 +16,8 @@ const markers_0 = [_][]const u8{
 };
 
 const markers_1 = [_][]const u8{
-    "check_genksyms_bridge.zig --self-test",
-    "check_phase2_genksyms_selftest_alignment.zig --self-test",
+    "check_genksyms_bridge.zig -- --self-test",
+    "check_phase2_genksyms_selftest_alignment.zig -- --self-test",
 };
 
 const markers_2 = [_][]const u8{

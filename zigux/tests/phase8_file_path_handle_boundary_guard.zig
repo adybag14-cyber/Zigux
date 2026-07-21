@@ -109,7 +109,7 @@ test "phase 8 file-path-handle boundary guard keeps landed helper slices distinc
     try expectContains(boundary_survey, "`zigux/tests/phase8_file_path_handle_bridge.zig`");
     try expectContains(boundary_survey, "`zigux/tests/phase8_file_path_handle_boundary_guard.zig`");
     try expectContains(boundary_survey, "`zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`");
-    try expectContains(boundary_survey, "`scripts\zigux/validate_phase8.zig`");
+    try expectContains(boundary_survey, "`scripts\\zigux/validate_phase8.zig`");
     try expectContains(boundary_survey, "`make -C zigux phase8-file-path-handle-bridge-test`");
     try expectContains(boundary_survey, "`make -C zigux phase8`");
     try expectContains(boundary_survey, "buildCurrentProcessFdinfoPath()");

@@ -30,8 +30,8 @@ test "phase 8 perf-buffer poll tests README keeps the current direct-readback pa
     defer std.testing.allocator.free(note);
 
     try expectContains(note, "current direct-readback Phase 8 anchors:");
-    try expectContains(note, "`scripts\zigux/check_phase8_tests_readme_alignment.zig`");
-    try expectContains(note, "`scripts\zigux/check_phase8_perf_buffer_poll_gate.zig`");
+    try expectContains(note, "`scripts\\zigux/check_phase8_tests_readme_alignment.zig`");
+    try expectContains(note, "`scripts\\zigux/check_phase8_perf_buffer_poll_gate.zig`");
     try expectContains(note, "`zigux/tests/phase8_perf_buffer_poll.zig`");
     try expectContains(note, "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`");
     try expectContains(
@@ -43,7 +43,7 @@ test "phase 8 perf-buffer poll tests README keeps the current direct-readback pa
         "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
     );
     try expectContains(note, "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`");
-    try expectContains(note, "`scripts\zigux/validate_phase8.zig`");
+    try expectContains(note, "`scripts\\zigux/validate_phase8.zig`");
     try expectContains(note, "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`");
     try expectContains(note, "`zigux/tests/phase8_file_path_handle_bridge.zig`");
     try expectContains(note, "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`");
@@ -88,11 +88,11 @@ test "phase 8 perf-buffer poll scripts README keeps the current bridge packet ex
     );
     try expectContains(
         note,
-        "`scripts\zigux/check_phase8_perf_buffer_poll_gate.zig`, `scripts\zigux/check_phase8_tests_readme_alignment.zig`, `scripts\zigux/validate_phase8.zig`, `zigux/tests/README.md`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` keep the directly readable checker, validator, tests-root reminder, helper, and focused perf-buffer packet explicit from the scripts root",
+        "`scripts\\zigux/check_phase8_perf_buffer_poll_gate.zig`, `scripts\\zigux/check_phase8_tests_readme_alignment.zig`, `scripts\\zigux/validate_phase8.zig`, `zigux/tests/README.md`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` keep the directly readable checker, validator, tests-root reminder, helper, and focused perf-buffer packet explicit from the scripts root",
     );
     try expectContains(
         note,
-        "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_file_path_handle_boundary_guard.zig`, `zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`, `zigux/tests/phase8_build.zig`, `scripts\zigux/validate_phase8.zig`, `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the mixed-source file-path-handle bridge packet explicit on current `master` beside the surviving perf-buffer poll route",
+        "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_file_path_handle_boundary_guard.zig`, `zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`, `zigux/tests/phase8_build.zig`, `scripts\\zigux/validate_phase8.zig`, `make -C zigux phase8-file-path-handle-bridge-test`, `make -C zigux phase8`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the mixed-source file-path-handle bridge packet explicit on current `master` beside the surviving perf-buffer poll route",
     );
 }
 

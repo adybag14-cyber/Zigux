@@ -27,7 +27,7 @@ const markers_1 = [_][]const u8{
 };
 
 const markers_2 = [_][]const u8{
-    "check_phase2_kconfig_allconfig_helper_packet.zig --self-test",
+    "check_phase2_kconfig_allconfig_helper_packet.zig -- --self-test",
     "check_phase2_kconfig_allconfig_helper_packet.zig",
 };
 

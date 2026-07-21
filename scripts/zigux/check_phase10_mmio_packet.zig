@@ -231,7 +231,7 @@ const markers_11 = [_][]const u8{
     "`has_changes` derived from the actual byte-delta mask rather than a blanket true result",
     "`error.ConfigWritePlanUnavailable` when no current staged plan is available",
     "try expectContains(slice_note, \"# Phase 10 Virtio MMIO Slice\");",
-    "try expectContains(slice_note, \"scripts\\zigux/check_phase10_mmio_packet.zig\");",
+    "try expectContains(slice_note, \"scripts\\\\zigux/check_phase10_mmio_packet.zig\");",
     "try expectContains(slice_note, \"planning-only config-write observation\");",
     "the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket remains outside this slice",
     "test \"phase10 virtio mmio survey gate keeps survey-note lane identity, lane sequencing ownership, helper inventory, and risky transport posture explicit\" {",
