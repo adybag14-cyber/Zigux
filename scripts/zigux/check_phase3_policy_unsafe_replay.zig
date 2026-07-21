@@ -42,7 +42,7 @@ const REQUIRED_MARKERS__zigux_tests_phase3_policy_starter_packet_manifest_json =
     "\"zigux/tests/phase3_policy_unsafe.zig\"",
     "\"zigux/tests/phase3_policy_unsafe_build.zig\"",
     "\"scripts\\zigux/check_phase3_policy_unsafe_replay.zig\"",
-    "\"zig run scripts\\zigux/check_phase3_policy_unsafe_replay.zig --self-test\"",
+    "\"zig run scripts\\zigux/check_phase3_policy_unsafe_replay.zig -- --self-test\"",
     "\"zig run scripts\\zigux/check_phase3_policy_unsafe_replay.zig\"",
     "\"zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig\"",
     "\"make -C zigux phase3-policy-unsafe-test\"",
@@ -74,7 +74,7 @@ const REQUIRED_MARKERS__zigux_unsafe_narrow_zig = [_][]const u8{
 };
 
 const REQUIRED_REPLAY_ROUTES = [_][]const u8{
-    "zig run scripts\\zigux/check_phase3_policy_unsafe_replay.zig --self-test",
+    "zig run scripts\\zigux/check_phase3_policy_unsafe_replay.zig -- --self-test",
     "zig run scripts\\zigux/check_phase3_policy_unsafe_replay.zig",
     "zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
     "make -C zigux phase3-policy-unsafe-test",

@@ -250,8 +250,8 @@ const markers_19 = [_][]const u8{
     "\"scripts/zigux/check_phase10_tests_readme_core_surfaces.zig\"",
     "\"scripts/zigux/validate_phase10.zig\"",
     "\"scripts/zigux/validate_phase10_closure.zig\"",
-    "\"zig run validate_phase10.zig\"",
-    "\"zig run validate_phase10_closure.zig\"",
+    "\"zig run scripts/zigux/validate_phase10.zig\"",
+    "\"zig run scripts/zigux/validate_phase10_closure.zig\"",
 };
 
 const forbidden_markers_0 = [_][]const u8{
@@ -784,8 +784,8 @@ pub fn main(init: std.process.Init) !void {
 //     "\"scripts/zigux/check_phase10_tests_readme_core_surfaces.zig\"",
 //     "\"scripts\zigux/validate_phase10.zig\"",
 //     "\"scripts\zigux/validate_phase10_closure.zig\"",
-//     "\"zig run validate_phase10.zig\"",
-//     "\"zig run validate_phase10_closure.zig\"",
+//     "\"zig run scripts/zigux/validate_phase10.zig\"",
+//     "\"zig run scripts/zigux/validate_phase10_closure.zig\"",
 // };
 //
 // const FORBIDDEN_MARKERS = [_][]const u8{

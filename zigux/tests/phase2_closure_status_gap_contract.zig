@@ -59,11 +59,11 @@ test "Phase 2 closure keeps parked status and validator authority explicit" {
     try requireContains(files.closure, "`PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest`");
     try requireContains(files.closure, "manifest: `zigux/tests/fixtures/phase2_tool_manifest.json`");
     try requireContains(files.closure, "shared note: `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`");
-    try requireContains(files.closure, "`PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2.zig,zig run validate_phase2_closure.zig`");
+    try requireContains(files.closure, "`PHASE2_CLOSURE_VALIDATORS=zig run scripts/zigux/validate_phase2.zig,zig run scripts/zigux/validate_phase2_closure.zig`");
 
     try requireContains(files.validator, "VALIDATOR_COMMANDS = (");
-    try requireContains(files.validator, "\"zig run validate_phase2.zig\"");
-    try requireContains(files.validator, "\"zig run validate_phase2_closure.zig\"");
+    try requireContains(files.validator, "\"zig run scripts/zigux/validate_phase2.zig\"");
+    try requireContains(files.validator, "\"zig run scripts/zigux/validate_phase2_closure.zig\"");
     try requireContains(files.validator, "PHASE2_CLOSURE_VALIDATION=pass");
     try requireContains(files.validator, "PHASE2_CLOSURE_STATUS=parked");
     try requireContains(files.validator, "PHASE2_CLOSURE_PACKET=toolchain_cross_kconfig_genksyms_fixdep_closure");
@@ -101,7 +101,7 @@ test "Phase 2 closure status is wired through make and workflow after Phase 2 ro
     try requireBefore(files.workflow, "Validate current Phase 2 tool packet", "Self-test current Phase 2 closure validator");
     try requireBefore(files.workflow, "Self-test current Phase 2 closure validator", "Check current Phase 2 closure packet");
     try requireContains(files.workflow, "run: make -C zigux phase2");
-    try requireContains(files.workflow, "run: zig run validate_phase2.zig");
-    try requireContains(files.workflow, "run: zig run validate_phase2_closure.zig --self-test");
-    try requireContains(files.workflow, "run: zig run validate_phase2_closure.zig");
+    try requireContains(files.workflow, "run: zig run scripts/zigux/validate_phase2.zig");
+    try requireContains(files.workflow, "run: zig run scripts/zigux/validate_phase2_closure.zig -- --self-test");
+    try requireContains(files.workflow, "run: zig run scripts/zigux/validate_phase2_closure.zig");
 }

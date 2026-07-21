@@ -81,9 +81,9 @@ The release-planning handle that is directly supportable from this run stays anc
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
 - `Documentation/zigux/phase13-notifier-summary-gap.md`
-- `zig run check_phase13_shared_summary_surfaces.zig`
-- `zig run check_phase13_tests_readme_alignment.zig`
-- `zig run validate_phase13_release.zig`
+- `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig`
+- `zig run scripts/zigux/check_phase13_tests_readme_alignment.zig`
+- `zig run scripts/zigux/validate_phase13_release.zig`
 
 Keep broad release wording tied to that reminder packet while the missing validator-first helpers, adjacent notifier companion, and route surfaces stay explicit as repo-reality gaps.
 
@@ -91,9 +91,9 @@ Keep broad release wording tied to that reminder packet while the missing valida
 
 For this bounded reminder-surface step, verify documentation behavior with these exact checks before treating a release-note refresh as truthful current-`master` evidence:
 
-- `zig run check_phase13_shared_summary_surfaces.zig`
-- `zig run check_phase13_tests_readme_alignment.zig`
-- `zig run validate_phase13_release.zig`
+- `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig`
+- `zig run scripts/zigux/check_phase13_tests_readme_alignment.zig`
+- `zig run scripts/zigux/validate_phase13_release.zig`
 
 Those checks confirm the shared-summary surfaces, the tests-root reminder packet, and the release-discipline packet only. They do not turn `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, or `zigux/tests/phase13_build.zig` into shipped Phase 13 route evidence.
 

@@ -47,7 +47,7 @@ test "tests root keeps the parked Phase 2 closure note and validators visible" {
 
     try expectContains(closure_note, "PHASE2_STATUS=parked");
     try expectContains(closure_note, "PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest");
-    try expectContains(closure_note, "PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2.zig,zig run validate_phase2_closure.zig");
+    try expectContains(closure_note, "PHASE2_CLOSURE_VALIDATORS=zig run scripts/zigux/validate_phase2.zig,zig run scripts/zigux/validate_phase2_closure.zig");
 
     try expectContains(tests_readme, "`Documentation/zigux/phase2-closure.md`");
     try expectContains(tests_readme, "`scripts\zigux/validate_phase2.zig`");
@@ -146,8 +146,8 @@ test "fixdep governance remains visible beside closure shared tooling" {
     const scripts_readme = try readRepoFile("scripts/zigux/README.md", 512 * 1024);
     defer std.testing.allocator.free(scripts_readme);
 
-    try expectContains(closure_note, "`zig run check_phase2_fixdep_gate.zig`");
-    try expectContains(closure_note, "`zig run check_fixdep_diff.zig`");
+    try expectContains(closure_note, "`zig run scripts/zigux/check_phase2_fixdep_gate.zig`");
+    try expectContains(closure_note, "`zig run scripts/zigux/check_fixdep_diff.zig`");
     try expectContains(closure_note, "`make -C zigux phase2-fixdep`");
 
     try expectContains(tests_readme, "`scripts\zigux/check_phase2_fixdep_gate.zig`");
@@ -156,6 +156,6 @@ test "fixdep governance remains visible beside closure shared tooling" {
     try expectContains(tests_readme, "`zigux/tests/fixtures/fixdep/cases.json`");
 
     try expectContains(scripts_readme, "current fixdep governance, determinism, helper, fixture, and CI packet");
-    try expectContains(scripts_readme, "`zig run check_phase2_fixdep_gate.zig --self-test`");
+    try expectContains(scripts_readme, "`zig run scripts/zigux/check_phase2_fixdep_gate.zig -- --self-test`");
     try expectContains(scripts_readme, "`zig test scripts/zigux/fixdep.zig`");
 }

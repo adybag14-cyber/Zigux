@@ -20,9 +20,9 @@ const VALIDATE_TARGET = [_][]const u8{
 const EXPECTED_CONTRACT_LINES = [_][]const u8{
     "phase4-artifact-diff-contract:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run scripts/zigux/artifact_diff.zig -- --self-test",
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig",
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig",
 };
 
@@ -33,7 +33,7 @@ const EXPECTED_VALIDATE_LINES = [_][]const u8{
 
 const FORBIDDEN_PHASE4_LINES = [_][]const u8{
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase4.zig",
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_artifact_diff_contract.zig --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_artifact_diff_contract.zig -- --self-test",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_artifact_diff_contract.zig",
 };
 

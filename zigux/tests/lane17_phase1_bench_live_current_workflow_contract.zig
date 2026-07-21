@@ -9,35 +9,35 @@ const Step = struct {
 const required_steps = [_]Step{
     .{
         .block = "      - name: Check current Phase 1 route summary packet\n" ++
-            "        run: zig run check_phase1_route_summary_counts.zig",
+            "        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig",
     },
     .{
         .block = "      - name: Self-test current Phase 1 bench checker\n" ++
-            "        run: zig run check_phase1_bench.zig --self-test",
+            "        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test",
     },
     .{
         .block = "      - name: Check current Phase 1 bench packet\n" ++
-            "        run: zig run check_phase1_bench.zig",
+            "        run: zig run scripts/zigux/check_phase1_bench.zig",
     },
     .{
         .block = "      - name: Self-test current Phase 1 bench live-check workflow guard\n" ++
-            "        run: zig run check_phase1_bench_live_check_workflow.zig --self-test",
+            "        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test",
     },
     .{
         .block = "      - name: Check current Phase 1 bench live-check workflow guard packet\n" ++
-            "        run: zig run check_phase1_bench_live_check_workflow.zig",
+            "        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig",
     },
     .{
         .block = "      - name: Self-test current Phase 1 find-bit bench anchor checker\n" ++
-            "        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test",
+            "        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test",
     },
     .{
         .block = "      - name: Check current Phase 1 find-bit bench anchor packet\n" ++
-            "        run: zig run check_phase1_find_bit_bench_anchors.zig",
+            "        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig",
     },
     .{
         .block = "      - name: Self-test current Phase 1 shared reminder checker\n" ++
-            "        run: zig run check_phase1_shared_reminder_packet.zig --self-test",
+            "        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test",
     },
 };
 
@@ -94,11 +94,11 @@ test "bench live packet is not confused with its self-test command" {
 
     try std.testing.expectEqual(
         @as(usize, 1),
-        countOccurrences(workflow, "        run: zig run check_phase1_bench.zig\n"),
+        countOccurrences(workflow, "        run: zig run scripts/zigux/check_phase1_bench.zig\n"),
     );
     try std.testing.expectEqual(
         @as(usize, 1),
-        countOccurrences(workflow, "        run: zig run check_phase1_bench.zig --self-test\n"),
+        countOccurrences(workflow, "        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test\n"),
     );
 }
 
@@ -108,11 +108,11 @@ test "bench live-check workflow guard keeps self-test before packet check" {
 
     const self_test = try requireSingleOffset(
         workflow,
-        "      - name: Self-test current Phase 1 bench live-check workflow guard\n        run: zig run check_phase1_bench_live_check_workflow.zig --self-test",
+        "      - name: Self-test current Phase 1 bench live-check workflow guard\n        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test",
     );
     const packet = try requireSingleOffset(
         workflow,
-        "      - name: Check current Phase 1 bench live-check workflow guard packet\n        run: zig run check_phase1_bench_live_check_workflow.zig",
+        "      - name: Check current Phase 1 bench live-check workflow guard packet\n        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig",
     );
     try std.testing.expect(self_test < packet);
 }
@@ -120,19 +120,19 @@ test "bench live-check workflow guard keeps self-test before packet check" {
 test "required cluster rejects missing live bench packet in synthetic workflow" {
     const missing_live_bench =
         "      - name: Check current Phase 1 route summary packet\n" ++
-        "        run: zig run check_phase1_route_summary_counts.zig\n\n" ++
+        "        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig\n\n" ++
         "      - name: Self-test current Phase 1 bench checker\n" ++
-        "        run: zig run check_phase1_bench.zig --self-test\n\n" ++
+        "        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test\n\n" ++
         "      - name: Self-test current Phase 1 bench live-check workflow guard\n" ++
-        "        run: zig run check_phase1_bench_live_check_workflow.zig --self-test\n\n" ++
+        "        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test\n\n" ++
         "      - name: Check current Phase 1 bench live-check workflow guard packet\n" ++
-        "        run: zig run check_phase1_bench_live_check_workflow.zig\n\n" ++
+        "        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig\n\n" ++
         "      - name: Self-test current Phase 1 find-bit bench anchor checker\n" ++
-        "        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test\n\n" ++
+        "        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test\n\n" ++
         "      - name: Check current Phase 1 find-bit bench anchor packet\n" ++
-        "        run: zig run check_phase1_find_bit_bench_anchors.zig\n\n" ++
+        "        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig\n\n" ++
         "      - name: Self-test current Phase 1 shared reminder checker\n" ++
-        "        run: zig run check_phase1_shared_reminder_packet.zig --self-test";
+        "        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test";
 
     try std.testing.expectError(error.MissingWorkflowMarker, requireStepCluster(missing_live_bench));
 }

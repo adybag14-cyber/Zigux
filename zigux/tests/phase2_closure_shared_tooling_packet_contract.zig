@@ -1,13 +1,13 @@
 const std = @import("std");
 
 const shared_tooling_commands = [_][]const u8{
-    "zig run check_phase2_tool_manifest.zig",
-    "zig run check_phase2_bootstrap_workflow_routes.zig",
-    "zig run check_phase2_artifact_tools_manifest.zig",
-    "zig run check_phase2_kconfig_allconfig_helper_packet.zig",
-    "zig run check_phase2_cross.zig",
-    "zig run check_phase2_fixdep_gate.zig",
-    "zig run check_fixdep_diff.zig",
+    "zig run scripts/zigux/check_phase2_tool_manifest.zig",
+    "zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig",
+    "zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig",
+    "zig run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig",
+    "zig run scripts/zigux/check_phase2_cross.zig",
+    "zig run scripts/zigux/check_phase2_fixdep_gate.zig",
+    "zig run scripts/zigux/check_fixdep_diff.zig",
 };
 
 const shared_tooling_paths = [_][]const u8{
@@ -21,7 +21,7 @@ const shared_tooling_paths = [_][]const u8{
 };
 
 const shared_tooling_line =
-    "PHASE2_SHARED_TOOLING_CHECKERS=zig run check_phase2_tool_manifest.zig,zig run check_phase2_bootstrap_workflow_routes.zig,zig run check_phase2_artifact_tools_manifest.zig,zig run check_phase2_kconfig_allconfig_helper_packet.zig,zig run check_phase2_cross.zig,zig run check_phase2_fixdep_gate.zig,zig run check_fixdep_diff.zig";
+    "PHASE2_SHARED_TOOLING_CHECKERS=zig run scripts/zigux/check_phase2_tool_manifest.zig,zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig,zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig,zig run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig,zig run scripts/zigux/check_phase2_cross.zig,zig run scripts/zigux/check_phase2_fixdep_gate.zig,zig run scripts/zigux/check_fixdep_diff.zig";
 
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(

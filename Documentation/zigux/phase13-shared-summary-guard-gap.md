@@ -2,14 +2,14 @@
 
 This note records the closure of the old missing-checker gap.
 
-The shipped guard is `zig run check_phase13_shared_summary_surfaces.zig`.
+The shipped guard is `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig`.
 
 ## Status
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SHARED_SUMMARY_GUARD=shipped`
-- stable guard: `zig run check_phase13_shared_summary_surfaces.zig`
-- companion handoff check: `zig run check_phase13_shared_summary_guard_gap.zig`
+- stable guard: `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig`
+- companion handoff check: `zig run scripts/zigux/check_phase13_shared_summary_guard_gap.zig`
 - blocked route family remains outside the shared handle: current `master` rematerializes `zigux/Makefile`, but `make -C zigux phase13-validate` and `make -C zigux phase13` still remain repo-reality-gap route names
 
 ## What Closed
@@ -55,8 +55,8 @@ Keep these paths recorded as repo-reality gaps until current `master` rematerial
 
 ## Review Use
 
-1. Run `zig run check_phase13_shared_summary_surfaces.zig`.
-2. Run `zig run check_phase13_shared_summary_guard_gap.zig`.
+1. Run `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig`.
+2. Run `zig run scripts/zigux/check_phase13_shared_summary_guard_gap.zig`.
 3. Keep `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts\zigux/check_phase13_notifier_packet.zig`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `include/zigux/notifier_abi.h` explicit as returned adjacent notifier evidence without turning them into part of the stable shared replay handle.
 4. Keep `scripts\zigux/validate_phase13_release.zig`, `scripts\zigux/check_phase13_landlock_ruleset_packet.zig`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `scripts\zigux/check_phase13_landlock_syscalls_packet.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `Documentation/zigux/phase13-libfs-survey.md`, `zigux/helpers/notifier_chain_view.zig`, and `include/zigux/notifier_abi.h` explicit as shipped release-discipline, helper-local, and adjacent companion evidence, and keep `zigux/Makefile` explicit as a returned file, but keep `make -C zigux phase13-validate`, `make -C zigux phase13`, `scripts\zigux/check_phase13_notifier_priority_signal.zig`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`, and the still-missing Landlock syscall manifest recorded as repo-reality gaps rather than promoting them into shipped contributor workflow evidence.
 5. Treat the next same-lane follow-through as a fresh reread across `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `Documentation/zigux/phase13-notifier-summary-gap.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, then reopen only the smallest broader reminder-surface or checker-local sync that current `master` still needs while keeping `zigux/tests/phase13_libfs_addressability.zig` and the Landlock syscall manifest in repo-reality-gap wording.

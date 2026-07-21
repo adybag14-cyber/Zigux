@@ -6,7 +6,7 @@ const policy = @import("toolchain_policy.zig");
 pub const live_pass_marker = "PHASE2_TOOLCHAIN_PIN_SCOPE=pass";
 pub const self_test_pass_marker = "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass";
 
-const expected_channel = "0.17.0-dev.1415+64dfaa568";
+const expected_channel = "0.17.0-dev.1443+6c25d2bd5";
 
 const expected_targets = [_][]const u8{
     "x86_64-linux",
@@ -27,18 +27,18 @@ const docs_root_markers = [_][]const u8{
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`third_party/README.md`",
     "`scripts\\zigux/check_phase2_toolchain_pin_scope.zig`",
-    "`zig run check_zig_toolchain.zig --self-test`",
-    "`zig run check_zig_toolchain.zig --policy-only`",
-    "`zig run check_zig_toolchain.zig --archive-only --allow-missing`",
+    "`zig run scripts/zigux/check_zig_toolchain.zig -- --self-test`",
+    "`zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only`",
+    "`zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing`",
     "`make -C zigux phase2-validate`",
     "pinned Zig toolchain",
 };
 
 const review_markers = [_][]const u8{
     "`scripts\\zigux/check_phase2_toolchain_pin_scope.zig`",
-    "`zig run check_zig_toolchain.zig --self-test`",
-    "`zig run check_zig_toolchain.zig --policy-only`",
-    "`zig run check_zig_toolchain.zig --archive-only --allow-missing`",
+    "`zig run scripts/zigux/check_zig_toolchain.zig -- --self-test`",
+    "`zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only`",
+    "`zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing`",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-validate`",
     "same pinned toolchain",
@@ -46,9 +46,9 @@ const review_markers = [_][]const u8{
 
 const tests_markers = [_][]const u8{
     "`scripts\\zigux/check_phase2_toolchain_pin_scope.zig`",
-    "`zig run check_zig_toolchain.zig --self-test`",
-    "`zig run check_zig_toolchain.zig --policy-only`",
-    "`zig run check_zig_toolchain.zig --archive-only --allow-missing`",
+    "`zig run scripts/zigux/check_zig_toolchain.zig -- --self-test`",
+    "`zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only`",
+    "`zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing`",
     "repo-local `.zig-toolchain` fallback reused",
 };
 
@@ -65,7 +65,7 @@ const bootstrap_markers = [_][]const u8{
 const workflow_markers = [_][]const u8{
     "target = \"x86_64-linux\"",
     "if target not in targets:",
-    "canonical_tag = \"upstream-64dfaa568db0\"",
+    "canonical_tag = \"upstream-6c25d2bd58e4\"",
     "run: zig run scripts/zigux/check_zig_toolchain.zig -- --self-test",
     "run: zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only",
     "run: zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing",

@@ -7,49 +7,49 @@ pub const self_test_pass_marker = "PHASE2_BOOTSTRAP_INSTALLER_PACKET_SELF_TEST=p
 
 const NOTES_MARKERS = [_][]const u8{
     "`scripts/zigux/install_zig.zig` is directly readable on current `master` and keeps the pinned-channel archive download, SHA-256 verification, and install-root replay path explicit beside the reminder guards.",
-    "`zig run scripts/zigux/install_zig.zig --self-test`",
+    "`zig run scripts/zigux/install_zig.zig -- --self-test`",
     "the pinned-channel, pinned-archive integrity, local-first archive workflow, third_party README contract, installer, toolchain-pinning, pin-scope, kbuild-route, tests-root reminder, direct cross-route, cross-selftest alignment, required-make-route, docs-shared-reminder, manifest, artifact-support, genksyms bridge, kconfig bridge, fixdep governance and parity packet",
     "Keep future Phase 2 follow-up inside one current packet surface at a time: toolchain pinning, toolchain pin-scope alignment, installer-path truthfulness",
 };
 
 const REVIEW_MARKERS = [_][]const u8{
     "`scripts/zigux/install_zig.zig`",
-    "`zig run scripts/zigux/install_zig.zig --self-test`",
+    "`zig run scripts/zigux/install_zig.zig -- --self-test`",
     "`scripts\\zigux/check_phase2_cross.zig`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
 };
 
 const SCRIPTS_MARKERS = [_][]const u8{
     "`scripts/zigux/install_zig.zig`",
-    "`zig run scripts/zigux/install_zig.zig --self-test`",
+    "`zig run scripts/zigux/install_zig.zig -- --self-test`",
     "installer helper",
     "direct cross-route surfaces explicit beside the shipped toolchain and kbuild reminder packet",
 };
 
 const TESTS_MARKERS = [_][]const u8{
     "`scripts/zigux/install_zig.zig`",
-    "`zig run scripts/zigux/install_zig.zig --self-test`",
+    "`zig run scripts/zigux/install_zig.zig -- --self-test`",
     "`scripts\\zigux/check_phase2_cross.zig`",
-    "`zig run scripts\\zigux/check_phase2_cross.zig --self-test`",
+    "`zig run scripts\\zigux/check_phase2_cross.zig -- --self-test`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
 };
 
 const WORKFLOW_LINES = [_][]const u8{
     "- name: Self-test current Lane 05 local archive README checker",
-    "run: zig run scripts\\zigux/check_lane05_local_archive_readme.zig --self-test",
+    "run: zig run scripts\\zigux/check_lane05_local_archive_readme.zig -- --self-test",
     "- name: Check current Lane 05 local archive README packet",
     "run: zig run scripts\\zigux/check_lane05_local_archive_readme.zig",
     "- name: Self-test current Zig installer helper",
-    "run: zig run scripts/zigux/install_zig.zig --self-test",
+    "run: zig run scripts/zigux/install_zig.zig -- --self-test",
     "- name: Self-test current Phase 2 fixdep gate checker",
-    "run: zig run scripts\\zigux/check_phase2_fixdep_gate.zig --self-test",
+    "run: zig run scripts\\zigux/check_phase2_fixdep_gate.zig -- --self-test",
 };
 
 const MAKEFILE_MARKERS = [_][]const u8{
     "phase2-toolchain:",
-    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig --self-test",
-    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig --policy-only",
-    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig --archive-only --allow-missing",
+    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig -- --self-test",
+    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig -- --policy-only",
+    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig -- --archive-only --allow-missing",
     "phase2: phase2-validate",
 };
 

@@ -80,10 +80,10 @@ test "workflow still runs the direct cross checks inside triggered bootstrap" {
     const workflow = try readWorkflow(testing.allocator);
     defer testing.allocator.free(workflow);
 
-    const direct_self_test = "run: zig run check_phase2_cross.zig --self-test";
-    const direct_check = "zig run check_phase2_cross.zig";
-    const alignment_self_test = "run: zig run check_phase2_cross_selftest_alignment.zig --self-test";
-    const alignment_check = "zig run check_phase2_cross_selftest_alignment.zig";
+    const direct_self_test = "run: zig run scripts/zigux/check_phase2_cross.zig -- --self-test";
+    const direct_check = "zig run scripts/zigux/check_phase2_cross.zig";
+    const alignment_self_test = "run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig -- --self-test";
+    const alignment_check = "zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig";
 
     try testing.expectEqual(@as(usize, 1), exactLineCount(workflow, direct_self_test));
     try testing.expect(occurrenceCount(workflow, direct_check) >= 2);

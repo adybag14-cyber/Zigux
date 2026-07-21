@@ -5,8 +5,8 @@ This survey records the current Phase 3 export-shim and starter UAPI boundary ag
 ## Status Markers
 
 - `PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts\zigux/validate_phase3_export_uapi_survey.zig`
-- `PHASE3_EXPORT_UAPI_VALIDATOR_SELF_TEST=zig run validate_phase3_export_uapi_survey.zig --self-test`
-- `PHASE3_EXPORT_UAPI_VALIDATOR_RUN=zig run validate_phase3_export_uapi_survey.zig`
+- `PHASE3_EXPORT_UAPI_VALIDATOR_SELF_TEST=zig run scripts/zigux/validate_phase3_export_uapi_survey.zig -- --self-test`
+- `PHASE3_EXPORT_UAPI_VALIDATOR_RUN=zig run scripts/zigux/validate_phase3_export_uapi_survey.zig`
 - `PHASE3_EXPORT_UAPI_LAYOUT_ROUTE_CHECK=scripts\zigux/check_phase3_export_uapi_layout_route.zig`
 - `PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts\zigux/check_phase3_catalog_selftest.zig`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
@@ -62,11 +62,11 @@ The detailed Linux-facing predicate relays above are part of the landed starter 
 - `PHASE3_EXPORT_SHIM_DEDICATED_GATE=zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig`
 - `PHASE3_LAYOUT_SHARED_GATE=zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig`
 - `PHASE3_LAYOUT_DEDICATED_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
-- `PHASE3_EXPORT_UAPI_LAYOUT_ROUTE_SELF_TEST=zig run check_phase3_export_uapi_layout_route.zig --self-test`
-- `PHASE3_EXPORT_UAPI_LAYOUT_ROUTE_RUN=zig run check_phase3_export_uapi_layout_route.zig`
+- `PHASE3_EXPORT_UAPI_LAYOUT_ROUTE_SELF_TEST=zig run scripts/zigux/check_phase3_export_uapi_layout_route.zig -- --self-test`
+- `PHASE3_EXPORT_UAPI_LAYOUT_ROUTE_RUN=zig run scripts/zigux/check_phase3_export_uapi_layout_route.zig`
 - `PHASE3_ABI_EXPORT_SHARED_GATE=zig build phase3-abi-export --build-file zigux/tests/build.zig`
 - `PHASE3_ABI_EXPORT_MAKE_ROUTE=make -C zigux phase3-abi-export`
-- `PHASE3_C_HEADER_SMOKE_GATE=zig run check_phase3_export_uapi_c_header_smoke.zig`
+- `PHASE3_C_HEADER_SMOKE_GATE=zig run scripts/zigux/check_phase3_export_uapi_c_header_smoke.zig`
 - `PHASE3_C_HEADER_SMOKE_WORKFLOW_GATE=.github/workflows/zigux-bootstrap.yml -> Run current Phase 3 export/UAPI C header smoke`
 - `PHASE3_SHARED_VALIDATE_SELFTEST_PATH=scripts/zigux/validate_phase3_selftest.zig`
 - `PHASE3_SHARED_CHECK_RUNNER_PATH=scripts/zigux/run_phase3_checks.zig`

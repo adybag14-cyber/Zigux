@@ -106,9 +106,9 @@ That keeps the release handle centered on the shared validator-first and bounded
 When the shared Phase 3 packet moves:
 
 1. reread this matrix beside `Documentation/zigux/phase3-boundary-lane-sequencing.md`, `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-validator-support-surface.md`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, and `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
-2. rerun `zig run check_phase3_selftest_surface.zig --self-test`
-3. rerun `zig run check_phase3_readme_tooling_inventory.zig --self-test`
-4. rerun `zig run check_phase3_abi.zig --self-test`
+2. rerun `zig run scripts/zigux/check_phase3_selftest_surface.zig -- --self-test`
+3. rerun `zig run scripts/zigux/check_phase3_readme_tooling_inventory.zig -- --self-test`
+4. rerun `zig run scripts/zigux/check_phase3_abi.zig -- --self-test`
 5. keep any broader README, checklist, or tests-root reminder refresh as a separate same-lane step when a fresh repo reread proves drift there
 
 ## Next Bounded Step

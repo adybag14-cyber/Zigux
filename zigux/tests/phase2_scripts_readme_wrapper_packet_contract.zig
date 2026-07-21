@@ -31,7 +31,7 @@ test "scripts README keeps the Phase 2 wrapper packet explicit" {
         "`make -C zigux phase2-validate`",
         "`make -C zigux phase2`",
         "`scripts\zigux/check_phase2_tool_manifest.zig` and `zigux/tests/fixtures/phase2_tool_manifest.json` keep the fixture-backed current Phase 2 tool packet explicit",
-        "`scripts/zigux/install_zig.zig`, `zig run scripts/zigux/install_zig.zig --self-test`, `zig run check_phase2_cross.zig --self-test`, `zig run check_phase2_cross.zig`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`",
+        "`scripts/zigux/install_zig.zig`, `zig run scripts/zigux/install_zig.zig -- --self-test`, `zig run scripts/zigux/check_phase2_cross.zig -- --self-test`, `zig run scripts/zigux/check_phase2_cross.zig`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`",
         "keep those installer, tool-manifest, artifact-support, direct cross-route, genksyms bridge, and fixdep surfaces explicit beside the shipped toolchain and kbuild reminder packet",
     };
 
@@ -50,8 +50,8 @@ test "Makefile exposes the required Phase 2 route dependency graph" {
     const markers = [_][]const u8{
         ".PHONY: phase1-route-summary phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2",
         "phase2-toolchain:",
-        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig --self-test",
-        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig --policy-only",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig -- --self-test",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig -- --policy-only",
         "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_toolchain_pinning.zig",
         "phase2-tools:",
         "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_docs_shared_reminder.zig",
@@ -66,7 +66,7 @@ test "Makefile exposes the required Phase 2 route dependency graph" {
         "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/genksyms.zig",
         "phase2-fixdep: phase2-toolchain",
         "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_fixdep_gate.zig",
-        "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_fixdep_diff.zig --zig \"$(ZIG_REPO_ROOT)\"",
+        "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_fixdep_diff.zig -- --zig \"$(ZIG_REPO_ROOT)\"",
         "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
         "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase2_closure.zig",
         "phase2: phase2-validate",

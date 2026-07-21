@@ -48,22 +48,22 @@ const EXPECTED_GAPS = [_][]const u8{
 };
 
 const EXPECTED_REPLAYS = [_][]const u8{
-    "zig run scripts\\zigux/check_phase7_shared_surface.zig",
-    "zig run scripts\\zigux/check_phase7_shared_surface.zig --self-test",
-    "zig run scripts\\zigux/check_phase7_build_wiring.zig",
-    "zig run scripts\\zigux/check_phase7_build_wiring.zig --self-test",
-    "zig run scripts\\zigux/check_phase7_make_wrapper_selftest_alignment.zig",
-    "zig run scripts\\zigux/check_phase7_make_wrapper_selftest_alignment.zig --self-test",
-    "zig run scripts\\zigux/check_phase7_cmdline_packet.zig",
-    "zig run scripts\\zigux/check_phase7_cmdline_packet.zig --self-test",
-    "zig run scripts\\zigux/check_phase7_argv_split_packet.zig",
-    "zig run scripts\\zigux/check_phase7_argv_split_packet.zig --self-test",
-    "zig run scripts\\zigux/check_phase7_string_helpers_format_boundary_packet.zig",
-    "zig run scripts\\zigux/check_phase7_string_helpers_format_boundary_packet.zig --self-test",
-    "zig run scripts\\zigux/check_phase7_rbtree_parity.zig",
-    "zig run scripts\\zigux/check_phase7_rbtree_parity.zig --self-test",
-    "zig run scripts\\zigux/validate_phase7.zig",
-    "zig run scripts\\zigux/validate_phase7.zig --self-test",
+    "zig run scripts/zigux/check_phase7_shared_surface.zig",
+    "zig run scripts/zigux/check_phase7_shared_surface.zig -- --self-test",
+    "zig run scripts/zigux/check_phase7_build_wiring.zig",
+    "zig run scripts/zigux/check_phase7_build_wiring.zig -- --self-test",
+    "zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig",
+    "zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig -- --self-test",
+    "zig run scripts/zigux/check_phase7_cmdline_packet.zig",
+    "zig run scripts/zigux/check_phase7_cmdline_packet.zig -- --self-test",
+    "zig run scripts/zigux/check_phase7_argv_split_packet.zig",
+    "zig run scripts/zigux/check_phase7_argv_split_packet.zig -- --self-test",
+    "zig run scripts/zigux/check_phase7_string_helpers_format_boundary_packet.zig",
+    "zig run scripts/zigux/check_phase7_string_helpers_format_boundary_packet.zig -- --self-test",
+    "zig run scripts/zigux/check_phase7_rbtree_parity.zig",
+    "zig run scripts/zigux/check_phase7_rbtree_parity.zig -- --self-test",
+    "zig run scripts/zigux/validate_phase7.zig",
+    "zig run scripts/zigux/validate_phase7.zig -- --self-test",
     "make -C zigux phase7-validate",
 };
 
@@ -82,12 +82,12 @@ const REQUIRED_CATALOG_SNIPPETS = [_][]const u8{
     "- `zigux/tests/phase7_build.zig`",
     "- `lib/rbtree.zig`",
     "## Current replay inventory",
-    "- `zig run scripts\\zigux/check_phase7_build_wiring.zig`",
-    "- `zig run scripts\\zigux/check_phase7_make_wrapper_selftest_alignment.zig`",
-    "- `zig run scripts\\zigux/check_phase7_cmdline_packet.zig`",
-    "- `zig run scripts\\zigux/check_phase7_argv_split_packet.zig`",
-    "- `zig run scripts\\zigux/check_phase7_string_helpers_format_boundary_packet.zig`",
-    "- `zig run scripts\\zigux/check_phase7_rbtree_parity.zig`",
+    "- `zig run scripts/zigux/check_phase7_build_wiring.zig`",
+    "- `zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig`",
+    "- `zig run scripts/zigux/check_phase7_cmdline_packet.zig`",
+    "- `zig run scripts/zigux/check_phase7_argv_split_packet.zig`",
+    "- `zig run scripts/zigux/check_phase7_string_helpers_format_boundary_packet.zig`",
+    "- `zig run scripts/zigux/check_phase7_rbtree_parity.zig`",
     "- `make -C zigux phase7-validate`",
     "## Current build-wiring evidence",
     "- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` into the shared Phase 7 build graph.",
@@ -102,21 +102,21 @@ const REQUIRED_CATALOG_SNIPPETS = [_][]const u8{
 const REQUIRED_DOCS_README_SNIPPETS = [_][]const u8{
     "Phase 7 notes - `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`",
     "* `zigux/tests/phase7_build.zig` keeps `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` wired through the dedicated helper, survey, sample-boundary, and format-boundary routes plus the shared `test` step, while `zigux/Makefile` keeps only the narrow `make -C zigux phase7-validate` foothold explicit and leaves broader wrapper routes outside this packet.",
-    "* `zig run scripts\\zigux/check_phase7_shared_surface.zig`, `zig run scripts\\zigux/check_phase7_build_wiring.zig`, `zig run scripts\\zigux/check_phase7_make_wrapper_selftest_alignment.zig`, `zig run scripts\\zigux/check_phase7_argv_split_packet.zig`, `zig run scripts\\zigux/check_phase7_string_helpers_format_boundary_packet.zig`, `zig run scripts\\zigux/validate_phase7.zig`, and `make -C zigux phase7-validate` replay the bounded current Phase 7 docs-root reminder packet without widening it into new helper semantics, workflow recovery claims, or deeper runtime-family validation routes.",
+    "* `zig run scripts/zigux/check_phase7_shared_surface.zig`, `zig run scripts/zigux/check_phase7_build_wiring.zig`, `zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig`, `zig run scripts/zigux/check_phase7_argv_split_packet.zig`, `zig run scripts/zigux/check_phase7_string_helpers_format_boundary_packet.zig`, `zig run scripts/zigux/validate_phase7.zig`, and `make -C zigux phase7-validate` replay the bounded current Phase 7 docs-root reminder packet without widening it into new helper semantics, workflow recovery claims, or deeper runtime-family validation routes.",
 };
 
 const REQUIRED_REVIEW_CHECKLIST_SNIPPETS = [_][]const u8{
-    "* if the change touches the shared Phase 7 leaf-library packet, do `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts\\zigux/check_phase7_shared_surface.zig`, `scripts\\zigux/check_phase7_build_wiring.zig`, `scripts\\zigux/check_phase7_make_wrapper_selftest_alignment.zig`, `scripts\\zigux/check_phase7_argv_split_packet.zig`, `scripts\\zigux/check_phase7_string_helpers_format_boundary_packet.zig`, `scripts\\zigux/validate_phase7.zig`, `zigux/tests/phase7_leaf_library_evidence_manifest.json`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, and `lib/rbtree.zig` still agree on the current bounded Phase 7 packet, keep the returned helper-anchor set and shared build-wiring packet explicit, keep `zig run scripts\\zigux/check_phase7_shared_surface.zig`, `zig run scripts\\zigux/check_phase7_build_wiring.zig`, `zig run scripts\\zigux/check_phase7_make_wrapper_selftest_alignment.zig`, `zig run scripts\\zigux/check_phase7_argv_split_packet.zig`, `zig run scripts\\zigux/check_phase7_string_helpers_format_boundary_packet.zig`, `zig run scripts\\zigux/validate_phase7.zig`, and `make -C zigux phase7-validate` explicit as the current bounded replay surfaces, and keep broader wrapper families or deeper runtime validation claims out of the Phase 7 reminder packet?",
+    "* if the change touches the shared Phase 7 leaf-library packet, do `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts\\zigux/check_phase7_shared_surface.zig`, `scripts\\zigux/check_phase7_build_wiring.zig`, `scripts\\zigux/check_phase7_make_wrapper_selftest_alignment.zig`, `scripts\\zigux/check_phase7_argv_split_packet.zig`, `scripts\\zigux/check_phase7_string_helpers_format_boundary_packet.zig`, `scripts\\zigux/validate_phase7.zig`, `zigux/tests/phase7_leaf_library_evidence_manifest.json`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, and `lib/rbtree.zig` still agree on the current bounded Phase 7 packet, keep the returned helper-anchor set and shared build-wiring packet explicit, keep `zig run scripts/zigux/check_phase7_shared_surface.zig`, `zig run scripts/zigux/check_phase7_build_wiring.zig`, `zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig`, `zig run scripts/zigux/check_phase7_argv_split_packet.zig`, `zig run scripts/zigux/check_phase7_string_helpers_format_boundary_packet.zig`, `zig run scripts/zigux/validate_phase7.zig`, and `make -C zigux phase7-validate` explicit as the current bounded replay surfaces, and keep broader wrapper families or deeper runtime validation claims out of the Phase 7 reminder packet?",
 };
 
 const REQUIRED_SCRIPTS_README_SNIPPETS = [_][]const u8{
     "- Phase 7 flow - the current scripts-root leaf-library packet stays reviewable through the returned leaf-library evidence catalog, the shared docs-root and tests-root reminder packet, the shipped shared-surface, build-wiring, make-wrapper self-test alignment, dedicated `cmdline`, `argv_split`, `string_helpers` format-boundary, and `rbtree` parity guards, the validator entrypoint, the shared machine-readable manifest, the shared build graph, the narrow `phase7-validate` wrapper foothold, and the four roadmap-backed helper anchors instead of reopening helper semantics or reconstructing a broader missing-wrapper story",
-    "- `zig run scripts\\zigux/check_phase7_shared_surface.zig --self-test`, `zig run scripts\\zigux/check_phase7_build_wiring.zig --self-test`, `zig run scripts\\zigux/check_phase7_make_wrapper_selftest_alignment.zig --self-test`, `zig run scripts\\zigux/check_phase7_cmdline_packet.zig --self-test`, `zig run scripts\\zigux/check_phase7_argv_split_packet.zig --self-test`, `zig run scripts\\zigux/check_phase7_string_helpers_format_boundary_packet.zig --self-test`, `zig run scripts\\zigux/check_phase7_rbtree_parity.zig --self-test`, and `zig run scripts\\zigux/validate_phase7.zig --self-test` replay the shipped shared Phase 7 scripts-root reminder guards",
+    "- `zig run scripts/zigux/check_phase7_shared_surface.zig -- --self-test`, `zig run scripts/zigux/check_phase7_build_wiring.zig -- --self-test`, `zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig -- --self-test`, `zig run scripts/zigux/check_phase7_cmdline_packet.zig -- --self-test`, `zig run scripts/zigux/check_phase7_argv_split_packet.zig -- --self-test`, `zig run scripts/zigux/check_phase7_string_helpers_format_boundary_packet.zig -- --self-test`, `zig run scripts/zigux/check_phase7_rbtree_parity.zig -- --self-test`, and `zig run scripts/zigux/validate_phase7.zig -- --self-test` replay the shipped shared Phase 7 scripts-root reminder guards",
 };
 
 const REQUIRED_TESTS_README_SNIPPETS = [_][]const u8{
     "## Phase 7 leaf-library packet",
-    "Keep the validator-first reminder packet explicit too: `zig run scripts\\zigux/check_phase7_shared_surface.zig`, `zig run scripts\\zigux/check_phase7_build_wiring.zig`, `zig run scripts\\zigux/check_phase7_make_wrapper_selftest_alignment.zig`, `zig run scripts\\zigux/check_phase7_cmdline_packet.zig`, `zig run scripts\\zigux/check_phase7_argv_split_packet.zig`, `zig run scripts\\zigux/check_phase7_string_helpers_format_boundary_packet.zig`, `zig run scripts\\zigux/check_phase7_rbtree_parity.zig`, `zig run scripts\\zigux/check_phase7_rbtree_parity.zig --self-test`, `zig run scripts\\zigux/validate_phase7.zig`, `zig run scripts\\zigux/validate_phase7.zig --self-test`, and `make -C zigux phase7-validate` remain the shipped bounded replay surfaces, while `zigux/Makefile` keeps `phase7-validate` as the shared foothold and `phase7-rbtree-test:` plus `phase7-rbtree-survey:` as dedicated helper-local wrappers rather than a broader aggregate wrapper family.",
+    "Keep the validator-first reminder packet explicit too: `zig run scripts/zigux/check_phase7_shared_surface.zig`, `zig run scripts/zigux/check_phase7_build_wiring.zig`, `zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig`, `zig run scripts/zigux/check_phase7_cmdline_packet.zig`, `zig run scripts/zigux/check_phase7_argv_split_packet.zig`, `zig run scripts/zigux/check_phase7_string_helpers_format_boundary_packet.zig`, `zig run scripts/zigux/check_phase7_rbtree_parity.zig`, `zig run scripts/zigux/check_phase7_rbtree_parity.zig -- --self-test`, `zig run scripts/zigux/validate_phase7.zig`, `zig run scripts/zigux/validate_phase7.zig -- --self-test`, and `make -C zigux phase7-validate` remain the shipped bounded replay surfaces, while `zigux/Makefile` keeps `phase7-validate` as the shared foothold and `phase7-rbtree-test:` plus `phase7-rbtree-survey:` as dedicated helper-local wrappers rather than a broader aggregate wrapper family.",
 };
 
 const REQUIRED_MAKEFILE_SNIPPETS = [_][]const u8{
@@ -160,7 +160,7 @@ const EXPECTED_BUILD_WIRING_EVIDENCE = [_][]const u8{
     "expected_markers:../../lib/string_helpers.zig../../lib/cmdline.zig../../lib/argv_split.zig../../lib/rbtree.zigphase7-string-helpers-testphase7-string-helpers-surveyphase7-string-helpers-sample-boundaryphase7-string-helpers-format-boundarystring_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step)string_helpers_format_boundary_step.dependOn(&run_string_helpers_format_boundary_tests.step)phase7-cmdline-testphase7-cmdline-surveycmdline_survey_step.dependOn(&run_cmdline_survey_tests.step)phase7-argv-split-testphase7-argv-split-surveyargv_split_survey_step.dependOn(&run_argv_split_survey_tests.step)phase7-rbtree-testphase7-rbtree-surveyconst test_step = b.step(\"test\", \"Run the Phase 7 runtime helper tests\");test_step.dependOn(&run_string_helpers_tests.step)test_step.dependOn(&run_string_helpers_survey_tests.step)test_step.dependOn(&run_string_helpers_sample_boundary_tests.step)test_step.dependOn(&run_string_helpers_format_boundary_tests.step)test_step.dependOn(&run_cmdline_tests.step)test_step.dependOn(&run_cmdline_survey_tests.step)test_step.dependOn(&run_argv_split_tests.step)test_step.dependOn(&run_argv_split_survey_tests.step)test_step.dependOn(&run_rbtree_tests.step)test_step.dependOn(&run_rbtree_survey_tests.step)",
     "}",
     "{path:zigux/Makefile",
-    "expected_markers:phase7-validate:$(ZIG) run scripts/zigux/validate_phase7.zig --self-test$(ZIG) run scripts/zigux/validate_phase7.zig",
+    "expected_markers:phase7-validate:$(ZIG) run scripts/zigux/validate_phase7.zig -- --self-test$(ZIG) run scripts/zigux/validate_phase7.zig",
     "}",
 };
 

@@ -19,11 +19,11 @@
     "scripts\zigux/check_phase3_ida_alloc.zig"
   ],
   "replay_routes": [
-    "zig run check_phase3_ida_alloc_starter_packet.zig --self-test",
-    "zig run check_phase3_ida_alloc_starter_packet.zig",
+    "zig run scripts/zigux/check_phase3_ida_alloc_starter_packet.zig -- --self-test",
+    "zig run scripts/zigux/check_phase3_ida_alloc_starter_packet.zig",
     "zig build phase3-ida-alloc-starter-packet-test --build-file zigux/tests/phase3_ida_alloc_starter_packet_build.zig",
-    "zig run check_phase3_ida_alloc.zig --self-test",
-    "zig run check_phase3_ida_alloc.zig --repo-root . --zig zig --cc gcc",
+    "zig run scripts/zigux/check_phase3_ida_alloc.zig -- --self-test",
+    "zig run scripts/zigux/check_phase3_ida_alloc.zig -- --repo-root . --zig zig --cc gcc",
     "zig build phase3-ida-alloc-dump --build-file zigux/tests/phase3_ida_alloc_dump_build.zig"
   ],
   "repo_reality_gaps": [],

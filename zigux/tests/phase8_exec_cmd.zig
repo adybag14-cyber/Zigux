@@ -67,14 +67,14 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
 
     const checker = try readWorkspaceFile(
         allocator,
-        "scripts\zigux/check_phase8_exec_cmd_packet.zig",
+        "scripts/zigux/check_phase8_exec_cmd_packet.zig",
         96 * 1024,
     );
     defer allocator.free(checker);
 
     const validate_phase8 = try readWorkspaceFile(
         allocator,
-        "scripts\zigux/validate_phase8.zig",
+        "scripts/zigux/validate_phase8.zig",
         192 * 1024,
     );
     defer allocator.free(validate_phase8);

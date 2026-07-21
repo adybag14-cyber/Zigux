@@ -1,38 +1,38 @@
       - name: Self-test current Phase 1 route summary checker
-        run: zig run check_phase1_route_summary_counts.zig --self-test
+        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test
 
       - name: Check current Phase 1 route summary packet
-        run: zig run check_phase1_route_summary_counts.zig
+        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig
 
       - name: Self-test current Phase 1 bench checker
-        run: zig run check_phase1_bench.zig --self-test
+        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test
 
       - name: Check current Phase 1 bench packet
-        run: zig run check_phase1_bench.zig
+        run: zig run scripts/zigux/check_phase1_bench.zig
 
       - name: Self-test current Phase 1 bench live-check workflow guard
-        run: zig run check_phase1_bench_live_check_workflow.zig --self-test
+        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test
 
       - name: Check current Phase 1 bench live-check workflow guard packet
-        run: zig run check_phase1_bench_live_check_workflow.zig
+        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig
 
       - name: Self-test current Phase 1 find-bit bench anchor checker
-        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test
+        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test
 
       - name: Check current Phase 1 find-bit bench anchor packet
-        run: zig run check_phase1_find_bit_bench_anchors.zig
+        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig
 
       - name: Self-test current Phase 1 shared reminder checker
-        run: zig run check_phase1_shared_reminder_packet.zig --self-test
+        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test
 
       - name: Check current Phase 1 shared reminder packet
-        run: zig run check_phase1_shared_reminder_packet.zig
+        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig
 
       - name: Self-test current Phase 1 closure validator
-        run: zig run validate_phase1_closure.zig --self-test
+        run: zig run scripts/zigux/validate_phase1_closure.zig -- --self-test
 
       - name: Check current Phase 1 closure packet
-        run: zig run validate_phase1_closure.zig
+        run: zig run scripts/zigux/validate_phase1_closure.zig
 
       - name: Run current Phase 1 shared tests-root smoke
         run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig

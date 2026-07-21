@@ -72,7 +72,7 @@ The current helper-local replay also keeps these ownership and boundary rules ex
 
 ## Replay Routes
 
-- `zig run check_phase7_cmdline_packet.zig --self-test`
+- `zig run scripts/zigux/check_phase7_cmdline_packet.zig -- --self-test`
 - `zig build phase7-cmdline-survey --build-file zigux/tests/phase7_cmdline_survey_build.zig`
 
 ## Non-goals

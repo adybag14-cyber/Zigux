@@ -8,8 +8,8 @@ pub const self_test_pass_marker = "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pa
 const FileContract = struct { rel: []const u8, markers: []const []const u8 };
 
 const markers_0 = [_][]const u8{
-    "run: zig run check_phase4_artifact_diff_determinism.zig --self-test",
-    "run: zig run check_phase4_artifact_diff_determinism.zig",
+    "run: zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig",
 };
 
 const markers_1 = [_][]const u8{
@@ -119,7 +119,7 @@ const markers_5 = [_][]const u8{
 };
 
 const markers_6 = [_][]const u8{
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig",
 };
 

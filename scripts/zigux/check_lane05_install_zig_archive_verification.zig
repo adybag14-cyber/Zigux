@@ -282,8 +282,8 @@ const self_test_install_zig =
 const self_test_policy_json =
     \\{
     \\  "phase": "Phase 2",
-    \\  "channel": "0.17.0-dev.1415+64dfaa568",
-    \\  "minimum_version": "0.17.0-dev.1415+64dfaa568",
+    \\  "channel": "0.17.0-dev.1443+6c25d2bd5",
+    \\  "minimum_version": "0.17.0-dev.1443+6c25d2bd5",
     \\  "archive_sha256": {
     \\    "x86_64-linux": "3333333333333333333333333333333333333333333333333333333333333333"
     \\  },

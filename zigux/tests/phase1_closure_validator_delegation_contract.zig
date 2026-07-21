@@ -58,7 +58,7 @@ test "phase 1 closure validator keeps delegated checker roster explicit" {
     try expectContains(validator, "\"scripts\zigux/validate_phase1_closure.zig\"");
     try expectContains(validator, "\"scripts\zigux/check_phase1_bench.zig\"");
     try expectContains(validator, "\"scripts\zigux/check_phase1_direct_owner_markers.zig\"");
-    try expectContains(validator, "PHASE1_CLOSURE_GATE=zig run validate_phase1_closure.zig");
+    try expectContains(validator, "PHASE1_CLOSURE_GATE=zig run scripts/zigux/validate_phase1_closure.zig");
 }
 
 test "phase 1 closure note stays tied to the narrow validator route" {
@@ -66,20 +66,20 @@ test "phase 1 closure note stays tied to the narrow validator route" {
     defer std.testing.allocator.free(closure_note);
 
     if (std.mem.indexOf(u8, closure_note, "PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator") != null) {
-        try expectOnce(closure_note, "`PHASE1_CLOSURE_VALIDATOR=zig run validate_phase1_closure.zig`");
+        try expectOnce(closure_note, "`PHASE1_CLOSURE_VALIDATOR=zig run scripts/zigux/validate_phase1_closure.zig`");
         try expectOnce(closure_note, "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`");
         try expectContains(closure_note, "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`");
-        try expectContains(closure_note, "`PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=zig run check_phase1_direct_anchor_manifest_gate.zig");
-        try expectContains(closure_note, "`PHASE1_STRING_REVIEW_GUARD=zig run check_phase1_string_review_packet.zig");
-        try expectContains(closure_note, "`PHASE1_FIND_BIT_REVIEW_GUARD=zig run check_phase1_find_bit_review_packet.zig");
-        try expectContains(closure_note, "`PHASE1_RBTREE_REVIEW_GUARD=zig run check_phase1_rbtree_review_packet.zig");
+        try expectContains(closure_note, "`PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig");
+        try expectContains(closure_note, "`PHASE1_STRING_REVIEW_GUARD=zig run scripts/zigux/check_phase1_string_review_packet.zig");
+        try expectContains(closure_note, "`PHASE1_FIND_BIT_REVIEW_GUARD=zig run scripts/zigux/check_phase1_find_bit_review_packet.zig");
+        try expectContains(closure_note, "`PHASE1_RBTREE_REVIEW_GUARD=zig run scripts/zigux/check_phase1_rbtree_review_packet.zig");
         try expectAbsent(closure_note, "`PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master`");
         try expectAbsent(closure_note, "`PHASE1_NEXT_SAFE_STEP=restore the missing phase1 closure note first`");
         return;
     }
 
     try expectContains(closure_note, "PHASE1_STATUS=closed");
-    try expectContains(closure_note, "PHASE1_CLOSURE_GATE=zig run validate_phase1_closure.zig");
+    try expectContains(closure_note, "PHASE1_CLOSURE_GATE=zig run scripts/zigux/validate_phase1_closure.zig");
     try expectContains(closure_note, "PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig");
     try expectContains(closure_note, "PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig");
 }

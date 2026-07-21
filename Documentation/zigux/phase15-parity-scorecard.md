@@ -38,10 +38,10 @@ That means the current parity-tracking gap is maintenance-only: keep the scoreca
 
 ## Current reminder route
 
-- the current checker-backed reminder route exists through `zig run check_phase15_docs_readme_alignment.zig`, `zig run check_phase15_scripts_readme_alignment.zig`, `zig run check_phase15_tests_readme_alignment.zig`, `zig run check_phase15_review_process_handoff.zig`, `zig run check_phase15_shared_summary_gap.zig`, and `zig test zigux/tests/phase15_parity_scorecard.zig`
+- the current checker-backed reminder route exists through `zig run scripts/zigux/check_phase15_docs_readme_alignment.zig`, `zig run scripts/zigux/check_phase15_scripts_readme_alignment.zig`, `zig run scripts/zigux/check_phase15_tests_readme_alignment.zig`, `zig run scripts/zigux/check_phase15_review_process_handoff.zig`, `zig run scripts/zigux/check_phase15_shared_summary_gap.zig`, and `zig test zigux/tests/phase15_parity_scorecard.zig`
 - the machine-readable blocked-posture companion stays explicit through `zigux/tests/phase15_parity_scorecard.json` while the dedicated Zig replay stays reviewable through `zig test zigux/tests/phase15_parity_scorecard.zig`
 - anchor-level blocker evidence stays reviewable through `zig test zigux/tests/phase15_freeze_map_governance.zig`
-- validator-first reminder route is directly readable on current `master` through `zig run validate_phase15.zig`
+- validator-first reminder route is directly readable on current `master` through `zig run scripts/zigux/validate_phase15.zig`
 - shared replay build route is directly readable on current `master` through `zigux/tests/phase15_build.zig` and `zig build test --build-file zigux/tests/phase15_build.zig`
 - current `zigux/Makefile` still lacks `phase15-validate`, `phase15-test`, and `phase15` targets, so the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes remain wrapper-gap vocabulary rather than shipped reminder-route evidence
 
@@ -121,15 +121,15 @@ This scorecard does not claim:
 ## Gates
 
 1. run the checker-backed reminder route
-   - `zig run check_phase15_docs_readme_alignment.zig`
-   - `zig run check_phase15_scripts_readme_alignment.zig`
-   - `zig run check_phase15_tests_readme_alignment.zig`
-   - `zig run check_phase15_review_process_handoff.zig`
-   - `zig run check_phase15_shared_summary_gap.zig`
+   - `zig run scripts/zigux/check_phase15_docs_readme_alignment.zig`
+   - `zig run scripts/zigux/check_phase15_scripts_readme_alignment.zig`
+   - `zig run scripts/zigux/check_phase15_tests_readme_alignment.zig`
+   - `zig run scripts/zigux/check_phase15_review_process_handoff.zig`
+   - `zig run scripts/zigux/check_phase15_shared_summary_gap.zig`
 2. run the dedicated parity scorecard replay
    - `zig test zigux/tests/phase15_parity_scorecard.zig`
 3. keep the validator-first route and the shared build route directly readable while wrapper and workflow routes stay explicit as gaps
-   - `zig run validate_phase15.zig`
+   - `zig run scripts/zigux/validate_phase15.zig`
    - `zig build test --build-file zigux/tests/phase15_build.zig`
 4. keep the parked wrapper routes explicit as gaps until `zigux/Makefile` grows them
    - `make -C zigux phase15-validate`

@@ -10,8 +10,8 @@ const FileContract = struct { rel: []const u8, markers: []const []const u8 };
 const markers_0 = [_][]const u8{
     " expected",
     " actual",
-    "run: zig run check_artifact_diff_contract.zig --self-test",
-    "run: zig run check_artifact_diff_contract.zig",
+    "run: zig run scripts/zigux/check_artifact_diff_contract.zig -- --self-test",
+    "run: zig run scripts/zigux/check_artifact_diff_contract.zig",
 };
 
 const markers_1 = [_][]const u8{

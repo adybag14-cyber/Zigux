@@ -54,7 +54,7 @@ const markers_0 = [_][]const u8{
     "\"zigux/tests/phase3_abi_dump_current.zig\"",
     "\"zigux/Makefile\"",
     "\".github/workflows/zigux-bootstrap.yml\"",
-    "\"zig run scripts/zigux/check_phase3_wrapper_templates.zig --self-test\"",
+    "\"zig run scripts/zigux/check_phase3_wrapper_templates.zig -- --self-test\"",
     "\"zig build phase3-abi-export --build-file zigux/tests/build.zig\"",
     "\"make -C zigux phase3-abi-export\"",
     "\"zig build phase3-idr-slot --build-file zigux/tests/build.zig\"",

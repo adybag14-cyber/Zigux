@@ -5,13 +5,13 @@ const live_guard_path = "scripts\zigux/check_phase1_bench_live_check_workflow.zi
 const bench_checker_path = "scripts\zigux/check_phase1_bench.zig";
 
 const bench_self_test_step = "Self-test current Phase 1 bench checker";
-const bench_self_test_run = "zig run check_phase1_bench.zig --self-test";
+const bench_self_test_run = "zig run scripts/zigux/check_phase1_bench.zig -- --self-test";
 const bench_live_check_step = "Check current Phase 1 bench packet";
-const bench_live_check_run = "zig run check_phase1_bench.zig";
+const bench_live_check_run = "zig run scripts/zigux/check_phase1_bench.zig";
 const live_guard_self_test_step = "Self-test current Phase 1 bench live-check workflow guard";
-const live_guard_self_test_run = "zig run check_phase1_bench_live_check_workflow.zig --self-test";
+const live_guard_self_test_run = "zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test";
 const live_guard_check_step = "Check current Phase 1 bench live-check workflow guard packet";
-const live_guard_check_run = "zig run check_phase1_bench_live_check_workflow.zig";
+const live_guard_check_run = "zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig";
 const find_bit_bench_step = "Self-test current Phase 1 find-bit bench anchor checker";
 
 const workflow_step_chain = [_][]const u8{
@@ -27,14 +27,14 @@ const required_workflow_run_lines = [_][]const u8{
     bench_live_check_run,
     live_guard_self_test_run,
     live_guard_check_run,
-    "zig run check_phase1_find_bit_bench_anchors.zig --self-test",
+    "zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test",
 };
 
 const live_guard_contract_markers = [_][]const u8{
     "BENCH_SELF_TEST_STEP = \"Self-test current Phase 1 bench checker\"",
-    "BENCH_SELF_TEST_RUN = \"zig run check_phase1_bench.zig --self-test\"",
+    "BENCH_SELF_TEST_RUN = \"zig run scripts/zigux/check_phase1_bench.zig -- --self-test\"",
     "BENCH_LIVE_CHECK_STEP = \"Check current Phase 1 bench packet\"",
-    "BENCH_LIVE_CHECK_RUN = \"zig run check_phase1_bench.zig\"",
+    "BENCH_LIVE_CHECK_RUN = \"zig run scripts/zigux/check_phase1_bench.zig\"",
     "FIND_BIT_BENCH_STEP = \"Self-test current Phase 1 find-bit bench anchor checker\"",
     "REQUIRED_CHAIN = (",
     "PHASE1_BENCH_LIVE_CHECK_WORKFLOW_SELF_TEST_CASE_COUNT=6",

@@ -48,7 +48,7 @@ test "phase2 validate route keeps tests-readme alignment ahead of closure valida
     const makefile = try readRepoFile("zigux/Makefile", 96 * 1024);
     defer std.testing.allocator.free(makefile);
 
-    const checker_self_test = "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_tests_readme_alignment.zig --self-test";
+    const checker_self_test = "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_tests_readme_alignment.zig -- --self-test";
     const checker_live = "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_tests_readme_alignment.zig";
     const closure_validator = "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase2_closure.zig";
 
@@ -64,7 +64,7 @@ test "phase2 validate route keeps tests-readme alignment ahead of closure valida
 
     try expectContains(
         closure_note,
-        "PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2.zig,zig run validate_phase2_closure.zig",
+        "PHASE2_CLOSURE_VALIDATORS=zig run scripts/zigux/validate_phase2.zig,zig run scripts/zigux/validate_phase2_closure.zig",
     );
 }
 

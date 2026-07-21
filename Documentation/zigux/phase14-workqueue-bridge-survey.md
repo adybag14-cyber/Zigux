@@ -133,18 +133,18 @@ For the current bounded step, productization behavior is only considered verifie
   * direct bridge-local trust gate:
     * `zig test zigux/tests/phase14_workqueue_reviewability.zig`
   * shared packet-local productization checks:
-    * `zig run check_phase14_shared_smoke_route.zig --self-test`
-    * `zig run check_phase14_shared_smoke_route.zig`
-    * `zig run check_phase14_tests_readme_smoke_summary.zig --self-test`
-    * `zig run check_phase14_tests_readme_smoke_summary.zig`
-    * `zig run validate_phase14.zig --self-test`
-    * `zig run validate_phase14.zig`
-    * `zig run check_phase14_rollback_threshold_sequencing.zig --self-test`
-    * `zig run check_phase14_rollback_threshold_sequencing.zig`
-    * `zig run check_phase14_workqueue_study_only_guardrail.zig --self-test`
-    * `zig run check_phase14_workqueue_study_only_guardrail.zig`
-    * `zig run check_phase14_release_boundary_exact_counts.zig --self-test`
-    * `zig run check_phase14_release_boundary_exact_counts.zig`
+    * `zig run scripts/zigux/check_phase14_shared_smoke_route.zig -- --self-test`
+    * `zig run scripts/zigux/check_phase14_shared_smoke_route.zig`
+    * `zig run scripts/zigux/check_phase14_tests_readme_smoke_summary.zig -- --self-test`
+    * `zig run scripts/zigux/check_phase14_tests_readme_smoke_summary.zig`
+    * `zig run scripts/zigux/validate_phase14.zig -- --self-test`
+    * `zig run scripts/zigux/validate_phase14.zig`
+    * `zig run scripts/zigux/check_phase14_rollback_threshold_sequencing.zig -- --self-test`
+    * `zig run scripts/zigux/check_phase14_rollback_threshold_sequencing.zig`
+    * `zig run scripts/zigux/check_phase14_workqueue_study_only_guardrail.zig -- --self-test`
+    * `zig run scripts/zigux/check_phase14_workqueue_study_only_guardrail.zig`
+    * `zig run scripts/zigux/check_phase14_release_boundary_exact_counts.zig -- --self-test`
+    * `zig run scripts/zigux/check_phase14_release_boundary_exact_counts.zig`
     * `make -C zigux phase14-validate`
 
 Those productization-facing checks verify shared packet-local routing and reminder-surface behavior. They do not promote the workqueue bridge to owner status, and they do not replace the direct Zig replay as the bridge-local trust gate.

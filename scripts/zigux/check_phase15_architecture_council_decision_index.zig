@@ -11,7 +11,7 @@ const EXPECTED_DECISION_INDEX_MARKERS = [_][]const u8{
     "PHASE15_STATUS=architecture_council_decision_index_landed",
     "PHASE15_LANE_KEY=P15-L09",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
-    "`PHASE15_PACKET_VALIDATION_GATE=zig run check_phase15_architecture_council_decision_index.zig`",
+    "`PHASE15_PACKET_VALIDATION_GATE=zig run scripts/zigux/check_phase15_architecture_council_decision_index.zig`",
     "`PHASE15_PACKET_ROLLBACK_OWNER=Architecture Council`",
     "approved status-bucket changes recorded on current `master`: none",
     "stay-in-C closeout decision records recorded on current `master`: none",

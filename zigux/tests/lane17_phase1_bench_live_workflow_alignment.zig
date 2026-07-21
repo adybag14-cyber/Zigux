@@ -3,27 +3,27 @@ const workflow_options = @import("workflow_options");
 
 const bench_self_test_step =
     "      - name: Self-test current Phase 1 bench checker\n" ++
-    "        run: zig run check_phase1_bench.zig --self-test";
+    "        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test";
 
 const bench_live_check_step =
     "      - name: Check current Phase 1 bench packet\n" ++
-    "        run: zig run check_phase1_bench.zig";
+    "        run: zig run scripts/zigux/check_phase1_bench.zig";
 
 const bench_workflow_guard_self_test_step =
     "      - name: Self-test current Phase 1 bench live-check workflow guard\n" ++
-    "        run: zig run check_phase1_bench_live_check_workflow.zig --self-test";
+    "        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test";
 
 const bench_workflow_guard_live_check_step =
     "      - name: Check current Phase 1 bench live-check workflow guard packet\n" ++
-    "        run: zig run check_phase1_bench_live_check_workflow.zig";
+    "        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig";
 
 const find_bit_bench_self_test_step =
     "      - name: Self-test current Phase 1 find-bit bench anchor checker\n" ++
-    "        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test";
+    "        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test";
 
 const find_bit_bench_live_check_step =
     "      - name: Check current Phase 1 find-bit bench anchor packet\n" ++
-    "        run: zig run check_phase1_find_bit_bench_anchors.zig";
+    "        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig";
 
 fn countMarkers(haystack: []const u8, needle: []const u8) usize {
     var count: usize = 0;

@@ -40,8 +40,8 @@ The note was grounded in these live current-master surfaces:
 The narrow replay for the fresh guard is:
 
 ```sh
-zig run check_phase10_ring_manifest_destinations.zig --self-test
-zig run check_phase10_ring_manifest_destinations.zig
+zig run scripts/zigux/check_phase10_ring_manifest_destinations.zig -- --self-test
+zig run scripts/zigux/check_phase10_ring_manifest_destinations.zig
 ```
 
 ## Boundary

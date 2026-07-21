@@ -6,10 +6,10 @@ pub const live_pass_marker = "PHASE3_ADJACENT_PACKET_SYNC=pass";
 pub const self_test_pass_marker = "PHASE3_ADJACENT_PACKET_SYNC_SELF_TEST=pass";
 
 const REQUIRED_REPLAY_ROUTES = [_][]const u8{
-    "zig run scripts\\zigux/check_phase3_low_level_wrappers.zig --self-test",
+    "zig run scripts\\zigux/check_phase3_low_level_wrappers.zig -- --self-test",
     "zig run scripts\\zigux/check_phase3_low_level_wrappers.zig",
-    "zig run scripts\\zigux/check_phase3_list_hlist.zig --self-test",
-    "zig run scripts\\zigux/check_phase3_list_hlist.zig --repo-root . --zig zig --cc gcc",
+    "zig run scripts\\zigux/check_phase3_list_hlist.zig -- --self-test",
+    "zig run scripts\\zigux/check_phase3_list_hlist.zig -- --repo-root . --zig zig --cc gcc",
     "zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
 };
 

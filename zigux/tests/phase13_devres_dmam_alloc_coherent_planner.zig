@@ -254,7 +254,7 @@ test "phase13 devres dmam_alloc_coherent planner note preserves standalone repla
     defer std.testing.allocator.free(note);
 
     try requireContains(note, "zig test --dep devres -Mroot=zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig -Mdevres=lib/devres.zig");
-    try requireContains(note, "zig run check_phase13_devres_dmam_alloc_coherent_planner.zig");
+    try requireContains(note, "zig run scripts/zigux/check_phase13_devres_dmam_alloc_coherent_planner.zig");
     try requireContains(note, "zig test zigux/tests/phase13_devres_dma_coherent.zig");
 }
 

@@ -11,43 +11,43 @@ const WorkflowGate = struct {
 const bench_live_window = [_]WorkflowGate{
     .{
         .name = "Self-test current Phase 1 bench checker",
-        .command = "zig run check_phase1_bench.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_bench.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 bench packet",
-        .command = "zig run check_phase1_bench.zig",
+        .command = "zig run scripts/zigux/check_phase1_bench.zig",
     },
     .{
         .name = "Self-test current Phase 1 bench live-check workflow guard",
-        .command = "zig run check_phase1_bench_live_check_workflow.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 bench live-check workflow guard packet",
-        .command = "zig run check_phase1_bench_live_check_workflow.zig",
+        .command = "zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig",
     },
     .{
         .name = "Self-test current Phase 1 find-bit bench anchor checker",
-        .command = "zig run check_phase1_find_bit_bench_anchors.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 find-bit bench anchor packet",
-        .command = "zig run check_phase1_find_bit_bench_anchors.zig",
+        .command = "zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig",
     },
     .{
         .name = "Self-test current Phase 1 shared reminder checker",
-        .command = "zig run check_phase1_shared_reminder_packet.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 shared reminder packet",
-        .command = "zig run check_phase1_shared_reminder_packet.zig",
+        .command = "zig run scripts/zigux/check_phase1_shared_reminder_packet.zig",
     },
     .{
         .name = "Self-test current Phase 1 closure validator",
-        .command = "zig run validate_phase1_closure.zig --self-test",
+        .command = "zig run scripts/zigux/validate_phase1_closure.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 closure packet",
-        .command = "zig run validate_phase1_closure.zig",
+        .command = "zig run scripts/zigux/validate_phase1_closure.zig",
     },
     .{
         .name = "Run current Phase 1 shared tests-root smoke",

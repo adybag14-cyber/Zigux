@@ -39,17 +39,17 @@ Keep these shared reminder surfaces aligned when broad Phase 13 wording changes:
 - `zigux/tests/README.md`
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
 - `Documentation/zigux/phase13-notifier-summary-gap.md`
-- `zig run check_phase13_shared_summary_surfaces.zig`
-- `zig run check_phase13_tests_readme_alignment.zig`
-- `zig run validate_phase13_release.zig`
+- `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig`
+- `zig run scripts/zigux/check_phase13_tests_readme_alignment.zig`
+- `zig run scripts/zigux/validate_phase13_release.zig`
 
-The shared reminder packet is aligned on current `master` for the shipped `libfs` slice, the returned `Documentation/zigux/phase13-libfs-survey.md`, and the still-missing addressability and shared-build-route companions. Direct `libfs` helper, direct replay, and reviewability claims stay helper-local: if exact current-`master` rereads for `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, and `zigux/tests/phase13_libfs_reviewability.zig` do not all succeed in the same run, shared Phase 13 reminder surfaces should defer that conflict back to the libfs-local lanes instead of restating the contested file list. Keep `zig run validate_phase13_release.zig` explicit as shipped release-discipline support for that shared reminder set instead of leaving it implied behind the tests-root companion.
+The shared reminder packet is aligned on current `master` for the shipped `libfs` slice, the returned `Documentation/zigux/phase13-libfs-survey.md`, and the still-missing addressability and shared-build-route companions. Direct `libfs` helper, direct replay, and reviewability claims stay helper-local: if exact current-`master` rereads for `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, and `zigux/tests/phase13_libfs_reviewability.zig` do not all succeed in the same run, shared Phase 13 reminder surfaces should defer that conflict back to the libfs-local lanes instead of restating the contested file list. Keep `zig run scripts/zigux/validate_phase13_release.zig` explicit as shipped release-discipline support for that shared reminder set instead of leaving it implied behind the tests-root companion.
 
-shared-summary guard: `zig run check_phase13_shared_summary_surfaces.zig`
+shared-summary guard: `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig`
 
-tests-root alignment companion: `zig run check_phase13_tests_readme_alignment.zig`
+tests-root alignment companion: `zig run scripts/zigux/check_phase13_tests_readme_alignment.zig`
 
-release-discipline validator: `zig run validate_phase13_release.zig`
+release-discipline validator: `zig run scripts/zigux/validate_phase13_release.zig`
 
 do not treat `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zigux phase13` as shipped evidence
 

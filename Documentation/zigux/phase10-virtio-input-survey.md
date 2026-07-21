@@ -112,11 +112,11 @@ Do not reopen MMIO helper growth, IRQ delivery, DMA, freeze or restore behavior,
 ## Gates
 Current `master` keeps this input lane reviewable through the bounded helper packet:
 1. rerun the dedicated input checker
-- `zig run check_phase10_input_packet.zig --self-test`
-- `zig run check_phase10_input_packet.zig`
+- `zig run scripts/zigux/check_phase10_input_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase10_input_packet.zig`
 2. rerun the shared Phase 10 harness guard
-- `zig run check_phase10_harness_coverage.zig --self-test`
-- `zig run check_phase10_harness_coverage.zig`
+- `zig run scripts/zigux/check_phase10_harness_coverage.zig -- --self-test`
+- `zig run scripts/zigux/check_phase10_harness_coverage.zig`
 3. rerun the shared Phase 10 build and Linux-style make routes when focused readback remains aligned
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 - `zig build phase10-virtio-input-survey --build-file zigux/tests/build.zig`

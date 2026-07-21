@@ -26,8 +26,8 @@ const markers_1 = [_][]const u8{
     "The live Phase 3 ABI evidence packet is the dump_current-era manifest replay; the older generated dump name and expected snapshot fixture are intentionally retired.",
     "\"phase\": \"Phase 3\"",
     "\"replay_routes\"",
-    "zig run check_phase3_abi_manifest_replay_routes.zig --self-test",
-    "zig run check_phase3_abi_manifest_replay_routes.zig",
+    "zig run scripts/zigux/check_phase3_abi_manifest_replay_routes.zig -- --self-test",
+    "zig run scripts/zigux/check_phase3_abi_manifest_replay_routes.zig",
 };
 
 const markers_2 = [_][]const u8{
@@ -39,7 +39,7 @@ const markers_3 = [_][]const u8{
 };
 
 const markers_4 = [_][]const u8{
-    "zig run scripts/zigux/check_phase3_abi.zig --self-test",
+    "zig run scripts/zigux/check_phase3_abi.zig -- --self-test",
     "zig run scripts/zigux/check_phase3_abi.zig",
 };
 

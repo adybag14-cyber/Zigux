@@ -64,8 +64,8 @@ test "phase2 required make routes checker preserves workflow makefile and surfac
     defer testing.allocator.free(checker);
 
     try expectContains(checker, "WORKFLOW_LINES = (");
-    try expectContains(checker, "run: zig run check_phase2_required_make_routes.zig --self-test");
-    try expectContains(checker, "run: zig run check_phase2_required_make_routes.zig");
+    try expectContains(checker, "run: zig run scripts/zigux/check_phase2_required_make_routes.zig -- --self-test");
+    try expectContains(checker, "run: zig run scripts/zigux/check_phase2_required_make_routes.zig");
     try expectContains(checker, "REQUIRED_PHASE2_PHONY_LINE");
     try expectContains(checker, ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2");
 

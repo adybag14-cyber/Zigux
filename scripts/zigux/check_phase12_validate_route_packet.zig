@@ -20,7 +20,7 @@ const REQUIRED_MARKERS = [_][]const u8{
     "phase12-test:",
     "phase12: phase12-validate phase12-smoke phase12-test",
     "- name: Validate current Phase 12 support bundle",
-    "run: zig run validate_phase12.zig",
+    "run: zig run scripts/zigux/validate_phase12.zig",
     "- name: Run current Phase 12 smoke packet",
     "run: make -C zigux phase12-smoke",
     "- name: Run current Phase 12 shared test packet",

@@ -189,17 +189,17 @@ const markers_5 = [_][]const u8{
     "- name: Self-test current Phase 4 artifact-diff helper",
     "run: zig run scripts/zigux/artifact_diff.zig -- --self-test",
     "- name: Self-test current Phase 4 artifact-diff contract checker",
-    "run: zig run check_artifact_diff_contract.zig --self-test",
+    "run: zig run scripts/zigux/check_artifact_diff_contract.zig -- --self-test",
     "- name: Check current Phase 4 artifact-diff contract packet",
-    "run: zig run check_artifact_diff_contract.zig",
+    "run: zig run scripts/zigux/check_artifact_diff_contract.zig",
     "- name: Self-test current Phase 4 artifact-diff determinism checker",
-    "run: zig run check_phase4_artifact_diff_determinism.zig --self-test",
+    "run: zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test",
     "- name: Check current Phase 4 artifact-diff determinism packet",
-    "run: zig run check_phase4_artifact_diff_determinism.zig",
+    "run: zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig",
     "- name: Self-test current Phase 4 artifact-diff validator replay checker",
-    "run: zig run check_phase4_artifact_diff_validator_replays.zig --self-test",
+    "run: zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test",
     "- name: Check current Phase 4 artifact-diff validator replay packet",
-    "run: zig run check_phase4_artifact_diff_validator_replays.zig",
+    "run: zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig",
 };
 
 const markers_6 = [_][]const u8{
@@ -384,17 +384,17 @@ pub fn main(init: std.process.Init) !void {
 // - name: Run Phase 4 rollback tests
 // run: make -C zigux phase4-test
 // - name: Self-test current Phase 4 artifact-diff helper
-// run: zig run scripts/zigux/artifact_diff.zig --self-test
+// run: zig run scripts/zigux/artifact_diff.zig -- --self-test
 // - name: Self-test current Phase 4 artifact-diff contract checker
-// run: zig run scripts\zigux/check_artifact_diff_contract.zig --self-test
+// run: zig run scripts\zigux/check_artifact_diff_contract.zig -- --self-test
 // - name: Check current Phase 4 artifact-diff contract packet
 // run: zig run scripts\zigux/check_artifact_diff_contract.zig
 // - name: Self-test current Phase 4 artifact-diff determinism checker
-// run: zig run scripts\zigux/check_phase4_artifact_diff_determinism.zig --self-test
+// run: zig run scripts\zigux/check_phase4_artifact_diff_determinism.zig -- --self-test
 // - name: Check current Phase 4 artifact-diff determinism packet
 // run: zig run scripts\zigux/check_phase4_artifact_diff_determinism.zig
 // - name: Self-test current Phase 4 artifact-diff validator replay checker
-// run: zig run scripts\zigux/check_phase4_artifact_diff_validator_replays.zig --self-test
+// run: zig run scripts\zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test
 // - name: Check current Phase 4 artifact-diff validator replay packet
 // run: zig run scripts\zigux/check_phase4_artifact_diff_validator_replays.zig
 // CHECKLIST_MARKERS

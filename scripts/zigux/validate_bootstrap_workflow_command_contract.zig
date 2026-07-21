@@ -57,8 +57,8 @@ test "Lane 05 archive and staging checks remain bootstrap workflow dependencies"
 }
 
 test "validator reports exact workflow drift and stable bootstrap count summaries" {
-    try expectContains(validate_bootstrap_text, "\"run: zig run check_phase1_route_summary_counts.zig --self-test\"");
-    try expectContains(validate_bootstrap_text, "\"run: zig run check_phase1_route_summary_counts.zig\"");
+    try expectContains(validate_bootstrap_text, "\"run: zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test\"");
+    try expectContains(validate_bootstrap_text, "\"run: zig run scripts/zigux/check_phase1_route_summary_counts.zig\"");
     try expectContains(validate_bootstrap_text, "\"run: make -C zigux phase6-validate\"");
     try expectContains(validate_bootstrap_text, "\"run: zig build test --build-file zigux/tests/phase6_build.zig --summary all\"");
     try expectContains(validate_bootstrap_text, "\"MISSING_WORKFLOW_LINE\",\n            \"run: zig run scripts/zigux/install_zig.zig -- --self-test\",");

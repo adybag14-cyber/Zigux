@@ -79,13 +79,13 @@ const closure_make_routes = [_][]const u8{
 };
 
 const closure_validator_commands = [_][]const u8{
-    "zig run validate_phase2.zig",
-    "zig run validate_phase2_closure.zig",
+    "zig run scripts/zigux/validate_phase2.zig",
+    "zig run scripts/zigux/validate_phase2_closure.zig",
 };
 
 const workflow_run_commands = [_][]const u8{
-    "zig run check_phase2_bootstrap_workflow_routes.zig --self-test",
-    "zig run check_phase2_bootstrap_workflow_routes.zig",
+    "zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig -- --self-test",
+    "zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig",
     "make -C zigux phase2-toolchain",
     "make -C zigux phase2-tools",
     "make -C zigux phase2-kconfig",
@@ -94,9 +94,9 @@ const workflow_run_commands = [_][]const u8{
     "make -C zigux phase2-genksyms",
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
-    "zig run validate_phase2.zig",
-    "zig run validate_phase2_closure.zig --self-test",
-    "zig run validate_phase2_closure.zig",
+    "zig run scripts/zigux/validate_phase2.zig",
+    "zig run scripts/zigux/validate_phase2_closure.zig -- --self-test",
+    "zig run scripts/zigux/validate_phase2_closure.zig",
 };
 
 fn readRepoFile(path: []const u8, limit: usize) ![]u8 {

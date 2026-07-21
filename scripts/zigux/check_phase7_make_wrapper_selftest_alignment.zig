@@ -8,8 +8,8 @@ pub const self_test_pass_marker = "PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_SELF_T
 const FileContract = struct { rel: []const u8, markers: []const []const u8 };
 
 const markers_0 = [_][]const u8{
-    "run: zig run check_phase7_make_wrapper_selftest_alignment.zig --self-test",
-    "run: zig run check_phase7_make_wrapper_selftest_alignment.zig",
+    "run: zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig",
 };
 
 const markers_1 = [_][]const u8{
@@ -35,7 +35,7 @@ const markers_4 = [_][]const u8{
 
 const markers_5 = [_][]const u8{
     "phase7-validate:",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig -- --self-test",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig",
     "phase7-rbtree-test:",
     "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig",
@@ -125,20 +125,20 @@ pub fn main(init: std.process.Init) !void {
 // - `scripts\zigux/validate_phase7.zig`
 // the readable non-owner shared-control files in this slot are still `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/phase7_build.zig`, and fresh reread now shows the workflow carries the current `check-phase7-shared-control-gap.py` and `check-phase7-make-wrapper-selftest-alignment.py` self-test hooks while the readable `zigux/Makefile` exposes the narrow `phase7-validate` foothold plus the dedicated helper-local `phase7-rbtree-test:` and `phase7-rbtree-survey:` wrappers, and still omits aggregate `phase7-test`, aggregate `phase7`, and the other helper-local Phase 7 wrapper routes.
 // REQUIRED_WORKFLOW_LINES
-// run: zig run scripts\zigux/check_phase7_shared_control_gap.zig --self-test
+// run: zig run scripts\zigux/check_phase7_shared_control_gap.zig -- --self-test
 // run: zig run scripts\zigux/check_phase7_shared_control_gap.zig
-// run: zig run scripts\zigux/check_phase7_make_wrapper_selftest_alignment.zig --self-test
+// run: zig run scripts\zigux/check_phase7_make_wrapper_selftest_alignment.zig -- --self-test
 // run: zig run scripts\zigux/check_phase7_make_wrapper_selftest_alignment.zig
 // FORBIDDEN_WORKFLOW_LINES
 // run: make -C zigux phase7-validate
 // run: make -C zigux phase7-test
 // run: python3 scripts/zigux/validate-phase7 --self-test
-// run: zig run scripts\zigux/validate_phase7.zig --self-test
+// run: zig run scripts\zigux/validate_phase7.zig -- --self-test
 // run: zig run scripts\zigux/validate_phase7.zig
 // run: zig build test --build-file zigux/tests/phase7_build.zig --summary all
 // REQUIRED_MAKEFILE_LINES
 // phase7-validate:
-// cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig --self-test
+// cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig -- --self-test
 // cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig
 // phase7-rbtree-test:
 // cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase7-rbtree-test --build-file zigux/tests/phase7_build.zig

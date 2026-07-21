@@ -14,15 +14,15 @@ const BENCH_CHECKER_MARKERS = [_][]const u8{
 
 const BENCH_CHECKER_REL = "scripts/zigux/check_phase1_bench.zig";
 
-const BENCH_LIVE_CHECK_RUN = "zig run check_phase1_bench.zig";
+const BENCH_LIVE_CHECK_RUN = "zig run scripts/zigux/check_phase1_bench.zig";
 
 const BENCH_LIVE_CHECK_STEP = "Check current Phase 1 bench packet";
 
-const BENCH_SELF_TEST_RUN = "zig run check_phase1_bench.zig --self-test";
+const BENCH_SELF_TEST_RUN = "zig run scripts/zigux/check_phase1_bench.zig -- --self-test";
 
 const BENCH_SELF_TEST_STEP = "Self-test current Phase 1 bench checker";
 
-const FIND_BIT_BENCH_RUN = "zig run check_phase1_find_bit_bench_anchors.zig --self-test";
+const FIND_BIT_BENCH_RUN = "zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test";
 
 const FIND_BIT_BENCH_STEP = "Self-test current Phase 1 find-bit bench anchor checker";
 

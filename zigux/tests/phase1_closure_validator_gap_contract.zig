@@ -24,10 +24,10 @@ const parked_gap_companions = [_][]const u8{
 };
 
 const active_validator_and_route_markers = [_][]const u8{
-    "PHASE1_CLOSURE_VALIDATOR=zig run validate_phase1_closure.zig",
+    "PHASE1_CLOSURE_VALIDATOR=zig run scripts/zigux/validate_phase1_closure.zig",
     "PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master",
     "PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
-    "PHASE1_ROUTE_SUMMARY_GUARD=zig run check_phase1_route_summary_counts.zig",
+    "PHASE1_ROUTE_SUMMARY_GUARD=zig run scripts/zigux/check_phase1_route_summary_counts.zig",
 };
 
 fn packetContains(packet: []const u8, path: []const u8) bool {

@@ -12,7 +12,7 @@ const Step = struct {
 const expected_tail = [_]Step{
     .{
         .name = "Check current Phase 1 closure packet",
-        .run = "zig run validate_phase1_closure.zig",
+        .run = "zig run scripts/zigux/validate_phase1_closure.zig",
     },
     .{
         .name = "Self-test current Phase 3 interop packet",
@@ -36,11 +36,11 @@ const expected_tail = [_]Step{
     },
     .{
         .name = "Self-test current Phase 4 repo-reality warning checker",
-        .run = "zig run check_phase4_repo_reality_warning.zig --self-test",
+        .run = "zig run scripts/zigux/check_phase4_repo_reality_warning.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 4 repo-reality warning packet",
-        .run = "zig run check_phase4_repo_reality_warning.zig",
+        .run = "zig run scripts/zigux/check_phase4_repo_reality_warning.zig",
     },
 };
 

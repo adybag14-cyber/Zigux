@@ -6,7 +6,7 @@ const guard = @import("zigux_guard.zig");
 pub const pass_marker = "PHASE1_BITMAP_CLOSURE_GAP_CHECK_SELF_TEST=pass";
 
 const CLOSURE_MARKERS = [_]struct { label: []const u8, marker: []const u8 }{
-    .{ .label = "closure_validator", .marker = "- `PHASE1_CLOSURE_VALIDATOR=zig run validate_phase1_closure.zig`" },
+    .{ .label = "closure_validator", .marker = "- `PHASE1_CLOSURE_VALIDATOR=zig run scripts/zigux/validate_phase1_closure.zig`" },
     .{ .label = "next_safe_step", .marker = "- `PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface or one helper-family tie-breaker against the restored closure note, closure validator, shared tests-root smoke route, and the helper-specific next_safe_step_note entries in zigux/tests/fixtures/phase1_helper_manifest.json`" },
 };
 

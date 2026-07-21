@@ -17,8 +17,8 @@ const markers_0 = [_][]const u8{
     "- name: Check current Phase 4 artifact-diff determinism packet",
     "- name: Self-test current Phase 4 artifact-diff validator replay checker",
     "- name: Check current Phase 4 artifact-diff validator replay packet",
-    "run: zig run check_phase4_artifact_diff_validator_replays.zig --self-test",
-    "run: zig run check_phase4_artifact_diff_validator_replays.zig",
+    "run: zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig",
 };
 
 const markers_1 = [_][]const u8{
@@ -42,7 +42,7 @@ const markers_3 = [_][]const u8{
 };
 
 const markers_4 = [_][]const u8{
-    "run: zig run scripts/zigux/artifact_diff.zig --self-test",
+    "run: zig run scripts/zigux/artifact_diff.zig -- --self-test",
 };
 
 const markers_5 = [_][]const u8{
@@ -53,7 +53,7 @@ const markers_5 = [_][]const u8{
 };
 
 const markers_6 = [_][]const u8{
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig",
 };
 
@@ -172,17 +172,17 @@ pub fn main(init: std.process.Init) !void {
 // - name: Run Phase 4 artifact-diff contract make route
 // run: make -C zigux phase4-artifact-diff-contract
 // - name: Self-test current Phase 4 artifact-diff helper
-// run: zig run scripts/zigux/artifact_diff.zig --self-test
+// run: zig run scripts/zigux/artifact_diff.zig -- --self-test
 // - name: Self-test current Phase 4 artifact-diff contract checker
-// run: zig run scripts\zigux/check_artifact_diff_contract.zig --self-test
+// run: zig run scripts\zigux/check_artifact_diff_contract.zig -- --self-test
 // - name: Check current Phase 4 artifact-diff contract packet
 // run: zig run scripts\zigux/check_artifact_diff_contract.zig
 // - name: Self-test current Phase 4 artifact-diff determinism checker
-// run: zig run scripts\zigux/check_phase4_artifact_diff_determinism.zig --self-test
+// run: zig run scripts\zigux/check_phase4_artifact_diff_determinism.zig -- --self-test
 // - name: Check current Phase 4 artifact-diff determinism packet
 // run: zig run scripts\zigux/check_phase4_artifact_diff_determinism.zig
 // - name: Self-test current Phase 4 artifact-diff validator replay checker
-// run: zig run scripts\zigux/check_phase4_artifact_diff_validator_replays.zig --self-test
+// run: zig run scripts\zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test
 // - name: Check current Phase 4 artifact-diff validator replay packet
 // run: zig run scripts\zigux/check_phase4_artifact_diff_validator_replays.zig
 // EXPECTED_SELF_TEST_CASES

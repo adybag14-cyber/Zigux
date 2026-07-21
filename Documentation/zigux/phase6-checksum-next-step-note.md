@@ -38,7 +38,7 @@ If the helper reopens, start with the checksum-local rerun packet below before t
 - `zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig`
 - `zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig`
 - `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`
-- `zig run check_phase6_checksum_c_parity.zig`
+- `zig run scripts/zigux/check_phase6_checksum_c_parity.zig`
 
 ## Lane boundary
 

@@ -55,21 +55,21 @@ test "phase2-cross make route runs direct self-test before live check" {
     try requireOrdered(
         makefile,
         "phase2-cross:",
-        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig --self-test",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig -- --self-test",
     );
     try requireOrdered(
         makefile,
-        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig --self-test",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig -- --self-test",
         "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig",
     );
     try requireOrdered(
         makefile,
         "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig",
-        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig --self-test",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig -- --self-test",
     );
     try std.testing.expectEqual(@as(usize, 1), countTrimmedLines(
         makefile,
-        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig --self-test",
+        "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig -- --self-test",
     ));
 }
 
@@ -84,8 +84,8 @@ test "bootstrap workflow keeps direct cross self-test before packet check" {
     );
     try requireOrdered(
         workflow,
-        "run: zig run check_phase2_cross.zig --self-test",
-        "run: zig run check_phase2_cross.zig",
+        "run: zig run scripts/zigux/check_phase2_cross.zig -- --self-test",
+        "run: zig run scripts/zigux/check_phase2_cross.zig",
     );
     try requireOrdered(
         workflow,
@@ -94,6 +94,6 @@ test "bootstrap workflow keeps direct cross self-test before packet check" {
     );
     try std.testing.expectEqual(@as(usize, 1), countTrimmedLines(
         workflow,
-        "run: zig run check_phase2_cross.zig --self-test",
+        "run: zig run scripts/zigux/check_phase2_cross.zig -- --self-test",
     ));
 }

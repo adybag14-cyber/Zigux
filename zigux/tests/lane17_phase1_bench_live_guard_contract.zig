@@ -46,11 +46,11 @@ test "lane17 guard keeps the bench live workflow handoff explicit" {
     try expectContains(guard_source, "BENCH_CHECKER_REL = Path(\"scripts\zigux/check_phase1_bench.zig\")");
 
     try expectContains(guard_source, "BENCH_SELF_TEST_STEP = \"Self-test current Phase 1 bench checker\"");
-    try expectContains(guard_source, "BENCH_SELF_TEST_RUN = \"zig run check_phase1_bench.zig --self-test\"");
+    try expectContains(guard_source, "BENCH_SELF_TEST_RUN = \"zig run scripts/zigux/check_phase1_bench.zig -- --self-test\"");
     try expectContains(guard_source, "BENCH_LIVE_CHECK_STEP = \"Check current Phase 1 bench packet\"");
-    try expectContains(guard_source, "BENCH_LIVE_CHECK_RUN = \"zig run check_phase1_bench.zig\"");
+    try expectContains(guard_source, "BENCH_LIVE_CHECK_RUN = \"zig run scripts/zigux/check_phase1_bench.zig\"");
     try expectContains(guard_source, "FIND_BIT_BENCH_STEP = \"Self-test current Phase 1 find-bit bench anchor checker\"");
-    try expectContains(guard_source, "FIND_BIT_BENCH_RUN = \"zig run check_phase1_find_bit_bench_anchors.zig --self-test\"");
+    try expectContains(guard_source, "FIND_BIT_BENCH_RUN = \"zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test\"");
 }
 
 test "lane17 guard requires exactly the intended workflow chain and marker packet" {

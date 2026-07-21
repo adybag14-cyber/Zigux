@@ -50,7 +50,7 @@ test "closure note keeps manifest-backed Phase 1 authority visible" {
     try expectContains(closure_text, "`PHASE1_STATUS=parked`");
     try expectContains(closure_text, "`PHASE1_HELPER_COUNT=13`");
     try expectContains(closure_text, "manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`");
-    try expectContains(closure_text, "`PHASE1_CLOSURE_VALIDATOR=zig run validate_phase1_closure.zig`");
+    try expectContains(closure_text, "`PHASE1_CLOSURE_VALIDATOR=zig run scripts/zigux/validate_phase1_closure.zig`");
     try expectContains(closure_text, "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`");
     try expectContains(closure_text, "helper-specific next_safe_step_note entries in the committed manifest");
     try expectNotContains(closure_text, "`PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master`");

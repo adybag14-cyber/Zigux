@@ -91,7 +91,7 @@ tests-root reminder stack listed above.
   `scripts\zigux/check_phase11_validate_route_alignment.zig`, the exact-check
   fixture `zigux/tests/fixtures/phase11_validate_checks.json`, the shipped
   `check-phase11-*.py` reminder scripts, the validator self-test
-  `zig run validate_phase11.zig --self-test`,
+  `zig run scripts/zigux/validate_phase11.zig -- --self-test`,
   `scripts\zigux/validate_phase11.zig`, the shared inventory fixture, and the
   directly materialized proof-backed build routes rather than the older wrapper
   family
@@ -101,7 +101,7 @@ tests-root reminder stack listed above.
   `test_step.dependOn(...)` edges, 0 dedicated survey replays, 3 shared adjunct
   proof replays, 3 adjunct build replays, 2 focused direct build checker
   routes, 2 focused direct build replays, and 11 HVC current-head exact command
-  markers, while `zig run validate_phase11.zig --self-test`,
+  markers, while `zig run scripts/zigux/validate_phase11.zig -- --self-test`,
   `scripts\zigux/validate_phase11.zig`, and `make -C zigux phase11-validate`
   keep the broader matrix-gap, cleanup-prerequisite, focused direct replay,
   targetless-unregister, DesignWare, bcm2835, and gpio checker chain explicit
@@ -137,40 +137,40 @@ tests-root reminder stack listed above.
 These are the exact bounded checks that keep the current shared packet
 deterministic and reviewable:
 
-- shared validator self-test: `zig run validate_phase11.zig --self-test`
+- shared validator self-test: `zig run scripts/zigux/validate_phase11.zig -- --self-test`
 - shared checker self-tests:
-  `zig run check_phase11_validate_manifest_roster.zig --self-test`,
-  `zig run check_phase11_validate_check_roster.zig --self-test`,
-  `zig run check_phase11_validate_route_alignment.zig --self-test`,
-  `zig run check_phase11_build_inventory.zig --self-test`,
-  `zig run check_phase11_focused_direct_build_replays.zig --self-test`,
-  `zig run check_phase11_shared_replay_contract_counts.zig --self-test`,
-  `zig run check_phase11_matrix_gap_survey.zig --self-test`,
-  `zig run check_phase11_validation_matrix_gap_survey.zig --self-test`,
-  `zig run check_phase11_header_boundary_packet.zig --self-test`,
-  `zig run check_phase11_hvc_cleanup_current_head.zig --self-test`,
-  `zig run check_phase11_hvc_cleanup_prerequisite_packet.zig --self-test`,
-  `zig run check_phase11_hvc_targetless_unregister_witness.zig --self-test`,
-  `zig run check_phase11_dw_wdt_teardown_packet.zig --self-test`,
-  `zig run check_phase11_dw_wdt_verify_alignment.zig --self-test`,
-  and `zig run check_phase11_dw_wdt_build_route.zig --self-test`
+  `zig run scripts/zigux/check_phase11_validate_manifest_roster.zig -- --self-test`,
+  `zig run scripts/zigux/check_phase11_validate_check_roster.zig -- --self-test`,
+  `zig run scripts/zigux/check_phase11_validate_route_alignment.zig -- --self-test`,
+  `zig run scripts/zigux/check_phase11_build_inventory.zig -- --self-test`,
+  `zig run scripts/zigux/check_phase11_focused_direct_build_replays.zig -- --self-test`,
+  `zig run scripts/zigux/check_phase11_shared_replay_contract_counts.zig -- --self-test`,
+  `zig run scripts/zigux/check_phase11_matrix_gap_survey.zig -- --self-test`,
+  `zig run scripts/zigux/check_phase11_validation_matrix_gap_survey.zig -- --self-test`,
+  `zig run scripts/zigux/check_phase11_header_boundary_packet.zig -- --self-test`,
+  `zig run scripts/zigux/check_phase11_hvc_cleanup_current_head.zig -- --self-test`,
+  `zig run scripts/zigux/check_phase11_hvc_cleanup_prerequisite_packet.zig -- --self-test`,
+  `zig run scripts/zigux/check_phase11_hvc_targetless_unregister_witness.zig -- --self-test`,
+  `zig run scripts/zigux/check_phase11_dw_wdt_teardown_packet.zig -- --self-test`,
+  `zig run scripts/zigux/check_phase11_dw_wdt_verify_alignment.zig -- --self-test`,
+  and `zig run scripts/zigux/check_phase11_dw_wdt_build_route.zig -- --self-test`
 - shared checker live routes:
-  `zig run check_phase11_validate_manifest_roster.zig`,
-  `zig run check_phase11_validate_check_roster.zig`,
-  `zig run check_phase11_validate_route_alignment.zig`,
-  `zig run check_phase11_build_inventory.zig`,
-  `zig run check_phase11_focused_direct_build_replays.zig`,
-  `zig run check_phase11_shared_replay_contract_counts.zig`,
-  `zig run check_phase11_matrix_gap_survey.zig`,
-  `zig run check_phase11_validation_matrix_gap_survey.zig`,
-  `zig run check_phase11_header_boundary_packet.zig`,
-  `zig run check_phase11_hvc_cleanup_current_head.zig`,
-  `zig run check_phase11_hvc_cleanup_prerequisite_packet.zig`,
-  `zig run check_phase11_hvc_targetless_unregister_witness.zig`,
-  `zig run check_phase11_dw_wdt_teardown_packet.zig`,
-  `zig run check_phase11_dw_wdt_verify_alignment.zig`,
-  and `zig run check_phase11_dw_wdt_build_route.zig`
-- shared validator route: `zig run validate_phase11.zig`
+  `zig run scripts/zigux/check_phase11_validate_manifest_roster.zig`,
+  `zig run scripts/zigux/check_phase11_validate_check_roster.zig`,
+  `zig run scripts/zigux/check_phase11_validate_route_alignment.zig`,
+  `zig run scripts/zigux/check_phase11_build_inventory.zig`,
+  `zig run scripts/zigux/check_phase11_focused_direct_build_replays.zig`,
+  `zig run scripts/zigux/check_phase11_shared_replay_contract_counts.zig`,
+  `zig run scripts/zigux/check_phase11_matrix_gap_survey.zig`,
+  `zig run scripts/zigux/check_phase11_validation_matrix_gap_survey.zig`,
+  `zig run scripts/zigux/check_phase11_header_boundary_packet.zig`,
+  `zig run scripts/zigux/check_phase11_hvc_cleanup_current_head.zig`,
+  `zig run scripts/zigux/check_phase11_hvc_cleanup_prerequisite_packet.zig`,
+  `zig run scripts/zigux/check_phase11_hvc_targetless_unregister_witness.zig`,
+  `zig run scripts/zigux/check_phase11_dw_wdt_teardown_packet.zig`,
+  `zig run scripts/zigux/check_phase11_dw_wdt_verify_alignment.zig`,
+  and `zig run scripts/zigux/check_phase11_dw_wdt_build_route.zig`
+- shared validator route: `zig run scripts/zigux/validate_phase11.zig`
 - shared validator fixture: `zigux/tests/fixtures/phase11_validate_checks.json`
 - shared Makefile route: `make -C zigux phase11-validate`
 - current `phase11-validate` proof fan-out:

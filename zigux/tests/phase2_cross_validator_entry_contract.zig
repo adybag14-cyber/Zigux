@@ -11,10 +11,10 @@ const REQUIRED_PATH_MARKERS = [_][]const u8{
 };
 
 const REQUIRED_WORKFLOW_LINES = [_][]const u8{
-    "\"run: zig run check_phase2_cross.zig --self-test\",",
-    "\"run: zig run check_phase2_cross.zig\",",
-    "\"run: zig run check_phase2_cross_selftest_alignment.zig --self-test\",",
-    "\"run: zig run check_phase2_cross_selftest_alignment.zig\",",
+    "\"run: zig run scripts/zigux/check_phase2_cross.zig -- --self-test\",",
+    "\"run: zig run scripts/zigux/check_phase2_cross.zig\",",
+    "\"run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig -- --self-test\",",
+    "\"run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig\",",
 };
 
 const REQUIRED_MAKEFILE_LINES = [_][]const u8{
@@ -60,18 +60,18 @@ test "bootstrap workflow roster keeps the direct cross checks paired" {
     }
     try expectOrdered(
         source,
-        "\"run: zig run check_phase2_cross.zig --self-test\",",
-        "\"run: zig run check_phase2_cross.zig\",",
+        "\"run: zig run scripts/zigux/check_phase2_cross.zig -- --self-test\",",
+        "\"run: zig run scripts/zigux/check_phase2_cross.zig\",",
     );
     try expectOrdered(
         source,
-        "\"run: zig run check_phase2_cross.zig\",",
-        "\"run: zig run check_phase2_cross_selftest_alignment.zig --self-test\",",
+        "\"run: zig run scripts/zigux/check_phase2_cross.zig\",",
+        "\"run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig -- --self-test\",",
     );
     try expectOrdered(
         source,
-        "\"run: zig run check_phase2_cross_selftest_alignment.zig --self-test\",",
-        "\"run: zig run check_phase2_cross_selftest_alignment.zig\",",
+        "\"run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig -- --self-test\",",
+        "\"run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig\",",
     );
 }
 

@@ -14,14 +14,14 @@ const REQUIRED_MAKEFILE_TARGET = [_][]const u8{
 };
 
 const REQUIRED_MAKEFILE_LINES = [_][]const u8{
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_kconfig_bridge.zig --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_kconfig_bridge.zig -- --self-test",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_kconfig_bridge.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
 };
 
 const REQUIRED_WORKFLOW_LINES = [_][]const u8{
-    "run: zig run scripts\\zigux/check_kconfig_bridge.zig --self-test",
+    "run: zig run scripts\\zigux/check_kconfig_bridge.zig -- --self-test",
     "run: zig run scripts\\zigux/check_kconfig_bridge.zig",
     "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
     "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",

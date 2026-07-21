@@ -68,8 +68,8 @@
     }
   ],
   "exact_current_checks": [
-    "zig run check_phase11_dw_wdt_build_route.zig --self-test",
-    "zig run check_phase11_dw_wdt_build_route.zig",
+    "zig run scripts/zigux/check_phase11_dw_wdt_build_route.zig -- --self-test",
+    "zig run scripts/zigux/check_phase11_dw_wdt_build_route.zig",
     "zig build test --build-file zigux/tests/phase11_dw_wdt_build.zig"
   ]
 }

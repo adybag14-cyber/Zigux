@@ -49,8 +49,8 @@ const markers_3 = [_][]const u8{
 };
 
 const markers_4 = [_][]const u8{
-    "- `zig run check_phase6_hexdump_packet.zig`",
-    "- `zig run check_phase6_hexdump_route.zig`",
+    "- `zig run scripts/zigux/check_phase6_hexdump_packet.zig`",
+    "- `zig run scripts/zigux/check_phase6_hexdump_route.zig`",
     "- `zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig`",
     "- `make -C zigux phase6-hexdump-review`",
     "- `zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig`",

@@ -32,8 +32,8 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - `zigux/tests/phase6_checksum.zig` keeps the fixture-owned representative compute corpus, fixture-owned seeded split-composition corpus, partial, carry, replacement, folded and unfolded pseudo-header helpers, and aligned fast-path packet reviewable
 
 2. run the external checksum C-vs-Zig review hook when touching helper semantics
-- `zig run check_phase6_checksum_c_parity.zig --self-test`
-- `zig run check_phase6_checksum_c_parity.zig`
+- `zig run scripts/zigux/check_phase6_checksum_c_parity.zig -- --self-test`
+- `zig run scripts/zigux/check_phase6_checksum_c_parity.zig`
 
 3. run the bounded perf replay
 - `zigux/tests/phase6_checksum_perf.zig` keeps the helper-vs-reference slowdown gate explicit through the committed `64B` and `1501B` payload matrix in `zigux/tests/fixtures/phase6_checksum_vectors.zig`
@@ -57,7 +57,7 @@ The current tests and fixtures check:
 - replacement and header-edit parity for payload words, IPv4 length edits, and IPv4 address edits
 - folded and unfolded pseudo-header accumulation parity for IPv4 and IPv6
 - aligned fast-path parity for minimal, updated, and option-bearing IPv4 headers together with the maximum-IHL aligned-header packet
-- an external C-vs-Zig spot check through `zig run check_phase6_checksum_c_parity.zig`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface stays directly reviewable beside the committed Zig helper packet
+- an external C-vs-Zig spot check through `zig run scripts/zigux/check_phase6_checksum_c_parity.zig`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface stays directly reviewable beside the committed Zig helper packet
 - perf-matrix stability for the committed `64B` and `1501B` fixture payloads with explicit slowdown thresholds
 - aligned-header fast-path perf stability for the committed `IPV4_20B`, `IPV4_20B_UPDATED`, `IPV4_24B`, and `IPV4_60B` fixture headers with explicit slowdown thresholds against `compute()`
 

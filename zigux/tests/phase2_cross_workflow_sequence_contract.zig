@@ -1,10 +1,10 @@
 const std = @import("std");
 
 const ordered_checker_steps = [_][]const u8{
-    "      - name: Self-test current Phase 2 cross checker\n        run: zig run check_phase2_cross.zig --self-test",
-    "      - name: Check current Phase 2 direct cross-route packet\n        run: zig run check_phase2_cross.zig",
-    "      - name: Self-test current Phase 2 cross selftest alignment checker\n        run: zig run check_phase2_cross_selftest_alignment.zig --self-test",
-    "      - name: Check current Phase 2 cross alignment packet\n        run: zig run check_phase2_cross_selftest_alignment.zig",
+    "      - name: Self-test current Phase 2 cross checker\n        run: zig run scripts/zigux/check_phase2_cross.zig -- --self-test",
+    "      - name: Check current Phase 2 direct cross-route packet\n        run: zig run scripts/zigux/check_phase2_cross.zig",
+    "      - name: Self-test current Phase 2 cross selftest alignment checker\n        run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig -- --self-test",
+    "      - name: Check current Phase 2 cross alignment packet\n        run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig",
 };
 
 fn readWorkflow(allocator: std.mem.Allocator) ![]u8 {
@@ -53,11 +53,11 @@ test "Phase 2 cross checker workflow steps stay ordered before pinning" {
 
     const tests_readme_gate = try requireOnce(
         workflow,
-        "      - name: Check current Phase 2 tests README packet\n        run: zig run check_phase2_tests_readme_alignment.zig",
+        "      - name: Check current Phase 2 tests README packet\n        run: zig run scripts/zigux/check_phase2_tests_readme_alignment.zig",
     );
     const toolchain_pinning_gate = try requireOnce(
         workflow,
-        "      - name: Self-test current Phase 2 toolchain pinning checker\n        run: zig run check_phase2_toolchain_pinning.zig --self-test",
+        "      - name: Self-test current Phase 2 toolchain pinning checker\n        run: zig run scripts/zigux/check_phase2_toolchain_pinning.zig -- --self-test",
     );
 
     var previous = tests_readme_gate;
@@ -83,7 +83,7 @@ test "Phase 2 cross make route stays between fixdep and required-route guards" {
     );
     const required_routes = try requireOnce(
         workflow,
-        "      - name: Self-test current Phase 2 required-make-routes checker\n        run: zig run check_phase2_required_make_routes.zig --self-test",
+        "      - name: Self-test current Phase 2 required-make-routes checker\n        run: zig run scripts/zigux/check_phase2_required_make_routes.zig -- --self-test",
     );
 
     try std.testing.expect(cross_route > fixdep_route);
@@ -96,7 +96,7 @@ test "Phase 2 cross workflow does not revive stale matrix target job" {
 
     try requireAbsent(workflow, "Detect Phase 2 cross-target scope changes");
     try requireAbsent(workflow, "Check bounded Phase 2 cross-target compile");
-    try requireAbsent(workflow, "zig run check_phase2_cross.zig --target ${{ matrix.zig_target }}");
+    try requireAbsent(workflow, "zig run scripts/zigux/check_phase2_cross.zig -- --target ${{ matrix.zig_target }}");
     try requireAbsent(workflow, "  phase2-cross:\n");
     try requireAbsent(workflow, "matrix:\n        zig_target:");
 }

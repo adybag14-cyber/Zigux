@@ -31,7 +31,7 @@ test "phase1 closure note keeps current reminder and lane split markers" {
 
     try expectContains(closure, reminder_packet);
     try expectContains(closure, "PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface or one helper-family tie-breaker against the restored closure note, the closure validator, the shared tests-root smoke route, and the helper-specific next_safe_step_note entries in the committed manifest rather than widening back into the older validator-first or replay-side closure stack.");
-    try expectContains(closure, "PHASE1_CLOSURE_VALIDATOR=zig run validate_phase1_closure.zig");
+    try expectContains(closure, "PHASE1_CLOSURE_VALIDATOR=zig run scripts/zigux/validate_phase1_closure.zig");
     try expectContains(closure, "PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig");
 }
 
@@ -54,7 +54,7 @@ test "phase1 shared reminder surfaces keep lane sequencing routed through closur
 
     try expectContains(docs_root, "keep the live owner map, the restored closure note and closure validator");
     try expectContains(docs_root, "keep the helper-family split explicit here too: the nine shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string keep the only bounded direct-anchor follow-up anchors on current master.");
-    try expectContains(docs_root, "zig run validate_phase1_closure.zig");
+    try expectContains(docs_root, "zig run scripts/zigux/validate_phase1_closure.zig");
     try expectContains(review_checklist, "if the change touches the shared Phase 1 host-tools closure packet");
     try expectContains(review_checklist, "zigux/tests/fixtures/phase1_helper_manifest.json");
     try expectContains(review_checklist, "zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig");

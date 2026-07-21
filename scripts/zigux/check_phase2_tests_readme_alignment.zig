@@ -12,8 +12,8 @@ const FileContract = struct {
 
 const markers_0 = [_][]const u8{
     "## Phase 2 review packet",
-    "0.17.0-dev.1415+64dfaa568",
-    "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz",
+    "0.17.0-dev.1443+6c25d2bd5",
+    "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz",
     "check_phase2_tool_manifest.zig",
     "check_phase2_artifact_tools_manifest.zig",
     "phase2_cross_targets.json",
@@ -22,12 +22,12 @@ const markers_0 = [_][]const u8{
 
 const markers_1 = [_][]const u8{
     "Phase 2",
-    "0.17.0-dev.1415+64dfaa568",
+    "0.17.0-dev.1443+6c25d2bd5",
     "make -C zigux phase2-validate",
 };
 
 const markers_2 = [_][]const u8{
-    "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz",
+    "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz",
 };
 
 const markers_3 = [_][]const u8{

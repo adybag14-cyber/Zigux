@@ -11,34 +11,34 @@ const phase2_make_route_markers = [_][]const u8{
 };
 
 const required_route_checker_markers = [_][]const u8{
-    "      - name: Self-test current Phase 2 required-make-routes checker\n        run: zig run check_phase2_required_make_routes.zig --self-test",
-    "      - name: Check current Phase 2 required-make-routes packet\n        run: zig run check_phase2_required_make_routes.zig",
+    "      - name: Self-test current Phase 2 required-make-routes checker\n        run: zig run scripts/zigux/check_phase2_required_make_routes.zig -- --self-test",
+    "      - name: Check current Phase 2 required-make-routes packet\n        run: zig run scripts/zigux/check_phase2_required_make_routes.zig",
 };
 
 const phase2_manifest_checker_markers = [_][]const u8{
-    "      - name: Self-test current Phase 2 shared reminder checker\n        run: zig run check_phase2_docs_shared_reminder.zig --self-test",
-    "      - name: Check current Phase 2 shared reminder packet\n        run: zig run check_phase2_docs_shared_reminder.zig",
-    "      - name: Self-test current Phase 2 tool manifest checker\n        run: zig run check_phase2_tool_manifest.zig --self-test",
-    "      - name: Check current Phase 2 tool manifest packet\n        run: zig run check_phase2_tool_manifest.zig",
-    "      - name: Self-test current Phase 2 artifact tools manifest checker\n        run: zig run check_phase2_artifact_tools_manifest.zig --self-test",
-    "      - name: Check current Phase 2 artifact tools manifest packet\n        run: zig run check_phase2_artifact_tools_manifest.zig",
+    "      - name: Self-test current Phase 2 shared reminder checker\n        run: zig run scripts/zigux/check_phase2_docs_shared_reminder.zig -- --self-test",
+    "      - name: Check current Phase 2 shared reminder packet\n        run: zig run scripts/zigux/check_phase2_docs_shared_reminder.zig",
+    "      - name: Self-test current Phase 2 tool manifest checker\n        run: zig run scripts/zigux/check_phase2_tool_manifest.zig -- --self-test",
+    "      - name: Check current Phase 2 tool manifest packet\n        run: zig run scripts/zigux/check_phase2_tool_manifest.zig",
+    "      - name: Self-test current Phase 2 artifact tools manifest checker\n        run: zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig -- --self-test",
+    "      - name: Check current Phase 2 artifact tools manifest packet\n        run: zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig",
 };
 
 const phase2_genksyms_validate_markers = [_][]const u8{
-    "      - name: Self-test current Phase 2 genksyms bridge checker\n        run: zig run check_genksyms_bridge.zig --self-test",
-    "      - name: Check current Phase 2 genksyms bridge packet\n        run: zig run check_genksyms_bridge.zig",
+    "      - name: Self-test current Phase 2 genksyms bridge checker\n        run: zig run scripts/zigux/check_genksyms_bridge.zig -- --self-test",
+    "      - name: Check current Phase 2 genksyms bridge packet\n        run: zig run scripts/zigux/check_genksyms_bridge.zig",
     "      - name: Run current Phase 2 genksyms unit replay\n        run: zig test scripts/zigux/genksyms.zig",
-    "      - name: Self-test current Phase 2 genksyms alignment checker\n        run: zig run check_phase2_genksyms_selftest_alignment.zig --self-test",
-    "      - name: Check current Phase 2 genksyms alignment packet\n        run: zig run check_phase2_genksyms_selftest_alignment.zig",
-    "      - name: Self-test current Phase 2 genksyms survey guard\n        run: zig run check_phase2_genksyms_dual_implementation_survey.zig --self-test",
-    "      - name: Check current Phase 2 genksyms survey packet\n        run: zig run check_phase2_genksyms_dual_implementation_survey.zig",
+    "      - name: Self-test current Phase 2 genksyms alignment checker\n        run: zig run scripts/zigux/check_phase2_genksyms_selftest_alignment.zig -- --self-test",
+    "      - name: Check current Phase 2 genksyms alignment packet\n        run: zig run scripts/zigux/check_phase2_genksyms_selftest_alignment.zig",
+    "      - name: Self-test current Phase 2 genksyms survey guard\n        run: zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig -- --self-test",
+    "      - name: Check current Phase 2 genksyms survey packet\n        run: zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig",
     "      - name: Run current Phase 2 genksyms make route\n        run: make -C zigux phase2-genksyms",
     "      - name: Run current Phase 2 validate make route\n        run: make -C zigux phase2-validate",
     "      - name: Run current Phase 2 aggregate make route\n        run: make -C zigux phase2",
 };
 
 const phase2_closure_marker =
-    "      - name: Self-test current Phase 2 closure validator\n        run: zig run validate_phase2_closure.zig --self-test";
+    "      - name: Self-test current Phase 2 closure validator\n        run: zig run scripts/zigux/validate_phase2_closure.zig -- --self-test";
 
 fn readWorkflowSource(allocator: std.mem.Allocator) ![]u8 {
     return try std.Io.Dir.cwd().readFileAlloc(

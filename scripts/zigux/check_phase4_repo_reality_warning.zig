@@ -9,8 +9,8 @@ const FileContract = struct { rel: []const u8, markers: []const []const u8 };
 
 const markers_0 = [_][]const u8{
     ".github/workflows/zigux-bootstrap.yml",
-    "run: zig run check_phase4_repo_reality_warning.zig --self-test",
-    "run: zig run check_phase4_repo_reality_warning.zig",
+    "run: zig run scripts/zigux/check_phase4_repo_reality_warning.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase4_repo_reality_warning.zig",
 };
 
 const markers_1 = [_][]const u8{

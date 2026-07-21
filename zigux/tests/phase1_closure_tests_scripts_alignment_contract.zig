@@ -8,7 +8,7 @@ const focused_replay_route =
     "zig build phase1-helpers --build-file zigux/tests/phase1_helpers_build.zig";
 
 const closure_validator_marker =
-    "`PHASE1_CLOSURE_VALIDATOR=zig run validate_phase1_closure.zig`";
+    "`PHASE1_CLOSURE_VALIDATOR=zig run scripts/zigux/validate_phase1_closure.zig`";
 
 const shared_tests_marker =
     "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`";
@@ -72,7 +72,7 @@ test "scripts and tests reminders keep the shared Phase 1 smoke route aligned wi
 
     try expectOnce(closure_text, closure_validator_marker);
     try expectOnce(closure_text, shared_tests_marker);
-    try expectContains(scripts_text, "zig run validate_phase1_closure.zig");
+    try expectContains(scripts_text, "zig run scripts/zigux/validate_phase1_closure.zig");
     try expectContains(scripts_text, shared_smoke_route);
     try expectContains(tests_text, "current shared Phase 1 smoke route: `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`");
     try expectOrdered(tests_text, "current direct-readback Phase 1 reminder packet:", "current shared Phase 1 smoke route:");

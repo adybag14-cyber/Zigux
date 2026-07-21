@@ -18,7 +18,7 @@ jobs:
           channel = policy["channel"]
           filename = f"zig-{target}-{channel}.tar.xz"
           canonical_repo = "adybag14-cyber/zig"
-          canonical_tag = "upstream-64dfaa568db0"
+          canonical_tag = "upstream-6c25d2bd58e4"
           url = f"https://ziglang.org/builds/{filename}"
           canonical_url = f"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}"
           print(f"ZIGUX_ZIG_TARGET='{target}'")
@@ -118,26 +118,26 @@ jobs:
       - name: Self-test current Zig installer helper
         run: zig run scripts/zigux/install_zig.zig -- --self-test
       - name: Self-test current Phase 1 route summary checker
-        run: zig run check_phase1_route_summary_counts.zig --self-test
+        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test
       - name: Check current Phase 1 route summary packet
-        run: zig run check_phase1_route_summary_counts.zig
+        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig
       - name: Self-test current Phase 2 tool manifest checker
-        run: zig run check_phase2_tool_manifest.zig --self-test
+        run: zig run scripts/zigux/check_phase2_tool_manifest.zig -- --self-test
       - name: Check current Phase 2 tool manifest packet
-        run: zig run check_phase2_tool_manifest.zig
+        run: zig run scripts/zigux/check_phase2_tool_manifest.zig
       - name: Self-test current Phase 2 artifact tools manifest checker
-        run: zig run check_phase2_artifact_tools_manifest.zig --self-test
+        run: zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig -- --self-test
       - name: Check current Phase 2 artifact tools manifest packet
-        run: zig run check_phase2_artifact_tools_manifest.zig
+        run: zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig
       - name: Self-test current Phase 9 freeze-map study-boundaries checker
-        run: zig run check_phase9_freeze_map_study_boundaries.zig --self-test
+        run: zig run scripts/zigux/check_phase9_freeze_map_study_boundaries.zig -- --self-test
       - name: Check current Phase 9 freeze-map study-boundaries packet
-        run: zig run check_phase9_freeze_map_study_boundaries.zig
+        run: zig run scripts/zigux/check_phase9_freeze_map_study_boundaries.zig
       - name: Self-test current Phase 7 make-wrapper selftest alignment checker
-        run: zig run check_phase7_make_wrapper_selftest_alignment.zig --self-test
+        run: zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig -- --self-test
       - name: Check current Phase 7 make-wrapper selftest alignment packet
-        run: zig run check_phase7_make_wrapper_selftest_alignment.zig
+        run: zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig
       - name: Self-test current Phase 11 build inventory checker
-        run: zig run check_phase11_build_inventory.zig --self-test
+        run: zig run scripts/zigux/check_phase11_build_inventory.zig -- --self-test
       - name: Check current Phase 11 build inventory packet
-        run: zig run check_phase11_build_inventory.zig
+        run: zig run scripts/zigux/check_phase11_build_inventory.zig

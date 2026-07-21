@@ -42,16 +42,16 @@ const find_bit_anchor_markers = [_][]const u8{
 
 const workflow_markers = [_][]const u8{
     "Self-test current Phase 1 bench checker",
-    "run: zig run check_phase1_bench.zig --self-test",
+    "run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test",
     "Self-test current Phase 1 shared reminder checker",
     "Check current Phase 1 shared reminder packet",
     "Self-test current Phase 1 closure validator",
 };
 
 const forbidden_workflow_lines = [_][]const u8{
-    "run: zig run check_phase1_bench.zig",
-    "run: zig run check_phase1_find_bit_bench_anchors.zig --self-test",
-    "run: zig run check_phase1_find_bit_bench_anchors.zig",
+    "run: zig run scripts/zigux/check_phase1_bench.zig",
+    "run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig",
 };
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {

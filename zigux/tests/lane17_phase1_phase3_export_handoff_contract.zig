@@ -51,13 +51,13 @@ test "phase1 closure flows into expanded phase3 export handoff before shared smo
 
     const ordered = [_][]const u8{
         "name: Check current Phase 1 closure packet",
-        "run: zig run validate_phase1_closure.zig",
+        "run: zig run scripts/zigux/validate_phase1_closure.zig",
         "name: Self-test current Phase 3 interop packet",
         "run: zig run scripts/zigux/validate_phase3_selftest.zig",
         "name: Check current Phase 3 interop packet",
         "run: zig run scripts/zigux/run_phase3_checks.zig",
         "name: Run current Phase 3 export/UAPI C header smoke",
-        "run: zig run check_phase3_export_uapi_c_header_smoke.zig",
+        "run: zig run scripts/zigux/check_phase3_export_uapi_c_header_smoke.zig",
         "name: Run current Phase 3 export/UAPI layout replay",
         "run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
         "name: Run current Phase 3 export shim replay",
@@ -90,9 +90,9 @@ test "phase3 policy and low-level wrappers remain inside the handoff window" {
         "name: Run current Phase 3 policy dump make wrapper",
         "run: make -C zigux phase3-policy-dump",
         "name: Self-test current Phase 3 low-level wrapper survey validator",
-        "run: zig run validate_phase3_low_level_wrapper_survey.zig --self-test",
+        "run: zig run scripts/zigux/validate_phase3_low_level_wrapper_survey.zig -- --self-test",
         "name: Check current Phase 3 low-level wrapper survey packet",
-        "run: zig run validate_phase3_low_level_wrapper_survey.zig",
+        "run: zig run scripts/zigux/validate_phase3_low_level_wrapper_survey.zig",
         "name: Run current Phase 3 low-level wrapper replay",
         "run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
         "name: Run current Phase 3 low-level wrapper make route",
@@ -111,7 +111,7 @@ test "handoff commands are unique for review-sensitive routes" {
 
     const unique_markers = [_][]const u8{
         "name: Run current Phase 3 export/UAPI C header smoke",
-        "run: zig run check_phase3_export_uapi_c_header_smoke.zig",
+        "run: zig run scripts/zigux/check_phase3_export_uapi_c_header_smoke.zig",
         "name: Run current Phase 3 export/UAPI layout replay",
         "run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
         "name: Run current Phase 3 export shim replay",

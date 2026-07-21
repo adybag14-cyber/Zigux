@@ -16,7 +16,7 @@ Broad contributor-facing surfaces that may need this reminder:
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-validator: `zig run check_phase13_gap_path_spellings.zig`
+validator: `zig run scripts/zigux/check_phase13_gap_path_spellings.zig`
 
 ## Canonical Gap Spellings
 

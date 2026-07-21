@@ -42,10 +42,10 @@ The guard also checks `scripts\zigux/validate_phase10.zig` for the `phase10-ring
 
 The parity scoreboard update is grounded in the validator route added on current `master`:
 
-- `zig run validate_phase10.zig --self-test`
-- `zig run check_phase10_ring_manifest_destinations.zig --self-test`
-- `zig run validate_phase10.zig`
-- `zig run check_phase10_sample_runtime_scoreboard.zig --self-test`
-- `zig run check_phase10_sample_runtime_scoreboard.zig`
+- `zig run scripts/zigux/validate_phase10.zig -- --self-test`
+- `zig run scripts/zigux/check_phase10_ring_manifest_destinations.zig -- --self-test`
+- `zig run scripts/zigux/validate_phase10.zig`
+- `zig run scripts/zigux/check_phase10_sample_runtime_scoreboard.zig -- --self-test`
+- `zig run scripts/zigux/check_phase10_sample_runtime_scoreboard.zig`
 
 `P10-L18` remains notes-only. Further implementation work should stay in the machine-readable owner lanes unless another substantive Phase 10 parity change lands and leaves the shared notes behind.

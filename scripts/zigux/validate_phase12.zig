@@ -11,7 +11,7 @@ const markers_0 = [_][]const u8{
     "run: make -C zigux phase12-smoke",
     "run: make -C zigux phase12-test",
     "run: make -C zigux phase12",
-    "run: zig run validate_phase12.zig",
+    "run: zig run scripts/zigux/validate_phase12.zig",
 };
 
 const markers_1 = [_][]const u8{
@@ -113,7 +113,7 @@ const markers_11 = [_][]const u8{
     "phase12-virtio-net-throughput-parity-test:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all",
     "phase12: phase12-validate phase12-smoke phase12-test",
-    "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase12.zig --self-test",
+    "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase12.zig -- --self-test",
 };
 
 const markers_12 = [_][]const u8{
@@ -322,9 +322,9 @@ pub fn main(init: std.process.Init) !void {
 // "phase12_virtio_net_survey.zig"
 // "phase12-virtio-net-throughput-parity"
 // REQUIRED_MARKERS___github_workflows_zigux_bootstrap_yml
-// run: zig run scripts\zigux/check_build_only_phase12_surface.zig --self-test
-// run: zig run scripts\zigux/check_phase12_build_inventory.zig --self-test
-// run: zig run scripts\zigux/check_phase12_release_readiness_packet.zig --self-test
+// run: zig run scripts\zigux/check_build_only_phase12_surface.zig -- --self-test
+// run: zig run scripts\zigux/check_phase12_build_inventory.zig -- --self-test
+// run: zig run scripts\zigux/check_phase12_release_readiness_packet.zig -- --self-test
 // run: zig run scripts\zigux/validate_phase12.zig
 // run: make -C zigux phase12-smoke
 // run: make -C zigux phase12-test

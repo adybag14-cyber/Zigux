@@ -7,7 +7,7 @@ const docs = struct {
         \\scripts\zigux/check_phase2_bootstrap_workflow_routes.zig
         \\scripts\zigux/check_phase2_tests_readme_alignment.zig
         \\scripts\zigux/check_phase2_cross.zig
-        \\zig run check_phase2_cross.zig --self-test
+        \\zig run scripts/zigux/check_phase2_cross.zig -- --self-test
         \\scripts\zigux/check_lane05_local_first_archive_workflow.zig
         \\scripts\zigux/check_lane05_local_archive_readme.zig
         \\scripts\zigux/check_lane05_install_zig_archive_verification.zig
@@ -40,7 +40,7 @@ const docs = struct {
         \\scripts\zigux/check_phase2_bootstrap_workflow_routes.zig
         \\scripts\zigux/check_phase2_tests_readme_alignment.zig
         \\scripts\zigux/check_phase2_cross.zig
-        \\zig run check_phase2_cross.zig --self-test
+        \\zig run scripts/zigux/check_phase2_cross.zig -- --self-test
         \\scripts\zigux/check_lane05_local_first_archive_workflow.zig
         \\scripts\zigux/check_lane05_local_archive_readme.zig
         \\scripts\zigux/check_lane05_install_zig_archive_verification.zig
@@ -76,7 +76,7 @@ const shared_markers = [_]SharedMarker{
     .{ .marker = "scripts\zigux/check_phase2_bootstrap_workflow_routes.zig", .reason = "bootstrap workflow-route guard" },
     .{ .marker = "scripts\zigux/check_phase2_tests_readme_alignment.zig", .reason = "tests-root reminder alignment guard" },
     .{ .marker = "scripts\zigux/check_phase2_cross.zig", .reason = "direct cross-route checker" },
-    .{ .marker = "zig run check_phase2_cross.zig --self-test", .reason = "direct cross-route self-test" },
+    .{ .marker = "zig run scripts/zigux/check_phase2_cross.zig -- --self-test", .reason = "direct cross-route self-test" },
     .{ .marker = "scripts\zigux/check_lane05_local_first_archive_workflow.zig", .reason = "local-first archive workflow guard" },
     .{ .marker = "scripts\zigux/check_lane05_local_archive_readme.zig", .reason = "third_party archive README guard" },
     .{ .marker = "scripts\zigux/check_lane05_install_zig_archive_verification.zig", .reason = "archive-verification guard" },

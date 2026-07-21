@@ -4,7 +4,7 @@ const default_closure_path = "Documentation/zigux/phase1-closure.md";
 const default_manifest_path = "zigux/tests/fixtures/phase1_helper_manifest.json";
 
 const string_review_guard_marker =
-    "`PHASE1_STRING_REVIEW_GUARD=zig run check_phase1_string_review_packet.zig exact-checks helper-local string anchors plus the committed replaceChar and current string fixture packet across the helper, closure note, lane note, manifest, and fixture`";
+    "`PHASE1_STRING_REVIEW_GUARD=zig run scripts/zigux/check_phase1_string_review_packet.zig exact-checks helper-local string anchors plus the committed replaceChar and current string fixture packet across the helper, closure note, lane note, manifest, and fixture`";
 
 const memparse_review_anchors =
     "\"memparse_review_anchors\": [\n" ++

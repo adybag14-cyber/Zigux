@@ -25,17 +25,17 @@ const phase1_smoke = Marker{
 
 const phase4_warning_self_test = Marker{
     .label = "phase4_warning_self_test",
-    .text = "      - name: Self-test current Phase 4 repo-reality warning checker\n        run: zig run check_phase4_repo_reality_warning.zig --self-test\n",
+    .text = "      - name: Self-test current Phase 4 repo-reality warning checker\n        run: zig run scripts/zigux/check_phase4_repo_reality_warning.zig -- --self-test\n",
 };
 
 const phase4_warning_check = Marker{
     .label = "phase4_warning_check",
-    .text = "      - name: Check current Phase 4 repo-reality warning packet\n        run: zig run check_phase4_repo_reality_warning.zig\n",
+    .text = "      - name: Check current Phase 4 repo-reality warning packet\n        run: zig run scripts/zigux/check_phase4_repo_reality_warning.zig\n",
 };
 
 const phase4_reversible_self_test = Marker{
     .label = "phase4_reversible_self_test",
-    .text = "      - name: Self-test current Phase 4 reversible-delivery pin checker\n        run: zig run check_phase4_reversible_delivery_pins.zig --self-test\n",
+    .text = "      - name: Self-test current Phase 4 reversible-delivery pin checker\n        run: zig run scripts/zigux/check_phase4_reversible_delivery_pins.zig -- --self-test\n",
 };
 
 fn countOccurrences(haystack: []const u8, needle: []const u8) usize {

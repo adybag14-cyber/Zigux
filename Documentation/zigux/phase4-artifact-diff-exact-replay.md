@@ -3,15 +3,15 @@
 This note records the current exact Phase 4 artifact-diff replay packet and the top-level pass markers that must stay aligned with the current helper and checker catalogs.
 
 ## Commands
-  * `zig run scripts/zigux/artifact_diff.zig --self-test`
-  * `zig run check_artifact_diff_contract.zig --self-test`
-  * `zig run check_artifact_diff_contract.zig`
-  * `zig run check_phase4_artifact_diff_determinism.zig --self-test`
-  * `zig run check_phase4_artifact_diff_determinism.zig`
-  * `zig run check_phase4_artifact_diff_validator_replays.zig --self-test`
-  * `zig run check_phase4_artifact_diff_validator_replays.zig`
-  * `zig run check_phase4_artifact_diff_exact_replay.zig --self-test`
-  * `zig run check_phase4_artifact_diff_exact_replay.zig`
+  * `zig run scripts/zigux/artifact_diff.zig -- --self-test`
+  * `zig run scripts/zigux/check_artifact_diff_contract.zig -- --self-test`
+  * `zig run scripts/zigux/check_artifact_diff_contract.zig`
+  * `zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test`
+  * `zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig`
+  * `zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test`
+  * `zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig`
+  * `zig run scripts/zigux/check_phase4_artifact_diff_exact_replay.zig -- --self-test`
+  * `zig run scripts/zigux/check_phase4_artifact_diff_exact_replay.zig`
 
 ## Top-Level Pass Markers
 These are the exact top-level pass markers required by the current directly readable command packet in this run.

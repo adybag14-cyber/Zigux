@@ -107,8 +107,8 @@ const markers_0 = [_][]const u8{
 const markers_1 = [_][]const u8{
     "\"phase\": \"Phase 3\"",
     "\"replay_routes\"",
-    "zig run check_phase3_selftest_surface.zig --self-test",
-    "zig run check_phase3_selftest_surface.zig",
+    "zig run scripts/zigux/check_phase3_selftest_surface.zig -- --self-test",
+    "zig run scripts/zigux/check_phase3_selftest_surface.zig",
 };
 
 const contracts = [_]FileContract{

@@ -77,7 +77,7 @@ const WORKFLOW_MARKERS = [_][]const u8{
     "run: zig run scripts/zigux/check_phase12_complex_driver_lane_packet.zig -- --self-test",
     "run: zig run scripts/zigux/check_phase12_cross_compile_smoke.zig -- --self-test",
     "run: zig run scripts/zigux/check_phase12_release_readiness_packet.zig -- --self-test",
-    "run: zig run validate_phase12.zig",
+    "run: zig run scripts/zigux/validate_phase12.zig",
     "run: make -C zigux phase12-smoke",
     "run: make -C zigux phase12-test",
 };

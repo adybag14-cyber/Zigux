@@ -92,14 +92,14 @@ fn expectMetricLine(scorecard_doc: []const u8, label: []const u8, value: usize) 
 
 fn expectCurrentReminderRoute(scorecard_doc: []const u8) !void {
     try expectContains(scorecard_doc, "## Current reminder route");
-    try expectContains(scorecard_doc, "zig run check_phase15_docs_readme_alignment.zig");
-    try expectContains(scorecard_doc, "zig run check_phase15_scripts_readme_alignment.zig");
-    try expectContains(scorecard_doc, "zig run check_phase15_tests_readme_alignment.zig");
-    try expectContains(scorecard_doc, "zig run check_phase15_review_process_handoff.zig");
-    try expectContains(scorecard_doc, "zig run check_phase15_shared_summary_gap.zig");
+    try expectContains(scorecard_doc, "zig run scripts/zigux/check_phase15_docs_readme_alignment.zig");
+    try expectContains(scorecard_doc, "zig run scripts/zigux/check_phase15_scripts_readme_alignment.zig");
+    try expectContains(scorecard_doc, "zig run scripts/zigux/check_phase15_tests_readme_alignment.zig");
+    try expectContains(scorecard_doc, "zig run scripts/zigux/check_phase15_review_process_handoff.zig");
+    try expectContains(scorecard_doc, "zig run scripts/zigux/check_phase15_shared_summary_gap.zig");
     try expectContains(scorecard_doc, "zig test zigux/tests/phase15_parity_scorecard.zig");
     try expectContains(scorecard_doc, "anchor-level blocker evidence stays reviewable through `zig test zigux/tests/phase15_freeze_map_governance.zig`");
-    try expectContains(scorecard_doc, "validator-first reminder route is directly readable on current `master` through `zig run validate_phase15.zig`");
+    try expectContains(scorecard_doc, "validator-first reminder route is directly readable on current `master` through `zig run scripts/zigux/validate_phase15.zig`");
     try expectContains(scorecard_doc, "shared replay build route is directly readable on current `master` through `zigux/tests/phase15_build.zig` and `zig build test --build-file zigux/tests/phase15_build.zig`");
     try expectContains(scorecard_doc, "current `zigux/Makefile` still lacks `phase15-validate`, `phase15-test`, and `phase15` targets, so the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes remain wrapper-gap vocabulary rather than shipped reminder-route evidence");
 }
@@ -345,7 +345,7 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     try expectMetricLine(scorecard_doc, "Architecture Council approvals recorded for status change", parsed.value.metrics.architecture_council_status_change_approval_count);
     try expectCurrentReminderRoute(scorecard_doc);
     try expectCurrentBoundedStepHandoff(scorecard_doc);
-    try expectContains(scorecard_doc, "zig run check_phase15_tests_readme_alignment.zig");
+    try expectContains(scorecard_doc, "zig run scripts/zigux/check_phase15_tests_readme_alignment.zig");
 
     try std.testing.expectEqual(
         freeze_map_manifest.value.study_only_targets.len,

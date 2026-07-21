@@ -14,8 +14,8 @@
     "scripts\zigux/check_phase3_notifier_starter_packet.zig"
   ],
   "replay_routes": [
-    "zig run check_phase3_notifier_starter_packet.zig --self-test",
-    "zig run check_phase3_notifier_starter_packet.zig --repo-root .",
+    "zig run scripts/zigux/check_phase3_notifier_starter_packet.zig -- --self-test",
+    "zig run scripts/zigux/check_phase3_notifier_starter_packet.zig -- --repo-root .",
     "zig build phase3-notifier-starter-packet-test --build-file zigux/tests/phase3_notifier_starter_packet_build.zig"
   ],
   "repo_reality_gaps": [],

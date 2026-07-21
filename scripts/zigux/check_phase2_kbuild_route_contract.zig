@@ -18,7 +18,7 @@ const VALIDATE_REQUIRED_SNIPPETS = [_][]const u8{
     "\"scripts/zigux/install_zig.zig\",",
     "\"zigux/tests/fixtures/phase2_cross_targets.json\",",
     "\"zigux/tests/fixtures/phase2_artifact_tools_manifest.json\",",
-    "\"run: zig run scripts\\zigux/check_phase2_kbuild_routes.zig --self-test\",",
+    "\"run: zig run scripts\\zigux/check_phase2_kbuild_routes.zig -- --self-test\",",
     "\"run: zig run scripts\\zigux/check_phase2_kbuild_routes.zig\",",
     "\"run: make -C zigux phase2-tools\",",
     "\"run: make -C zigux phase2-validate\",",
@@ -35,7 +35,7 @@ const REQUIRED_MAKEFILE_LINES = [_][]const u8{
 };
 
 const REQUIRED_WORKFLOW_LINES = [_][]const u8{
-    "run: zig run scripts\\zigux/check_phase2_kbuild_routes.zig --self-test",
+    "run: zig run scripts\\zigux/check_phase2_kbuild_routes.zig -- --self-test",
     "run: zig run scripts\\zigux/check_phase2_kbuild_routes.zig",
     "run: make -C zigux phase2-tools",
     "run: make -C zigux phase2-validate",

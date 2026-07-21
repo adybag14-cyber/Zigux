@@ -11,27 +11,27 @@ const WorkflowStep = struct {
 
 const bench_self_test = WorkflowStep{
     .name = "Self-test current Phase 1 bench checker",
-    .run = "zig run check_phase1_bench.zig --self-test",
+    .run = "zig run scripts/zigux/check_phase1_bench.zig -- --self-test",
 };
 
 const bench_live_check = WorkflowStep{
     .name = "Check current Phase 1 bench packet",
-    .run = "zig run check_phase1_bench.zig",
+    .run = "zig run scripts/zigux/check_phase1_bench.zig",
 };
 
 const live_guard_self_test = WorkflowStep{
     .name = "Self-test current Phase 1 bench live-check workflow guard",
-    .run = "zig run check_phase1_bench_live_check_workflow.zig --self-test",
+    .run = "zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test",
 };
 
 const live_guard_check = WorkflowStep{
     .name = "Check current Phase 1 bench live-check workflow guard packet",
-    .run = "zig run check_phase1_bench_live_check_workflow.zig",
+    .run = "zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig",
 };
 
 const find_bit_bench_self_test = WorkflowStep{
     .name = "Self-test current Phase 1 find-bit bench anchor checker",
-    .run = "zig run check_phase1_find_bit_bench_anchors.zig --self-test",
+    .run = "zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test",
 };
 
 fn markerFor(step: WorkflowStep, allocator: std.mem.Allocator) ![]u8 {
@@ -66,11 +66,11 @@ test "workflow keeps the Phase 1 bench live-check guard as exact commands" {
     try requireContains(workflow_text, live_guard_check_marker);
     try requireMissing(
         workflow_text,
-        "run: zig run check_phase1_bench_live_check_workflow.zig --allow-missing",
+        "run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --allow-missing",
     );
     try requireMissing(
         workflow_text,
-        "run: zig run check_phase1_bench_live_check_workflow.zig --root",
+        "run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --root",
     );
 }
 

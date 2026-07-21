@@ -18,11 +18,11 @@ test "stage helper keeps parts-dir CLI and input-mode boundary" {
     defer if (err_msg) |msg| std.testing.allocator.free(msg);
 
     const metadata = stage.StageMetadata{
-        .channel = "0.17.0-dev.1415+64dfaa568",
+        .channel = "0.17.0-dev.1443+6c25d2bd5",
         .target = "x86_64-linux",
-        .sha256 = "f72f19cbae9f4e649d7b2c5040aec6ccb93dce08048738bcfdf1a03475cd0c93",
+        .sha256 = "4620f31b3889dcdcb257e6a0da6a4bc9a0b2b8e3db04219c1c160798e2cdc5a9",
         .size = stage.expected_archive_sizes.get("x86_64-linux").?,
-        .filename = "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz",
+        .filename = "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz",
     };
 
     const neither = stage.resolveSourceArchive(std.testing.allocator, std.testing.io, null, null, &metadata, &err_msg);
@@ -90,16 +90,16 @@ test "parts manifest schema remains strict and policy-bound" {
     if (err_msg) |msg| std.testing.allocator.free(msg);
     err_msg = null;
 
-    const expected_filename = "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz";
-    const expected_sha = "f72f19cbae9f4e649d7b2c5040aec6ccb93dce08048738bcfdf1a03475cd0c93";
+    const expected_filename = "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz";
+    const expected_sha = "4620f31b3889dcdcb257e6a0da6a4bc9a0b2b8e3db04219c1c160798e2cdc5a9";
     const expected_size = stage.expected_archive_sizes.get("x86_64-linux").?;
 
     const bad_filename_manifest =
         \\{
-        \\  "filename": "zig-aarch64-linux-0.17.0-dev.1415+64dfaa568.tar.xz",
+        \\  "filename": "zig-aarch64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz",
         \\  "encoding": "base64",
-        \\  "sha256": "f72f19cbae9f4e649d7b2c5040aec6ccb93dce08048738bcfdf1a03475cd0c93",
-        \\  "size": 59264068,
+        \\  "sha256": "4620f31b3889dcdcb257e6a0da6a4bc9a0b2b8e3db04219c1c160798e2cdc5a9",
+        \\  "size": 59093540,
         \\  "chunk_bytes": 1024,
         \\  "part_count": 1,
         \\  "parts_glob": "part-*.b64"
@@ -127,10 +127,10 @@ test "parts manifest schema remains strict and policy-bound" {
 
     const bad_encoding_manifest =
         \\{
-        \\  "filename": "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz",
+        \\  "filename": "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz",
         \\  "encoding": "hex",
-        \\  "sha256": "f72f19cbae9f4e649d7b2c5040aec6ccb93dce08048738bcfdf1a03475cd0c93",
-        \\  "size": 59264068,
+        \\  "sha256": "4620f31b3889dcdcb257e6a0da6a4bc9a0b2b8e3db04219c1c160798e2cdc5a9",
+        \\  "size": 59093540,
         \\  "chunk_bytes": 1024,
         \\  "part_count": 1,
         \\  "parts_glob": "part-*.b64"
@@ -156,10 +156,10 @@ test "parts manifest schema remains strict and policy-bound" {
 
     const bad_glob_manifest =
         \\{
-        \\  "filename": "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz",
+        \\  "filename": "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz",
         \\  "encoding": "base64",
-        \\  "sha256": "f72f19cbae9f4e649d7b2c5040aec6ccb93dce08048738bcfdf1a03475cd0c93",
-        \\  "size": 59264068,
+        \\  "sha256": "4620f31b3889dcdcb257e6a0da6a4bc9a0b2b8e3db04219c1c160798e2cdc5a9",
+        \\  "size": 59093540,
         \\  "chunk_bytes": 1024,
         \\  "part_count": 1,
         \\  "parts_glob": "shard-*.b64"
@@ -199,7 +199,7 @@ test "parts reconstruction reads ordered shards and validates final archive" {
     const destination = try std.fmt.allocPrint(std.testing.allocator, "{s}/archive.tar.xz", .{tmp_root});
     defer std.testing.allocator.free(destination);
 
-    const filename = "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz";
+    const filename = "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz";
     var payload_hasher = std.crypto.hash.sha2.Sha256.init(.{});
     payload_hasher.update(payload);
     var payload_digest: [32]u8 = undefined;
@@ -272,8 +272,8 @@ test "self-test fixtures exercise successful and failing parts packets" {
     try std.testing.expectEqualStrings(stage.self_test_pass_marker, "STAGE_PINNED_ZIG_ARCHIVE_SELF_TEST=pass");
     try std.testing.expect(std.mem.startsWith(u8, stage.self_test_case_count_prefix, "STAGE_PINNED_ZIG_ARCHIVE_SELF_TEST_CASE_COUNT="));
 
-    const expected = "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz";
-    try std.testing.expect(policy.archiveNameHasDuplicateSuffix("zig-x86_64-linux-0.17.0-dev.1415+64dfaa568 (1).tar.xz", expected));
+    const expected = "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz";
+    try std.testing.expect(policy.archiveNameHasDuplicateSuffix("zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5 (1).tar.xz", expected));
     const duplicate_name = try stage.duplicateArchiveName(std.testing.allocator, expected);
     defer std.testing.allocator.free(duplicate_name);
     try std.testing.expect(std.mem.endsWith(u8, duplicate_name, " (1).tar.xz"));

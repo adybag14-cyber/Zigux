@@ -25,7 +25,7 @@ test "phase2 closure keeps artifact support paired with shared tooling evidence"
     try expectContains(closure_note, "zigux/tests/fixtures/phase2_artifact_tools_manifest.json");
     try expectContains(closure_note, "scripts\zigux/check_phase2_artifact_tools_manifest.zig");
     try expectContains(closure_note, "remain the current artifact-support reminder pair");
-    try expectContains(closure_note, "PHASE2_SHARED_TOOLING_CHECKERS=zig run check_phase2_tool_manifest.zig,zig run check_phase2_bootstrap_workflow_routes.zig,zig run check_phase2_artifact_tools_manifest.zig");
+    try expectContains(closure_note, "PHASE2_SHARED_TOOLING_CHECKERS=zig run scripts/zigux/check_phase2_tool_manifest.zig,zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig,zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig");
 
     try expectOrder(
         closure_note,

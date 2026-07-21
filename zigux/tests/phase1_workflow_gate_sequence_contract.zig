@@ -11,87 +11,87 @@ const Gate = struct {
 const phase1_gates = [_]Gate{
     .{
         .name = "Self-test current Phase 1 direct-owner checker",
-        .command = "zig run check_phase1_direct_owner_markers.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_direct_owner_markers.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 direct-owner markers",
-        .command = "zig run check_phase1_direct_owner_markers.zig",
+        .command = "zig run scripts/zigux/check_phase1_direct_owner_markers.zig",
     },
     .{
         .name = "Self-test current Phase 1 direct-anchor manifest gate",
-        .command = "zig run check_phase1_direct_anchor_manifest_gate.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 direct-anchor manifest gate",
-        .command = "zig run check_phase1_direct_anchor_manifest_gate.zig",
+        .command = "zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig",
     },
     .{
         .name = "Self-test current Phase 1 string review checker",
-        .command = "zig run check_phase1_string_review_packet.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_string_review_packet.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 string review packet",
-        .command = "zig run check_phase1_string_review_packet.zig",
+        .command = "zig run scripts/zigux/check_phase1_string_review_packet.zig",
     },
     .{
         .name = "Self-test current Phase 1 find-bit review checker",
-        .command = "zig run check_phase1_find_bit_review_packet.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_find_bit_review_packet.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 find-bit review packet",
-        .command = "zig run check_phase1_find_bit_review_packet.zig",
+        .command = "zig run scripts/zigux/check_phase1_find_bit_review_packet.zig",
     },
     .{
         .name = "Self-test current Phase 1 bitmap direct-anchor checker",
-        .command = "zig run check_phase1_bitmap_direct_anchors.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_bitmap_direct_anchors.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 bitmap direct-anchor packet",
-        .command = "zig run check_phase1_bitmap_direct_anchors.zig",
+        .command = "zig run scripts/zigux/check_phase1_bitmap_direct_anchors.zig",
     },
     .{
         .name = "Self-test current Phase 1 rbtree review checker",
-        .command = "zig run check_phase1_rbtree_review_packet.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_rbtree_review_packet.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 rbtree review packet",
-        .command = "zig run check_phase1_rbtree_review_packet.zig",
+        .command = "zig run scripts/zigux/check_phase1_rbtree_review_packet.zig",
     },
     .{
         .name = "Self-test current Phase 1 route summary checker",
-        .command = "zig run check_phase1_route_summary_counts.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 route summary packet",
-        .command = "zig run check_phase1_route_summary_counts.zig",
+        .command = "zig run scripts/zigux/check_phase1_route_summary_counts.zig",
     },
     .{
         .name = "Self-test current Phase 1 bench checker",
-        .command = "zig run check_phase1_bench.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_bench.zig -- --self-test",
     },
     .{
         .name = "Self-test current Phase 1 find-bit bench anchor checker",
-        .command = "zig run check_phase1_find_bit_bench_anchors.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 find-bit bench anchor packet",
-        .command = "zig run check_phase1_find_bit_bench_anchors.zig",
+        .command = "zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig",
     },
     .{
         .name = "Self-test current Phase 1 shared reminder checker",
-        .command = "zig run check_phase1_shared_reminder_packet.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 shared reminder packet",
-        .command = "zig run check_phase1_shared_reminder_packet.zig",
+        .command = "zig run scripts/zigux/check_phase1_shared_reminder_packet.zig",
     },
     .{
         .name = "Self-test current Phase 1 closure validator",
-        .command = "zig run validate_phase1_closure.zig --self-test",
+        .command = "zig run scripts/zigux/validate_phase1_closure.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 closure packet",
-        .command = "zig run validate_phase1_closure.zig",
+        .command = "zig run scripts/zigux/validate_phase1_closure.zig",
     },
     .{
         .name = "Run current Phase 1 shared tests-root smoke",

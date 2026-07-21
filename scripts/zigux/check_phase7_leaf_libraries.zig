@@ -6,8 +6,8 @@ pub const live_pass_marker = "PHASE7_LEAF_LIBRARIES_PACKET=pass";
 pub const self_test_pass_marker = "PHASE7_LEAF_LIBRARIES_PACKET_SELF_TEST=pass";
 
 const REQUIRED_REPLAY_ROUTES = [_][]const u8{
-    "zig run scripts\\zigux/check_phase7_leaf_libraries.zig --self-test",
-    "zig run scripts\\zigux/check_phase7_leaf_libraries.zig --repo-root . --skip-exec",
+    "zig run scripts/zigux/check_phase7_leaf_libraries.zig -- --self-test",
+    "zig run scripts/zigux/check_phase7_leaf_libraries.zig -- --repo-root . --skip-exec",
     "zig build phase7-leaf-libraries-starter-packet --build-file zigux/tests/phase7_leaf_libraries_starter_packet_build.zig",
 };
 

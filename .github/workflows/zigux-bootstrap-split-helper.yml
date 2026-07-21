@@ -52,7 +52,7 @@ jobs:
           channel = policy["channel"]
           filename = f"zig-{target}-{channel}.tar.xz"
           canonical_repo = "adybag14-cyber/zig"
-          canonical_tag = "upstream-64dfaa568db0"
+          canonical_tag = "upstream-6c25d2bd58e4"
           canonical_url = f"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}"
           print(f"ZIGUX_ZIG_TARGET='{target}'")
           print(f"ZIGUX_ZIG_CHANNEL='{channel}'")

@@ -28,9 +28,9 @@ const WORKFLOW_STEP_MARKERS = [_][]const u8{
 };
 
 const WORKFLOW_LINE_MARKERS = [_][]const u8{
-    "run: zig run scripts\\zigux/check_zig_toolchain.zig --archive-only --allow-missing",
-    "run: zig run scripts/zigux/stage_pinned_zig_archive.zig --self-test",
-    "run: zig run scripts\\zigux/check_lane05_stage_helper_contract.zig --self-test",
+    "run: zig run scripts\\zigux/check_zig_toolchain.zig -- --archive-only --allow-missing",
+    "run: zig run scripts/zigux/stage_pinned_zig_archive.zig -- --self-test",
+    "run: zig run scripts\\zigux/check_lane05_stage_helper_contract.zig -- --self-test",
 };
 
 fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {

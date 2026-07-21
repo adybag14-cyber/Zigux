@@ -11,37 +11,37 @@ const FileContract = struct {
 };
 
 const markers_0 = [_][]const u8{
-    "0.17.0-dev.1415+64dfaa568",
+    "0.17.0-dev.1443+6c25d2bd5",
     "x86_64-linux",
     "x86_64-windows",
 };
 
 const markers_1 = [_][]const u8{
-    "0.17.0-dev.1415+64dfaa568",
-    "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz",
+    "0.17.0-dev.1443+6c25d2bd5",
+    "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz",
     "make -C zigux phase2-toolchain",
 };
 
 const markers_2 = [_][]const u8{
-    "0.17.0-dev.1415+64dfaa568",
+    "0.17.0-dev.1443+6c25d2bd5",
     "x86_64-linux",
     "x86_64-windows",
 };
 
 const markers_3 = [_][]const u8{
-    "0.17.0-dev.1415+64dfaa568",
-    "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz",
+    "0.17.0-dev.1443+6c25d2bd5",
+    "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz",
 };
 
 const markers_4 = [_][]const u8{
-    "0.17.0-dev.1415+64dfaa568",
-    "f72f19cbae9f4e649d7b2c5040aec6ccb93dce08048738bcfdf1a03475cd0c93",
-    "6fa26a51b2a9bff2952bb11458c863580731021d65dbb04bc42680cfa5a7140f",
+    "0.17.0-dev.1443+6c25d2bd5",
+    "4620f31b3889dcdcb257e6a0da6a4bc9a0b2b8e3db04219c1c160798e2cdc5a9",
+    "0c538cabcea1ef1d114b99f6e9f3099d4c4c22070daa19819511b783c5f40211",
 };
 
 const markers_5 = [_][]const u8{
-    "0.17.0-dev.1415+64dfaa568",
-    "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz",
+    "0.17.0-dev.1443+6c25d2bd5",
+    "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz",
 };
 
 const contracts = [_]FileContract{

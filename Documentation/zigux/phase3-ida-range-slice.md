@@ -34,8 +34,8 @@ The current helper-local ida range packet now has two bounded replay layers:
   `zigux/tests/phase3_ida_range_starter_packet.zig`
   `zigux/tests/phase3_ida_range_starter_packet_build.zig`
   `scripts\zigux/check_phase3_ida_range_starter_packet.zig`
-  `zig run check_phase3_ida_range_starter_packet.zig --self-test`
-  `zig run check_phase3_ida_range_starter_packet.zig`
+  `zig run scripts/zigux/check_phase3_ida_range_starter_packet.zig -- --self-test`
+  `zig run scripts/zigux/check_phase3_ida_range_starter_packet.zig`
   `zig build phase3-ida-range-starter-packet-test --build-file zigux/tests/phase3_ida_range_starter_packet_build.zig`
 - one fixture-backed dump parity packet:
   `zigux/tests/phase3_ida_range_dump.zig`
@@ -44,8 +44,8 @@ The current helper-local ida range packet now has two bounded replay layers:
   `zigux/tests/fixtures/phase3_ida_range/expected.json`
   `zigux/tests/fixtures/phase3_ida_range_manifest.json`
   `scripts\zigux/check_phase3_ida_range.zig`
-  `zig run check_phase3_ida_range.zig --self-test`
-  `zig run check_phase3_ida_range.zig --repo-root . --zig zig --cc gcc`
+  `zig run scripts/zigux/check_phase3_ida_range.zig -- --self-test`
+  `zig run scripts/zigux/check_phase3_ida_range.zig -- --repo-root . --zig zig --cc gcc`
   `zig build phase3-ida-range-dump --build-file zigux/tests/phase3_ida_range_dump_build.zig`
 
 ## Current Gap

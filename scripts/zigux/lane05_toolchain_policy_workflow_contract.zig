@@ -110,7 +110,7 @@ test "bootstrap workflow keeps setup and early policy gates fail-closed" {
 
     try requireExactlyOnce(workflow, "name: Setup pinned Zig toolchain");
     try requireAbsent(workflow, "uses: actions/checkout@");
-    try requireAbsent(workflow, "zig run scripts/zigux/install_zig.zig --channel 0.17.0-dev.87+9b177a7d2");
+    try requireAbsent(workflow, "zig run scripts/zigux/install_zig.zig -- --channel 0.17.0-dev.87+9b177a7d2");
 }
 
 test "installer helper canonical release constants match live policy channel" {

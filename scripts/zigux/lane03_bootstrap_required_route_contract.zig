@@ -76,10 +76,10 @@ test "bootstrap workflow route validator remains part of the current workflow pa
 
     try std.testing.expectEqual(
         @as(usize, 1),
-        countExactTrimmedLine(workflow, "run: zig run check_phase2_bootstrap_workflow_routes.zig --self-test"),
+        countExactTrimmedLine(workflow, "run: zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig -- --self-test"),
     );
     try std.testing.expectEqual(
         @as(usize, 1),
-        countExactTrimmedLine(workflow, "run: zig run check_phase2_bootstrap_workflow_routes.zig"),
+        countExactTrimmedLine(workflow, "run: zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig"),
     );
 }

@@ -11,7 +11,7 @@ const workflow_markers = [_][]const u8{
     "branches: [ master ]",
     "- 'scripts/zigux/**'",
     "- name: Setup pinned Zig toolchain",
-    "canonical_tag = \"upstream-64dfaa568db0\"",
+    "canonical_tag = \"upstream-6c25d2bd58e4\"",
     "zig run scripts/zigux/split_pinned_zig_archive.zig -- --self-test",
     "zig run scripts/zigux/check_lane05_split_helper_selftest.zig -- --self-test",
     "zig run scripts/zigux/check_lane05_split_helper_workflow.zig -- --self-test",

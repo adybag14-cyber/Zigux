@@ -33,24 +33,24 @@ const manifest_surface_keys = [_][]const u8{
 };
 
 const genksyms_commands = [_][]const u8{
-    "\"zig run check_genksyms_bridge.zig --self-test\"",
-    "\"zig run check_genksyms_bridge.zig\"",
-    "\"zig run check_phase2_genksyms_selftest_alignment.zig --self-test\"",
-    "\"zig run check_phase2_genksyms_selftest_alignment.zig\"",
-    "\"zig run check_phase2_genksyms_dual_implementation_survey.zig --self-test\"",
-    "\"zig run check_phase2_genksyms_dual_implementation_survey.zig\"",
+    "\"zig run scripts/zigux/check_genksyms_bridge.zig -- --self-test\"",
+    "\"zig run scripts/zigux/check_genksyms_bridge.zig\"",
+    "\"zig run scripts/zigux/check_phase2_genksyms_selftest_alignment.zig -- --self-test\"",
+    "\"zig run scripts/zigux/check_phase2_genksyms_selftest_alignment.zig\"",
+    "\"zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig -- --self-test\"",
+    "\"zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig\"",
     "\"zig test scripts/zigux/genksyms.zig\"",
     "\"make -C zigux phase2-genksyms\"",
 };
 
 const shared_tooling_commands = [_][]const u8{
-    "\"zig run check_phase2_tool_manifest.zig\"",
-    "\"zig run check_phase2_bootstrap_workflow_routes.zig\"",
-    "\"zig run check_phase2_artifact_tools_manifest.zig\"",
-    "\"zig run check_phase2_kconfig_allconfig_helper_packet.zig\"",
-    "\"zig run check_phase2_cross.zig\"",
-    "\"zig run check_phase2_fixdep_gate.zig\"",
-    "\"zig run check_fixdep_diff.zig\"",
+    "\"zig run scripts/zigux/check_phase2_tool_manifest.zig\"",
+    "\"zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig\"",
+    "\"zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig\"",
+    "\"zig run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig\"",
+    "\"zig run scripts/zigux/check_phase2_cross.zig\"",
+    "\"zig run scripts/zigux/check_phase2_fixdep_gate.zig\"",
+    "\"zig run scripts/zigux/check_fixdep_diff.zig\"",
 };
 
 fn readValidator(allocator: std.mem.Allocator) ![]u8 {
@@ -116,8 +116,8 @@ test "validator keeps command groups plus workflow and makefile vocabularies ali
     try expectContains(validator, "SHARED_TOOLING_COMMANDS = (");
     try expectOrdered(validator, &shared_tooling_commands);
     try expectContains(validator, "VALIDATOR_COMMANDS = (");
-    try expectContains(validator, "\"zig run validate_phase2.zig\"");
-    try expectContains(validator, "\"zig run validate_phase2_closure.zig\"");
+    try expectContains(validator, "\"zig run scripts/zigux/validate_phase2.zig\"");
+    try expectContains(validator, "\"zig run scripts/zigux/validate_phase2_closure.zig\"");
     try expectContains(validator, "expected_workflow_lines = tuple(f\"run: {command}\" for command in GENKSYMS_COMMANDS)");
     try expectContains(validator, "\"phase2-genksyms: phase2-toolchain\"");
     try expectContains(validator, "\"$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase2_closure.zig\"");

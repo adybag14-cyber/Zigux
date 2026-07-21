@@ -309,7 +309,7 @@ fn writeSyntheticManifest(io: Io, allocator: std.mem.Allocator, root: []const u8
         const extra = [_][]const u8{
             "zig run scripts/zigux/run_phase3_checks.zig",
             "zig run scripts/zigux/validate_phase3_selftest.zig",
-            "zig run scripts/zigux/check_phase3_abi.zig --self-test",
+            "zig run scripts/zigux/check_phase3_abi.zig -- --self-test",
             "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
         };
         for (extra) |route| try routes.append(allocator, try allocator.dupe(u8, route));

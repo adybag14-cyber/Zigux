@@ -38,15 +38,15 @@ const workflow_steps = [_][]const u8{
 };
 
 const workflow_commands = [_][]const u8{
-    "zig run check_phase10_bootstrap_route.zig --self-test",
-    "zig run check_phase10_bootstrap_route.zig",
+    "zig run scripts/zigux/check_phase10_bootstrap_route.zig -- --self-test",
+    "zig run scripts/zigux/check_phase10_bootstrap_route.zig",
     "make -C zigux phase10-validate",
     "make -C zigux phase10-test",
 };
 
 const workflow_run_lines = [_][]const u8{
-    "run: zig run check_phase10_bootstrap_route.zig --self-test",
-    "run: zig run check_phase10_bootstrap_route.zig",
+    "run: zig run scripts/zigux/check_phase10_bootstrap_route.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase10_bootstrap_route.zig",
     "run: make -C zigux phase10-validate",
     "run: make -C zigux phase10-test",
 };
@@ -60,7 +60,7 @@ const make_commands = [_][]const u8{
 };
 
 const manifest_routes = [_][]const u8{
-    "zig run check_phase10_bootstrap_route.zig",
+    "zig run scripts/zigux/check_phase10_bootstrap_route.zig",
     "make -C zigux phase10-validate",
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "make -C zigux phase10-test",
@@ -182,7 +182,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
     defer allocator.free(root);
     try checkRepo(io, allocator, root);
     if (self_test_cases.len != 19) return error.SelfTestCaseCountDrift;
-    const synthetic_manifest = "{\"exact_checks\":[\"zig run check_phase10_bootstrap_route.zig\",\"make -C zigux phase10-validate\",\"zig build test --build-file zigux/tests/phase10_build.zig --summary all\",\"make -C zigux phase10-test\",\"make -C zigux phase10\"]}";
+    const synthetic_manifest = "{\"exact_checks\":[\"zig run scripts/zigux/check_phase10_bootstrap_route.zig\",\"make -C zigux phase10-validate\",\"zig build test --build-file zigux/tests/phase10_build.zig --summary all\",\"make -C zigux phase10-test\",\"make -C zigux phase10\"]}";
     try checkManifest(allocator, synthetic_manifest);
     try guard.printLine(io, "{s}", .{self_test_pass_marker});
     try guard.printLine(io, "PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=19", .{});

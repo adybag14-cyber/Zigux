@@ -70,13 +70,13 @@ test "aggregate validator routes direct cross before later Phase 2 closure check
 
     try requireInOrder(
         validator_text,
-        "run: zig run check_phase2_cross.zig --self-test",
-        "run: zig run check_phase2_cross_selftest_alignment.zig --self-test",
+        "run: zig run scripts/zigux/check_phase2_cross.zig -- --self-test",
+        "run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig -- --self-test",
     );
     try requireInOrder(
         validator_text,
-        "run: zig run check_phase2_cross_selftest_alignment.zig",
-        "run: zig run check_phase2_docs_shared_reminder.zig --self-test",
+        "run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig",
+        "run: zig run scripts/zigux/check_phase2_docs_shared_reminder.zig -- --self-test",
     );
     try requireInOrder(
         validator_text,

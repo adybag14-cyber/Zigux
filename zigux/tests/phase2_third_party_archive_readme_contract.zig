@@ -8,7 +8,7 @@ const parts_path = archive_path ++ ".parts";
 const archive_sha = "c1fd3190ab9e03ba2ec339aff9f1371780dc0727dacd0b0edb7ae6ba936501d8";
 const archive_size = "59581484";
 const archive_replay_command =
-    "zig run check_zig_toolchain.zig --archive-only --archive " ++
+    "zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive " ++
     archive_path ++ " --archive-target " ++ target;
 
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
@@ -85,7 +85,7 @@ test "archive README checker consumes the same current README contract" {
     try requireContains(archive_readme_checker, "POLICY_PATH = Path(\"scripts/zigux/zig-toolchain-policy.json\")");
     try requireContains(archive_readme_checker, "\"x86_64-linux\": 59_410_844");
     try requireContains(archive_readme_checker, "expected_archive_filename(target, channel)");
-    try requireContains(archive_readme_checker, "\"zig run check_zig_toolchain.zig --archive-only --archive \"");
+    try requireContains(archive_readme_checker, "\"zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive \"");
     try requireContains(archive_readme_checker, "expected_parts_path = f\"{expected_path}.parts\"");
     try requireContains(archive_readme_checker, "ARCHIVE_DUPLICATE_SUFFIX_RE");
     try requireContains(archive_readme_checker, "\"third_party contains duplicate-suffix archive copies\"");
@@ -110,6 +110,6 @@ test "shared Phase 2 documentation points reviewers back to the third_party arch
     try requireContains(review_checklist, "if the change touches the shared Phase 2 toolchain packet");
     try requireContains(review_checklist, "`third_party/README.md`");
     try requireContains(review_checklist, archive_replay_command);
-    try requireContains(review_checklist, "`zig run check_lane05_local_archive_readme.zig`");
+    try requireContains(review_checklist, "`zig run scripts/zigux/check_lane05_local_archive_readme.zig`");
     try requireContains(review_checklist, "`make -C zigux phase2-toolchain`");
 }

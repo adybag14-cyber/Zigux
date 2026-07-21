@@ -355,7 +355,7 @@ pub fn main(init: std.process.Init) !void {
 //     "- name: Check current Phase 12 release-readiness packet",
 //     "        run: zig run scripts/zigux/check_phase12_release_readiness_packet.zig --",
 //     "- name: Validate current Phase 12 support bundle",
-//     "        run: zig run validate_phase12.zig",
+//     "        run: zig run scripts/zigux/validate_phase12.zig",
 //     "- name: Run current Phase 12 smoke packet",
 //     "        run: make -C zigux phase12-smoke",
 //     "- name: Run current Phase 12 shared test packet",

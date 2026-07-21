@@ -13,20 +13,20 @@ const REQUIRED_HELPER_ANCHORS = [_][]const u8{
 };
 
 const REQUIRED_WORKFLOW_LINES = [_][]const u8{
-    "run: zig run scripts\\zigux/check_phase2_kconfig_confdata_helper_packet.zig --self-test",
+    "run: zig run scripts\\zigux/check_phase2_kconfig_confdata_helper_packet.zig -- --self-test",
     "run: zig run scripts\\zigux/check_phase2_kconfig_confdata_helper_packet.zig",
 };
 
 const REQUIRED_MAKEFILE_LINES = [_][]const u8{
-    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kconfig_confdata_helper_packet.zig --self-test",
+    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kconfig_confdata_helper_packet.zig -- --self-test",
     "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kconfig_confdata_helper_packet.zig",
 };
 
 const REQUIRED_PHASE2_VALIDATE_MARKERS = [_][]const u8{
     "\"scripts\\zigux/check_phase2_kconfig_confdata_helper_packet.zig\",",
-    "\"run: zig run scripts\\zigux/check_phase2_kconfig_confdata_helper_packet.zig --self-test\",",
+    "\"run: zig run scripts\\zigux/check_phase2_kconfig_confdata_helper_packet.zig -- --self-test\",",
     "\"run: zig run scripts\\zigux/check_phase2_kconfig_confdata_helper_packet.zig\",",
-    "\"$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kconfig_confdata_helper_packet.zig --self-test\",",
+    "\"$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kconfig_confdata_helper_packet.zig -- --self-test\",",
     "\"$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kconfig_confdata_helper_packet.zig\",",
 };
 

@@ -18,8 +18,8 @@ fn expectBefore(haystack: []const u8, first: []const u8, second: []const u8) !vo
 
 const validator_pair_line =
     "PHASE2_CLOSURE_VALIDATORS=" ++
-    "zig run validate_phase2.zig," ++
-    "zig run validate_phase2_closure.zig";
+    "zig run scripts/zigux/validate_phase2.zig," ++
+    "zig run scripts/zigux/validate_phase2_closure.zig";
 
 const shared_routes_line =
     "PHASE2_SHARED_MAKE_ROUTES=" ++
@@ -39,7 +39,7 @@ test "phase 2 closure note and manifest expose the validator pair as a public su
     const manifest = try readRepoFile("zigux/tests/fixtures/phase2_tool_manifest.json", 256 * 1024);
     defer std.testing.allocator.free(manifest);
 
-    try expectContains(closure_note, "shared validator pair: `zig run validate_phase2.zig` and `zig run validate_phase2_closure.zig`");
+    try expectContains(closure_note, "shared validator pair: `zig run scripts/zigux/validate_phase2.zig` and `zig run scripts/zigux/validate_phase2_closure.zig`");
     try expectContains(closure_note, validator_pair_line);
     try expectContains(closure_note, shared_routes_line);
     try expectContains(manifest, "\"validators\": [");

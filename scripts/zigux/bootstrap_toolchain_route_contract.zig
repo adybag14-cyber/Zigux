@@ -4,9 +4,9 @@ pub const stage_python = "zig run scripts/zigux/stage_pinned_zig_archive.zig";
 pub const stage_zig = "zig run scripts/zigux/stage_pinned_zig_archive.zig";
 pub const archive_sha_verify = "verify_pinned_archive_sha256";
 pub const bootstrap_zig_helper = "ensure_bootstrap_zig";
-pub const archive_check_python = "zig run check_zig_toolchain.zig --archive-only";
+pub const archive_check_python = "zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only";
 pub const archive_check_zig = "zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only";
-pub const zig_probe_python = "zig run check_zig_toolchain.zig --zig";
+pub const zig_probe_python = "zig run scripts/zigux/check_zig_toolchain.zig -- --zig";
 pub const zig_probe_zig = "zig run scripts/zigux/check_zig_toolchain.zig -- --zig";
 
 pub fn containsRoute(haystack: []const u8, python_route: []const u8, zig_route: []const u8) bool {

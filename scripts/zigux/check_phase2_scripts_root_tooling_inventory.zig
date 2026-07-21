@@ -124,8 +124,8 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !void {
         \\    "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz"
         \\  ],
         \\  "commands": [
-        \\    "zig run check_phase2_scripts_root_tooling_inventory.zig --self-test",
-        \\    "zig run check_phase2_scripts_root_tooling_inventory.zig",
+        \\    "zig run scripts/zigux/check_phase2_scripts_root_tooling_inventory.zig -- --self-test",
+        \\    "zig run scripts/zigux/check_phase2_scripts_root_tooling_inventory.zig",
         \\    "make -C zigux phase2-toolchain",
         \\    "make -C zigux phase2-validate",
         \\    "make -C zigux phase2"
@@ -162,8 +162,8 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator) !void {
         \\
         \\## Replay Commands
         \\
-        \\- `zig run check_phase2_scripts_root_tooling_inventory.zig --self-test`
-        \\- `zig run check_phase2_scripts_root_tooling_inventory.zig`
+        \\- `zig run scripts/zigux/check_phase2_scripts_root_tooling_inventory.zig -- --self-test`
+        \\- `zig run scripts/zigux/check_phase2_scripts_root_tooling_inventory.zig`
         \\- `make -C zigux phase2-toolchain`
         \\- `make -C zigux phase2-validate`
         \\- `make -C zigux phase2`

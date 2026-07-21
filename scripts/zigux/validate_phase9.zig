@@ -6,21 +6,21 @@ pub const live_pass_marker = "PHASE9_VALIDATE=pass";
 pub const self_test_pass_marker = "PHASE9_VALIDATE_SELF_TEST=pass";
 
 const EXPECTED_REPLAY_ROUTES = [_][]const u8{
-    "zig run scripts\\zigux/check_phase9_catalog_selftest.zig --self-test",
+    "zig run scripts\\zigux/check_phase9_catalog_selftest.zig -- --self-test",
     "zig run scripts\\zigux/check_phase9_catalog_selftest.zig",
-    "zig run scripts/zigux/phase9_catalog.zig --pretty",
-    "zig run scripts\\zigux/validate_phase9.zig --self-test",
+    "zig run scripts/zigux/phase9_catalog.zig -- --pretty",
+    "zig run scripts\\zigux/validate_phase9.zig -- --self-test",
     "zig run scripts\\zigux/validate_phase9.zig",
-    "zig run scripts\\zigux/check_phase9_runtime_loader_shared_packet.zig --self-test",
+    "zig run scripts\\zigux/check_phase9_runtime_loader_shared_packet.zig -- --self-test",
     "zig run scripts\\zigux/check_phase9_runtime_loader_shared_packet.zig",
-    "zig run scripts\\zigux/check_phase9_atomic64_runtime_packet.zig --self-test",
+    "zig run scripts\\zigux/check_phase9_atomic64_runtime_packet.zig -- --self-test",
     "zig run scripts\\zigux/check_phase9_atomic64_runtime_packet.zig",
-    "zig run scripts\\zigux/check_phase9_review_checklist_phase_boundaries.zig --self-test",
-    "zig run scripts\\zigux/check_phase9_freeze_map_study_boundaries.zig --self-test",
-    "zig run scripts\\zigux/check_phase9_trace_events_runtime_packet.zig --self-test",
-    "zig run scripts\\zigux/check_phase9_trace_events_direct_summary.zig --self-test",
-    "zig run scripts\\zigux/check_phase9_trace_events_summary_preservation.zig --self-test",
-    "zig run scripts\\zigux/check_phase9_kretprobe_runtime_packet.zig --self-test",
+    "zig run scripts\\zigux/check_phase9_review_checklist_phase_boundaries.zig -- --self-test",
+    "zig run scripts\\zigux/check_phase9_freeze_map_study_boundaries.zig -- --self-test",
+    "zig run scripts\\zigux/check_phase9_trace_events_runtime_packet.zig -- --self-test",
+    "zig run scripts\\zigux/check_phase9_trace_events_direct_summary.zig -- --self-test",
+    "zig run scripts\\zigux/check_phase9_trace_events_summary_preservation.zig -- --self-test",
+    "zig run scripts\\zigux/check_phase9_kretprobe_runtime_packet.zig -- --self-test",
     "zig run scripts\\zigux/check_phase9_kretprobe_runtime_packet.zig",
     "zig build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig",
     "zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig",
@@ -48,7 +48,7 @@ const REQUIRED_OWNERSHIP_MARKERS = [_][]const u8{
 
 const REQUIRED_README_MARKERS = [_][]const u8{
     "scripts\\zigux/validate_phase9.zig",
-    "zig run scripts\\zigux/validate_phase9.zig --self-test",
+    "zig run scripts\\zigux/validate_phase9.zig -- --self-test",
     "zig run scripts\\zigux/validate_phase9.zig",
 };
 

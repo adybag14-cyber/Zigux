@@ -132,7 +132,7 @@ const markers_7 = [_][]const u8{
     "scripts/zigux/check_phase10_bootstrap_route.zig",
     "\"scripts/zigux/check_phase10_harness_coverage.zig\"",
     "\"exact_checks\": [",
-    "\"zig run check_phase10_harness_coverage.zig\"",
+    "\"zig run scripts/zigux/check_phase10_harness_coverage.zig\"",
 };
 
 const contracts = [_]FileContract{

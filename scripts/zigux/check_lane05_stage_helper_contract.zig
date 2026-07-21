@@ -51,7 +51,7 @@ fn checkReadme(io: Io, allocator: std.mem.Allocator, root: []const u8, target: [
         target,
         channel,
         sha256,
-        "59264068",
+        "59093540",
     };
     for (markers) |marker| try guard.requireMarker(readme, marker);
 }

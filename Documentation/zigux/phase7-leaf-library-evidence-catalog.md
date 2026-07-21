@@ -41,22 +41,22 @@
 
 ## Current replay inventory
 
-- `zig run check_phase7_shared_surface.zig`
-- `zig run check_phase7_shared_surface.zig --self-test`
-- `zig run check_phase7_build_wiring.zig`
-- `zig run check_phase7_build_wiring.zig --self-test`
-- `zig run check_phase7_make_wrapper_selftest_alignment.zig`
-- `zig run check_phase7_make_wrapper_selftest_alignment.zig --self-test`
-- `zig run check_phase7_cmdline_packet.zig`
-- `zig run check_phase7_cmdline_packet.zig --self-test`
-- `zig run check_phase7_argv_split_packet.zig`
-- `zig run check_phase7_argv_split_packet.zig --self-test`
-- `zig run check_phase7_string_helpers_format_boundary_packet.zig`
-- `zig run check_phase7_string_helpers_format_boundary_packet.zig --self-test`
-- `zig run check_phase7_rbtree_parity.zig`
-- `zig run check_phase7_rbtree_parity.zig --self-test`
-- `zig run validate_phase7.zig`
-- `zig run validate_phase7.zig --self-test`
+- `zig run scripts/zigux/check_phase7_shared_surface.zig`
+- `zig run scripts/zigux/check_phase7_shared_surface.zig -- --self-test`
+- `zig run scripts/zigux/check_phase7_build_wiring.zig`
+- `zig run scripts/zigux/check_phase7_build_wiring.zig -- --self-test`
+- `zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig`
+- `zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig -- --self-test`
+- `zig run scripts/zigux/check_phase7_cmdline_packet.zig`
+- `zig run scripts/zigux/check_phase7_cmdline_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase7_argv_split_packet.zig`
+- `zig run scripts/zigux/check_phase7_argv_split_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase7_string_helpers_format_boundary_packet.zig`
+- `zig run scripts/zigux/check_phase7_string_helpers_format_boundary_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase7_rbtree_parity.zig`
+- `zig run scripts/zigux/check_phase7_rbtree_parity.zig -- --self-test`
+- `zig run scripts/zigux/validate_phase7.zig`
+- `zig run scripts/zigux/validate_phase7.zig -- --self-test`
 - `make -C zigux phase7-validate`
 
 ## Current build-wiring evidence

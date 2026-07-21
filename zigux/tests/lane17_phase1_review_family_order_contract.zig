@@ -18,51 +18,51 @@ const Gate = struct {
 const phase1_review_family = [_]Gate{
     .{
         .name = "Self-test current Phase 1 direct-anchor manifest gate",
-        .command = "zig run check_phase1_direct_anchor_manifest_gate.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 direct-anchor manifest gate",
-        .command = "zig run check_phase1_direct_anchor_manifest_gate.zig",
+        .command = "zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig",
     },
     .{
         .name = "Self-test current Phase 1 string review checker",
-        .command = "zig run check_phase1_string_review_packet.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_string_review_packet.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 string review packet",
-        .command = "zig run check_phase1_string_review_packet.zig",
+        .command = "zig run scripts/zigux/check_phase1_string_review_packet.zig",
     },
     .{
         .name = "Self-test current Phase 1 find-bit review checker",
-        .command = "zig run check_phase1_find_bit_review_packet.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_find_bit_review_packet.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 find-bit review packet",
-        .command = "zig run check_phase1_find_bit_review_packet.zig",
+        .command = "zig run scripts/zigux/check_phase1_find_bit_review_packet.zig",
     },
     .{
         .name = "Self-test current Phase 1 bitmap direct-anchor checker",
-        .command = "zig run check_phase1_bitmap_direct_anchors.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_bitmap_direct_anchors.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 bitmap direct-anchor packet",
-        .command = "zig run check_phase1_bitmap_direct_anchors.zig",
+        .command = "zig run scripts/zigux/check_phase1_bitmap_direct_anchors.zig",
     },
     .{
         .name = "Self-test current Phase 1 rbtree review checker",
-        .command = "zig run check_phase1_rbtree_review_packet.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_rbtree_review_packet.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 rbtree review packet",
-        .command = "zig run check_phase1_rbtree_review_packet.zig",
+        .command = "zig run scripts/zigux/check_phase1_rbtree_review_packet.zig",
     },
     .{
         .name = "Self-test current Phase 1 route summary checker",
-        .command = "zig run check_phase1_route_summary_counts.zig --self-test",
+        .command = "zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 route summary packet",
-        .command = "zig run check_phase1_route_summary_counts.zig",
+        .command = "zig run scripts/zigux/check_phase1_route_summary_counts.zig",
     },
 };
 
@@ -108,9 +108,9 @@ fn validateReviewFamilyOrder(text: []const u8) WorkflowError!void {
     var previous: ?usize = null;
 
     try requireAfter(&previous, text, "      - name: Self-test current Phase 1 direct-owner checker");
-    try requireAfter(&previous, text, "        run: zig run check_phase1_direct_owner_markers.zig --self-test");
+    try requireAfter(&previous, text, "        run: zig run scripts/zigux/check_phase1_direct_owner_markers.zig -- --self-test");
     try requireAfter(&previous, text, "      - name: Check current Phase 1 direct-owner markers");
-    try requireAfter(&previous, text, "        run: zig run check_phase1_direct_owner_markers.zig");
+    try requireAfter(&previous, text, "        run: zig run scripts/zigux/check_phase1_direct_owner_markers.zig");
 
     for (phase1_review_family) |gate| {
         var name_buf: [160]u8 = undefined;
@@ -121,10 +121,10 @@ fn validateReviewFamilyOrder(text: []const u8) WorkflowError!void {
         try requireAfter(&previous, text, command_line);
     }
 
-    try requireAbsent(text, "        run: zig run check_phase1_string_review_packet.zig --allow-missing");
-    try requireAbsent(text, "        run: zig run check_phase1_find_bit_review_packet.zig --allow-missing");
-    try requireAbsent(text, "        run: zig run check_phase1_rbtree_review_packet.zig --allow-missing");
-    try requireAbsent(text, "        run: zig run check_phase1_route_summary_counts.zig --root");
+    try requireAbsent(text, "        run: zig run scripts/zigux/check_phase1_string_review_packet.zig -- --allow-missing");
+    try requireAbsent(text, "        run: zig run scripts/zigux/check_phase1_find_bit_review_packet.zig -- --allow-missing");
+    try requireAbsent(text, "        run: zig run scripts/zigux/check_phase1_rbtree_review_packet.zig -- --allow-missing");
+    try requireAbsent(text, "        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --root");
 }
 
 test "current bootstrap workflow keeps the phase1 review-family gates ordered" {
@@ -134,13 +134,13 @@ test "current bootstrap workflow keeps the phase1 review-family gates ordered" {
 test "contract rejects missing review-family gate" {
     const fixture =
         \\      - name: Self-test current Phase 1 direct-owner checker
-        \\        run: zig run check_phase1_direct_owner_markers.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase1_direct_owner_markers.zig -- --self-test
         \\      - name: Check current Phase 1 direct-owner markers
-        \\        run: zig run check_phase1_direct_owner_markers.zig
+        \\        run: zig run scripts/zigux/check_phase1_direct_owner_markers.zig
         \\      - name: Self-test current Phase 1 direct-anchor manifest gate
-        \\        run: zig run check_phase1_direct_anchor_manifest_gate.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig -- --self-test
         \\      - name: Check current Phase 1 direct-anchor manifest gate
-        \\        run: zig run check_phase1_direct_anchor_manifest_gate.zig
+        \\        run: zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig
     ;
 
     try std.testing.expectError(error.MissingMarker, validateReviewFamilyOrder(fixture));
@@ -149,26 +149,26 @@ test "contract rejects missing review-family gate" {
 test "contract rejects reordered helper review commands" {
     const fixture =
         \\      - name: Self-test current Phase 1 direct-owner checker
-        \\        run: zig run check_phase1_direct_owner_markers.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase1_direct_owner_markers.zig -- --self-test
         \\      - name: Check current Phase 1 direct-owner markers
-        \\        run: zig run check_phase1_direct_owner_markers.zig
+        \\        run: zig run scripts/zigux/check_phase1_direct_owner_markers.zig
         \\      - name: Check current Phase 1 direct-anchor manifest gate
-        \\        run: zig run check_phase1_direct_anchor_manifest_gate.zig
+        \\        run: zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig
         \\      - name: Self-test current Phase 1 direct-anchor manifest gate
-        \\        run: zig run check_phase1_direct_anchor_manifest_gate.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig -- --self-test
     ;
 
     try std.testing.expectError(error.ReorderedMarker, validateReviewFamilyOrder(fixture));
 }
 
 test "contract rejects duplicate exact workflow commands" {
-    const duplicate = workflow ++ "\n        run: zig run check_phase1_route_summary_counts.zig\n";
+    const duplicate = workflow ++ "\n        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig\n";
 
     try std.testing.expectError(error.DuplicateMarker, validateReviewFamilyOrder(duplicate));
 }
 
 test "contract rejects stale optional review-family workflow variants" {
-    const stale = workflow ++ "\n        run: zig run check_phase1_string_review_packet.zig --allow-missing\n";
+    const stale = workflow ++ "\n        run: zig run scripts/zigux/check_phase1_string_review_packet.zig -- --allow-missing\n";
 
     try std.testing.expectError(error.StaleMarker, validateReviewFamilyOrder(stale));
 }

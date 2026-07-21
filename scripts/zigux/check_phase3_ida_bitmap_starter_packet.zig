@@ -10,11 +10,11 @@ const STARTER_BUILD_ROUTE = [_][]const u8{
 };
 
 const CHECKER_ROUTE = [_][]const u8{
-    "zig run scripts\\zigux/check_phase3_ida_bitmap_starter_packet.zig --repo-root .",
+    "zig run scripts\\zigux/check_phase3_ida_bitmap_starter_packet.zig -- --repo-root .",
 };
 
 const SELF_TEST_ROUTE = [_][]const u8{
-    "zig run scripts\\zigux/check_phase3_ida_bitmap_starter_packet.zig --self-test",
+    "zig run scripts\\zigux/check_phase3_ida_bitmap_starter_packet.zig -- --self-test",
 };
 
 const REQUIRED_MARKERS__Documentation_zigux_phase3-ida-bitmap-slice_md = [_][]const u8{

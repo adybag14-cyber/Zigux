@@ -36,8 +36,8 @@ The current helper-local packet now has two bounded replay layers:
   - `zigux/tests/phase3_xarray_slot_starter_packet.zig`
   - `zigux/tests/phase3_xarray_slot_starter_packet_build.zig`
   - `scripts\zigux/check_phase3_xarray_slot_starter_packet.zig`
-  - `zig run check_phase3_xarray_slot_starter_packet.zig --self-test`
-  - `zig run check_phase3_xarray_slot_starter_packet.zig --repo-root .`
+  - `zig run scripts/zigux/check_phase3_xarray_slot_starter_packet.zig -- --self-test`
+  - `zig run scripts/zigux/check_phase3_xarray_slot_starter_packet.zig -- --repo-root .`
   - `zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig`
   - `zigux/tests/build.zig`
   - `zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig`
@@ -48,8 +48,8 @@ The current helper-local packet now has two bounded replay layers:
   - `zigux/tests/fixtures/phase3_xarray_slot/expected.json`
   - `zigux/tests/fixtures/phase3_xarray_slot_manifest.json`
   - `scripts\zigux/check_phase3_xarray_slot.zig`
-  - `zig run check_phase3_xarray_slot.zig --self-test`
-  - `zig run check_phase3_xarray_slot.zig --repo-root . --zig zig --cc gcc`
+  - `zig run scripts/zigux/check_phase3_xarray_slot.zig -- --self-test`
+  - `zig run scripts/zigux/check_phase3_xarray_slot.zig -- --repo-root . --zig zig --cc gcc`
   - `zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig`
 
 That keeps one shared-tests-root starter hook and one tiny C-vs-Zig parity replay explicit without reopening the broader shared validator, export/UAPI survey, or catalog packet.

@@ -29,18 +29,18 @@ const Manifest = struct {
 };
 
 const expected_productization_exact_checks = [_][]const u8{
-    "zig run check_phase14_shared_smoke_route.zig --self-test",
-    "zig run check_phase14_shared_smoke_route.zig",
-    "zig run check_phase14_tests_readme_smoke_summary.zig --self-test",
-    "zig run check_phase14_tests_readme_smoke_summary.zig",
-    "zig run validate_phase14.zig --self-test",
-    "zig run validate_phase14.zig",
-    "zig run check_phase14_rollback_threshold_sequencing.zig --self-test",
-    "zig run check_phase14_rollback_threshold_sequencing.zig",
-    "zig run check_phase14_workqueue_study_only_guardrail.zig --self-test",
-    "zig run check_phase14_workqueue_study_only_guardrail.zig",
-    "zig run check_phase14_release_boundary_exact_counts.zig --self-test",
-    "zig run check_phase14_release_boundary_exact_counts.zig",
+    "zig run scripts/zigux/check_phase14_shared_smoke_route.zig -- --self-test",
+    "zig run scripts/zigux/check_phase14_shared_smoke_route.zig",
+    "zig run scripts/zigux/check_phase14_tests_readme_smoke_summary.zig -- --self-test",
+    "zig run scripts/zigux/check_phase14_tests_readme_smoke_summary.zig",
+    "zig run scripts/zigux/validate_phase14.zig -- --self-test",
+    "zig run scripts/zigux/validate_phase14.zig",
+    "zig run scripts/zigux/check_phase14_rollback_threshold_sequencing.zig -- --self-test",
+    "zig run scripts/zigux/check_phase14_rollback_threshold_sequencing.zig",
+    "zig run scripts/zigux/check_phase14_workqueue_study_only_guardrail.zig -- --self-test",
+    "zig run scripts/zigux/check_phase14_workqueue_study_only_guardrail.zig",
+    "zig run scripts/zigux/check_phase14_release_boundary_exact_counts.zig -- --self-test",
+    "zig run scripts/zigux/check_phase14_release_boundary_exact_counts.zig",
     "make -C zigux phase14-validate",
 };
 

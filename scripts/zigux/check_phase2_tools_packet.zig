@@ -6,13 +6,13 @@ pub const live_pass_marker = "PHASE2_TOOLS_PACKET=pass";
 pub const self_test_pass_marker = "PHASE2_TOOLS_PACKET_SELF_TEST=pass";
 
 const WORKFLOW_LINES = [_][]const u8{
-    "run: zig run scripts\\zigux/check_phase2_kbuild_routes.zig --self-test",
+    "run: zig run scripts\\zigux/check_phase2_kbuild_routes.zig -- --self-test",
     "run: zig run scripts\\zigux/check_phase2_kbuild_routes.zig",
-    "run: zig run scripts\\zigux/check_phase2_required_make_routes.zig --self-test",
+    "run: zig run scripts\\zigux/check_phase2_required_make_routes.zig -- --self-test",
     "run: zig run scripts\\zigux/check_phase2_required_make_routes.zig",
-    "run: zig run scripts\\zigux/check_phase2_docs_shared_reminder.zig --self-test",
+    "run: zig run scripts\\zigux/check_phase2_docs_shared_reminder.zig -- --self-test",
     "run: zig run scripts\\zigux/check_phase2_docs_shared_reminder.zig",
-    "run: zig run scripts\\zigux/check_phase2_artifact_tools_manifest.zig --self-test",
+    "run: zig run scripts\\zigux/check_phase2_artifact_tools_manifest.zig -- --self-test",
     "run: zig run scripts\\zigux/check_phase2_artifact_tools_manifest.zig",
     "run: make -C zigux phase2-tools",
 };
@@ -36,13 +36,13 @@ const DOCS_MARKERS = [_][]const u8{
 };
 
 const BOOTSTRAP_MARKERS = [_][]const u8{
-    "`zig run scripts\\zigux/check_phase2_kbuild_routes.zig --self-test`",
+    "`zig run scripts\\zigux/check_phase2_kbuild_routes.zig -- --self-test`",
     "`zig run scripts\\zigux/check_phase2_kbuild_routes.zig`",
-    "`zig run scripts\\zigux/check_phase2_docs_shared_reminder.zig --self-test`",
+    "`zig run scripts\\zigux/check_phase2_docs_shared_reminder.zig -- --self-test`",
     "`zig run scripts\\zigux/check_phase2_docs_shared_reminder.zig`",
-    "`zig run scripts\\zigux/check_phase2_required_make_routes.zig --self-test`",
+    "`zig run scripts\\zigux/check_phase2_required_make_routes.zig -- --self-test`",
     "`zig run scripts\\zigux/check_phase2_required_make_routes.zig`",
-    "`zig run scripts\\zigux/check_phase2_artifact_tools_manifest.zig --self-test`",
+    "`zig run scripts\\zigux/check_phase2_artifact_tools_manifest.zig -- --self-test`",
     "`zig run scripts\\zigux/check_phase2_artifact_tools_manifest.zig`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`make -C zigux phase2-tools`",

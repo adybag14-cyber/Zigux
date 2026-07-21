@@ -82,8 +82,8 @@ const markers_4 = [_][]const u8{
 
 const markers_5 = [_][]const u8{
     "scripts\\zigux/validate_phase9.zig",
-    "zig run validate_phase9.zig --self-test",
-    "zig run validate_phase9.zig --",
+    "zig run scripts/zigux/validate_phase9.zig -- --self-test",
+    "zig run scripts/zigux/validate_phase9.zig --",
     "keep the freeze-map boundary explicit too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues",
 };
 
@@ -104,12 +104,12 @@ const markers_7 = [_][]const u8{
 };
 
 const markers_8 = [_][]const u8{
-    "zig run check_phase9_review_checklist_phase_boundaries.zig --self-test",
-    "zig run check_phase9_review_checklist_phase_boundaries.zig --",
-    "zig run check_phase9_freeze_map_study_boundaries.zig --self-test",
-    "zig run check_phase9_freeze_map_study_boundaries.zig --",
-    "zig run check_phase9_trace_events_runtime_packet.zig --self-test",
-    "zig run check_phase9_trace_events_runtime_packet.zig --",
+    "zig run scripts/zigux/check_phase9_review_checklist_phase_boundaries.zig -- --self-test",
+    "zig run scripts/zigux/check_phase9_review_checklist_phase_boundaries.zig --",
+    "zig run scripts/zigux/check_phase9_freeze_map_study_boundaries.zig -- --self-test",
+    "zig run scripts/zigux/check_phase9_freeze_map_study_boundaries.zig --",
+    "zig run scripts/zigux/check_phase9_trace_events_runtime_packet.zig -- --self-test",
+    "zig run scripts/zigux/check_phase9_trace_events_runtime_packet.zig --",
     "zig build phase9-runtime-loader-command-env-boundary-guard-tests --build-file zigux/tests/phase9_build.zig",
     "zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig",
     "zig test samples/zigux/runtime_trace_events.zig",
@@ -306,8 +306,8 @@ pub fn main(init: std.process.Init) !void {
 //
 // const PHASE9_SHARED_VALIDATOR_MARKERS = [_][]const u8{
 //     "scripts\zigux/validate_phase9.zig",
-//     "zig run validate_phase9.zig --self-test",
-//     "zig run validate_phase9.zig",
+//     "zig run scripts/zigux/validate_phase9.zig -- --self-test",
+//     "zig run scripts/zigux/validate_phase9.zig",
 // };
 //
 // const STALE_PHASE9_VALIDATOR_DENIAL = [_][]const u8{

@@ -13,7 +13,7 @@ That makes the smallest honest same-lane improvement a validation-gap artifact r
 ### Live repo evidence inspected
 
 - `Documentation/zigux/phase7-rbtree-slice.md` currently lists `scripts\zigux/check_phase7_build_wiring.zig` inside the active Phase 7 rbtree product boundary.
-- `scripts\zigux/validate_phase7.zig` currently lists both `zig run check_phase7_rbtree_parity.zig --self-test` and `zig run check_phase7_build_wiring.zig --self-test` inside the shared Phase 7 validation packet.
+- `scripts\zigux/validate_phase7.zig` currently lists both `zig run scripts/zigux/check_phase7_rbtree_parity.zig -- --self-test` and `zig run scripts/zigux/check_phase7_build_wiring.zig -- --self-test` inside the shared Phase 7 validation packet.
 - `scripts\zigux/check_phase7_rbtree_parity.zig` currently exact-requires `scripts\zigux/check_phase7_build_wiring.zig` from the surrounding review packet.
 - the same `check-phase7-rbtree-parity.py` self-test block still shows a narrower `missing_file_cases` list whose visible entries stop at:
   - `missing_manifest`

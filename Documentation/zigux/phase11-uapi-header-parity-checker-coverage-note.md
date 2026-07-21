@@ -62,8 +62,8 @@ What current `master` machine-checks today is:
 - `scripts\zigux/check_phase11_header_boundary_packet.zig` fail-closes on the
   survey, validation matrix, this checker-coverage note, and the `hv_ops`
   follow-up note through
-  `zig run check_phase11_header_boundary_packet.zig --self-test`
-  and `zig run check_phase11_header_boundary_packet.zig`
+  `zig run scripts/zigux/check_phase11_header_boundary_packet.zig -- --self-test`
+  and `zig run scripts/zigux/check_phase11_header_boundary_packet.zig`
 - `scripts\zigux/check_phase11_build_inventory.zig` fail-closes on the exact
   current build inventory and the returned `phase11-validate` route
 - `scripts\zigux/check_phase11_focused_direct_build_replays.zig` fail-closes on

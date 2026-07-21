@@ -87,7 +87,7 @@ test "artifact diff phase 2 scope stays aligned with the closure reminder" {
 
     try expectContains(phase2_closure.contents, "scripts/zigux/artifact_diff.zig");
     try expectContains(phase2_closure.contents, "zigux/tests/fixtures/phase2_artifact_tools_manifest.json");
-    try expectContains(phase2_closure.contents, "zig run check_phase2_artifact_tools_manifest.zig");
+    try expectContains(phase2_closure.contents, "zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig");
 
     try expectContains(artifact_diff_note.contents, "## Current Phase 2 use");
     try expectContains(artifact_diff_note.contents, "Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep` and the kconfig bridge packet.");

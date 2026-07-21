@@ -33,7 +33,7 @@ This lane is about iomap/MMIO safety surface exactness, not new helper behavior.
 
 ## Guard
 
-Use `zig run check_phase13_devres_np_wrapper_gap.zig` when touching this note or the surrounding shared Phase 13 reminder stack.
+Use `zig run scripts/zigux/check_phase13_devres_np_wrapper_gap.zig` when touching this note or the surrounding shared Phase 13 reminder stack.
 
 That checker should pass only while:
 

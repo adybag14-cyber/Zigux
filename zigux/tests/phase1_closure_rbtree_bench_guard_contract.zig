@@ -29,13 +29,13 @@ const rbtree_bench_source_markers = [_][]const u8{
 
 const workflow_markers = [_][]const u8{
     "Self-test current Phase 1 bench checker",
-    "zig run check_phase1_bench.zig --self-test",
+    "zig run scripts/zigux/check_phase1_bench.zig -- --self-test",
     "Check current Phase 1 bench packet",
-    "zig run check_phase1_bench.zig",
+    "zig run scripts/zigux/check_phase1_bench.zig",
     "Self-test current Phase 1 closure validator",
-    "zig run validate_phase1_closure.zig --self-test",
+    "zig run scripts/zigux/validate_phase1_closure.zig -- --self-test",
     "Check current Phase 1 closure packet",
-    "zig run validate_phase1_closure.zig",
+    "zig run scripts/zigux/validate_phase1_closure.zig",
 };
 
 const manifest_markers = [_][]const u8{
@@ -83,9 +83,9 @@ test "closure note keeps rbtree bench guard tied to the current closure packet" 
     defer allocator.free(closure);
 
     try expectContains(closure, rbtree_bench_guard_marker);
-    try expectContains(closure, "PHASE1_CLOSURE_VALIDATOR=zig run validate_phase1_closure.zig");
+    try expectContains(closure, "PHASE1_CLOSURE_VALIDATOR=zig run scripts/zigux/validate_phase1_closure.zig");
     try expectContains(closure, "PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig");
-    try expectContains(closure, "PHASE1_RBTREE_REVIEW_GUARD=zig run check_phase1_rbtree_review_packet.zig");
+    try expectContains(closure, "PHASE1_RBTREE_REVIEW_GUARD=zig run scripts/zigux/check_phase1_rbtree_review_packet.zig");
     try expectContains(closure, "cached_root_transition_serials");
 }
 

@@ -21,7 +21,7 @@ PHONY += phase10-validate phase10-test phase10
 .PHONY: phase1-route-summary phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2 phase3-validate phase3 phase3-abi-core-packet phase3-abi-export phase3-list-hlist-starter-packet phase3-list-hlist-dump phase3-idr-slot-starter-packet-test phase3-idr-slot-dump phase3-xarray-slot-starter-packet phase3-xarray-slot-starter-packet-test phase3-xarray-slot-dump phase3-test phase3-dump phase3-policy-dump phase3-policy-unsafe-test phase3-export-uapi-layout phase3-low-level-wrappers phase3-export-uapi-layout-test phase3-low-level-wrappers-test phase3-policy-starter-packet-test phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4 phase6-validate phase6-base64-test phase6-base64-perf phase6-bsearch-test phase6-bsearch-perf phase6-checksum-test phase6-checksum-perf-matrix-test phase6-checksum-perf phase6-hexdump-review phase6-hexdump-perf-matrix-test phase6-hexdump-test phase6-hexdump-perf phase6-perf phase7-validate phase7-rbtree-test phase7-rbtree-survey phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-file-path-handle-bridge-test phase8-perf-buffer-poll-test phase8-test phase8 phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-loader-command-env-boundary-guard-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test phase9-test phase10-validate phase10-test phase10 phase11-validate phase12-validate phase12-smoke phase12-test phase12-virtio-net-syntax-lab-test phase12-virtio-net-throughput-parity-test phase12-nvme-pci-direct-test phase12-nvme-pci-survey-test phase12 phase14-validate
 
 phase1-route-summary:
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase1_route_summary_counts.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase1_route_summary_counts.zig
 
 phase2-toolchain:
@@ -197,21 +197,21 @@ phase4-validate:
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_gate_evidence.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_remaining_gap_matrix.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_workflow_route_counts.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_baseline_packet.zig
 
 phase4-artifact-diff-contract:
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run scripts/zigux/artifact_diff.zig -- --self-test
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/artifact_diff_text_contract.zig
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/artifact_diff_json_contract.zig
@@ -289,7 +289,7 @@ phase6-hexdump-perf:
 
 phase6-perf: phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-hexdump-review phase6-hexdump-perf-matrix-test phase6-hexdump-perf
 phase7-validate:
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig
 
 phase7-rbtree-test:
@@ -299,8 +299,8 @@ phase7-rbtree-survey:
 	cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build phase7-rbtree-survey --build-file zigux/tests/phase7_build.zig
 
 phase8-validate:
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase8.zig --self-test
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase8_libbpf_segment_gate.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase8.zig -- --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase8_libbpf_segment_gate.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase8.zig
 
 phase8-exec-cmd-test:
@@ -396,7 +396,7 @@ phase12-validate:
 	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase12_libbpf_snapshot.zig
 	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase12_libbpf_lane_marker.zig
 	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase12_libbpf_heavy_consumer_packet.zig
-	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase12.zig --self-test
+	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase12.zig -- --self-test
 	$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase12.zig
 
 phase12-smoke:
@@ -420,17 +420,17 @@ phase12-nvme-pci-survey-test:
 phase12: phase12-validate phase12-smoke phase12-test
 
 phase14-validate:
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_shared_smoke_route.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_shared_smoke_route.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_shared_smoke_route.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_tests_readme_smoke_summary.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_tests_readme_smoke_summary.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_tests_readme_smoke_summary.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase14.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase14.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase14.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_rollback_threshold_sequencing.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_rollback_threshold_sequencing.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_rollback_threshold_sequencing.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_skbuff_stay_in_c_guardrail.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_skbuff_stay_in_c_guardrail.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_skbuff_stay_in_c_guardrail.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_rcu_rollback_guardrail.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_rcu_rollback_guardrail.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_rcu_rollback_guardrail.zig
-	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_release_boundary_exact_counts.zig --self-test
+	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_release_boundary_exact_counts.zig -- --self-test
 	cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase14_release_boundary_exact_counts.zig

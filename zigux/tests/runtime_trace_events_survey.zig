@@ -392,14 +392,14 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(sequencing_note, "The shared runtime-loader allocator/init-flow and command/environment boundary packet survives as a narrower shared-owner surface");
     try expectContains(sequencing_note, "`zigux/kernel/runtime_loader_command_env_boundary_guard.zig`");
 
-    try expectContains(workflow_file, "zig run check_phase9_review_checklist_phase_boundaries.zig --self-test");
-    try expectContains(workflow_file, "zig run check_phase9_review_checklist_phase_boundaries.zig");
-    try expectContains(workflow_file, "zig run check_phase9_trace_events_runtime_packet.zig --self-test");
-    try expectContains(workflow_file, "zig run check_phase9_trace_events_runtime_packet.zig");
-    try expectContains(workflow_file, "zig run check_phase9_trace_events_direct_summary.zig --self-test");
-    try expectContains(workflow_file, "zig run check_phase9_trace_events_direct_summary.zig");
-    try expectContains(workflow_file, "zig run check_phase9_trace_events_summary_preservation.zig --self-test");
-    try expectContains(workflow_file, "zig run check_phase9_trace_events_summary_preservation.zig");
+    try expectContains(workflow_file, "zig run scripts/zigux/check_phase9_review_checklist_phase_boundaries.zig -- --self-test");
+    try expectContains(workflow_file, "zig run scripts/zigux/check_phase9_review_checklist_phase_boundaries.zig");
+    try expectContains(workflow_file, "zig run scripts/zigux/check_phase9_trace_events_runtime_packet.zig -- --self-test");
+    try expectContains(workflow_file, "zig run scripts/zigux/check_phase9_trace_events_runtime_packet.zig");
+    try expectContains(workflow_file, "zig run scripts/zigux/check_phase9_trace_events_direct_summary.zig -- --self-test");
+    try expectContains(workflow_file, "zig run scripts/zigux/check_phase9_trace_events_direct_summary.zig");
+    try expectContains(workflow_file, "zig run scripts/zigux/check_phase9_trace_events_summary_preservation.zig -- --self-test");
+    try expectContains(workflow_file, "zig run scripts/zigux/check_phase9_trace_events_summary_preservation.zig");
     try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events.zig");
     try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_unregistered_gate.zig");
     try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig");

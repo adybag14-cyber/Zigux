@@ -47,8 +47,8 @@ test "scripts README keeps the Phase 2 toolchain pinning packet visible" {
     defer freeRootFiles(std.testing.allocator, files);
 
     try expectContains(files.scripts_readme, "`scripts\zigux/check_phase2_toolchain_pinning.zig`");
-    try expectContains(files.scripts_readme, "`zig run check_zig_toolchain.zig --policy-only`");
-    try expectContains(files.scripts_readme, "`zig run check_zig_toolchain.zig --archive-only --allow-missing`");
+    try expectContains(files.scripts_readme, "`zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only`");
+    try expectContains(files.scripts_readme, "`zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing`");
     try expectContains(files.scripts_readme, "`scripts\zigux/check_phase2_toolchain_pin_scope.zig`");
     try expectContains(files.scripts_readme, "`make -C zigux phase2-toolchain`");
     try expectContains(files.scripts_readme, "`make -C zigux phase2-tools`");
@@ -69,10 +69,10 @@ test "pinning checker records the current archive and workflow guard packet" {
     try expectContains(files.pinning_checker, "ARCHIVE_CHANNEL = \"0.17.0-dev.877+a3ae499dc\"");
     try expectContains(files.pinning_checker, "ARCHIVE_SIZE = 59_410_844");
     try expectContains(files.pinning_checker, "EXPECTED_SELF_TEST_CASE_COUNT = 55");
-    try expectContains(files.pinning_checker, "run: zig run check_zig_toolchain.zig --policy-only");
-    try expectContains(files.pinning_checker, "run: zig run check_zig_toolchain.zig --archive-only --allow-missing");
-    try expectContains(files.pinning_checker, "run: zig run check_phase2_toolchain_pinning.zig --self-test");
-    try expectContains(files.pinning_checker, "run: zig run check_phase2_toolchain_pinning.zig");
+    try expectContains(files.pinning_checker, "run: zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only");
+    try expectContains(files.pinning_checker, "run: zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing");
+    try expectContains(files.pinning_checker, "run: zig run scripts/zigux/check_phase2_toolchain_pinning.zig -- --self-test");
+    try expectContains(files.pinning_checker, "run: zig run scripts/zigux/check_phase2_toolchain_pinning.zig");
     try expectContains(files.pinning_checker, "No current repo-reality gaps remain inside the bounded toolchain");
 }
 

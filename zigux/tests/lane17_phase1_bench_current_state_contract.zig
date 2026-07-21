@@ -2,40 +2,40 @@ const std = @import("std");
 
 const workflow_current =
     \\      - name: Self-test current Phase 1 route summary checker
-    \\        run: zig run check_phase1_route_summary_counts.zig --self-test
+    \\        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test
     \\
     \\      - name: Check current Phase 1 route summary packet
-    \\        run: zig run check_phase1_route_summary_counts.zig
+    \\        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig
     \\
     \\      - name: Self-test current Phase 1 bench checker
-    \\        run: zig run check_phase1_bench.zig --self-test
+    \\        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test
     \\
     \\      - name: Check current Phase 1 bench packet
-    \\        run: zig run check_phase1_bench.zig
+    \\        run: zig run scripts/zigux/check_phase1_bench.zig
     \\
     \\      - name: Self-test current Phase 1 bench live-check workflow guard
-    \\        run: zig run check_phase1_bench_live_check_workflow.zig --self-test
+    \\        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test
     \\
     \\      - name: Check current Phase 1 bench live-check workflow guard packet
-    \\        run: zig run check_phase1_bench_live_check_workflow.zig
+    \\        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig
     \\
     \\      - name: Self-test current Phase 1 find-bit bench anchor checker
-    \\        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test
+    \\        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test
     \\
     \\      - name: Check current Phase 1 find-bit bench anchor packet
-    \\        run: zig run check_phase1_find_bit_bench_anchors.zig
+    \\        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig
     \\
     \\      - name: Self-test current Phase 1 shared reminder checker
-    \\        run: zig run check_phase1_shared_reminder_packet.zig --self-test
+    \\        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test
 ;
 
 const guard_checker_current =
     \\BENCH_SELF_TEST_STEP = "Self-test current Phase 1 bench checker"
-    \\BENCH_SELF_TEST_RUN = "zig run check_phase1_bench.zig --self-test"
+    \\BENCH_SELF_TEST_RUN = "zig run scripts/zigux/check_phase1_bench.zig -- --self-test"
     \\BENCH_LIVE_CHECK_STEP = "Check current Phase 1 bench packet"
-    \\BENCH_LIVE_CHECK_RUN = "zig run check_phase1_bench.zig"
+    \\BENCH_LIVE_CHECK_RUN = "zig run scripts/zigux/check_phase1_bench.zig"
     \\FIND_BIT_BENCH_STEP = "Self-test current Phase 1 find-bit bench anchor checker"
-    \\FIND_BIT_BENCH_RUN = "zig run check_phase1_find_bit_bench_anchors.zig --self-test"
+    \\FIND_BIT_BENCH_RUN = "zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test"
     \\PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS
     \\PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM
     \\PHASE1_BENCH_RBTREE_CACHED_CHECKSUM
@@ -55,17 +55,17 @@ const required_workflow_chain = [_][]const u8{
 };
 
 const required_run_lines = [_][]const u8{
-    "run: zig run check_phase1_bench.zig --self-test",
-    "run: zig run check_phase1_bench.zig",
-    "run: zig run check_phase1_bench_live_check_workflow.zig --self-test",
-    "run: zig run check_phase1_bench_live_check_workflow.zig",
-    "run: zig run check_phase1_find_bit_bench_anchors.zig --self-test",
-    "run: zig run check_phase1_find_bit_bench_anchors.zig",
+    "run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase1_bench.zig",
+    "run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig",
+    "run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig",
 };
 
 const required_guard_markers = [_][]const u8{
     "BENCH_LIVE_CHECK_STEP = \"Check current Phase 1 bench packet\"",
-    "BENCH_LIVE_CHECK_RUN = \"zig run check_phase1_bench.zig\"",
+    "BENCH_LIVE_CHECK_RUN = \"zig run scripts/zigux/check_phase1_bench.zig\"",
     "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS",
     "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
     "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM",
@@ -141,10 +141,10 @@ test "lane17 bench live-check workflow guard checker pins the current live-check
 test "lane17 current workflow contract rejects old missing live bench packet gap" {
     const old_gap =
         \\      - name: Self-test current Phase 1 bench checker
-        \\        run: zig run check_phase1_bench.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test
         \\
         \\      - name: Self-test current Phase 1 find-bit bench anchor checker
-        \\        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test
     ;
     try std.testing.expectError(error.TestExpectedEqual, requireWorkflowState(old_gap));
 }
@@ -152,7 +152,7 @@ test "lane17 current workflow contract rejects old missing live bench packet gap
 test "lane17 current workflow contract rejects duplicate live bench packet checks" {
     const duplicate_live_check = workflow_current ++
         \\      - name: Check current Phase 1 bench packet
-        \\        run: zig run check_phase1_bench.zig
+        \\        run: zig run scripts/zigux/check_phase1_bench.zig
     ;
     try std.testing.expectError(error.TestExpectedEqual, requireWorkflowState(duplicate_live_check));
 }
@@ -160,7 +160,7 @@ test "lane17 current workflow contract rejects duplicate live bench packet check
 test "lane17 guard checker contract rejects dropped rbtree bench marker" {
     const missing_marker =
         \\BENCH_LIVE_CHECK_STEP = "Check current Phase 1 bench packet"
-        \\BENCH_LIVE_CHECK_RUN = "zig run check_phase1_bench.zig"
+        \\BENCH_LIVE_CHECK_RUN = "zig run scripts/zigux/check_phase1_bench.zig"
         \\PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS
         \\PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM
         \\PHASE1_BENCH_LIVE_CHECK_WORKFLOW_SELF_TEST_CASE_COUNT=6

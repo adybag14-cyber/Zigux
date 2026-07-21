@@ -22,8 +22,8 @@ const policy_markers = [_][]const u8{
 };
 
 const checker_route_markers = [_][]const u8{
-    "zig run check_phase2_toolchain_pin_scope.zig --self-test",
-    "zig run check_phase2_toolchain_pin_scope.zig",
+    "zig run scripts/zigux/check_phase2_toolchain_pin_scope.zig -- --self-test",
+    "zig run scripts/zigux/check_phase2_toolchain_pin_scope.zig",
     "make -C zigux phase2-toolchain",
     "make -C zigux phase2-validate",
 };

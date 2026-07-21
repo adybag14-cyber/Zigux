@@ -3,26 +3,26 @@ const std = @import("std");
 const workflow = @embedFile("fixtures/phase1_workflow_bench_live_guard.yml");
 
 const ordered_markers = [_][]const u8{
-    "      - name: Self-test current Phase 1 route summary checker\n        run: zig run check_phase1_route_summary_counts.zig --self-test",
-    "      - name: Check current Phase 1 route summary packet\n        run: zig run check_phase1_route_summary_counts.zig",
-    "      - name: Self-test current Phase 1 bench checker\n        run: zig run check_phase1_bench.zig --self-test",
-    "      - name: Check current Phase 1 bench packet\n        run: zig run check_phase1_bench.zig",
-    "      - name: Self-test current Phase 1 bench live-check workflow guard\n        run: zig run check_phase1_bench_live_check_workflow.zig --self-test",
-    "      - name: Check current Phase 1 bench live-check workflow guard packet\n        run: zig run check_phase1_bench_live_check_workflow.zig",
-    "      - name: Self-test current Phase 1 find-bit bench anchor checker\n        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test",
-    "      - name: Check current Phase 1 find-bit bench anchor packet\n        run: zig run check_phase1_find_bit_bench_anchors.zig",
-    "      - name: Self-test current Phase 1 shared reminder checker\n        run: zig run check_phase1_shared_reminder_packet.zig --self-test",
-    "      - name: Check current Phase 1 shared reminder packet\n        run: zig run check_phase1_shared_reminder_packet.zig",
-    "      - name: Self-test current Phase 1 closure validator\n        run: zig run validate_phase1_closure.zig --self-test",
-    "      - name: Check current Phase 1 closure packet\n        run: zig run validate_phase1_closure.zig",
+    "      - name: Self-test current Phase 1 route summary checker\n        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test",
+    "      - name: Check current Phase 1 route summary packet\n        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig",
+    "      - name: Self-test current Phase 1 bench checker\n        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test",
+    "      - name: Check current Phase 1 bench packet\n        run: zig run scripts/zigux/check_phase1_bench.zig",
+    "      - name: Self-test current Phase 1 bench live-check workflow guard\n        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test",
+    "      - name: Check current Phase 1 bench live-check workflow guard packet\n        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig",
+    "      - name: Self-test current Phase 1 find-bit bench anchor checker\n        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test",
+    "      - name: Check current Phase 1 find-bit bench anchor packet\n        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig",
+    "      - name: Self-test current Phase 1 shared reminder checker\n        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test",
+    "      - name: Check current Phase 1 shared reminder packet\n        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig",
+    "      - name: Self-test current Phase 1 closure validator\n        run: zig run scripts/zigux/validate_phase1_closure.zig -- --self-test",
+    "      - name: Check current Phase 1 closure packet\n        run: zig run scripts/zigux/validate_phase1_closure.zig",
     "      - name: Run current Phase 1 shared tests-root smoke\n        run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
 };
 
 const stale_command_markers = [_][]const u8{
-    "zig run check_phase1_bench_live_check_workflow.zig --root",
-    "zig run check_phase1_bench_live_check_workflow.zig --allow-missing",
-    "zig run check_phase1_find_bit_bench_anchors.zig --root",
-    "zig run check_phase1_find_bit_bench_anchors.zig --allow-missing",
+    "zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --root",
+    "zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --allow-missing",
+    "zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --root",
+    "zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --allow-missing",
 };
 
 fn countOccurrences(haystack: []const u8, needle: []const u8) usize {

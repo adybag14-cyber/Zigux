@@ -15,7 +15,7 @@ Current `master` readback on 2026-05-29 shows that the churn filter must not tre
 
 - `scripts\zigux/validate_phase10.zig` (`8e63b13ee69855937f94e4022d2f8287ca0abd23`) lists `scripts\zigux/check_phase10_core_packet.zig` in both `REQUIRED_PATHS` and the live `CHECKS` tuple as `phase10-core-packet`.
 - `scripts\zigux/validate_phase10_closure.zig` (`f943e4e3fc233475e5666d1d5d7307f1550d06d0`) lists `scripts\zigux/check_phase10_core_packet.zig` in `REQUIRED_FILES`, keeps core-packet provenance markers in the closure evidence checks, and keeps the Phase 10 exact-check count at 15.
-- `zigux/tests/phase10_closure_manifest.json` (`8f80348772cd6ebe5fd040e492c5947892cb5528`) includes `scripts\zigux/check_phase10_core_packet.zig` in `roadmap_parity_scoreboard.lab_only_driver_validation.evidence` and in `exact_checks` as `zig run check_phase10_core_packet.zig`.
+- `zigux/tests/phase10_closure_manifest.json` (`8f80348772cd6ebe5fd040e492c5947892cb5528`) includes `scripts\zigux/check_phase10_core_packet.zig` in `roadmap_parity_scoreboard.lab_only_driver_validation.evidence` and in `exact_checks` as `zig run scripts/zigux/check_phase10_core_packet.zig`.
 - `zigux-alpha/PHASE10_CLOSURE_LEDGER.md` (`1bac327ecdbecdc6ed3f820f2097a12b0dce08f9`) records `PHASE10_LEDGER_CORE_PACKET_VALIDATE=scripts\zigux/check_phase10_core_packet.zig`, `PHASE10_LEDGER_REPO_REALITY_GAPS=none`, and the shared exact replay packet that includes `check-phase10-core-packet.py`.
 
 Filter verdict: this lane should classify the core packet checker as current shared Phase 10 validation evidence. A future cleanup pass should only remove or demote it if all four surfaces above drop it together; otherwise, deleting it would be churn, not cleanup.

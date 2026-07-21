@@ -21,8 +21,8 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `zigux/tests/phase3_dev_t_starter_packet_build.zig`
 - `zigux/tests/phase3_dev_t_starter_packet_manifest.json`
 - `scripts\zigux/check_phase3_dev_t_starter_packet.zig`
-- `zig run check_phase3_dev_t_starter_packet.zig --self-test`
-- `zig run check_phase3_dev_t_starter_packet.zig`
+- `zig run scripts/zigux/check_phase3_dev_t_starter_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_dev_t_starter_packet.zig`
 - `zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all`
 
 ## Focused helper slice present on `master`
@@ -34,16 +34,16 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
 - `zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json`
 - `scripts\zigux/check_phase3_errptr_xarray_starter_packet.zig`
-- `zig run check_phase3_errptr_xarray_starter_packet.zig --self-test`
-- `zig run check_phase3_errptr_xarray_starter_packet.zig`
+- `zig run scripts/zigux/check_phase3_errptr_xarray_starter_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_errptr_xarray_starter_packet.zig`
 - `zigux/tests/phase3_errptr_xarray_dump.zig`
 - `zigux/tests/phase3_errptr_xarray_dump_build.zig`
 - `zigux/tests/fixtures/phase3_errptr_xarray/phase3_errptr_xarray_c_harness.c`
 - `zigux/tests/fixtures/phase3_errptr_xarray/expected.json`
 - `zigux/tests/fixtures/phase3_errptr_xarray_manifest.json`
 - `scripts\zigux/check_phase3_errptr_xarray.zig`
-- `zig run check_phase3_errptr_xarray.zig --self-test`
-- `zig run check_phase3_errptr_xarray.zig --repo-root . --zig zig --cc gcc`
+- `zig run scripts/zigux/check_phase3_errptr_xarray.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_errptr_xarray.zig -- --repo-root . --zig zig --cc gcc`
 - `zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig`
 
 ## Focused xarray-slot slice present on `master`
@@ -53,8 +53,8 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `zigux/tests/phase3_xarray_slot_starter_packet.zig`
 - `zigux/tests/phase3_xarray_slot_starter_packet_build.zig`
 - `scripts\zigux/check_phase3_xarray_slot_starter_packet.zig`
-- `zig run check_phase3_xarray_slot_starter_packet.zig --self-test`
-- `zig run check_phase3_xarray_slot_starter_packet.zig --repo-root .`
+- `zig run scripts/zigux/check_phase3_xarray_slot_starter_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_xarray_slot_starter_packet.zig -- --repo-root .`
 - `zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig`
 - `zigux/tests/phase3_xarray_slot_dump.zig`
 - `zigux/tests/phase3_xarray_slot_dump_build.zig`
@@ -62,8 +62,8 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `zigux/tests/fixtures/phase3_xarray_slot/expected.json`
 - `zigux/tests/fixtures/phase3_xarray_slot_manifest.json`
 - `scripts\zigux/check_phase3_xarray_slot.zig`
-- `zig run check_phase3_xarray_slot.zig --self-test`
-- `zig run check_phase3_xarray_slot.zig --repo-root . --zig zig --cc gcc`
+- `zig run scripts/zigux/check_phase3_xarray_slot.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_xarray_slot.zig -- --repo-root . --zig zig --cc gcc`
 - `zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig`
 
 ## Focused idr-slot slice present on `master`
@@ -74,16 +74,16 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `zigux/tests/phase3_idr_slot_starter_packet_build.zig`
 - `zigux/tests/fixtures/phase3_idr_slot_manifest.json`
 - `scripts\zigux/check_phase3_idr_slot_starter_packet.zig`
-- `zig run check_phase3_idr_slot_starter_packet.zig --self-test`
-- `zig run check_phase3_idr_slot_starter_packet.zig --repo-root .`
+- `zig run scripts/zigux/check_phase3_idr_slot_starter_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_idr_slot_starter_packet.zig -- --repo-root .`
 - `zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig`
 - `zigux/tests/phase3_idr_slot_dump.zig`
 - `zigux/tests/phase3_idr_slot_dump_build.zig`
 - `zigux/tests/fixtures/phase3_idr_slot/phase3_idr_slot_c_harness.c`
 - `zigux/tests/fixtures/phase3_idr_slot/expected.json`
 - `scripts\zigux/check_phase3_idr_slot.zig`
-- `zig run check_phase3_idr_slot.zig --self-test`
-- `zig run check_phase3_idr_slot.zig --repo-root . --zig zig --cc gcc`
+- `zig run scripts/zigux/check_phase3_idr_slot.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_idr_slot.zig -- --repo-root . --zig zig --cc gcc`
 - `zig build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig`
 
 ## Focused bitmap/cpumask slice present on `master`
@@ -95,8 +95,8 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig`
 - `zigux/tests/fixtures/phase3_bitmap_cpumask_manifest.json`
 - `scripts\zigux/check_phase3_bitmap_cpumask.zig`
-- `zig run check_phase3_bitmap_cpumask.zig --self-test`
-- `zig run check_phase3_bitmap_cpumask.zig`
+- `zig run scripts/zigux/check_phase3_bitmap_cpumask.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_bitmap_cpumask.zig`
 - `zig build phase3-bitmap-cpumask-starter-packet --build-file zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig`
 
 ## Focused list/hlist slice present on `master`
@@ -108,16 +108,16 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `zigux/tests/phase3_list_hlist_starter_packet_build.zig`
 - `zigux/tests/fixtures/phase3_list_hlist_manifest.json`
 - `scripts\zigux/check_phase3_list_hlist_starter_packet.zig`
-- `zig run check_phase3_list_hlist_starter_packet.zig --self-test`
-- `zig run check_phase3_list_hlist_starter_packet.zig`
+- `zig run scripts/zigux/check_phase3_list_hlist_starter_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_list_hlist_starter_packet.zig`
 - `zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig`
 - `zigux/tests/phase3_list_hlist_dump.zig`
 - `zigux/tests/phase3_list_hlist_dump_build.zig`
 - `zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c`
 - `zigux/tests/fixtures/phase3_list_hlist/expected.json`
 - `scripts\zigux/check_phase3_list_hlist.zig`
-- `zig run check_phase3_list_hlist.zig --self-test`
-- `zig run check_phase3_list_hlist.zig --repo-root . --zig zig --cc gcc`
+- `zig run scripts/zigux/check_phase3_list_hlist.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_list_hlist.zig -- --repo-root . --zig zig --cc gcc`
 - `zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig`
 
 ## Focused policy slice present on `master`
@@ -135,15 +135,15 @@ Current `master` also directly serves the returned `Documentation/zigux/phase3-l
 - `zigux/tests/phase3_policy_starter_packet_build.zig`
 - `zigux/tests/phase3_policy_starter_packet_manifest.json`
 - `scripts\zigux/check_phase3_policy_starter_packet.zig`
-- `zig run check_phase3_policy_starter_packet.zig --self-test`
-- `zig run check_phase3_policy_starter_packet.zig`
+- `zig run scripts/zigux/check_phase3_policy_starter_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_policy_starter_packet.zig`
 - `zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig`
 - `zigux/tests/phase3_policy_dump.zig`
 - `zigux/tests/phase3_policy_dump_build.zig`
 - `zigux/tests/fixtures/phase3_policy_dump_expected.txt`
 - `scripts\zigux/check_phase3_policy_dump.zig`
-- `zig run check_phase3_policy_dump.zig --self-test`
-- `zig run check_phase3_policy_dump.zig`
+- `zig run scripts/zigux/check_phase3_policy_dump.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_policy_dump.zig`
 - `zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig`
 
 Current `master` also directly serves the same focused policy slice through the reviewer-readable dump route at `zigux/tests/phase3_policy_dump.zig`, `zigux/tests/phase3_policy_dump_build.zig`, `zigux/tests/fixtures/phase3_policy_dump_expected.txt`, and `scripts\zigux/check_phase3_policy_dump.zig`, so the bounded policy packet now exposes both its starter replay and its focused dump companion without widening this note into MMIO, low-level-wrapper, or broader runtime-shim ownership.

@@ -68,7 +68,7 @@ test "find_bit review packet pins helper anchors, aliases, and fixture fields" {
 test "find_bit review packet stays aligned with closure, lane, fixture, and smoke evidence" {
     try expectOnce(packet.lane_note_text, "PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask");
     try expectOnce(packet.lane_note_text, "or for committed tail-clamped or tail-inclusive-boundary replay drift");
-    try expectOnce(packet.closure_note_text, "PHASE1_FIND_BIT_REVIEW_GUARD=zig run check_phase1_find_bit_review_packet.zig");
+    try expectOnce(packet.closure_note_text, "PHASE1_FIND_BIT_REVIEW_GUARD=zig run scripts/zigux/check_phase1_find_bit_review_packet.zig");
     try expectOnce(packet.closure_note_text, "For `tools/lib/find_bit.zig`, current `master` still justifies a parked helper-local follow-up rather than a reopened closure pass.");
 
     const manifest_markers = [_][]const u8{

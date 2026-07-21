@@ -32,7 +32,7 @@ const markers_2 = [_][]const u8{
 
 const markers_3 = [_][]const u8{
     "Self-test current Phase 2 genksyms bridge checker",
-    "zig run check_genksyms_bridge.zig --self-test",
+    "zig run scripts/zigux/check_genksyms_bridge.zig -- --self-test",
 };
 
 const markers_4 = [_][]const u8{

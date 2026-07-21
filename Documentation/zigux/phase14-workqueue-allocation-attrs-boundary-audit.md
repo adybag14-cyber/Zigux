@@ -43,8 +43,8 @@ This audit does not claim:
 
 ## Replay
 
-- `zig run check_phase14_workqueue_allocation_attrs_boundary.zig --self-test`
-- `zig run check_phase14_workqueue_allocation_attrs_boundary.zig`
+- `zig run scripts/zigux/check_phase14_workqueue_allocation_attrs_boundary.zig -- --self-test`
+- `zig run scripts/zigux/check_phase14_workqueue_allocation_attrs_boundary.zig`
 
 ## Next bounded step
 

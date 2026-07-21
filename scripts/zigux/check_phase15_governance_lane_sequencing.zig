@@ -25,12 +25,12 @@ const EXPECTED_DIRECT_PACKET_PATHS = [_][]const u8{
 };
 
 const EXPECTED_MAINTENANCE_REPLAY_COMMANDS = [_][]const u8{
-    "zig run check_phase15_docs_readme_alignment.zig",
-    "zig run check_phase15_scripts_readme_alignment.zig",
-    "zig run check_phase15_tests_readme_alignment.zig",
-    "zig run check_phase15_review_process_handoff.zig",
-    "zig run check_phase15_handoff_note_alignment.zig",
-    "zig run check_phase15_shared_summary_gap.zig",
+    "zig run scripts/zigux/check_phase15_docs_readme_alignment.zig",
+    "zig run scripts/zigux/check_phase15_scripts_readme_alignment.zig",
+    "zig run scripts/zigux/check_phase15_tests_readme_alignment.zig",
+    "zig run scripts/zigux/check_phase15_review_process_handoff.zig",
+    "zig run scripts/zigux/check_phase15_handoff_note_alignment.zig",
+    "zig run scripts/zigux/check_phase15_shared_summary_gap.zig",
     "zig test zigux/tests/phase15_governance_lane_sequencing.zig",
 };
 
@@ -57,8 +57,8 @@ const REQUIRED_NOTE_MARKERS = [_][]const u8{
     "a deep-core status change has been approved",
     "a freeze-in-C anchor is ready for a direct Zigux bridge",
     "a missing focused replay, dedicated build file, or other absent broader companion is already landed on current `master`",
-    "zig run check_phase15_tests_readme_alignment.zig",
-    "zig run check_phase15_handoff_note_alignment.zig",
+    "zig run scripts/zigux/check_phase15_tests_readme_alignment.zig",
+    "zig run scripts/zigux/check_phase15_handoff_note_alignment.zig",
     "zig test zigux/tests/phase15_governance_lane_sequencing.zig",
 };
 

@@ -60,8 +60,8 @@ const markers_4 = [_][]const u8{
 
 const markers_5 = [_][]const u8{
     "- `scripts\\zigux/validate_phase9.zig`, `scripts\\zigux/check_phase9_review_checklist_phase_boundaries.zig`, `scripts\\zigux/check_phase9_freeze_map_study_boundaries.zig`, `scripts\\zigux/check_phase9_trace_events_runtime_packet.zig`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` keep the shipped shared Phase 9 reminder packet explicit from the scripts root",
-    "zig run validate_phase9.zig --self-test",
-    "zig run validate_phase9.zig --",
+    "zig run scripts/zigux/validate_phase9.zig -- --self-test",
+    "zig run scripts/zigux/validate_phase9.zig --",
     "`zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the bounded `zigux/tests/phase9_build.zig` `phase9-runtime-loader-shared-tests` and `phase9-runtime-loader-command-env-boundary-guard-tests` shards, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` scaffold keep the narrower shared runtime-loader allocator/init-flow and command/environment boundary packet explicit beside the still-blocked module-metadata and install-root surfaces",
     "keep `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig` framed as historical wider-family vocabulary until trusted direct rereads return them",
 };
@@ -297,8 +297,8 @@ pub fn main(init: std.process.Init) !void {
 //     "`zigux/tests/runtime_bitmap_module.zig`",
 //     "`zigux/tests/runtime_bitmap_diff.zig`",
 //     "- `scripts\zigux/validate_phase9.zig`, `scripts/zigux/check_phase9_review_checklist_phase_boundaries.zig`, `scripts/zigux/check_phase9_freeze_map_study_boundaries.zig`, `scripts/zigux/check_phase9_trace_events_runtime_packet.zig`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` keep the shipped shared Phase 9 reminder packet explicit from the scripts root",
-//     "zig run validate_phase9.zig --self-test",
-//     "zig run validate_phase9.zig",
+//     "zig run scripts/zigux/validate_phase9.zig -- --self-test",
+//     "zig run scripts/zigux/validate_phase9.zig",
 //     "`zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the bounded `zigux/tests/phase9_build.zig` `phase9-runtime-loader-shared-tests` and `phase9-runtime-loader-command-env-boundary-guard-tests` shards, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` scaffold keep the narrower shared runtime-loader allocator/init-flow and command/environment boundary packet explicit beside the still-blocked module-metadata and install-root surfaces",
 //     "keep `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig` framed as historical wider-family vocabulary until trusted direct rereads return them",
 //     "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`",

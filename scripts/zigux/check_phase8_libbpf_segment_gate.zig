@@ -75,7 +75,7 @@ const markers_1 = [_][]const u8{
 const markers_2 = [_][]const u8{
     "Current `master` still keeps the mixed-source bridge packet reviewable, and authenticated contents readback now reaches the bridge-side helper and witness files directly again in this runtime.",
     "That narrower split is therefore packet role rather than fetchability: the bridge helper and witness stay on the boundary side of the Phase 8 packet so this survey does not overclaim delivered procfs, bpffs, token, or fd-ownership behavior.",
-    "The timing-adjacent poll reminder also stays explicit through `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `zig run check_phase8_perf_buffer_poll_gate.zig`, `make -C zigux phase8-perf-buffer-poll-test`, and the shared `phase8` routes; that dedicated packet keeps no standalone timer helper behavior, no standalone clockevent helper behavior, and no broader timeout-sensitive routing behavior explicit while the surrounding setup-side bridge remains deferred.",
+    "The timing-adjacent poll reminder also stays explicit through `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `zig run scripts/zigux/check_phase8_perf_buffer_poll_gate.zig`, `make -C zigux phase8-perf-buffer-poll-test`, and the shared `phase8` routes; that dedicated packet keeps no standalone timer helper behavior, no standalone clockevent helper behavior, and no broader timeout-sensitive routing behavior explicit while the surrounding setup-side bridge remains deferred.",
 };
 
 const markers_3 = [_][]const u8{

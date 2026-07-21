@@ -13,20 +13,20 @@ const markers_0 = [_][]const u8{
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_gate_evidence.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_remaining_gap_matrix.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_workflow_route_counts.zig",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig -- --self-test",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig -- --self-test",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig -- --self-test",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_baseline_packet.zig",
     "phase4-artifact-diff-contract:",
     "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run scripts/zigux/artifact_diff.zig -- --self-test",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig -- --self-test",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/artifact_diff_text_contract.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/artifact_diff_json_contract.zig",
@@ -77,17 +77,17 @@ const markers_1 = [_][]const u8{
     "- name: Self-test current Phase 4 artifact-diff helper",
     "run: zig run scripts/zigux/artifact_diff.zig -- --self-test",
     "- name: Self-test current Phase 4 artifact-diff contract checker",
-    "run: zig run check_artifact_diff_contract.zig --self-test",
+    "run: zig run scripts/zigux/check_artifact_diff_contract.zig -- --self-test",
     "- name: Check current Phase 4 artifact-diff contract packet",
-    "run: zig run check_artifact_diff_contract.zig",
+    "run: zig run scripts/zigux/check_artifact_diff_contract.zig",
     "- name: Self-test current Phase 4 artifact-diff determinism checker",
-    "run: zig run check_phase4_artifact_diff_determinism.zig --self-test",
+    "run: zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test",
     "- name: Check current Phase 4 artifact-diff determinism packet",
-    "run: zig run check_phase4_artifact_diff_determinism.zig",
+    "run: zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig",
     "- name: Self-test current Phase 4 artifact-diff validator replay checker",
-    "run: zig run check_phase4_artifact_diff_validator_replays.zig --self-test",
+    "run: zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test",
     "- name: Check current Phase 4 artifact-diff validator replay packet",
-    "run: zig run check_phase4_artifact_diff_validator_replays.zig",
+    "run: zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig",
 };
 
 const markers_2 = [_][]const u8{
@@ -197,20 +197,20 @@ const exact_lines_0 = [_][]const u8{
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_gate_evidence.zig",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_remaining_gap_matrix.zig",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_workflow_route_counts.zig",
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig -- --self-test",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig",
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig -- --self-test",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig",
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig -- --self-test",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_baseline_packet.zig",
     "phase4-artifact-diff-contract:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run scripts/zigux/artifact_diff.zig -- --self-test",
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig",
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig",
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig -- --self-test",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig",
     "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/artifact_diff_text_contract.zig",
     "\tcd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/artifact_diff_json_contract.zig",
@@ -245,15 +245,15 @@ const ordered_markers_0 = [_][]const u8{
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_gate_evidence.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_remaining_gap_matrix.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_workflow_route_counts.zig",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig --self-test",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig --self-test",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig -- --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig -- --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig -- --self-test",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_baseline_packet.zig",
     "phase4-artifact-diff-contract:",
     "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) run scripts/zigux/artifact_diff.zig -- --self-test",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig --self-test",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig --self-test",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig -- --self-test",
     "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/artifact_diff_text_contract.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/artifact_diff_json_contract.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/artifact_diff_bytes_contract.zig",
@@ -422,11 +422,11 @@ pub fn main(init: std.process.Init) !void {
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_gate_evidence.zig
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_remaining_gap_matrix.zig
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_workflow_route_counts.zig
-//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig --self-test
+//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig -- --self-test
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig
-//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig --self-test
+//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig -- --self-test
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig
-//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig --self-test
+//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig -- --self-test
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_baseline_packet.zig
 // REQUIRED_PHASE4_VALIDATE_ORDERED_COMMANDS
@@ -434,14 +434,14 @@ pub fn main(init: std.process.Init) !void {
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_gate_evidence.zig
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_remaining_gap_matrix.zig
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_workflow_route_counts.zig
-//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig --self-test
+//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig -- --self-test
 // REQUIRED_PHASE4_ARTIFACT_DIFF_CONTRACT_COMMANDS
 //     cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.zig --self-test
-//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig --self-test
+//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig
-//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig --self-test
+//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig
-//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig --self-test
+//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig -- --self-test
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig
 //     cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build artifact-diff-text-contract --build-file scripts/zigux/artifact_diff_text_contract_build.zig
 // REQUIRED_WORKFLOW_MARKERS
@@ -452,29 +452,29 @@ pub fn main(init: std.process.Init) !void {
 // - name: Run Phase 4 artifact-diff contract make route
 // run: make -C zigux phase4-artifact-diff-contract
 // - name: Self-test current Phase 4 artifact-diff helper
-// run: zig run scripts/zigux/artifact_diff.zig --self-test
+// run: zig run scripts/zigux/artifact_diff.zig -- --self-test
 // - name: Self-test current Phase 4 artifact-diff contract checker
-// run: zig run scripts\zigux/check_artifact_diff_contract.zig --self-test
+// run: zig run scripts\zigux/check_artifact_diff_contract.zig -- --self-test
 // - name: Check current Phase 4 artifact-diff contract packet
 // run: zig run scripts\zigux/check_artifact_diff_contract.zig
 // - name: Self-test current Phase 4 artifact-diff determinism checker
-// run: zig run scripts\zigux/check_phase4_artifact_diff_determinism.zig --self-test
+// run: zig run scripts\zigux/check_phase4_artifact_diff_determinism.zig -- --self-test
 // - name: Check current Phase 4 artifact-diff determinism packet
 // run: zig run scripts\zigux/check_phase4_artifact_diff_determinism.zig
 // - name: Self-test current Phase 4 artifact-diff validator replay checker
-// run: zig run scripts\zigux/check_phase4_artifact_diff_validator_replays.zig --self-test
+// run: zig run scripts\zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test
 // - name: Check current Phase 4 artifact-diff validator replay packet
 // run: zig run scripts\zigux/check_phase4_artifact_diff_validator_replays.zig
 // REQUIRED_WORKFLOW_ORDER_MARKERS
 // run: make -C zigux phase4-validate
 // run: make -C zigux phase4-test
 // run: make -C zigux phase4-artifact-diff-contract
-// run: zig run scripts/zigux/artifact_diff.zig --self-test
-// run: zig run scripts\zigux/check_artifact_diff_contract.zig --self-test
+// run: zig run scripts/zigux/artifact_diff.zig -- --self-test
+// run: zig run scripts\zigux/check_artifact_diff_contract.zig -- --self-test
 // run: zig run scripts\zigux/check_artifact_diff_contract.zig
-// run: zig run scripts\zigux/check_phase4_artifact_diff_determinism.zig --self-test
+// run: zig run scripts\zigux/check_phase4_artifact_diff_determinism.zig -- --self-test
 // run: zig run scripts\zigux/check_phase4_artifact_diff_determinism.zig
-// run: zig run scripts\zigux/check_phase4_artifact_diff_validator_replays.zig --self-test
+// run: zig run scripts\zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test
 // run: zig run scripts\zigux/check_phase4_artifact_diff_validator_replays.zig
 // REQUIRED_BUILD_MARKERS
 // b.path("phase4_runtime_atomic64_diff_survey.zig")
@@ -570,21 +570,21 @@ pub fn main(init: std.process.Init) !void {
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_gate_evidence.zig
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_remaining_gap_matrix.zig
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_workflow_route_counts.zig
-//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig --self-test
+//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig -- --self-test
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig
-//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig --self-test
+//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig -- --self-test
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_validation_lane_sequencing.zig
-//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig --self-test
+//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig -- --self-test
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_baseline_packet.zig
 //
 // phase4-artifact-diff-contract:
 //     cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.zig --self-test
-//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig --self-test
+//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_determinism.zig
-//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig --self-test
+//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig
-//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig --self-test
+//     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig -- --self-test
 //     cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_artifact_diff_makefile_contract.zig
 //     cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) build artifact-diff-text-contract --build-file scripts/zigux/artifact_diff_text_contract_build.zig
 //
@@ -628,17 +628,17 @@ pub fn main(init: std.process.Init) !void {
 //       - name: Run Phase 4 artifact-diff contract make route
 //         run: make -C zigux phase4-artifact-diff-contract
 //       - name: Self-test current Phase 4 artifact-diff helper
-//         run: zig run scripts/zigux/artifact_diff.zig --self-test
+//         run: zig run scripts/zigux/artifact_diff.zig -- --self-test
 //       - name: Self-test current Phase 4 artifact-diff contract checker
-//         run: zig run scripts\zigux/check_artifact_diff_contract.zig --self-test
+//         run: zig run scripts\zigux/check_artifact_diff_contract.zig -- --self-test
 //       - name: Check current Phase 4 artifact-diff contract packet
 //         run: zig run scripts\zigux/check_artifact_diff_contract.zig
 //       - name: Self-test current Phase 4 artifact-diff determinism checker
-//         run: zig run scripts\zigux/check_phase4_artifact_diff_determinism.zig --self-test
+//         run: zig run scripts\zigux/check_phase4_artifact_diff_determinism.zig -- --self-test
 //       - name: Check current Phase 4 artifact-diff determinism packet
 //         run: zig run scripts\zigux/check_phase4_artifact_diff_determinism.zig
 //       - name: Self-test current Phase 4 artifact-diff validator replay checker
-//         run: zig run scripts\zigux/check_phase4_artifact_diff_validator_replays.zig --self-test
+//         run: zig run scripts\zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test
 //       - name: Check current Phase 4 artifact-diff validator replay packet
 //         run: zig run scripts\zigux/check_phase4_artifact_diff_validator_replays.zig
 //

@@ -27,8 +27,8 @@ The helper surface now keeps the bitmap direct anchors explicit in `tools/lib/bi
 
 The dedicated checker `scripts\zigux/check_phase1_bitmap_direct_anchors.zig` exact-checks those bitmap-local source and test markers. The bootstrap workflow runs both the self-test and live checker steps:
 
-- `zig run check_phase1_bitmap_direct_anchors.zig --self-test`
-- `zig run check_phase1_bitmap_direct_anchors.zig`
+- `zig run scripts/zigux/check_phase1_bitmap_direct_anchors.zig -- --self-test`
+- `zig run scripts/zigux/check_phase1_bitmap_direct_anchors.zig`
 
 The scripts-root reminder note also records that the bitmap checker is directly readable on current `master` and should stay wired into the scripts-root reminder packet and bootstrap workflow rather than being treated as lane-note-only context.
 

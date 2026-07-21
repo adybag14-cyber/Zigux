@@ -136,11 +136,11 @@ const markers_6 = [_][]const u8{
     "try std.testing.expectEqualStrings(\"P9-L12\", manifest.ownership_map[0].owner);",
     "try std.testing.expectEqualStrings(\"P9-L11\", manifest.ownership_map[4].owner);",
     "try expectContains(survey_note, \"adjacent shared loader-handoff build shard in `zigux/tests/phase9_build.zig`\");",
-    "try expectContains(workflow_file, \"zig run check_phase9_trace_events_direct_summary.zig --self-test\");",
-    "try expectContains(workflow_file, \"zig run check_phase9_trace_events_direct_summary.zig\");",
-    "try expectContains(workflow_file, \"zig run check_phase9_trace_events_summary_preservation.zig --self-test\");",
-    "try expectContains(workflow_file, \"zig run check_phase9_trace_events_summary_preservation.zig\");",
-    "try expectContains(workflow_file, \"zig run check_phase9_trace_events_runtime_packet.zig --self-test\");",
+    "try expectContains(workflow_file, \"zig run scripts/zigux/check_phase9_trace_events_direct_summary.zig -- --self-test\");",
+    "try expectContains(workflow_file, \"zig run scripts/zigux/check_phase9_trace_events_direct_summary.zig\");",
+    "try expectContains(workflow_file, \"zig run scripts/zigux/check_phase9_trace_events_summary_preservation.zig -- --self-test\");",
+    "try expectContains(workflow_file, \"zig run scripts/zigux/check_phase9_trace_events_summary_preservation.zig\");",
+    "try expectContains(workflow_file, \"zig run scripts/zigux/check_phase9_trace_events_runtime_packet.zig -- --self-test\");",
 };
 
 const markers_7 = [_][]const u8{
@@ -226,14 +226,14 @@ const markers_14 = [_][]const u8{
 };
 
 const markers_15 = [_][]const u8{
-    "zig run check_phase9_review_checklist_phase_boundaries.zig --self-test",
-    "zig run check_phase9_review_checklist_phase_boundaries.zig --",
-    "        run: zig run check_phase9_trace_events_runtime_packet.zig --self-test",
-    "        run: zig run check_phase9_trace_events_runtime_packet.zig",
-    "        run: zig run check_phase9_trace_events_direct_summary.zig --self-test",
-    "        run: zig run check_phase9_trace_events_direct_summary.zig",
-    "        run: zig run check_phase9_trace_events_summary_preservation.zig --self-test",
-    "        run: zig run check_phase9_trace_events_summary_preservation.zig",
+    "zig run scripts/zigux/check_phase9_review_checklist_phase_boundaries.zig -- --self-test",
+    "zig run scripts/zigux/check_phase9_review_checklist_phase_boundaries.zig --",
+    "        run: zig run scripts/zigux/check_phase9_trace_events_runtime_packet.zig -- --self-test",
+    "        run: zig run scripts/zigux/check_phase9_trace_events_runtime_packet.zig",
+    "        run: zig run scripts/zigux/check_phase9_trace_events_direct_summary.zig -- --self-test",
+    "        run: zig run scripts/zigux/check_phase9_trace_events_direct_summary.zig",
+    "        run: zig run scripts/zigux/check_phase9_trace_events_summary_preservation.zig -- --self-test",
+    "        run: zig run scripts/zigux/check_phase9_trace_events_summary_preservation.zig",
     "zig test samples/zigux/runtime_trace_events.zig",
     "zig test samples/zigux/runtime_trace_events_unregistered_gate.zig",
     "zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig",
@@ -293,12 +293,12 @@ const exact_markers_3 = [_][]const u8{
 };
 
 const exact_markers_4 = [_][]const u8{
-    "        run: zig run check_phase9_trace_events_runtime_packet.zig --self-test",
-    "        run: zig run check_phase9_trace_events_runtime_packet.zig",
-    "        run: zig run check_phase9_trace_events_direct_summary.zig --self-test",
-    "        run: zig run check_phase9_trace_events_direct_summary.zig",
-    "        run: zig run check_phase9_trace_events_summary_preservation.zig --self-test",
-    "        run: zig run check_phase9_trace_events_summary_preservation.zig",
+    "        run: zig run scripts/zigux/check_phase9_trace_events_runtime_packet.zig -- --self-test",
+    "        run: zig run scripts/zigux/check_phase9_trace_events_runtime_packet.zig",
+    "        run: zig run scripts/zigux/check_phase9_trace_events_direct_summary.zig -- --self-test",
+    "        run: zig run scripts/zigux/check_phase9_trace_events_direct_summary.zig",
+    "        run: zig run scripts/zigux/check_phase9_trace_events_summary_preservation.zig -- --self-test",
+    "        run: zig run scripts/zigux/check_phase9_trace_events_summary_preservation.zig",
     "        run: zig test samples/zigux/runtime_trace_events_reinit_rollback_guard.zig",
     "        run: zig test samples/zigux/runtime_trace_events_reinit_reexit_guard.zig",
 };

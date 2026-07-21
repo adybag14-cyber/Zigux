@@ -12,7 +12,7 @@ const phase3_shared_test_run =
 const phase3_dump_run =
     "        run: zig build phase3-dump --build-file zigux/tests/build.zig\n";
 const phase4_repo_reality_self_test =
-    "        run: zig run check_phase4_repo_reality_warning.zig --self-test\n";
+    "        run: zig run scripts/zigux/check_phase4_repo_reality_warning.zig -- --self-test\n";
 
 fn contains(haystack: []const u8, needle: []const u8) bool {
     return std.mem.indexOf(u8, haystack, needle) != null;

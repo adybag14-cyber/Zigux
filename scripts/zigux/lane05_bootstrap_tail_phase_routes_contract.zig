@@ -8,14 +8,14 @@ const ContractError = error{
 };
 
 const ordered_tail_markers = [_][]const u8{
-    "run: zig run check_phase12_release_readiness_packet.zig --self-test\n",
-    "run: zig run check_phase12_release_readiness_packet.zig\n",
-    "run: zig run validate_phase12.zig\n",
+    "run: zig run scripts/zigux/check_phase12_release_readiness_packet.zig -- --self-test\n",
+    "run: zig run scripts/zigux/check_phase12_release_readiness_packet.zig\n",
+    "run: zig run scripts/zigux/validate_phase12.zig\n",
     "run: make -C zigux phase12-smoke\n",
     "run: make -C zigux phase12-test\n",
     "run: make -C zigux phase12\n",
     "run: make -C zigux phase12-virtio-net-syntax-lab-test\n",
-    "run: zig run check_phase14_shared_smoke_route.zig --self-test\n",
+    "run: zig run scripts/zigux/check_phase14_shared_smoke_route.zig -- --self-test\n",
     "run: make -C zigux phase14-validate\n",
     "run: zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all\n",
 };
@@ -72,13 +72,13 @@ pub fn main() !void {
 test "accepts current tail phase route cluster" {
     const workflow =
         \\      - name: Self-test current Phase 12 release-readiness packet checker
-        \\        run: zig run check_phase12_release_readiness_packet.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase12_release_readiness_packet.zig -- --self-test
         \\
         \\      - name: Check current Phase 12 release-readiness packet
-        \\        run: zig run check_phase12_release_readiness_packet.zig
+        \\        run: zig run scripts/zigux/check_phase12_release_readiness_packet.zig
         \\
         \\      - name: Validate current Phase 12 support bundle
-        \\        run: zig run validate_phase12.zig
+        \\        run: zig run scripts/zigux/validate_phase12.zig
         \\
         \\      - name: Run current Phase 12 smoke packet
         \\        run: make -C zigux phase12-smoke
@@ -93,7 +93,7 @@ test "accepts current tail phase route cluster" {
         \\        run: make -C zigux phase12-virtio-net-syntax-lab-test
         \\
         \\      - name: Self-test current Phase 14 shared smoke route checker
-        \\        run: zig run check_phase14_shared_smoke_route.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase14_shared_smoke_route.zig -- --self-test
         \\
         \\      - name: Run current Phase 14 validate route
         \\        run: make -C zigux phase14-validate
@@ -109,11 +109,11 @@ test "accepts current tail phase route cluster" {
 test "rejects missing phase14 validator route" {
     const workflow =
         \\      - name: Self-test current Phase 12 release-readiness packet checker
-        \\        run: zig run check_phase12_release_readiness_packet.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase12_release_readiness_packet.zig -- --self-test
         \\      - name: Check current Phase 12 release-readiness packet
-        \\        run: zig run check_phase12_release_readiness_packet.zig
+        \\        run: zig run scripts/zigux/check_phase12_release_readiness_packet.zig
         \\      - name: Validate current Phase 12 support bundle
-        \\        run: zig run validate_phase12.zig
+        \\        run: zig run scripts/zigux/validate_phase12.zig
         \\      - name: Run current Phase 12 smoke packet
         \\        run: make -C zigux phase12-smoke
         \\      - name: Run current Phase 12 shared test packet
@@ -133,11 +133,11 @@ test "rejects missing phase14 validator route" {
 test "rejects throughput anchor before phase14 validation" {
     const workflow =
         \\      - name: Self-test current Phase 12 release-readiness packet checker
-        \\        run: zig run check_phase12_release_readiness_packet.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase12_release_readiness_packet.zig -- --self-test
         \\      - name: Check current Phase 12 release-readiness packet
-        \\        run: zig run check_phase12_release_readiness_packet.zig
+        \\        run: zig run scripts/zigux/check_phase12_release_readiness_packet.zig
         \\      - name: Validate current Phase 12 support bundle
-        \\        run: zig run validate_phase12.zig
+        \\        run: zig run scripts/zigux/validate_phase12.zig
         \\      - name: Run current Phase 12 smoke packet
         \\        run: make -C zigux phase12-smoke
         \\      - name: Run current Phase 12 shared test packet
@@ -149,7 +149,7 @@ test "rejects throughput anchor before phase14 validation" {
         \\      - name: Run current Phase 12 throughput-parity anchor
         \\        run: zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all
         \\      - name: Self-test current Phase 14 shared smoke route checker
-        \\        run: zig run check_phase14_shared_smoke_route.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase14_shared_smoke_route.zig -- --self-test
         \\      - name: Run current Phase 14 validate route
         \\        run: make -C zigux phase14-validate
         \\

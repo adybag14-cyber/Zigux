@@ -1,10 +1,10 @@
 const std = @import("std");
 
 const phase4_tail_markers = [_][]const u8{
-    "      - name: Self-test current Phase 4 artifact-diff determinism checker\n        run: zig run check_phase4_artifact_diff_determinism.zig --self-test",
-    "      - name: Check current Phase 4 artifact-diff determinism packet\n        run: zig run check_phase4_artifact_diff_determinism.zig",
-    "      - name: Self-test current Phase 4 artifact-diff validator replay checker\n        run: zig run check_phase4_artifact_diff_validator_replays.zig --self-test",
-    "      - name: Check current Phase 4 artifact-diff validator replay packet\n        run: zig run check_phase4_artifact_diff_validator_replays.zig",
+    "      - name: Self-test current Phase 4 artifact-diff determinism checker\n        run: zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test",
+    "      - name: Check current Phase 4 artifact-diff determinism packet\n        run: zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig",
+    "      - name: Self-test current Phase 4 artifact-diff validator replay checker\n        run: zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test",
+    "      - name: Check current Phase 4 artifact-diff validator replay packet\n        run: zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig",
 };
 
 const phase6_markers = [_][]const u8{
@@ -21,8 +21,8 @@ const phase8_markers = [_][]const u8{
 };
 
 const phase9_entry_markers = [_][]const u8{
-    "      - name: Self-test current Phase 9 review-checklist boundaries checker\n        run: zig run check_phase9_review_checklist_phase_boundaries.zig --self-test",
-    "      - name: Check current Phase 9 review-checklist boundaries packet\n        run: zig run check_phase9_review_checklist_phase_boundaries.zig",
+    "      - name: Self-test current Phase 9 review-checklist boundaries checker\n        run: zig run scripts/zigux/check_phase9_review_checklist_phase_boundaries.zig -- --self-test",
+    "      - name: Check current Phase 9 review-checklist boundaries packet\n        run: zig run scripts/zigux/check_phase9_review_checklist_phase_boundaries.zig",
 };
 
 fn markerIndex(source: []const u8, marker: []const u8) !usize {

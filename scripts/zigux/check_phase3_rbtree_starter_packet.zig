@@ -61,8 +61,8 @@ const REQUIRED_MARKERS__zigux_tests_phase3_rbtree_starter_packet_build_zig = [_]
 };
 
 const REQUIRED_REPLAY_ROUTES = [_][]const u8{
-    "zig run scripts\\zigux/check_phase3_rbtree_starter_packet.zig --self-test",
-    "zig run scripts\\zigux/check_phase3_rbtree_starter_packet.zig --repo-root .",
+    "zig run scripts\\zigux/check_phase3_rbtree_starter_packet.zig -- --self-test",
+    "zig run scripts\\zigux/check_phase3_rbtree_starter_packet.zig -- --repo-root .",
     "zig build phase3-rbtree-starter-packet-test --build-file zigux/tests/phase3_rbtree_starter_packet_build.zig",
 };
 

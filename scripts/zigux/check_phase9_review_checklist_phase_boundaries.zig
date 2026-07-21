@@ -132,16 +132,16 @@ const markers_6 = [_][]const u8{
 };
 
 const markers_7 = [_][]const u8{
-    "zig run check_phase9_review_checklist_phase_boundaries.zig --self-test",
-    "zig run check_phase9_review_checklist_phase_boundaries.zig --",
-    "zig run check_phase9_freeze_map_study_boundaries.zig --self-test",
-    "zig run check_phase9_freeze_map_study_boundaries.zig --",
-    "zig run check_phase9_trace_events_runtime_packet.zig --self-test",
-    "zig run check_phase9_trace_events_runtime_packet.zig --",
-    "zig run check_phase9_trace_events_direct_summary.zig --self-test",
-    "zig run check_phase9_trace_events_direct_summary.zig --",
-    "zig run check_phase9_trace_events_summary_preservation.zig --self-test",
-    "zig run check_phase9_trace_events_summary_preservation.zig --",
+    "zig run scripts/zigux/check_phase9_review_checklist_phase_boundaries.zig -- --self-test",
+    "zig run scripts/zigux/check_phase9_review_checklist_phase_boundaries.zig --",
+    "zig run scripts/zigux/check_phase9_freeze_map_study_boundaries.zig -- --self-test",
+    "zig run scripts/zigux/check_phase9_freeze_map_study_boundaries.zig --",
+    "zig run scripts/zigux/check_phase9_trace_events_runtime_packet.zig -- --self-test",
+    "zig run scripts/zigux/check_phase9_trace_events_runtime_packet.zig --",
+    "zig run scripts/zigux/check_phase9_trace_events_direct_summary.zig -- --self-test",
+    "zig run scripts/zigux/check_phase9_trace_events_direct_summary.zig --",
+    "zig run scripts/zigux/check_phase9_trace_events_summary_preservation.zig -- --self-test",
+    "zig run scripts/zigux/check_phase9_trace_events_summary_preservation.zig --",
 };
 
 const contracts = [_]FileContract{

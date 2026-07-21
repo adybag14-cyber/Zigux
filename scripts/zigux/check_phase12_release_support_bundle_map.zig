@@ -32,7 +32,7 @@ const WORKFLOW_MARKERS = [_][]const u8{
     "run: zig run scripts/zigux/check_phase12_build_inventory.zig -- --self-test",
     "run: zig run scripts/zigux/check_phase12_build_inventory.zig --",
     "run: zig run scripts/zigux/check_phase12_release_readiness_packet.zig -- --self-test",
-    "run: zig run validate_phase12.zig",
+    "run: zig run scripts/zigux/validate_phase12.zig",
     "run: make -C zigux phase12-smoke",
     "run: make -C zigux phase12-test",
     "run: make -C zigux phase12",

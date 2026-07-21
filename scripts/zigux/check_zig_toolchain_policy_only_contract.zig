@@ -8,8 +8,8 @@ test "policy-only summary keeps machine-readable phase route and pin fields" {
     defer policy.freePolicy(std.testing.allocator, &loaded);
 
     try std.testing.expectEqualStrings("Phase 2", loaded.phase);
-    try std.testing.expectEqualStrings("0.17.0-dev.1415+64dfaa568", loaded.channel);
-    try std.testing.expectEqualStrings("0.17.0-dev.1415+64dfaa568", loaded.minimum_version);
+    try std.testing.expectEqualStrings("0.17.0-dev.1443+6c25d2bd5", loaded.channel);
+    try std.testing.expectEqualStrings("0.17.0-dev.1443+6c25d2bd5", loaded.minimum_version);
     try std.testing.expect(loaded.upgrade_policy.channel_minimum_lockstep);
     try std.testing.expectEqual(@as(usize, 2), loaded.upgrade_policy.archive_target_scope.len);
     try std.testing.expectEqual(@as(usize, 7), loaded.upgrade_policy.required_make_routes.len);

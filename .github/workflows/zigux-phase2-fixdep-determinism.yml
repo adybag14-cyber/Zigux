@@ -38,7 +38,7 @@ jobs:
           mv "$src_dir"/* "$GITHUB_WORKSPACE"/
 
       - name: Self-test Phase 2 fixdep determinism contract
-        run: zig run check_phase2_fixdep_determinism_contract.zig --self-test
+        run: zig run scripts/zigux/check_phase2_fixdep_determinism_contract.zig -- --self-test
 
       - name: Check Phase 2 fixdep determinism contract
-        run: zig run check_phase2_fixdep_determinism_contract.zig
+        run: zig run scripts/zigux/check_phase2_fixdep_determinism_contract.zig

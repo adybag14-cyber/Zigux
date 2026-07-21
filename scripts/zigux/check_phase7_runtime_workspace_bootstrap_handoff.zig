@@ -7,24 +7,24 @@ pub const self_test_pass_marker = "PHASE7_RUNTIME_WORKSPACE_BOOTSTRAP_HANDOFF_SE
 
 const WORKFLOW_REQUIRED_ORDER = [_][]const u8{
     "run: zig test zigux/tests/runtime_trace_events_survey.zig",
-    "run: zig run scripts\\zigux/check_phase7_shared_control_gap.zig --self-test",
-    "run: zig run scripts\\zigux/check_phase7_shared_control_gap.zig",
-    "run: zig run scripts\\zigux/check_phase7_make_wrapper_selftest_alignment.zig --self-test",
-    "run: zig run scripts\\zigux/check_phase7_make_wrapper_selftest_alignment.zig",
-    "run: zig run scripts\\zigux/check_phase10_bootstrap_route.zig --self-test",
+    "run: zig run scripts/zigux/check_phase7_shared_control_gap.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase7_shared_control_gap.zig",
+    "run: zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig",
+    "run: zig run scripts/zigux/check_phase10_bootstrap_route.zig -- --self-test",
 };
 
 const WORKFLOW_PHASE7_HOOKS = [_][]const u8{
-    "run: zig run scripts\\zigux/check_phase7_shared_control_gap.zig --self-test",
-    "run: zig run scripts\\zigux/check_phase7_shared_control_gap.zig",
-    "run: zig run scripts\\zigux/check_phase7_make_wrapper_selftest_alignment.zig --self-test",
-    "run: zig run scripts\\zigux/check_phase7_make_wrapper_selftest_alignment.zig",
+    "run: zig run scripts/zigux/check_phase7_shared_control_gap.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase7_shared_control_gap.zig",
+    "run: zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig",
 };
 
 const WORKFLOW_FORBIDDEN_LINES = [_][]const u8{
     "run: make -C zigux phase7-validate",
-    "run: zig run scripts\\zigux/validate_phase7.zig --self-test",
-    "run: zig run scripts\\zigux/validate_phase7.zig",
+    "run: zig run scripts/zigux/validate_phase7.zig -- --self-test",
+    "run: zig run scripts/zigux/validate_phase7.zig",
     "run: zig build test --build-file zigux/tests/phase7_build.zig --summary all",
 };
 
@@ -47,7 +47,7 @@ const VALIDATOR_REQUIRED_ORDER = [_][]const u8{
 
 const MAKEFILE_REQUIRED_LINES = [_][]const u8{
     "phase7-validate:",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig -- --self-test",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig",
 };
 

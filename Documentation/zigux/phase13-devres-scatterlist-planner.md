@@ -44,6 +44,6 @@ Standalone replay handles:
 - `zig test --dep devres_scatterlist -Mroot=zigux/tests/phase13_devres_scatterlist.zig -Mdevres_scatterlist=lib/devres_scatterlist.zig`
 - `zig test --dep devres_scatterlist -Mroot=zigux/tests/phase13_devres_scatterlist_empty_table.zig -Mdevres_scatterlist=lib/devres_scatterlist.zig`
 - `zig build test --build-file zigux/tests/phase13_devres_scatterlist_build.zig`
-- `zig run check_phase13_devres_scatterlist_planner.zig`
-- `zig run check_phase13_devres_scatterlist_planner.zig --self-test`
+- `zig run scripts/zigux/check_phase13_devres_scatterlist_planner.zig`
+- `zig run scripts/zigux/check_phase13_devres_scatterlist_planner.zig -- --self-test`
 - `zig test zigux/tests/phase13_devres_dma_coherent.zig`

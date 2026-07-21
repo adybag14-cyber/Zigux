@@ -6,9 +6,9 @@ pub const live_pass_marker = "PHASE3_ABI_EXPORT_PARITY_SCOREBOARD=pass";
 pub const self_test_pass_marker = "PHASE3_ABI_EXPORT_PARITY_SCOREBOARD_SELF_TEST=pass";
 
 const REQUIRED_REPLAY_ROUTES = [_][]const u8{
-    "zig run scripts\\zigux/check_phase3_export_uapi_c_header_smoke.zig --self-test",
+    "zig run scripts\\zigux/check_phase3_export_uapi_c_header_smoke.zig -- --self-test",
     "zig run scripts\\zigux/check_phase3_export_uapi_c_header_smoke.zig",
-    "zig run scripts\\zigux/validate_phase3_export_uapi_survey.zig --self-test",
+    "zig run scripts\\zigux/validate_phase3_export_uapi_survey.zig -- --self-test",
     "zig run scripts\\zigux/validate_phase3_export_uapi_survey.zig",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",

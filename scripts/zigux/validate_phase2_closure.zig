@@ -47,7 +47,7 @@ const required_paths = [_][]const u8{
 const closure_markers = [_][]const u8{
     "PHASE2_STATUS=parked",
     "PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest",
-    "shared validator pair: `zig run validate_phase2.zig` and `zig run validate_phase2_closure.zig`",
+    "shared validator pair: `zig run scripts/zigux/validate_phase2.zig` and `zig run scripts/zigux/validate_phase2_closure.zig`",
     "scripts\\zigux/check_genksyms_bridge.zig",
     "scripts\\zigux/check_phase2_genksyms_selftest_alignment.zig",
     "scripts\\zigux/check_phase2_genksyms_dual_implementation_survey.zig",
@@ -64,15 +64,15 @@ const closure_markers = [_][]const u8{
 };
 
 const workflow_markers = [_][]const u8{
-    "run: zig run check_phase2_tool_manifest.zig --self-test",
-    "run: zig run check_phase2_artifact_tools_manifest.zig --self-test",
-    "run: zig run check_kconfig_bridge.zig --self-test",
-    "run: zig run check_phase2_cross.zig --self-test",
-    "run: zig run check_genksyms_bridge.zig --self-test",
-    "run: zig run check_phase2_genksyms_selftest_alignment.zig --self-test",
-    "run: zig run check_phase2_genksyms_dual_implementation_survey.zig --self-test",
-    "run: zig run check_phase2_fixdep_gate.zig --self-test",
-    "run: zig run check_fixdep_diff.zig --self-test",
+    "run: zig run scripts/zigux/check_phase2_tool_manifest.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig -- --self-test",
+    "run: zig run scripts/zigux/check_kconfig_bridge.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase2_cross.zig -- --self-test",
+    "run: zig run scripts/zigux/check_genksyms_bridge.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase2_genksyms_selftest_alignment.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase2_fixdep_gate.zig -- --self-test",
+    "run: zig run scripts/zigux/check_fixdep_diff.zig -- --self-test",
     "run: make -C zigux phase2-toolchain",
     "run: make -C zigux phase2-kconfig",
     "run: make -C zigux phase2-cross",
@@ -81,7 +81,7 @@ const workflow_markers = [_][]const u8{
     "run: make -C zigux phase2-validate",
     "run: make -C zigux phase2",
     "validate_phase2.zig",
-    "run: zig run validate_phase2_closure.zig --self-test",
+    "run: zig run scripts/zigux/validate_phase2_closure.zig -- --self-test",
     "validate_phase2_closure.zig",
 };
 
@@ -116,7 +116,7 @@ const manifest_markers = [_][]const u8{
     "validate_phase2_closure.zig",
     "check_phase2_toolchain_pinning.zig",
     "check_phase2_toolchain_pin_scope.zig",
-    "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz",
+    "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz",
 };
 
 const artifact_manifest_markers = [_][]const u8{

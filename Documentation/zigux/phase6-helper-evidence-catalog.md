@@ -105,24 +105,24 @@ The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bo
 - `make -C zigux phase6-base64-test`
 - `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-base64-perf`
-- `zig run check_phase6_base64_c_parity.zig`
+- `zig run scripts/zigux/check_phase6_base64_c_parity.zig`
 - `zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-bsearch-test`
 - `zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-bsearch-perf`
-- `zig run check_phase6_bsearch_c_parity.zig`
-- `zig run check_phase6_base64_bsearch_perf_markers.zig`
+- `zig run scripts/zigux/check_phase6_bsearch_c_parity.zig`
+- `zig run scripts/zigux/check_phase6_base64_bsearch_perf_markers.zig`
 - `zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-checksum-test`
 - `zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-checksum-perf-matrix-test`
 - `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-checksum-perf`
-- `zig run check_phase6_checksum_c_parity.zig`
-- `zig run check_phase6_checksum_hexdump_perf_markers.zig`
-- `zig run check_phase6_perf_threshold_markers.zig`
-- `zig run check_phase6_hexdump_packet.zig`
-- `zig run check_phase6_hexdump_route.zig`
+- `zig run scripts/zigux/check_phase6_checksum_c_parity.zig`
+- `zig run scripts/zigux/check_phase6_checksum_hexdump_perf_markers.zig`
+- `zig run scripts/zigux/check_phase6_perf_threshold_markers.zig`
+- `zig run scripts/zigux/check_phase6_hexdump_packet.zig`
+- `zig run scripts/zigux/check_phase6_hexdump_route.zig`
 - `zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-hexdump-review`
 - `zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig`

@@ -12,8 +12,8 @@ const FileContract = struct {
 
 const markers_0 = [_][]const u8{
     "PHASE1_CURRENT_REMINDER_PACKET=",
-    "PHASE1_CLOSURE_VALIDATOR=zig run validate_phase1_closure.zig",
-    "PHASE1_ROUTE_SUMMARY_GUARD=zig run check_phase1_route_summary_counts.zig",
+    "PHASE1_CLOSURE_VALIDATOR=zig run scripts/zigux/validate_phase1_closure.zig",
+    "PHASE1_ROUTE_SUMMARY_GUARD=zig run scripts/zigux/check_phase1_route_summary_counts.zig",
     "PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
 };
 
@@ -22,7 +22,7 @@ const markers_1 = [_][]const u8{
 };
 
 const markers_2 = [_][]const u8{
-    "zig run check_phase1_shared_reminder_packet.zig --self-test",
+    "zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test",
     "phase1-host-tools-smoke --build-file zigux/tests/build.zig",
 };
 
@@ -35,8 +35,8 @@ const markers_4 = [_][]const u8{
 };
 
 const markers_5 = [_][]const u8{
-    "run: zig run check_phase1_shared_reminder_packet.zig --self-test",
-    "run: zig run check_phase1_shared_reminder_packet.zig",
+    "run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig",
     "run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
 };
 

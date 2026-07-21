@@ -26,8 +26,8 @@ test "phase 2 closure note keeps genksyms survey replay commands explicit" {
 
     try expectContains(closure_note, "Documentation/zigux/phase2-genksyms-dual-implementation-survey.md");
     try expectContains(closure_note, "scripts\zigux/check_phase2_genksyms_dual_implementation_survey.zig");
-    try expectContains(closure_note, "`zig run check_phase2_genksyms_dual_implementation_survey.zig --self-test`");
-    try expectContains(closure_note, "`zig run check_phase2_genksyms_dual_implementation_survey.zig`");
+    try expectContains(closure_note, "`zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig -- --self-test`");
+    try expectContains(closure_note, "`zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig`");
     try expectContains(closure_note, "restored CRC-side tool-plus-checker evidence");
     try expectContains(closure_note, "restored CRC-side evidence and wrapper bridge packet");
     try expectAbsent(closure_note, "PHASE2_CURRENT_GAP_PACKET=Documentation/zigux/phase2-genksyms-dual-implementation-survey.md");
@@ -39,17 +39,17 @@ test "phase 2 closure note orders survey replay after wrapper evidence and befor
 
     try expectBefore(
         closure_note,
-        "`zig run check_phase2_genksyms_selftest_alignment.zig`",
-        "`zig run check_phase2_genksyms_dual_implementation_survey.zig --self-test`",
+        "`zig run scripts/zigux/check_phase2_genksyms_selftest_alignment.zig`",
+        "`zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig -- --self-test`",
     );
     try expectBefore(
         closure_note,
-        "`zig run check_phase2_genksyms_dual_implementation_survey.zig --self-test`",
-        "`zig run check_phase2_genksyms_dual_implementation_survey.zig`",
+        "`zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig -- --self-test`",
+        "`zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig`",
     );
     try expectBefore(
         closure_note,
-        "`zig run check_phase2_genksyms_dual_implementation_survey.zig`",
+        "`zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig`",
         "`zig test scripts/zigux/genksyms.zig`",
     );
     try expectBefore(
@@ -73,7 +73,7 @@ test "phase 2 manifest and validator keep survey surface split visible" {
     try expectContains(manifest, "\"repo_reality_gaps\": []");
 
     try expectContains(validator, "GENKSYMS_COMMANDS = (");
-    try expectContains(validator, "\"zig run check_phase2_genksyms_selftest_alignment.zig\"");
+    try expectContains(validator, "\"zig run scripts/zigux/check_phase2_genksyms_selftest_alignment.zig\"");
     try expectContains(validator, "GENKSYMS_REQUIRED_NOTE_MARKERS = (");
     try expectContains(validator, "\"Documentation/zigux/phase2-genksyms-dual-implementation-survey.md\"");
     try expectContains(validator, "expected_workflow_lines = tuple(f\"run: {command}\" for command in GENKSYMS_COMMANDS)");

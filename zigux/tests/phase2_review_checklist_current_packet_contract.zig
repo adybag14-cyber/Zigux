@@ -30,9 +30,9 @@ test "phase2 review checklist keeps the rematerialized current packet explicit" 
     try expectContains(checklist, "scripts\zigux/check_lane05_local_first_archive_workflow.zig");
     try expectContains(checklist, "scripts\zigux/check_lane05_local_archive_readme.zig");
     try expectContains(checklist, "scripts/zigux/install_zig.zig");
-    try expectContains(checklist, "zig run scripts/zigux/install_zig.zig --self-test");
+    try expectContains(checklist, "zig run scripts/zigux/install_zig.zig -- --self-test");
     try expectContains(checklist, "scripts\zigux/check_phase2_cross.zig");
-    try expectContains(checklist, "zig run check_phase2_cross.zig --self-test");
+    try expectContains(checklist, "zig run scripts/zigux/check_phase2_cross.zig -- --self-test");
     try expectContains(checklist, "scripts\zigux/check_phase2_fixdep_gate.zig");
     try expectContains(checklist, "scripts\zigux/check_fixdep_diff.zig");
     try expectContains(checklist, "scripts/zigux/fixdep.zig");
@@ -43,7 +43,7 @@ test "phase2 review checklist keeps the rematerialized current packet explicit" 
     try expectContains(checklist, "make -C zigux phase2");
 
     try expectOrder(checklist, "scripts\zigux/check_zig_toolchain.zig", "scripts\zigux/check_phase2_fixdep_gate.zig");
-    try expectOrder(checklist, "zig run check_zig_toolchain.zig --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz --archive-target x86_64-linux", "zig run check_phase2_cross.zig --self-test");
+    try expectOrder(checklist, "zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz --archive-target x86_64-linux", "zig run scripts/zigux/check_phase2_cross.zig -- --self-test");
 }
 
 test "phase2 review checklist stays aligned with neighboring reminder surfaces" {
@@ -61,7 +61,7 @@ test "phase2 review checklist stays aligned with neighboring reminder surfaces" 
     try expectContains(docs_readme, "local-first `third_party`, canonical `adybag14-cyber/zig` release, mirror, then direct-download bootstrap order");
 
     try expectContains(tests_readme, "current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, toolchain reminder");
-    try expectContains(tests_readme, "current `master` now directly materializes `scripts/zigux/install_zig.zig`, `zig run scripts/zigux/install_zig.zig --self-test`, `scripts\zigux/check_phase2_cross.zig`, `zig run check_phase2_cross.zig --self-test`, and `zigux/tests/fixtures/phase2_cross_targets.json`");
+    try expectContains(tests_readme, "current `master` now directly materializes `scripts/zigux/install_zig.zig`, `zig run scripts/zigux/install_zig.zig -- --self-test`, `scripts\zigux/check_phase2_cross.zig`, `zig run scripts/zigux/check_phase2_cross.zig -- --self-test`, and `zigux/tests/fixtures/phase2_cross_targets.json`");
     try expectContains(tests_readme, "current `master` also directly materializes `scripts\zigux/check_phase2_fixdep_gate.zig`, `scripts\zigux/check_fixdep_diff.zig`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`");
 
     try expectContains(scripts_readme, "Phase 2 flow - the current scripts-root bridge packet stays reviewable through the live toolchain checker, installer helper, direct cross-route packet, tool-manifest packet, artifact-support packet, `scripts\zigux/check_genksyms_bridge.zig`, fixdep packet, and returned make wrappers");
@@ -83,9 +83,9 @@ test "phase2 review checklist points to live closure, archive, and manifest proo
 
     try expectContains(checklist, "Documentation/zigux/phase2-closure.md");
     try expectContains(checklist, "zigux/tests/fixtures/phase2_tool_manifest.json");
-    try expectContains(checklist, "zig run check_phase2_tool_manifest.zig");
+    try expectContains(checklist, "zig run scripts/zigux/check_phase2_tool_manifest.zig");
 
-    try expectContains(closure, "PHASE2_SHARED_TOOLING_CHECKERS=zig run check_phase2_tool_manifest.zig,zig run check_phase2_bootstrap_workflow_routes.zig,zig run check_phase2_artifact_tools_manifest.zig,zig run check_phase2_kconfig_allconfig_helper_packet.zig,zig run check_phase2_cross.zig,zig run check_phase2_fixdep_gate.zig,zig run check_fixdep_diff.zig");
+    try expectContains(closure, "PHASE2_SHARED_TOOLING_CHECKERS=zig run scripts/zigux/check_phase2_tool_manifest.zig,zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig,zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig,zig run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig,zig run scripts/zigux/check_phase2_cross.zig,zig run scripts/zigux/check_phase2_fixdep_gate.zig,zig run scripts/zigux/check_fixdep_diff.zig");
     try expectContains(closure, "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2");
 
     try expectContains(archive_readme, "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz");

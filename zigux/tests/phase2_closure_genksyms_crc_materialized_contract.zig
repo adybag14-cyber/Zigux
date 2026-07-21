@@ -37,8 +37,8 @@ test "closure note keeps genksyms CRC evidence materialized beside wrapper bridg
     try expectContains(closure, "If the `genksyms` lane resumes substantive implementation instead of closure upkeep");
     try expectContains(closure, "preserves the restored CRC-side evidence and wrapper bridge packet");
 
-    try expectContains(closure, "zig run check_phase2_genksyms_dual_implementation_survey.zig --self-test");
-    try expectContains(closure, "zig run check_phase2_genksyms_dual_implementation_survey.zig");
+    try expectContains(closure, "zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig -- --self-test");
+    try expectContains(closure, "zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig");
     try expectContains(closure, "zig test scripts/zigux/genksyms.zig");
     try expectContains(closure, "make -C zigux phase2-genksyms");
 }

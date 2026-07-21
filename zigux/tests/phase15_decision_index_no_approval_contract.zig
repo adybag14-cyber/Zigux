@@ -56,7 +56,7 @@ test "Architecture Council decision index keeps the zero-approval inventory expl
     try expectContains(decision_index, "PHASE15_STATUS=architecture_council_decision_index_landed");
     try expectContains(decision_index, "PHASE15_LANE_KEY=P15-L09");
     try expectContains(decision_index, "PHASE15_PROVENANCE_MODE=dated_master_readback");
-    try expectContains(decision_index, "PHASE15_PACKET_VALIDATION_GATE=zig run check_phase15_architecture_council_decision_index.zig");
+    try expectContains(decision_index, "PHASE15_PACKET_VALIDATION_GATE=zig run scripts/zigux/check_phase15_architecture_council_decision_index.zig");
     try expectContains(decision_index, "PHASE15_PACKET_ROLLBACK_OWNER=Architecture Council");
     try expectContains(decision_index, "approved status-bucket changes recorded on current `master`: none");
     try expectContains(decision_index, "stay-in-C closeout decision records recorded on current `master`: none");

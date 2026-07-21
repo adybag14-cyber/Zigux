@@ -59,7 +59,7 @@ Each anchor still carries explicit lane owner, phase, current status bucket, req
 
 The exact handoff reread now shows the dedicated parity-scorecard packet itself aligned on current `master`:
 
-- `Documentation/zigux/phase15-parity-scorecard.md` now records the validator-first reminder route as directly readable through `zig run validate_phase15.zig`
+- `Documentation/zigux/phase15-parity-scorecard.md` now records the validator-first reminder route as directly readable through `zig run scripts/zigux/validate_phase15.zig`
 - `zigux/tests/phase15_parity_scorecard.zig` now expects that same directly-readable validator wording and the dedicated shared-build companion as directly readable current-master evidence
 - `Documentation/zigux/phase15-readiness-gate-survey.md` also records `scripts\zigux/validate_phase15.zig` and `zigux/tests/phase15_build.zig` as present and directly readable on current `master`
 - direct current-`master` readback on 2026-05-25 confirms `scripts\zigux/validate_phase15.zig` and `zigux/tests/phase15_build.zig` are both present

@@ -6,7 +6,7 @@ It is for docs-only and checklist-only follow-through. It does not authorize hel
 
 Use it with `Documentation/zigux/contributor-entrypoints.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
 
-Matching guard: `zig run check_developer_enablement_workflow.zig`
+Matching guard: `zig run scripts/zigux/check_developer_enablement_workflow.zig`
 
 ## Use This Guide When
 
@@ -46,7 +46,7 @@ For a docs-and-checklist lane change, use this loop:
 3. update only the surface that is currently understated or missing
 4. verify that the new wording does not claim more than current `master` proves
 5. rerun the nearest checker or validator if one already exists for that packet
-6. if the change touches this guide or its contributor-entrypoint handoff, rerun `zig run check_developer_enablement_workflow.zig`
+6. if the change touches this guide or its contributor-entrypoint handoff, rerun `zig run scripts/zigux/check_developer_enablement_workflow.zig`
 
 If no checker exists, keep the change docs-only unless adding a new checker is clearly the smallest honest way to keep the workflow trustworthy.
 
@@ -54,7 +54,7 @@ If no checker exists, keep the change docs-only unless adding a new checker is c
 
 Prefer existing packet-local checks before inventing new ones:
 
-1. packet-local `zig run scripts/zigux/check_*.zig --self-test` routes
+1. packet-local `zig run scripts/zigux/check_*.zig -- --self-test` routes
 2. packet-local validator entrypoints such as `zig run scripts/zigux/validate_phase*.zig`
 3. existing `make -C zigux ...` wrapper routes when current `master` already exposes them
 4. attached Zig toolchain replay only when a current route expects Zig and the local pinned path is unavailable

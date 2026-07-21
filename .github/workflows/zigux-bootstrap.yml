@@ -77,7 +77,7 @@ jobs:
           channel = policy["channel"]
           filename = f"zig-{target}-{channel}.tar.xz"
           canonical_repo = "adybag14-cyber/zig"
-          canonical_tag = "upstream-64dfaa568db0"
+          canonical_tag = "upstream-6c25d2bd58e4"
           url = f"https://ziglang.org/builds/{filename}"
           canonical_url = f"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}"
           print(f"ZIGUX_ZIG_TARGET='{target}'")
@@ -342,16 +342,16 @@ jobs:
         run: zig run scripts/zigux/check_lane05_stage_helper_selftest.zig
 
       - name: Self-test current Phase 2 fixdep gate checker
-        run: zig run check_phase2_fixdep_gate.zig --self-test
+        run: zig run scripts/zigux/check_phase2_fixdep_gate.zig -- --self-test
 
       - name: Check current Phase 2 fixdep gate packet
-        run: zig run check_phase2_fixdep_gate.zig
+        run: zig run scripts/zigux/check_phase2_fixdep_gate.zig
 
       - name: Self-test current fixdep parity checker
-        run: zig run check_fixdep_diff.zig --self-test
+        run: zig run scripts/zigux/check_fixdep_diff.zig -- --self-test
 
       - name: Check current fixdep parity packet
-        run: zig run check_fixdep_diff.zig
+        run: zig run scripts/zigux/check_fixdep_diff.zig
 
       - name: Run current Phase 2 fixdep unit tests
         run: zig test scripts/zigux/fixdep.zig
@@ -368,10 +368,10 @@ jobs:
         run: zig run scripts/zigux/validate_bootstrap.zig
 
       - name: Self-test current kconfig bridge checker
-        run: zig run check_kconfig_bridge.zig --self-test
+        run: zig run scripts/zigux/check_kconfig_bridge.zig -- --self-test
 
       - name: Check current kconfig bridge packet
-        run: zig run check_kconfig_bridge.zig
+        run: zig run scripts/zigux/check_kconfig_bridge.zig
 
       - name: Run current Phase 2 conf bridge unit tests
         run: zig test scripts/zigux/kconfig/conf_bridge.zig
@@ -380,58 +380,58 @@ jobs:
         run: zig test scripts/zigux/kconfig/confdata_bridge.zig
 
       - name: Self-test current Phase 2 kconfig bridge checker
-        run: zig run check_phase2_kconfig_selftest_alignment.zig --self-test
+        run: zig run scripts/zigux/check_phase2_kconfig_selftest_alignment.zig -- --self-test
 
       - name: Check current Phase 2 kconfig bridge packet
-        run: zig run check_phase2_kconfig_selftest_alignment.zig
+        run: zig run scripts/zigux/check_phase2_kconfig_selftest_alignment.zig
 
       - name: Self-test current Phase 2 kconfig allconfig helper checker
-        run: zig run check_phase2_kconfig_allconfig_helper_packet.zig --self-test
+        run: zig run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig -- --self-test
 
       - name: Check current Phase 2 kconfig allconfig helper packet
-        run: zig run check_phase2_kconfig_allconfig_helper_packet.zig
+        run: zig run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig
 
       - name: Self-test current Phase 2 kbuild routes checker
-        run: zig run check_phase2_kbuild_routes.zig --self-test
+        run: zig run scripts/zigux/check_phase2_kbuild_routes.zig -- --self-test
 
       - name: Check current Phase 2 kbuild packet
-        run: zig run check_phase2_kbuild_routes.zig
+        run: zig run scripts/zigux/check_phase2_kbuild_routes.zig
 
       - name: Self-test current Phase 2 tests README checker
-        run: zig run check_phase2_tests_readme_alignment.zig --self-test
+        run: zig run scripts/zigux/check_phase2_tests_readme_alignment.zig -- --self-test
 
       - name: Check current Phase 2 tests README packet
-        run: zig run check_phase2_tests_readme_alignment.zig
+        run: zig run scripts/zigux/check_phase2_tests_readme_alignment.zig
 
       - name: Self-test current Phase 2 cross checker
-        run: zig run check_phase2_cross.zig --self-test
+        run: zig run scripts/zigux/check_phase2_cross.zig -- --self-test
 
       - name: Check current Phase 2 direct cross-route packet
-        run: zig run check_phase2_cross.zig
+        run: zig run scripts/zigux/check_phase2_cross.zig
 
       - name: Self-test current Phase 2 cross selftest alignment checker
-        run: zig run check_phase2_cross_selftest_alignment.zig --self-test
+        run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig -- --self-test
 
       - name: Check current Phase 2 cross alignment packet
-        run: zig run check_phase2_cross_selftest_alignment.zig
+        run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig
 
       - name: Self-test current Phase 2 toolchain pinning checker
-        run: zig run check_phase2_toolchain_pinning.zig --self-test
+        run: zig run scripts/zigux/check_phase2_toolchain_pinning.zig -- --self-test
 
       - name: Check current Phase 2 toolchain pinning packet
-        run: zig run check_phase2_toolchain_pinning.zig
+        run: zig run scripts/zigux/check_phase2_toolchain_pinning.zig
 
       - name: Self-test current Phase 2 toolchain pin-scope checker
-        run: zig run check_phase2_toolchain_pin_scope.zig --self-test
+        run: zig run scripts/zigux/check_phase2_toolchain_pin_scope.zig -- --self-test
 
       - name: Check current Phase 2 toolchain pin-scope packet
-        run: zig run check_phase2_toolchain_pin_scope.zig
+        run: zig run scripts/zigux/check_phase2_toolchain_pin_scope.zig
 
       - name: Self-test current Phase 2 bootstrap workflow routes checker
-        run: zig run check_phase2_bootstrap_workflow_routes.zig --self-test
+        run: zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig -- --self-test
 
       - name: Check current Phase 2 bootstrap workflow routes packet
-        run: zig run check_phase2_bootstrap_workflow_routes.zig
+        run: zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig
 
       - name: Run current Phase 2 toolchain make route
         run: make -C zigux phase2-toolchain
@@ -449,49 +449,49 @@ jobs:
         run: make -C zigux phase2-cross
 
       - name: Self-test current Phase 2 required-make-routes checker
-        run: zig run check_phase2_required_make_routes.zig --self-test
+        run: zig run scripts/zigux/check_phase2_required_make_routes.zig -- --self-test
 
       - name: Check current Phase 2 required-make-routes packet
-        run: zig run check_phase2_required_make_routes.zig
+        run: zig run scripts/zigux/check_phase2_required_make_routes.zig
 
       - name: Self-test current Phase 2 shared reminder checker
-        run: zig run check_phase2_docs_shared_reminder.zig --self-test
+        run: zig run scripts/zigux/check_phase2_docs_shared_reminder.zig -- --self-test
 
       - name: Check current Phase 2 shared reminder packet
-        run: zig run check_phase2_docs_shared_reminder.zig
+        run: zig run scripts/zigux/check_phase2_docs_shared_reminder.zig
 
       - name: Self-test current Phase 2 tool manifest checker
-        run: zig run check_phase2_tool_manifest.zig --self-test
+        run: zig run scripts/zigux/check_phase2_tool_manifest.zig -- --self-test
 
       - name: Check current Phase 2 tool manifest packet
-        run: zig run check_phase2_tool_manifest.zig
+        run: zig run scripts/zigux/check_phase2_tool_manifest.zig
 
       - name: Self-test current Phase 2 artifact tools manifest checker
-        run: zig run check_phase2_artifact_tools_manifest.zig --self-test
+        run: zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig -- --self-test
 
       - name: Check current Phase 2 artifact tools manifest packet
-        run: zig run check_phase2_artifact_tools_manifest.zig
+        run: zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig
 
       - name: Self-test current Phase 2 genksyms bridge checker
-        run: zig run check_genksyms_bridge.zig --self-test
+        run: zig run scripts/zigux/check_genksyms_bridge.zig -- --self-test
 
       - name: Check current Phase 2 genksyms bridge packet
-        run: zig run check_genksyms_bridge.zig
+        run: zig run scripts/zigux/check_genksyms_bridge.zig
 
       - name: Run current Phase 2 genksyms unit replay
         run: zig test scripts/zigux/genksyms.zig
 
       - name: Self-test current Phase 2 genksyms alignment checker
-        run: zig run check_phase2_genksyms_selftest_alignment.zig --self-test
+        run: zig run scripts/zigux/check_phase2_genksyms_selftest_alignment.zig -- --self-test
 
       - name: Check current Phase 2 genksyms alignment packet
-        run: zig run check_phase2_genksyms_selftest_alignment.zig
+        run: zig run scripts/zigux/check_phase2_genksyms_selftest_alignment.zig
 
       - name: Self-test current Phase 2 genksyms survey guard
-        run: zig run check_phase2_genksyms_dual_implementation_survey.zig --self-test
+        run: zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig -- --self-test
 
       - name: Check current Phase 2 genksyms survey packet
-        run: zig run check_phase2_genksyms_dual_implementation_survey.zig
+        run: zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig
 
       - name: Run current Phase 2 genksyms make route
         run: make -C zigux phase2-genksyms
@@ -503,85 +503,85 @@ jobs:
         run: make -C zigux phase2
 
       - name: Validate current Phase 2 tool packet
-        run: zig run validate_phase2.zig
+        run: zig run scripts/zigux/validate_phase2.zig
 
       - name: Self-test current Phase 2 closure validator
-        run: zig run validate_phase2_closure.zig --self-test
+        run: zig run scripts/zigux/validate_phase2_closure.zig -- --self-test
 
       - name: Check current Phase 2 closure packet
-        run: zig run validate_phase2_closure.zig
+        run: zig run scripts/zigux/validate_phase2_closure.zig
 
       - name: Self-test current Phase 1 direct-owner checker
-        run: zig run check_phase1_direct_owner_markers.zig --self-test
+        run: zig run scripts/zigux/check_phase1_direct_owner_markers.zig -- --self-test
 
       - name: Check current Phase 1 direct-owner markers
-        run: zig run check_phase1_direct_owner_markers.zig
+        run: zig run scripts/zigux/check_phase1_direct_owner_markers.zig
 
       - name: Self-test current Phase 1 direct-anchor manifest gate
-        run: zig run check_phase1_direct_anchor_manifest_gate.zig --self-test
+        run: zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig -- --self-test
 
       - name: Check current Phase 1 direct-anchor manifest gate
-        run: zig run check_phase1_direct_anchor_manifest_gate.zig
+        run: zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig
 
       - name: Self-test current Phase 1 string review checker
-        run: zig run check_phase1_string_review_packet.zig --self-test
+        run: zig run scripts/zigux/check_phase1_string_review_packet.zig -- --self-test
 
       - name: Check current Phase 1 string review packet
-        run: zig run check_phase1_string_review_packet.zig
+        run: zig run scripts/zigux/check_phase1_string_review_packet.zig
 
       - name: Self-test current Phase 1 find-bit review checker
-        run: zig run check_phase1_find_bit_review_packet.zig --self-test
+        run: zig run scripts/zigux/check_phase1_find_bit_review_packet.zig -- --self-test
 
       - name: Check current Phase 1 find-bit review packet
-        run: zig run check_phase1_find_bit_review_packet.zig
+        run: zig run scripts/zigux/check_phase1_find_bit_review_packet.zig
 
       - name: Self-test current Phase 1 bitmap direct-anchor checker
-        run: zig run check_phase1_bitmap_direct_anchors.zig --self-test
+        run: zig run scripts/zigux/check_phase1_bitmap_direct_anchors.zig -- --self-test
 
       - name: Check current Phase 1 bitmap direct-anchor packet
-        run: zig run check_phase1_bitmap_direct_anchors.zig
+        run: zig run scripts/zigux/check_phase1_bitmap_direct_anchors.zig
 
       - name: Self-test current Phase 1 rbtree review checker
-        run: zig run check_phase1_rbtree_review_packet.zig --self-test
+        run: zig run scripts/zigux/check_phase1_rbtree_review_packet.zig -- --self-test
 
       - name: Check current Phase 1 rbtree review packet
-        run: zig run check_phase1_rbtree_review_packet.zig
+        run: zig run scripts/zigux/check_phase1_rbtree_review_packet.zig
 
       - name: Self-test current Phase 1 route summary checker
-        run: zig run check_phase1_route_summary_counts.zig --self-test
+        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test
 
       - name: Check current Phase 1 route summary packet
-        run: zig run check_phase1_route_summary_counts.zig
+        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig
 
       - name: Self-test current Phase 1 bench checker
-        run: zig run check_phase1_bench.zig --self-test
+        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test
 
       - name: Check current Phase 1 bench packet
-        run: zig run check_phase1_bench.zig
+        run: zig run scripts/zigux/check_phase1_bench.zig
 
       - name: Self-test current Phase 1 bench live-check workflow guard
-        run: zig run check_phase1_bench_live_check_workflow.zig --self-test
+        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test
 
       - name: Check current Phase 1 bench live-check workflow guard packet
-        run: zig run check_phase1_bench_live_check_workflow.zig
+        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig
 
       - name: Self-test current Phase 1 find-bit bench anchor checker
-        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test
+        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test
 
       - name: Check current Phase 1 find-bit bench anchor packet
-        run: zig run check_phase1_find_bit_bench_anchors.zig
+        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig
 
       - name: Self-test current Phase 1 shared reminder checker
-        run: zig run check_phase1_shared_reminder_packet.zig --self-test
+        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test
 
       - name: Check current Phase 1 shared reminder packet
-        run: zig run check_phase1_shared_reminder_packet.zig
+        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig
 
       - name: Self-test current Phase 1 closure validator
-        run: zig run validate_phase1_closure.zig --self-test
+        run: zig run scripts/zigux/validate_phase1_closure.zig -- --self-test
 
       - name: Check current Phase 1 closure packet
-        run: zig run validate_phase1_closure.zig
+        run: zig run scripts/zigux/validate_phase1_closure.zig
 
       - name: Self-test current Phase 3 interop packet
         run: zig run scripts/zigux/validate_phase3_selftest.zig
@@ -590,7 +590,7 @@ jobs:
         run: zig run scripts/zigux/run_phase3_checks.zig
 
       - name: Run current Phase 3 export/UAPI C header smoke
-        run: zig run check_phase3_export_uapi_c_header_smoke.zig
+        run: zig run scripts/zigux/check_phase3_export_uapi_c_header_smoke.zig
 
       - name: Run current Phase 3 export/UAPI layout replay
         run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig
@@ -614,10 +614,10 @@ jobs:
         run: make -C zigux phase3-policy-dump
 
       - name: Self-test current Phase 3 low-level wrapper survey validator
-        run: zig run validate_phase3_low_level_wrapper_survey.zig --self-test
+        run: zig run scripts/zigux/validate_phase3_low_level_wrapper_survey.zig -- --self-test
 
       - name: Check current Phase 3 low-level wrapper survey packet
-        run: zig run validate_phase3_low_level_wrapper_survey.zig
+        run: zig run scripts/zigux/validate_phase3_low_level_wrapper_survey.zig
 
       - name: Run current Phase 3 low-level wrapper replay
         run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig
@@ -638,22 +638,22 @@ jobs:
         run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig
 
       - name: Self-test current Phase 4 repo-reality warning checker
-        run: zig run check_phase4_repo_reality_warning.zig --self-test
+        run: zig run scripts/zigux/check_phase4_repo_reality_warning.zig -- --self-test
 
       - name: Check current Phase 4 repo-reality warning packet
-        run: zig run check_phase4_repo_reality_warning.zig
+        run: zig run scripts/zigux/check_phase4_repo_reality_warning.zig
 
       - name: Self-test current Phase 4 reversible-delivery pin checker
-        run: zig run check_phase4_reversible_delivery_pins.zig --self-test
+        run: zig run scripts/zigux/check_phase4_reversible_delivery_pins.zig -- --self-test
 
       - name: Check current Phase 4 reversible-delivery pin packet
-        run: zig run check_phase4_reversible_delivery_pins.zig
+        run: zig run scripts/zigux/check_phase4_reversible_delivery_pins.zig
 
       - name: Self-test current Phase 4 tests README checker
-        run: zig run check_phase4_tests_readme_packet.zig --self-test
+        run: zig run scripts/zigux/check_phase4_tests_readme_packet.zig -- --self-test
 
       - name: Check current Phase 4 tests README packet
-        run: zig run check_phase4_tests_readme_packet.zig
+        run: zig run scripts/zigux/check_phase4_tests_readme_packet.zig
 
       - name: Validate Phase 4 rollback routes
         run: make -C zigux phase4-validate
@@ -668,22 +668,22 @@ jobs:
         run: zig run scripts/zigux/artifact_diff.zig -- --self-test
 
       - name: Self-test current Phase 4 artifact-diff contract checker
-        run: zig run check_artifact_diff_contract.zig --self-test
+        run: zig run scripts/zigux/check_artifact_diff_contract.zig -- --self-test
 
       - name: Check current Phase 4 artifact-diff contract packet
-        run: zig run check_artifact_diff_contract.zig
+        run: zig run scripts/zigux/check_artifact_diff_contract.zig
 
       - name: Self-test current Phase 4 artifact-diff determinism checker
-        run: zig run check_phase4_artifact_diff_determinism.zig --self-test
+        run: zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test
 
       - name: Check current Phase 4 artifact-diff determinism packet
-        run: zig run check_phase4_artifact_diff_determinism.zig
+        run: zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig
 
       - name: Self-test current Phase 4 artifact-diff validator replay checker
-        run: zig run check_phase4_artifact_diff_validator_replays.zig --self-test
+        run: zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test
 
       - name: Check current Phase 4 artifact-diff validator replay packet
-        run: zig run check_phase4_artifact_diff_validator_replays.zig
+        run: zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig
 
       - name: Validate current Phase 6 helper packet
         run: make -C zigux phase6-validate
@@ -706,40 +706,40 @@ jobs:
         run: make -C zigux phase8-test
 
       - name: Self-test current Phase 9 review-checklist boundaries checker
-        run: zig run check_phase9_review_checklist_phase_boundaries.zig --self-test
+        run: zig run scripts/zigux/check_phase9_review_checklist_phase_boundaries.zig -- --self-test
 
       - name: Check current Phase 9 review-checklist boundaries packet
-        run: zig run check_phase9_review_checklist_phase_boundaries.zig
+        run: zig run scripts/zigux/check_phase9_review_checklist_phase_boundaries.zig
 
       - name: Self-test current Phase 9 freeze-map study-boundaries checker
-        run: zig run check_phase9_freeze_map_study_boundaries.zig --self-test
+        run: zig run scripts/zigux/check_phase9_freeze_map_study_boundaries.zig -- --self-test
 
       - name: Check current Phase 9 freeze-map study-boundaries packet
-        run: zig run check_phase9_freeze_map_study_boundaries.zig
+        run: zig run scripts/zigux/check_phase9_freeze_map_study_boundaries.zig
 
       - name: Self-test current Phase 9 build-only surface checker
-        run: zig run check_phase9_build_only_surface.zig --self-test
+        run: zig run scripts/zigux/check_phase9_build_only_surface.zig -- --self-test
 
       - name: Check current Phase 9 build-only surface packet
-        run: zig run check_phase9_build_only_surface.zig
+        run: zig run scripts/zigux/check_phase9_build_only_surface.zig
 
       - name: Self-test current Phase 9 trace-events runtime packet checker
-        run: zig run check_phase9_trace_events_runtime_packet.zig --self-test
+        run: zig run scripts/zigux/check_phase9_trace_events_runtime_packet.zig -- --self-test
 
       - name: Check current Phase 9 trace-events runtime packet
-        run: zig run check_phase9_trace_events_runtime_packet.zig
+        run: zig run scripts/zigux/check_phase9_trace_events_runtime_packet.zig
 
       - name: Self-test current Phase 9 trace-events direct-summary checker
-        run: zig run check_phase9_trace_events_direct_summary.zig --self-test
+        run: zig run scripts/zigux/check_phase9_trace_events_direct_summary.zig -- --self-test
 
       - name: Check current Phase 9 trace-events direct-summary packet
-        run: zig run check_phase9_trace_events_direct_summary.zig
+        run: zig run scripts/zigux/check_phase9_trace_events_direct_summary.zig
 
       - name: Self-test current Phase 9 trace-events summary-preservation checker
-        run: zig run check_phase9_trace_events_summary_preservation.zig --self-test
+        run: zig run scripts/zigux/check_phase9_trace_events_summary_preservation.zig -- --self-test
 
       - name: Check current Phase 9 trace-events summary-preservation packet
-        run: zig run check_phase9_trace_events_summary_preservation.zig
+        run: zig run scripts/zigux/check_phase9_trace_events_summary_preservation.zig
 
       - name: Run current Phase 9 shared loader command-environment boundary guard tests
         run: zig build phase9-runtime-loader-command-env-boundary-guard-tests --build-file zigux/tests/phase9_build.zig
@@ -769,22 +769,22 @@ jobs:
         run: zig test zigux/tests/runtime_trace_events_survey.zig
 
       - name: Self-test current Phase 7 shared-control gap checker
-        run: zig run check_phase7_shared_control_gap.zig --self-test
+        run: zig run scripts/zigux/check_phase7_shared_control_gap.zig -- --self-test
 
       - name: Check current Phase 7 shared-control gap packet
-        run: zig run check_phase7_shared_control_gap.zig
+        run: zig run scripts/zigux/check_phase7_shared_control_gap.zig
 
       - name: Self-test current Phase 7 make-wrapper selftest alignment checker
-        run: zig run check_phase7_make_wrapper_selftest_alignment.zig --self-test
+        run: zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig -- --self-test
 
       - name: Check current Phase 7 make-wrapper selftest alignment packet
-        run: zig run check_phase7_make_wrapper_selftest_alignment.zig
+        run: zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig
 
       - name: Self-test current Phase 10 bootstrap route checker
-        run: zig run check_phase10_bootstrap_route.zig --self-test
+        run: zig run scripts/zigux/check_phase10_bootstrap_route.zig -- --self-test
 
       - name: Check current Phase 10 bootstrap route
-        run: zig run check_phase10_bootstrap_route.zig
+        run: zig run scripts/zigux/check_phase10_bootstrap_route.zig
 
       - name: Validate Phase 10 checker-backed review packet
         run: make -C zigux phase10-validate
@@ -793,58 +793,58 @@ jobs:
         run: make -C zigux phase10-test
 
       - name: Self-test current Phase 11 build inventory checker
-        run: zig run check_phase11_build_inventory.zig --self-test
+        run: zig run scripts/zigux/check_phase11_build_inventory.zig -- --self-test
 
       - name: Check current Phase 11 build inventory packet
-        run: zig run check_phase11_build_inventory.zig
+        run: zig run scripts/zigux/check_phase11_build_inventory.zig
 
       - name: Validate current Phase 11 support bundle
         run: make -C zigux phase11-validate
 
       - name: Self-test current Phase 12 build-only surface checker
-        run: zig run check_build_only_phase12_surface.zig --self-test
+        run: zig run scripts/zigux/check_build_only_phase12_surface.zig -- --self-test
 
       - name: Check current Phase 12 build-only surface
-        run: zig run check_build_only_phase12_surface.zig
+        run: zig run scripts/zigux/check_build_only_phase12_surface.zig
 
       - name: Self-test current Phase 12 build inventory checker
-        run: zig run check_phase12_build_inventory.zig --self-test
+        run: zig run scripts/zigux/check_phase12_build_inventory.zig -- --self-test
 
       - name: Check current Phase 12 build inventory packet
-        run: zig run check_phase12_build_inventory.zig
+        run: zig run scripts/zigux/check_phase12_build_inventory.zig
 
       - name: Self-test current Phase 12 complex-driver lane packet checker
-        run: zig run check_phase12_complex_driver_lane_packet.zig --self-test
+        run: zig run scripts/zigux/check_phase12_complex_driver_lane_packet.zig -- --self-test
 
       - name: Check current Phase 12 complex-driver lane packet
-        run: zig run check_phase12_complex_driver_lane_packet.zig
+        run: zig run scripts/zigux/check_phase12_complex_driver_lane_packet.zig
 
       - name: Self-test current Phase 12 cross-compile smoke checker
-        run: zig run check_phase12_cross_compile_smoke.zig --self-test
+        run: zig run scripts/zigux/check_phase12_cross_compile_smoke.zig -- --self-test
 
       - name: Check current Phase 12 cross-compile smoke packet
-        run: zig run check_phase12_cross_compile_smoke.zig
+        run: zig run scripts/zigux/check_phase12_cross_compile_smoke.zig
 
       - name: Self-test current Phase 12 release-readiness packet checker
-        run: zig run check_phase12_release_readiness_packet.zig --self-test
+        run: zig run scripts/zigux/check_phase12_release_readiness_packet.zig -- --self-test
 
       - name: Check current Phase 12 release-readiness packet
-        run: zig run check_phase12_release_readiness_packet.zig
+        run: zig run scripts/zigux/check_phase12_release_readiness_packet.zig
 
       - name: Self-test current Phase 12 libbpf snapshot checker
-        run: zig run check_phase12_libbpf_snapshot.zig --self-test
+        run: zig run scripts/zigux/check_phase12_libbpf_snapshot.zig -- --self-test
 
       - name: Check current Phase 12 libbpf snapshot packet
-        run: zig run check_phase12_libbpf_snapshot.zig
+        run: zig run scripts/zigux/check_phase12_libbpf_snapshot.zig
 
       - name: Self-test current Phase 12 libbpf heavy-consumer packet checker
-        run: zig run check_phase12_libbpf_heavy_consumer_packet.zig --self-test
+        run: zig run scripts/zigux/check_phase12_libbpf_heavy_consumer_packet.zig -- --self-test
 
       - name: Check current Phase 12 libbpf heavy-consumer packet
-        run: zig run check_phase12_libbpf_heavy_consumer_packet.zig
+        run: zig run scripts/zigux/check_phase12_libbpf_heavy_consumer_packet.zig
 
       - name: Validate current Phase 12 support bundle
-        run: zig run validate_phase12.zig
+        run: zig run scripts/zigux/validate_phase12.zig
 
       - name: Run current Phase 12 smoke packet
         run: make -C zigux phase12-smoke
@@ -859,7 +859,7 @@ jobs:
         run: make -C zigux phase12-virtio-net-syntax-lab-test
 
       - name: Self-test current Phase 14 shared smoke route checker
-        run: zig run check_phase14_shared_smoke_route.zig --self-test
+        run: zig run scripts/zigux/check_phase14_shared_smoke_route.zig -- --self-test
 
       - name: Run current Phase 14 validate route
         run: make -C zigux phase14-validate

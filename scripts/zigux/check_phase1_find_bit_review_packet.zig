@@ -8,7 +8,7 @@ pub const pass_marker = "PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST=pass";
 const CLOSURE_MARKERS = [_][]const u8{
     "For `tools/lib/find_bit.zig`, current `master` still justifies a parked helper-local follow-up rather than a reopened closure pass.",
     "This helper should only reopen if a fresh reread finds drift in those direct anchors or in the committed shared find-bit parity fields",
-    "PHASE1_FIND_BIT_REVIEW_GUARD=zig run check_phase1_find_bit_review_packet.zig",
+    "PHASE1_FIND_BIT_REVIEW_GUARD=zig run scripts/zigux/check_phase1_find_bit_review_packet.zig",
 };
 
 const CLOSURE_NOTE_REL = "Documentation/zigux/phase1-closure.md";

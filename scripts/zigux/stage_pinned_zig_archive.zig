@@ -9,8 +9,8 @@ pub const self_test_pass_marker = "STAGE_PINNED_ZIG_ARCHIVE_SELF_TEST=pass";
 pub const self_test_case_count_prefix = "STAGE_PINNED_ZIG_ARCHIVE_SELF_TEST_CASE_COUNT=";
 
 pub const expected_archive_sizes = std.StaticStringMap(u64).initComptime(.{
-    .{ "x86_64-linux", 59_264_068 },
-    .{ "x86_64-windows", 103_424_834 },
+    .{ "x86_64-linux", 59_093_540 },
+    .{ "x86_64-windows", 103_440_485 },
 });
 
 pub const InputMode = enum {
@@ -895,8 +895,8 @@ fn writePolicy(tmp: *RuntimeTmp, sha256_hex: []const u8) !void {
         tmp.allocator,
         \\{{
         \\  "phase": "Phase 2",
-        \\  "channel": "0.17.0-dev.1415+64dfaa568",
-        \\  "minimum_version": "0.17.0-dev.1415+64dfaa568",
+        \\  "channel": "0.17.0-dev.1443+6c25d2bd5",
+        \\  "minimum_version": "0.17.0-dev.1443+6c25d2bd5",
         \\  "archive_sha256": {{
         \\    "x86_64-linux": "{s}"
         \\  }},
@@ -985,7 +985,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
         defer freeStageArchiveResult(allocator, &result);
         try expectSelfTest(result.status == .staged);
         try expectSelfTest(std.mem.eql(u8, result.actual_sha256, expected_sha));
-        try expectSelfTest(std.mem.eql(u8, result.metadata.filename, "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz"));
+        try expectSelfTest(std.mem.eql(u8, result.metadata.filename, "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz"));
         try expectSelfTest(result.input_mode == .source);
         case_count += 1;
 
@@ -1083,7 +1083,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
     };
 
     const failure_cases = [_]ExpectFailure{
-        .{ .source_size = 1, .expected_substring = "to be 59264068 bytes, got 1" },
+        .{ .source_size = 1, .expected_substring = "to be 59093540 bytes, got 1" },
         .{
             .expected_substring = "to have sha256",
             .mutator = struct {
@@ -1103,7 +1103,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
             .expected_substring = "duplicate-suffix archive copies",
             .mutator = struct {
                 fn mutate(io_ctx: Io, alloc: std.mem.Allocator, root: []const u8, _: []const u8, _: []const u8, _: ?[]const u8) !void {
-                    const duplicate = try joinPath(alloc, root, "third_party/zig-x86_64-linux-0.17.0-dev.1415+64dfaa568 (1).tar.xz");
+                    const duplicate = try joinPath(alloc, root, "third_party/zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5 (1).tar.xz");
                     defer alloc.free(duplicate);
                     try std.Io.Dir.cwd().writeFile(io_ctx, .{ .sub_path = duplicate, .data = "x" });
                 }
@@ -1113,7 +1113,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
             .expected_substring = "destination archive is not a regular file",
             .mutator = struct {
                 fn mutate(io_ctx: Io, alloc: std.mem.Allocator, root: []const u8, _: []const u8, _: []const u8, _: ?[]const u8) !void {
-                    const destination = try joinPath(alloc, root, "third_party/zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz");
+                    const destination = try joinPath(alloc, root, "third_party/zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz");
                     defer alloc.free(destination);
                     try std.Io.Dir.cwd().createDirPath(io_ctx, destination);
                 }
@@ -1124,7 +1124,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
             .expected_substring = "to have sha256",
             .mutator = struct {
                 fn mutate(io_ctx: Io, alloc: std.mem.Allocator, root: []const u8, _: []const u8, _: []const u8, _: ?[]const u8) !void {
-                    const destination = try joinPath(alloc, root, "third_party/zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz");
+                    const destination = try joinPath(alloc, root, "third_party/zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz");
                     defer alloc.free(destination);
                     try writeConstantByteFile(
                         io_ctx,
@@ -1143,7 +1143,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
                     defer alloc.free(policy_path);
                     const policy_text = try std.fmt.allocPrint(
                         alloc,
-                        "{{\"phase\":\"Phase 2\",\"phase\":\"Phase 3\",\"channel\":\"0.17.0-dev.1415+64dfaa568\",\"minimum_version\":\"0.17.0-dev.1415+64dfaa568\",\"archive_sha256\":{{\"x86_64-linux\":\"{s}\"}},\"upgrade_policy\":{{\"channel_minimum_lockstep\":true,\"archive_target_scope\":[\"x86_64-linux\"],\"required_make_routes\":[\"phase2-toolchain\",\"phase2-validate\"]}}}}\n",
+                        "{{\"phase\":\"Phase 2\",\"phase\":\"Phase 3\",\"channel\":\"0.17.0-dev.1443+6c25d2bd5\",\"minimum_version\":\"0.17.0-dev.1443+6c25d2bd5\",\"archive_sha256\":{{\"x86_64-linux\":\"{s}\"}},\"upgrade_policy\":{{\"channel_minimum_lockstep\":true,\"archive_target_scope\":[\"x86_64-linux\"],\"required_make_routes\":[\"phase2-toolchain\",\"phase2-validate\"]}}}}\n",
                         .{expected_sha},
                     );
                     defer alloc.free(policy_text);
@@ -1177,8 +1177,8 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
                         u8,
                         alloc,
                         manifest_text,
-                        "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz",
-                        "zig-aarch64-linux-0.17.0-dev.1415+64dfaa568.tar.xz",
+                        "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz",
+                        "zig-aarch64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz",
                     );
                     defer alloc.free(replaced);
                     try std.Io.Dir.cwd().writeFile(io_ctx, .{ .sub_path = manifest_path, .data = replaced });
@@ -1373,8 +1373,8 @@ pub fn main(init: std.process.Init) !void {
 }
 
 test "duplicate archive suffix helper matches policy stem" {
-    const expected = "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz";
-    try std.testing.expect(policy.archiveNameHasDuplicateSuffix("zig-x86_64-linux-0.17.0-dev.1415+64dfaa568 (1).tar.xz", expected));
+    const expected = "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz";
+    try std.testing.expect(policy.archiveNameHasDuplicateSuffix("zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5 (1).tar.xz", expected));
 }
 
 test "writeConstantByteFile writes expected archive size" {
@@ -1384,7 +1384,7 @@ test "writeConstantByteFile writes expected archive size" {
     try std.Io.Dir.cwd().createDirPath(io, root);
     defer std.Io.Dir.cwd().deleteTree(io, root) catch {};
 
-    const destination = root ++ "/third_party/zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz";
+    const destination = root ++ "/third_party/zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz";
     const expected_size = expected_archive_sizes.get("x86_64-linux").?;
     try writeConstantByteFile(io, destination, 'y', expected_size);
 

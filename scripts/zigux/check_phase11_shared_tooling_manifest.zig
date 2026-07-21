@@ -253,7 +253,7 @@ pub fn main(init: std.process.Init) !void {
 // //     "scripts/zigux/check_phase11_dw_wdt_verify_alignment.zig",
 // //     "scripts/zigux/check_phase11_shared_tooling_manifest.zig",
 // //     "shared_routes",
-// //     "zig run validate_phase11.zig",
+// //     "zig run scripts/zigux/validate_phase11.zig",
 // //     "make -C zigux phase11-validate",
 // //     "proof_builds",
 // //     "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig",

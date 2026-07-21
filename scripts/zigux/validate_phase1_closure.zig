@@ -73,8 +73,8 @@ const markers_3 = [_][]const u8{
 
 const markers_4 = [_][]const u8{
     "PHASE1_CURRENT_REMINDER_PACKET=",
-    "PHASE1_CLOSURE_VALIDATOR=zig run validate_phase1_closure.zig",
-    "PHASE1_ROUTE_SUMMARY_GUARD=zig run check_phase1_route_summary_counts.zig",
+    "PHASE1_CLOSURE_VALIDATOR=zig run scripts/zigux/validate_phase1_closure.zig",
+    "PHASE1_ROUTE_SUMMARY_GUARD=zig run scripts/zigux/check_phase1_route_summary_counts.zig",
 };
 
 const forbidden_makefile_markers = [_][]const u8{

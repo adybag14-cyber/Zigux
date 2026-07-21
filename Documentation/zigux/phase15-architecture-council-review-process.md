@@ -10,7 +10,7 @@ This note records the bounded Phase 15 review-policy packet for freeze-map ancho
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-27`
 - `PHASE15_PACKET_OWNER=Architecture Council`
-- `PHASE15_PACKET_VALIDATION_GATE=zig run check_phase15_review_process_handoff.zig && zig test zigux/tests/phase15_architecture_council_review_process.zig && zig build test --build-file zigux/tests/phase15_architecture_council_review_process_build.zig`
+- `PHASE15_PACKET_VALIDATION_GATE=zig run scripts/zigux/check_phase15_review_process_handoff.zig && zig test zigux/tests/phase15_architecture_council_review_process.zig && zig build test --build-file zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `PHASE15_PACKET_ROLLBACK_OWNER=Architecture Council`
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - this note keeps the roadmap-required Architecture Council review-process surface honest on current `master`: the docs-root field inventory, the dedicated decision-record template, the dedicated review-process manifest, the focused review-process handoff checker, the focused tests-root alignment guard, the focused Zig replay, and the focused build-file replay are landed, while the broader validator-first shared-summary surfaces remain gap-tracked by `Documentation/zigux/phase15-shared-summary-gap.md`

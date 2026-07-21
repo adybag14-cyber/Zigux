@@ -190,7 +190,7 @@ pub fn main(init: std.process.Init) !void {
 //     "zigux/tests/phase12_virtio_scsi_survey_build.zig",
 //     "zigux/tests/phase12_virtio_net_throughput_parity.zig",
 //     "run: zig run scripts/zigux/check_phase12_release_readiness_packet.zig -- --self-test",
-//     "run: zig run validate_phase12.zig",
+//     "run: zig run scripts/zigux/validate_phase12.zig",
 //     "run: make -C zigux phase12",
 // };
 //

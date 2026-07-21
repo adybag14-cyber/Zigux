@@ -63,9 +63,9 @@ test "kbuild checker keeps its current public contract vocabulary" {
     try expectContains(checker, "PHASE2_KBUILD_ROUTES_SURFACE_COUNT");
     try expectContains(checker, "PHASE2_KBUILD_ROUTES_README_MARKER_COUNT");
     try expectContains(checker, "scripts\zigux/check_phase2_kbuild_routes.zig");
-    try expectContains(checker, "run: zig run check_phase2_kbuild_routes.zig --self-test");
-    try expectContains(checker, "run: zig run check_phase2_kbuild_routes.zig");
-    try expectContains(checker, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig --self-test");
+    try expectContains(checker, "run: zig run scripts/zigux/check_phase2_kbuild_routes.zig -- --self-test");
+    try expectContains(checker, "run: zig run scripts/zigux/check_phase2_kbuild_routes.zig");
+    try expectContains(checker, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig -- --self-test");
     try expectContains(checker, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig");
 }
 
@@ -82,7 +82,7 @@ test "review surfaces expose the kbuild route packet beside the Phase 2 closure 
 
     try expectContains(closure_note, "PHASE2_STATUS=parked");
     try expectContains(closure_note, "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools");
-    try expectContains(closure_note, "PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2.zig,zig run validate_phase2_closure.zig");
+    try expectContains(closure_note, "PHASE2_CLOSURE_VALIDATORS=zig run scripts/zigux/validate_phase2.zig,zig run scripts/zigux/validate_phase2_closure.zig");
 
     try expectContains(scripts_readme, "`scripts\zigux/check_zig_toolchain.zig`, `scripts\zigux/check_phase2_kbuild_routes.zig`");
     try expectContains(scripts_readme, "keep the current toolchain and kbuild route guard packet explicit from the scripts root");
@@ -104,16 +104,16 @@ test "Makefile keeps kbuild checker before downstream Phase 2 route checks" {
     defer allocator.free(makefile);
 
     try expectExactLine(makefile, "phase2-tools:");
-    try expectExactLine(makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig --self-test");
+    try expectExactLine(makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig -- --self-test");
     try expectExactLine(makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig");
-    try expectExactLine(makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_docs_shared_reminder.zig --self-test");
-    try expectExactLine(makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_required_make_routes.zig --self-test");
+    try expectExactLine(makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_docs_shared_reminder.zig -- --self-test");
+    try expectExactLine(makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_required_make_routes.zig -- --self-test");
     try expectExactLine(makefile, "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep");
     try expectExactLine(makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase2_closure.zig");
 
-    try expectBefore(makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig --self-test", "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig\n");
-    try expectBefore(makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig\n", "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_docs_shared_reminder.zig --self-test");
-    try expectBefore(makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig\n", "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_required_make_routes.zig --self-test");
+    try expectBefore(makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig -- --self-test", "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig\n");
+    try expectBefore(makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig\n", "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_docs_shared_reminder.zig -- --self-test");
+    try expectBefore(makefile, "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_kbuild_routes.zig\n", "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_required_make_routes.zig -- --self-test");
     try expectBefore(makefile, "phase2-tools:", "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep");
 }
 
@@ -123,15 +123,15 @@ test "bootstrap workflow runs kbuild guard before Phase 2 make routes and valida
     defer allocator.free(workflow);
 
     try expectContains(workflow, "Self-test current Phase 2 kbuild routes checker");
-    try expectExactLine(workflow, "run: zig run check_phase2_kbuild_routes.zig --self-test");
+    try expectExactLine(workflow, "run: zig run scripts/zigux/check_phase2_kbuild_routes.zig -- --self-test");
     try expectContains(workflow, "Check current Phase 2 kbuild packet");
-    try expectExactLine(workflow, "run: zig run check_phase2_kbuild_routes.zig");
+    try expectExactLine(workflow, "run: zig run scripts/zigux/check_phase2_kbuild_routes.zig");
     try expectExactLine(workflow, "run: make -C zigux phase2-tools");
-    try expectExactLine(workflow, "run: zig run validate_phase2.zig");
-    try expectExactLine(workflow, "run: zig run validate_phase2_closure.zig");
+    try expectExactLine(workflow, "run: zig run scripts/zigux/validate_phase2.zig");
+    try expectExactLine(workflow, "run: zig run scripts/zigux/validate_phase2_closure.zig");
 
-    try expectBefore(workflow, "run: zig run check_phase2_kbuild_routes.zig --self-test", "run: zig run check_phase2_kbuild_routes.zig\n");
-    try expectBefore(workflow, "run: zig run check_phase2_kbuild_routes.zig\n", "run: make -C zigux phase2-tools");
-    try expectBefore(workflow, "run: make -C zigux phase2-tools", "run: zig run validate_phase2.zig");
-    try expectBefore(workflow, "run: zig run validate_phase2.zig", "run: zig run validate_phase2_closure.zig");
+    try expectBefore(workflow, "run: zig run scripts/zigux/check_phase2_kbuild_routes.zig -- --self-test", "run: zig run scripts/zigux/check_phase2_kbuild_routes.zig\n");
+    try expectBefore(workflow, "run: zig run scripts/zigux/check_phase2_kbuild_routes.zig\n", "run: make -C zigux phase2-tools");
+    try expectBefore(workflow, "run: make -C zigux phase2-tools", "run: zig run scripts/zigux/validate_phase2.zig");
+    try expectBefore(workflow, "run: zig run scripts/zigux/validate_phase2.zig", "run: zig run scripts/zigux/validate_phase2_closure.zig");
 }

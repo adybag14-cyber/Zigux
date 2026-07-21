@@ -65,17 +65,17 @@ test "phase 1 workflow keeps artifact-diff gates ordered as a deterministic repl
     const artifact_step = std.mem.indexOf(u8, workflow, "run: zig run scripts/zigux/artifact_diff.zig -- --self-test") orelse
         return error.MissingArtifactDiffSelfTest;
 
-    if (std.mem.indexOf(u8, workflow, "run: zig run check_artifact_diff_contract.zig --self-test")) |contract_self_test| {
-        const contract_check = std.mem.indexOfPos(u8, workflow, contract_self_test + 1, "run: zig run check_artifact_diff_contract.zig") orelse
+    if (std.mem.indexOf(u8, workflow, "run: zig run scripts/zigux/check_artifact_diff_contract.zig -- --self-test")) |contract_self_test| {
+        const contract_check = std.mem.indexOfPos(u8, workflow, contract_self_test + 1, "run: zig run scripts/zigux/check_artifact_diff_contract.zig") orelse
             return error.MissingArtifactDiffContractCheck;
-        const determinism_self_test = std.mem.indexOf(u8, workflow, "run: zig run check_phase4_artifact_diff_determinism.zig --self-test") orelse
+        const determinism_self_test = std.mem.indexOf(u8, workflow, "run: zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test") orelse
             return error.MissingArtifactDiffDeterminismSelfTest;
         try std.testing.expect(artifact_step < contract_self_test);
         try std.testing.expect(contract_self_test < contract_check);
         try std.testing.expect(contract_check < determinism_self_test);
     }
 
-    if (std.mem.indexOf(u8, workflow, "run: zig run check_phase1_parity.zig")) |parity_step| {
+    if (std.mem.indexOf(u8, workflow, "run: zig run scripts/zigux/check_phase1_parity.zig")) |parity_step| {
         try std.testing.expect(artifact_step < parity_step);
     }
 }

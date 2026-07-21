@@ -41,7 +41,7 @@ test "phase2 closure note keeps direct cross target packet parked in shared tool
         "zigux/tests/fixtures/phase2_cross_targets.json",
         "scripts\zigux/check_phase2_fixdep_gate.zig",
         "PHASE2_SHARED_TOOLING_CHECKERS=",
-        "zig run check_phase2_cross.zig",
+        "zig run scripts/zigux/check_phase2_cross.zig",
         "## Shared Replay Routes",
         "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2",
     });
@@ -67,7 +67,7 @@ test "phase2 tool manifest and tests-root reminder agree on cross target surface
     try expectInOrder(tests_readme, &.{
         "## Phase 2 review packet",
         "`scripts\zigux/check_phase2_cross.zig`",
-        "`zig run check_phase2_cross.zig --self-test`",
+        "`zig run scripts/zigux/check_phase2_cross.zig -- --self-test`",
         "`zigux/tests/fixtures/phase2_cross_targets.json`",
         "`make -C zigux phase2-cross`",
     });

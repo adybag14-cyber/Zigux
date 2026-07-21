@@ -6,7 +6,7 @@ pub const live_pass_marker = "PHASE2_FIXDEP_SCRIPTS_SURFACE=pass";
 pub const self_test_pass_marker = "PHASE2_FIXDEP_SCRIPTS_SURFACE_SELF_TEST=pass";
 
 const WORKFLOW_REQUIRED_MARKERS = [_][]const u8{
-    "      - name: Self-test current Phase 2 fixdep scripts-surface checker\n        run: zig run scripts\\zigux/check_phase2_fixdep_scripts_surface.zig --self-test",
+    "      - name: Self-test current Phase 2 fixdep scripts-surface checker\n        run: zig run scripts\\zigux/check_phase2_fixdep_scripts_surface.zig -- --self-test",
     "      - name: Check current Phase 2 fixdep scripts-surface packet\n        run: zig run scripts\\zigux/check_phase2_fixdep_scripts_surface.zig",
     "      - name: Run current Phase 2 fixdep direct replay\n        run: zig test scripts/zigux/fixdep.zig",
 };

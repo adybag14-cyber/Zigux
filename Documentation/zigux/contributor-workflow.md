@@ -41,8 +41,8 @@ Avoid treating these as meaningful progress by themselves:
 
 - for docs-only work, verify the touched file names, route names, and status buckets against current repo reads
 - for checklist or guard changes, run the narrowest self-test or focused validator before broader wrapper routes when both exist
-- for top-level contributor onboarding changes, rerun `zig run check_contributor_onboarding_packet.zig` so `CONTRIBUTING.md`, `Documentation/zigux/contributor-entrypoints.md`, and this workflow note stay aligned
-- for docs-only reminder, checklist, or contributor workflow guidance changes, rerun `zig run check_developer_enablement_workflow.zig` so `Documentation/zigux/contributor-entrypoints.md`, `Documentation/zigux/developer-enablement-contributor-workflow.md`, and this workflow note keep the same docs-only handoff
+- for top-level contributor onboarding changes, rerun `zig run scripts/zigux/check_contributor_onboarding_packet.zig` so `CONTRIBUTING.md`, `Documentation/zigux/contributor-entrypoints.md`, and this workflow note stay aligned
+- for docs-only reminder, checklist, or contributor workflow guidance changes, rerun `zig run scripts/zigux/check_developer_enablement_workflow.zig` so `Documentation/zigux/contributor-entrypoints.md`, `Documentation/zigux/developer-enablement-contributor-workflow.md`, and this workflow note keep the same docs-only handoff
 - for Zig or mixed-source changes, prefer the smallest relevant `zig build ...`, `make -C zigux ...`, or checker replay before claiming success
 - if the full replay path is unavailable, record the degraded path and the exact boundary it leaves unproven
 

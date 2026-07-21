@@ -6,7 +6,7 @@ const closure_note_memtostr_marker =
 
 const adjacent_string_markers = .{
     .sysfs_review = "`PHASE1_STRING_SYSFS_REVIEW=helper-local string sysfs newline-aware equality and lookup-order anchors stay explicit through the direct string tests and the Phase 1 helper manifest because the shared Phase 1 replay still carries no dedicated sysfs fixture keys`",
-    .review_guard = "`PHASE1_STRING_REVIEW_GUARD=zig run check_phase1_string_review_packet.zig exact-checks helper-local string anchors plus the committed replaceChar and current string fixture packet across the helper, closure note, lane note, manifest, and fixture`",
+    .review_guard = "`PHASE1_STRING_REVIEW_GUARD=zig run scripts/zigux/check_phase1_string_review_packet.zig exact-checks helper-local string anchors plus the committed replaceChar and current string fixture packet across the helper, closure note, lane note, manifest, and fixture`",
 };
 
 const manifest_memtostr_packet = .{

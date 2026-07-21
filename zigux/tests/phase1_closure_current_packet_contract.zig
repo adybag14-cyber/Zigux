@@ -78,7 +78,7 @@ test "closure note pins current reminder packet and parked gap packet exactly on
 
     try expectOnce(closure_text, reminder_packet_marker);
     try expectOnce(closure_text, gap_packet_marker);
-    try expectOnce(closure_text, "`PHASE1_CLOSURE_VALIDATOR=zig run validate_phase1_closure.zig`");
+    try expectOnce(closure_text, "`PHASE1_CLOSURE_VALIDATOR=zig run scripts/zigux/validate_phase1_closure.zig`");
     try expectOnce(closure_text, "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`");
     try expectAbsent(closure_text, "`PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master`");
     try expectAbsent(closure_text, "`PHASE1_NEXT_SAFE_STEP=restore the missing phase1 closure note first`");
@@ -128,6 +128,6 @@ test "bootstrap workflow runs Phase 1 closure after direct-anchor checks and bef
     try std.testing.expect(closure_self < closure_live);
     try std.testing.expect(closure_live < phase3_interop);
 
-    try expectOnce(workflow_text, "run: zig run validate_phase1_closure.zig --self-test");
-    try expectOnce(workflow_text, "\n        run: zig run validate_phase1_closure.zig\n");
+    try expectOnce(workflow_text, "run: zig run scripts/zigux/validate_phase1_closure.zig -- --self-test");
+    try expectOnce(workflow_text, "\n        run: zig run scripts/zigux/validate_phase1_closure.zig\n");
 }

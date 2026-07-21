@@ -326,8 +326,8 @@ const markers_4 = [_][]const u8{
 };
 
 const markers_5 = [_][]const u8{
-    "run: zig run check_kconfig_bridge.zig --self-test",
-    "run: zig run check_kconfig_bridge.zig",
+    "run: zig run scripts/zigux/check_kconfig_bridge.zig -- --self-test",
+    "run: zig run scripts/zigux/check_kconfig_bridge.zig",
     "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
     "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
 };

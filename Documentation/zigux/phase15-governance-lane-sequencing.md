@@ -90,15 +90,15 @@ They do mean any shared reminder surface must keep those wrapper-route and share
 
 - current lane posture: `maintenance_mode`
 - replay only when one of these packet-local conditions becomes true:
-  - `zig run check_phase15_docs_readme_alignment.zig`
-  - `zig run check_phase15_review_checklist_study_only_alignment.zig`
-  - `zig run check_phase15_scripts_readme_alignment.zig`
-  - `zig run check_phase15_tests_readme_alignment.zig`
-  - `zig run check_phase15_architecture_council_packet.zig`
-  - `zig run check_phase15_review_process_handoff.zig`
-  - `zig run check_phase15_handoff_note_alignment.zig`
-  - `zig run check_phase15_shared_summary_gap.zig`
-  - `zig run validate_phase15.zig`
+  - `zig run scripts/zigux/check_phase15_docs_readme_alignment.zig`
+  - `zig run scripts/zigux/check_phase15_review_checklist_study_only_alignment.zig`
+  - `zig run scripts/zigux/check_phase15_scripts_readme_alignment.zig`
+  - `zig run scripts/zigux/check_phase15_tests_readme_alignment.zig`
+  - `zig run scripts/zigux/check_phase15_architecture_council_packet.zig`
+  - `zig run scripts/zigux/check_phase15_review_process_handoff.zig`
+  - `zig run scripts/zigux/check_phase15_handoff_note_alignment.zig`
+  - `zig run scripts/zigux/check_phase15_shared_summary_gap.zig`
+  - `zig run scripts/zigux/validate_phase15.zig`
   - `zig build test --build-file zigux/tests/phase15_build.zig`
   - `zig test zigux/tests/phase15_governance_lane_sequencing.zig`
 - reopen only when one of these packet-local conditions becomes true:

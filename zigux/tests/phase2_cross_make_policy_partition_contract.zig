@@ -6,9 +6,9 @@ const fixture_path = "zigux/tests/fixtures/phase2_cross_targets.json";
 
 const make_phase2_cross_rule = "phase2-cross:";
 const make_phase2_genksyms_rule = "phase2-genksyms:";
-const make_cross_self_test = "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig --self-test\n";
+const make_cross_self_test = "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig -- --self-test\n";
 const make_cross_check = "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig\n";
-const make_alignment_self_test = "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig --self-test\n";
+const make_alignment_self_test = "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig -- --self-test\n";
 const make_alignment_check = "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig\n";
 
 const phase2_cross_route = "\"phase2-cross\"";
@@ -163,17 +163,17 @@ test "cross fixture owns the concrete two-target matrix partition" {
 test "contract rejects partition drift across makefile policy and fixture surfaces" {
     const good_makefile =
         "phase2-cross:\n" ++
-        "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig --self-test\n" ++
+        "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig -- --self-test\n" ++
         "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig\n" ++
-        "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig --self-test\n" ++
+        "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig -- --self-test\n" ++
         "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig\n\n" ++
         "phase2-genksyms:\n";
     try validateMakefilePartition(good_makefile);
     const makefile_with_target_in_block =
         "phase2-cross:\n" ++
-        "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig --self-test\n" ++
+        "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig -- --self-test\n" ++
         "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig\n" ++
-        "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig --self-test\n" ++
+        "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig -- --self-test\n" ++
         "\t$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig\n" ++
         "\t# x86_64-linux\n\n" ++
         "phase2-genksyms:\n";

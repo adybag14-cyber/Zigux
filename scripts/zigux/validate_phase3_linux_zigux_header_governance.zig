@@ -93,8 +93,8 @@ const markers_1 = [_][]const u8{
 const markers_2 = [_][]const u8{
     "\"phase\": \"Phase 3\"",
     "\"replay_routes\"",
-    "zig run validate_phase3_linux_zigux_header_governance.zig --self-test",
-    "zig run validate_phase3_linux_zigux_header_governance.zig",
+    "zig run scripts/zigux/validate_phase3_linux_zigux_header_governance.zig -- --self-test",
+    "zig run scripts/zigux/validate_phase3_linux_zigux_header_governance.zig",
 };
 
 const contracts = [_]FileContract{

@@ -79,13 +79,13 @@ The honest bounded step is therefore truthfulness maintenance, not expansion: ke
 
 - current lane posture: `maintenance_mode`
 - replay before trusting this packet:
-  - `zig run check_phase15_docs_readme_alignment.zig`
-  - `zig run check_phase15_review_checklist_study_only_alignment.zig`
-  - `zig run check_phase15_tests_readme_alignment.zig`
-  - `zig run check_phase15_scripts_readme_alignment.zig`
-  - `zig run check_phase15_review_process_handoff.zig`
-  - `zig run check_phase15_shared_summary_gap.zig`
-  - `zig run check_phase15_readiness_gate_packet.zig`
+  - `zig run scripts/zigux/check_phase15_docs_readme_alignment.zig`
+  - `zig run scripts/zigux/check_phase15_review_checklist_study_only_alignment.zig`
+  - `zig run scripts/zigux/check_phase15_tests_readme_alignment.zig`
+  - `zig run scripts/zigux/check_phase15_scripts_readme_alignment.zig`
+  - `zig run scripts/zigux/check_phase15_review_process_handoff.zig`
+  - `zig run scripts/zigux/check_phase15_shared_summary_gap.zig`
+  - `zig run scripts/zigux/check_phase15_readiness_gate_packet.zig`
   - `zig test zigux/tests/phase15_freeze_map_governance.zig`
 - adjacent route state:
   - direct contents readback resolves `Documentation/zigux/README.md`, so the broad docs-root Phase 15 reminder stays adjacent direct-readback evidence with `scripts\zigux/check_phase15_docs_readme_alignment.zig`
@@ -144,13 +144,13 @@ This slice does not claim:
 ## Gates
 
 1. run the checker-backed shared reminder packet
-   - `zig run check_phase15_docs_readme_alignment.zig`
-   - `zig run check_phase15_review_checklist_study_only_alignment.zig`
-   - `zig run check_phase15_tests_readme_alignment.zig`
-   - `zig run check_phase15_scripts_readme_alignment.zig`
-   - `zig run check_phase15_review_process_handoff.zig`
-   - `zig run check_phase15_shared_summary_gap.zig`
-   - `zig run check_phase15_readiness_gate_packet.zig`
+   - `zig run scripts/zigux/check_phase15_docs_readme_alignment.zig`
+   - `zig run scripts/zigux/check_phase15_review_checklist_study_only_alignment.zig`
+   - `zig run scripts/zigux/check_phase15_tests_readme_alignment.zig`
+   - `zig run scripts/zigux/check_phase15_scripts_readme_alignment.zig`
+   - `zig run scripts/zigux/check_phase15_review_process_handoff.zig`
+   - `zig run scripts/zigux/check_phase15_shared_summary_gap.zig`
+   - `zig run scripts/zigux/check_phase15_readiness_gate_packet.zig`
 2. run the dedicated freeze-map governance gate
    - `zig test zigux/tests/phase15_freeze_map_governance.zig`
 

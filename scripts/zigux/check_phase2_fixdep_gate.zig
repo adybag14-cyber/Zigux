@@ -29,8 +29,8 @@ const markers_2 = [_][]const u8{
 };
 
 const markers_3 = [_][]const u8{
-    "check_phase2_fixdep_gate.zig --self-test",
-    "check_fixdep_diff.zig --self-test",
+    "check_phase2_fixdep_gate.zig -- --self-test",
+    "check_fixdep_diff.zig -- --self-test",
 };
 
 const markers_4 = [_][]const u8{

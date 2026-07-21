@@ -6,7 +6,7 @@ pub const live_pass_marker = "PHASE4_PERF_WRAPPER_SELFTEST_GAP=pass";
 pub const self_test_pass_marker = "PHASE4_PERF_WRAPPER_SELFTEST_GAP_SELF_TEST=pass";
 
 const PERF_THRESHOLD_SELFTEST = [_][]const u8{
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_threshold_matrix.zig -- --self-test",
 };
 
 const PERF_THRESHOLD_LIVE = [_][]const u8{
@@ -14,7 +14,7 @@ const PERF_THRESHOLD_LIVE = [_][]const u8{
 };
 
 const PERF_BASELINE_SELFTEST = [_][]const u8{
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_baseline_packet.zig --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_perf_baseline_packet.zig -- --self-test",
 };
 
 const PERF_BASELINE_LIVE = [_][]const u8{

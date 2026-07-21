@@ -36,7 +36,7 @@ Stable onboarding packet:
 
 Matching guard:
 
-- `zig run check_contributor_onboarding_packet.zig`
+- `zig run scripts/zigux/check_contributor_onboarding_packet.zig`
 
 Keep this packet scoped to contributor-facing onboarding only. Do not widen it into phase-local status claims or helper-local proof.
 
@@ -53,7 +53,7 @@ Supporting companions:
 
 Matching guard:
 
-- `zig run check_developer_enablement_workflow.zig`
+- `zig run scripts/zigux/check_developer_enablement_workflow.zig`
 
 Keep this path scoped to reminder-surface maintenance: reread the owning packet first, update only the smallest understated shared surface, and leave absent routes, files, or wrappers framed as repo-reality gaps instead of shipped evidence.
 
@@ -78,7 +78,7 @@ Keep the current Phase 5 sample split explicit while you use that guide:
 
 Matching guard:
 
-- `zig run check_phase5_review_guide_surface.zig --self-test`
+- `zig run scripts/zigux/check_phase5_review_guide_surface.zig -- --self-test`
 
 ### Shared Helper Contributor Packet
 
@@ -92,8 +92,8 @@ Supporting companions:
 
 Matching guards:
 
-- `zig run check_phase13_shared_summary_surfaces.zig`
-- `zig run check_phase13_tests_readme_alignment.zig`
+- `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig`
+- `zig run scripts/zigux/check_phase13_tests_readme_alignment.zig`
 
 ### Active Shared Packet Sync
 
@@ -107,9 +107,9 @@ Use `Documentation/zigux/phase12-release-closure-checklist.md` when the change i
 
 Matching support bundle:
 
-- `zig run check_build_only_phase12_surface.zig --self-test`
-- `zig run check_phase12_release_readiness_packet.zig --self-test`
-- `zig run validate_phase12.zig`
+- `zig run scripts/zigux/check_build_only_phase12_surface.zig -- --self-test`
+- `zig run scripts/zigux/check_phase12_release_readiness_packet.zig -- --self-test`
+- `zig run scripts/zigux/validate_phase12.zig`
 
 ## Minimal Edit Loop
 
@@ -117,7 +117,7 @@ When the change stays inside the developer-enablement lane, use this bounded loo
 
 1. reread the four shared entry surfaces together
 2. reread one phase-local guide or `Documentation/zigux/developer-enablement-contributor-workflow.md` that matches the actual change
-3. if the change touches top-level onboarding wording, keep `CONTRIBUTING.md`, `Documentation/zigux/contributor-entrypoints.md`, and `Documentation/zigux/contributor-workflow.md` aligned and rerun `zig run check_contributor_onboarding_packet.zig`
+3. if the change touches top-level onboarding wording, keep `CONTRIBUTING.md`, `Documentation/zigux/contributor-entrypoints.md`, and `Documentation/zigux/contributor-workflow.md` aligned and rerun `zig run scripts/zigux/check_contributor_onboarding_packet.zig`
 4. update one shared reminder surface plus the smallest necessary companion note
 5. rerun the smallest checker set that matches the packet you touched
 6. keep absent routes, helpers, and replay files recorded as repo-reality gaps instead of promoting them into shipped evidence

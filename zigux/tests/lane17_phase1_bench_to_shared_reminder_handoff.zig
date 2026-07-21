@@ -10,42 +10,42 @@ const Marker = struct {
 
 const route_summary_check = Marker{
     .label = "route_summary_check",
-    .text = "      - name: Check current Phase 1 route summary packet\n        run: zig run check_phase1_route_summary_counts.zig\n",
+    .text = "      - name: Check current Phase 1 route summary packet\n        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig\n",
 };
 
 const bench_self_test = Marker{
     .label = "bench_self_test",
-    .text = "      - name: Self-test current Phase 1 bench checker\n        run: zig run check_phase1_bench.zig --self-test\n",
+    .text = "      - name: Self-test current Phase 1 bench checker\n        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test\n",
 };
 
 const bench_live_check = Marker{
     .label = "bench_live_check",
-    .text = "      - name: Check current Phase 1 bench packet\n        run: zig run check_phase1_bench.zig\n",
+    .text = "      - name: Check current Phase 1 bench packet\n        run: zig run scripts/zigux/check_phase1_bench.zig\n",
 };
 
 const find_bit_bench_self_test = Marker{
     .label = "find_bit_bench_self_test",
-    .text = "      - name: Self-test current Phase 1 find-bit bench anchor checker\n        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test\n",
+    .text = "      - name: Self-test current Phase 1 find-bit bench anchor checker\n        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test\n",
 };
 
 const find_bit_bench_check = Marker{
     .label = "find_bit_bench_check",
-    .text = "      - name: Check current Phase 1 find-bit bench anchor packet\n        run: zig run check_phase1_find_bit_bench_anchors.zig\n",
+    .text = "      - name: Check current Phase 1 find-bit bench anchor packet\n        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig\n",
 };
 
 const shared_reminder_self_test = Marker{
     .label = "shared_reminder_self_test",
-    .text = "      - name: Self-test current Phase 1 shared reminder checker\n        run: zig run check_phase1_shared_reminder_packet.zig --self-test\n",
+    .text = "      - name: Self-test current Phase 1 shared reminder checker\n        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test\n",
 };
 
 const shared_reminder_check = Marker{
     .label = "shared_reminder_check",
-    .text = "      - name: Check current Phase 1 shared reminder packet\n        run: zig run check_phase1_shared_reminder_packet.zig\n",
+    .text = "      - name: Check current Phase 1 shared reminder packet\n        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig\n",
 };
 
 const closure_self_test = Marker{
     .label = "closure_self_test",
-    .text = "      - name: Self-test current Phase 1 closure validator\n        run: zig run validate_phase1_closure.zig --self-test\n",
+    .text = "      - name: Self-test current Phase 1 closure validator\n        run: zig run scripts/zigux/validate_phase1_closure.zig -- --self-test\n",
 };
 
 fn countOccurrences(haystack: []const u8, needle: []const u8) usize {

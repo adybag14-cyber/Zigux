@@ -8,8 +8,8 @@ pub const self_test_pass_marker = "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pas
 const FileContract = struct { rel: []const u8, markers: []const []const u8 };
 
 const markers_0 = [_][]const u8{
-    "run: zig run check_phase4_reversible_delivery_pins.zig --self-test",
-    "run: zig run check_phase4_reversible_delivery_pins.zig",
+    "run: zig run scripts/zigux/check_phase4_reversible_delivery_pins.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase4_reversible_delivery_pins.zig",
 };
 
 const markers_1 = [_][]const u8{
@@ -71,7 +71,7 @@ const markers_2 = [_][]const u8{
 };
 
 const markers_3 = [_][]const u8{
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig -- --self-test",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase4_reversible_delivery_pins.zig",
 };
 

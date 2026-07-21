@@ -22,7 +22,7 @@ const REQUIRED_DOCS = [_][]const u8{
 
 const REQUIRED_MARKERS = [_][]const u8{
     "`RELEASE_PACKET_STATUS=active_not_closed`",
-    "docs-root release index guard: `zig run check_release_planning_index.zig`",
+    "docs-root release index guard: `zig run scripts/zigux/check_release_planning_index.zig`",
     "- Phase 12 remains the active shared release packet",
     "- Phase 13 remains the active helper-release packet",
     "- Phase 14 remains the release-boundary and productization reminder packet.",

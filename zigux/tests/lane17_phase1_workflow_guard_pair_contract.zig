@@ -15,51 +15,51 @@ const Phase1Marker = struct {
 const phase1_guard_pairs = [_]Phase1Marker{
     .{
         .name = "      - name: Self-test current Phase 1 route summary checker",
-        .run = "        run: zig run check_phase1_route_summary_counts.zig --self-test",
+        .run = "        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 route summary packet",
-        .run = "        run: zig run check_phase1_route_summary_counts.zig",
+        .run = "        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 bench checker",
-        .run = "        run: zig run check_phase1_bench.zig --self-test",
+        .run = "        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 bench packet",
-        .run = "        run: zig run check_phase1_bench.zig",
+        .run = "        run: zig run scripts/zigux/check_phase1_bench.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 bench live-check workflow guard",
-        .run = "        run: zig run check_phase1_bench_live_check_workflow.zig --self-test",
+        .run = "        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 bench live-check workflow guard packet",
-        .run = "        run: zig run check_phase1_bench_live_check_workflow.zig",
+        .run = "        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 find-bit bench anchor checker",
-        .run = "        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test",
+        .run = "        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 find-bit bench anchor packet",
-        .run = "        run: zig run check_phase1_find_bit_bench_anchors.zig",
+        .run = "        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 shared reminder checker",
-        .run = "        run: zig run check_phase1_shared_reminder_packet.zig --self-test",
+        .run = "        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 shared reminder packet",
-        .run = "        run: zig run check_phase1_shared_reminder_packet.zig",
+        .run = "        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig",
     },
     .{
         .name = "      - name: Self-test current Phase 1 closure validator",
-        .run = "        run: zig run validate_phase1_closure.zig --self-test",
+        .run = "        run: zig run scripts/zigux/validate_phase1_closure.zig -- --self-test",
     },
     .{
         .name = "      - name: Check current Phase 1 closure packet",
-        .run = "        run: zig run validate_phase1_closure.zig",
+        .run = "        run: zig run scripts/zigux/validate_phase1_closure.zig",
     },
 };
 
@@ -132,9 +132,9 @@ fn validatePhase1WorkflowGuardPairs(workflow: []const u8) WorkflowError!void {
     try requireAfter(&previous, workflow, "        run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig");
     try requireAfter(&previous, workflow, "      - name: Self-test current Phase 4 repo-reality warning checker");
 
-    try requireAbsent(workflow, "        run: zig run check_phase1_bench.zig --allow-missing");
-    try requireAbsent(workflow, "        run: zig run check_phase1_bench_live_check_workflow.zig --allow-missing");
-    try requireAbsent(workflow, "        run: zig run check_phase1_bench_live_check_workflow.zig --root");
+    try requireAbsent(workflow, "        run: zig run scripts/zigux/check_phase1_bench.zig -- --allow-missing");
+    try requireAbsent(workflow, "        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --allow-missing");
+    try requireAbsent(workflow, "        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --root");
 }
 
 test "current bootstrap workflow keeps phase1 guard pairs unique and ordered" {
@@ -147,11 +147,11 @@ test "current bootstrap workflow keeps phase1 guard pairs unique and ordered" {
 test "contract rejects missing live bench packet check" {
     const workflow =
         \\      - name: Self-test current Phase 1 route summary checker
-        \\        run: zig run check_phase1_route_summary_counts.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test
         \\      - name: Check current Phase 1 route summary packet
-        \\        run: zig run check_phase1_route_summary_counts.zig
+        \\        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig
         \\      - name: Self-test current Phase 1 bench checker
-        \\        run: zig run check_phase1_bench.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test
     ;
 
     try std.testing.expectError(error.MissingMarker, validatePhase1WorkflowGuardPairs(workflow));
@@ -166,7 +166,7 @@ test "contract rejects duplicated phase1 workflow guard commands" {
         u8,
         &.{
             current_workflow,
-            "\n        run: zig run check_phase1_bench.zig\n",
+            "\n        run: zig run scripts/zigux/check_phase1_bench.zig\n",
         },
     );
     defer std.testing.allocator.free(workflow);
@@ -177,17 +177,17 @@ test "contract rejects duplicated phase1 workflow guard commands" {
 test "contract rejects reordered phase1 live-check workflow guard" {
     const workflow =
         \\      - name: Self-test current Phase 1 route summary checker
-        \\        run: zig run check_phase1_route_summary_counts.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test
         \\      - name: Check current Phase 1 route summary packet
-        \\        run: zig run check_phase1_route_summary_counts.zig
+        \\        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig
         \\      - name: Self-test current Phase 1 bench checker
-        \\        run: zig run check_phase1_bench.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test
         \\      - name: Check current Phase 1 bench packet
-        \\        run: zig run check_phase1_bench.zig
+        \\        run: zig run scripts/zigux/check_phase1_bench.zig
         \\      - name: Check current Phase 1 bench live-check workflow guard packet
-        \\        run: zig run check_phase1_bench_live_check_workflow.zig
+        \\        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig
         \\      - name: Self-test current Phase 1 bench live-check workflow guard
-        \\        run: zig run check_phase1_bench_live_check_workflow.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test
     ;
 
     try std.testing.expectError(error.ReorderedMarker, validatePhase1WorkflowGuardPairs(workflow));
@@ -202,7 +202,7 @@ test "contract rejects stale optional workflow command variants" {
         u8,
         &.{
             current_workflow,
-            "\n        run: zig run check_phase1_bench_live_check_workflow.zig --allow-missing\n",
+            "\n        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --allow-missing\n",
         },
     );
     defer std.testing.allocator.free(workflow);

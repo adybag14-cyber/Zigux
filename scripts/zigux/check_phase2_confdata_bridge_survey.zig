@@ -61,9 +61,9 @@ fn requiredSurveyMarkers(allocator: std.mem.Allocator, anchor_count: usize, case
     try markers.append(allocator, try std.fmt.allocPrint(allocator, "`confdata_cases` packet with {d} fixture cases", .{case_count}));
     try markers.append(allocator, try std.fmt.allocPrint(allocator, "The live `{d}`-anchor and `{d}`-case confdata packet", .{ anchor_count, case_count }));
     for (&[_][]const u8{
-        "zig run check_kconfig_bridge.zig --self-test",
-        "zig run check_phase2_kconfig_selftest_alignment.zig --self-test",
-        "zig run check_phase2_kconfig_selftest_alignment.zig",
+        "zig run scripts/zigux/check_kconfig_bridge.zig -- --self-test",
+        "zig run scripts/zigux/check_phase2_kconfig_selftest_alignment.zig -- --self-test",
+        "zig run scripts/zigux/check_phase2_kconfig_selftest_alignment.zig",
         "zig test scripts/zigux/kconfig/confdata_bridge.zig",
         "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
         "zigux/tests/fixtures/kconfig_bridge/cases.json",
@@ -320,7 +320,7 @@ fn buildSelfTestRoot(tmp: *guard.TempWorkspace) !void {
         \\The current `confdata_cases` packet with 3 fixture cases stays aligned to `zigux/tests/fixtures/kconfig_bridge/cases.json`.
         \\The live `4`-anchor and `3`-case confdata packet remains reviewable through `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`.
         \\Duplicate packet coverage includes `duplicate_assignments` and `duplicate_malformed_quoted_assignment`.
-        \\Replay routes: `zig run check_kconfig_bridge.zig --self-test`, `zig run check_phase2_kconfig_selftest_alignment.zig --self-test`, `zig run check_phase2_kconfig_selftest_alignment.zig`, and `zig test scripts/zigux/kconfig/confdata_bridge.zig`.
+        \\Replay routes: `zig run scripts/zigux/check_kconfig_bridge.zig -- --self-test`, `zig run scripts/zigux/check_phase2_kconfig_selftest_alignment.zig -- --self-test`, `zig run scripts/zigux/check_phase2_kconfig_selftest_alignment.zig`, and `zig test scripts/zigux/kconfig/confdata_bridge.zig`.
         \\
     ;
     try tmp.write(BRIDGE_REL, bridge);

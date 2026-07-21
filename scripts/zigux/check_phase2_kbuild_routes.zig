@@ -12,8 +12,8 @@ const FileContract = struct {
 
 const markers_0 = [_][]const u8{
     "Self-test current Phase 2 kbuild routes checker",
-    "zig run check_phase2_kbuild_routes.zig --self-test",
-    "zig run check_phase2_kbuild_routes.zig",
+    "zig run scripts/zigux/check_phase2_kbuild_routes.zig -- --self-test",
+    "zig run scripts/zigux/check_phase2_kbuild_routes.zig",
 };
 
 const markers_1 = [_][]const u8{

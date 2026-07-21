@@ -14,7 +14,7 @@ const REQUIRED_MARKERS__Documentation_zigux_phase3-ida-alloc-slice_md = [_][]con
     "zigux/tests/phase3_ida_alloc_starter_packet.zig",
     "zigux/tests/fixtures/phase3_ida_alloc_manifest.json",
     "scripts\\zigux/check_phase3_ida_alloc_starter_packet.zig",
-    "zig run scripts\\zigux/check_phase3_ida_alloc_starter_packet.zig --self-test",
+    "zig run scripts\\zigux/check_phase3_ida_alloc_starter_packet.zig -- --self-test",
     "zig run scripts\\zigux/check_phase3_ida_alloc_starter_packet.zig",
     "helper-local ida allocation packet",
 };
@@ -47,15 +47,15 @@ const REQUIRED_MARKERS__zigux_tests_fixtures_phase3_ida_alloc_manifest_json = [_
     "\"status\": \"starter_and_dump_packet_present\"",
     "\"zigux/tests/phase3_ida_alloc_starter_packet.zig\"",
     "\"zigux/tests/phase3_ida_alloc_dump.zig\"",
-    "\"zig run scripts\\zigux/check_phase3_ida_alloc_starter_packet.zig --self-test\"",
+    "\"zig run scripts\\zigux/check_phase3_ida_alloc_starter_packet.zig -- --self-test\"",
     "\"repo_reality_gaps\": []",
 };
 
 const REQUIRED_REPLAY_ROUTES = [_][]const u8{
-    "zig run scripts\\zigux/check_phase3_ida_alloc_starter_packet.zig --self-test",
+    "zig run scripts\\zigux/check_phase3_ida_alloc_starter_packet.zig -- --self-test",
     "zig run scripts\\zigux/check_phase3_ida_alloc_starter_packet.zig",
-    "zig run scripts\\zigux/check_phase3_ida_alloc.zig --self-test",
-    "zig run scripts\\zigux/check_phase3_ida_alloc.zig --repo-root . --zig zig --cc gcc",
+    "zig run scripts\\zigux/check_phase3_ida_alloc.zig -- --self-test",
+    "zig run scripts\\zigux/check_phase3_ida_alloc.zig -- --repo-root . --zig zig --cc gcc",
     "zig build phase3-ida-alloc-dump --build-file zigux/tests/phase3_ida_alloc_dump_build.zig",
 };
 

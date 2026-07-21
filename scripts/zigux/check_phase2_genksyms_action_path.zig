@@ -6,20 +6,20 @@ pub const live_pass_marker = "PHASE2_GENKSYMS_ACTION_PATH=pass";
 pub const self_test_pass_marker = "PHASE2_GENKSYMS_ACTION_PATH_SELF_TEST=pass";
 
 const REQUIRED_WORKFLOW_LINES = [_][]const u8{
-    "run: zig run scripts\\zigux/check_genksyms_bridge.zig --self-test",
+    "run: zig run scripts\\zigux/check_genksyms_bridge.zig -- --self-test",
     "run: zig run scripts\\zigux/check_genksyms_bridge.zig",
     "run: zig test scripts/zigux/genksyms.zig",
-    "run: zig run scripts\\zigux/check_phase2_genksyms_selftest_alignment.zig --self-test",
+    "run: zig run scripts\\zigux/check_phase2_genksyms_selftest_alignment.zig -- --self-test",
     "run: zig run scripts\\zigux/check_phase2_genksyms_selftest_alignment.zig",
     "run: make -C zigux phase2-genksyms",
 };
 
 const REQUIRED_MAKEFILE_LINES = [_][]const u8{
     "phase2-genksyms: phase2-toolchain",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_genksyms_bridge.zig --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_genksyms_bridge.zig -- --self-test",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_genksyms_bridge.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
-    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_genksyms_selftest_alignment.zig --self-test",
+    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_genksyms_selftest_alignment.zig -- --self-test",
     "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_genksyms_selftest_alignment.zig",
 };
 

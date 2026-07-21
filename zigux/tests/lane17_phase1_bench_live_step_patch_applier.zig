@@ -2,19 +2,19 @@ const std = @import("std");
 
 const bench_self_test_step =
     "      - name: Self-test current Phase 1 bench checker\n" ++
-    "        run: zig run check_phase1_bench.zig --self-test";
+    "        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test";
 
 const bench_live_check_step =
     "      - name: Check current Phase 1 bench packet\n" ++
-    "        run: zig run check_phase1_bench.zig";
+    "        run: zig run scripts/zigux/check_phase1_bench.zig";
 
 const find_bit_bench_self_test_step =
     "      - name: Self-test current Phase 1 find-bit bench anchor checker\n" ++
-    "        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test";
+    "        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test";
 
 const find_bit_bench_live_check_step =
     "      - name: Check current Phase 1 find-bit bench anchor packet\n" ++
-    "        run: zig run check_phase1_find_bit_bench_anchors.zig";
+    "        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig";
 
 const current_missing_handoff =
     bench_self_test_step ++

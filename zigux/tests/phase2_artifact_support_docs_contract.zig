@@ -2,7 +2,7 @@ const std = @import("std");
 
 const phase2_closure_artifact_support =
     \\- `scripts/zigux/artifact_diff.zig` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair instead of falling back into repo-reality-gap wording.
-    \\- `zig run check_phase2_artifact_tools_manifest.zig`
+    \\- `zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig`
 ;
 
 const artifact_diff_phase2_note =
@@ -10,7 +10,7 @@ const artifact_diff_phase2_note =
 ;
 
 const scripts_readme_phase2_packet =
-    \\`scripts\zigux/check_phase2_artifact_tools_manifest.zig`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `scripts/zigux/install_zig.zig`, `zig run scripts/zigux/install_zig.zig --self-test`, `zig run check_phase2_cross.zig --self-test`, `zig run check_phase2_cross.zig`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`
+    \\`scripts\zigux/check_phase2_artifact_tools_manifest.zig`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `scripts/zigux/install_zig.zig`, `zig run scripts/zigux/install_zig.zig -- --self-test`, `zig run scripts/zigux/check_phase2_cross.zig -- --self-test`, `zig run scripts/zigux/check_phase2_cross.zig`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`
 ;
 
 const bootstrap_ledger_lane25 =

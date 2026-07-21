@@ -28,12 +28,12 @@ This note records the current helper-local Phase 3 policy slice on `master`.
 - `scripts\zigux/check_phase3_policy_starter_packet.zig`
 - `scripts\zigux/check_phase3_policy_dump.zig`
 - `zigux/Makefile`
-- `zig run check_phase3_policy_starter_packet.zig --self-test`
-- `zig run check_phase3_policy_starter_packet.zig`
+- `zig run scripts/zigux/check_phase3_policy_starter_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_policy_starter_packet.zig`
 - `zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig`
 - `make -C zigux phase3-policy-starter-packet-test`
-- `zig run check_phase3_policy_dump.zig --self-test`
-- `zig run check_phase3_policy_dump.zig`
+- `zig run scripts/zigux/check_phase3_policy_dump.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_policy_dump.zig`
 - `zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig`
 - `make -C zigux phase3-policy-dump`
 - `make -C zigux phase3`

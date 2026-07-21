@@ -3,17 +3,17 @@ const std = @import("std");
 const workflow_path = ".github/workflows/zigux-bootstrap.yml";
 
 const phase9_review_markers = [_][]const u8{
-    "      - name: Self-test current Phase 9 review-checklist boundaries checker\n        run: zig run check_phase9_review_checklist_phase_boundaries.zig --self-test",
-    "      - name: Check current Phase 9 review-checklist boundaries packet\n        run: zig run check_phase9_review_checklist_phase_boundaries.zig",
-    "      - name: Self-test current Phase 9 freeze-map study-boundaries checker\n        run: zig run check_phase9_freeze_map_study_boundaries.zig --self-test",
-    "      - name: Check current Phase 9 freeze-map study-boundaries packet\n        run: zig run check_phase9_freeze_map_study_boundaries.zig",
-    "      - name: Self-test current Phase 9 build-only surface checker\n        run: zig run check_phase9_build_only_surface.zig --self-test",
-    "      - name: Check current Phase 9 build-only surface packet\n        run: zig run check_phase9_build_only_surface.zig",
+    "      - name: Self-test current Phase 9 review-checklist boundaries checker\n        run: zig run scripts/zigux/check_phase9_review_checklist_phase_boundaries.zig -- --self-test",
+    "      - name: Check current Phase 9 review-checklist boundaries packet\n        run: zig run scripts/zigux/check_phase9_review_checklist_phase_boundaries.zig",
+    "      - name: Self-test current Phase 9 freeze-map study-boundaries checker\n        run: zig run scripts/zigux/check_phase9_freeze_map_study_boundaries.zig -- --self-test",
+    "      - name: Check current Phase 9 freeze-map study-boundaries packet\n        run: zig run scripts/zigux/check_phase9_freeze_map_study_boundaries.zig",
+    "      - name: Self-test current Phase 9 build-only surface checker\n        run: zig run scripts/zigux/check_phase9_build_only_surface.zig -- --self-test",
+    "      - name: Check current Phase 9 build-only surface packet\n        run: zig run scripts/zigux/check_phase9_build_only_surface.zig",
 };
 
 const phase9_runtime_markers = [_][]const u8{
-    "      - name: Self-test current Phase 9 trace-events runtime packet checker\n        run: zig run check_phase9_trace_events_runtime_packet.zig --self-test",
-    "      - name: Check current Phase 9 trace-events runtime packet\n        run: zig run check_phase9_trace_events_runtime_packet.zig",
+    "      - name: Self-test current Phase 9 trace-events runtime packet checker\n        run: zig run scripts/zigux/check_phase9_trace_events_runtime_packet.zig -- --self-test",
+    "      - name: Check current Phase 9 trace-events runtime packet\n        run: zig run scripts/zigux/check_phase9_trace_events_runtime_packet.zig",
     "      - name: Run current Phase 9 shared loader command-environment boundary guard tests\n        run: zig build phase9-runtime-loader-command-env-boundary-guard-tests --build-file zigux/tests/phase9_build.zig",
     "      - name: Run current Phase 9 shared loader allocator-init-flow packet\n        run: zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig",
     "      - name: Run current Phase 9 trace-events runtime sample tests\n        run: zig test samples/zigux/runtime_trace_events.zig",
@@ -21,24 +21,24 @@ const phase9_runtime_markers = [_][]const u8{
 };
 
 const phase7_handoff_markers = [_][]const u8{
-    "      - name: Self-test current Phase 7 shared-control gap checker\n        run: zig run check_phase7_shared_control_gap.zig --self-test",
-    "      - name: Check current Phase 7 shared-control gap packet\n        run: zig run check_phase7_shared_control_gap.zig",
-    "      - name: Self-test current Phase 7 make-wrapper selftest alignment checker\n        run: zig run check_phase7_make_wrapper_selftest_alignment.zig --self-test",
-    "      - name: Check current Phase 7 make-wrapper selftest alignment packet\n        run: zig run check_phase7_make_wrapper_selftest_alignment.zig",
+    "      - name: Self-test current Phase 7 shared-control gap checker\n        run: zig run scripts/zigux/check_phase7_shared_control_gap.zig -- --self-test",
+    "      - name: Check current Phase 7 shared-control gap packet\n        run: zig run scripts/zigux/check_phase7_shared_control_gap.zig",
+    "      - name: Self-test current Phase 7 make-wrapper selftest alignment checker\n        run: zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig -- --self-test",
+    "      - name: Check current Phase 7 make-wrapper selftest alignment packet\n        run: zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig",
 };
 
 const phase10_phase11_markers = [_][]const u8{
-    "      - name: Self-test current Phase 10 bootstrap route checker\n        run: zig run check_phase10_bootstrap_route.zig --self-test",
-    "      - name: Check current Phase 10 bootstrap route\n        run: zig run check_phase10_bootstrap_route.zig",
+    "      - name: Self-test current Phase 10 bootstrap route checker\n        run: zig run scripts/zigux/check_phase10_bootstrap_route.zig -- --self-test",
+    "      - name: Check current Phase 10 bootstrap route\n        run: zig run scripts/zigux/check_phase10_bootstrap_route.zig",
     "      - name: Validate Phase 10 checker-backed review packet\n        run: make -C zigux phase10-validate",
     "      - name: Run Phase 10 helper tests\n        run: make -C zigux phase10-test",
-    "      - name: Self-test current Phase 11 build inventory checker\n        run: zig run check_phase11_build_inventory.zig --self-test",
-    "      - name: Check current Phase 11 build inventory packet\n        run: zig run check_phase11_build_inventory.zig",
+    "      - name: Self-test current Phase 11 build inventory checker\n        run: zig run scripts/zigux/check_phase11_build_inventory.zig -- --self-test",
+    "      - name: Check current Phase 11 build inventory packet\n        run: zig run scripts/zigux/check_phase11_build_inventory.zig",
     "      - name: Validate current Phase 11 support bundle\n        run: make -C zigux phase11-validate",
 };
 
 const phase12_entry_marker =
-    "      - name: Self-test current Phase 12 build-only surface checker\n        run: zig run check_build_only_phase12_surface.zig --self-test";
+    "      - name: Self-test current Phase 12 build-only surface checker\n        run: zig run scripts/zigux/check_build_only_phase12_surface.zig -- --self-test";
 
 fn markerIndex(source: []const u8, marker: []const u8) !usize {
     return std.mem.indexOf(u8, source, marker) orelse error.MissingWorkflowMarker;

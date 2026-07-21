@@ -77,9 +77,9 @@ const EXPECTED_PACKET_FILES = [_][]const u8{
 const EXPECTED_REPLAY_ROUTES = [_][]const u8{
     "zig run scripts/zigux/check_phase9_catalog_selftest.zig -- --self-test",
     "zig run scripts/zigux/check_phase9_catalog_selftest.zig --",
-    "zig run scripts/zigux/phase9_catalog.zig --pretty",
-    "zig run validate_phase9.zig --self-test",
-    "zig run validate_phase9.zig",
+    "zig run scripts/zigux/phase9_catalog.zig -- --pretty",
+    "zig run scripts/zigux/validate_phase9.zig -- --self-test",
+    "zig run scripts/zigux/validate_phase9.zig",
     "zig run scripts/zigux/check_phase9_runtime_loader_shared_packet.zig -- --self-test",
     "zig run scripts/zigux/check_phase9_runtime_loader_shared_packet.zig --",
     "zig run scripts/zigux/check_phase9_atomic64_runtime_packet.zig -- --self-test",
@@ -107,8 +107,8 @@ const CATALOG_MARKERS = [_][]const u8{
     "\"blocked module-metadata, depmod bridge, and install-root publication vocabulary remains historical rather than direct shipped proof\"",
     "\"scripts/zigux/check_phase9_catalog_selftest.zig\"",
     "\"scripts\zigux/validate_phase9.zig\"",
-    "\"zig run scripts/zigux/phase9_catalog.zig --pretty\"",
-    "\"zig run validate_phase9.zig\"",
+    "\"zig run scripts/zigux/phase9_catalog.zig -- --pretty\"",
+    "\"zig run scripts/zigux/validate_phase9.zig\"",
     "print(\"PHASE9_CATALOG_SELF_TEST=pass\")",
 };
 
@@ -130,8 +130,8 @@ const README_MARKERS = [_][]const u8{
     "Documentation/zigux/phase9-runtime-pilot-ownership-map.md",
     "zigux/tests/runtime_pilot_manifest.json",
     "scripts\zigux/validate_phase9.zig",
-    "zig run validate_phase9.zig --self-test",
-    "zig run validate_phase9.zig",
+    "zig run scripts/zigux/validate_phase9.zig -- --self-test",
+    "zig run scripts/zigux/validate_phase9.zig",
 };
 
 const README_FORBIDDEN_MARKERS = [_][]const u8{
@@ -153,7 +153,7 @@ const VALIDATOR_MARKERS = [_][]const u8{
     "\"scripts\zigux/validate_phase9.zig\",",
     "\"blocked module-metadata, depmod bridge, and install-root publication vocabulary remains historical rather than direct shipped proof\",",
     "EXPECTED_REPLAY_ROUTES = (",
-    "\"zig run validate_phase9.zig\",",
+    "\"zig run scripts/zigux/validate_phase9.zig\",",
     "PHASE9_VALIDATE_SELF_TEST=pass",
 };
 

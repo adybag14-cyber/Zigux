@@ -40,11 +40,11 @@ The directly readable HVC current-head packet also now includes `zigux/tests/pha
 
 The same directly readable HVC current-head packet also keeps `Documentation/zigux/phase11-hvc-cleanup-prerequisite-parity-gap.md`, `scripts\zigux/check_phase11_hvc_cleanup_prerequisite_packet.zig`, `zigux/tests/phase11_hvc_current_head_manifest.json`, and `scripts\zigux/check_phase11_hvc_current_head_manifest.zig` explicit so the cleanup-trigger split and machine-readable packet roster stay reviewable beside those focused HVC failure-mode builds.
 
-The same narrower continuity packet also keeps the dedicated `scripts\zigux/check_phase11_hvc_cleanup_current_head.zig` guard explicit through `zig run check_phase11_hvc_cleanup_current_head.zig --self-test` and `zig run check_phase11_hvc_cleanup_current_head.zig`.
+The same narrower continuity packet also keeps the dedicated `scripts\zigux/check_phase11_hvc_cleanup_current_head.zig` guard explicit through `zig run scripts/zigux/check_phase11_hvc_cleanup_current_head.zig -- --self-test` and `zig run scripts/zigux/check_phase11_hvc_cleanup_current_head.zig`.
 
-The same narrower continuity packet also keeps the dedicated `scripts\zigux/check_phase11_hvc_targetless_unregister_witness.zig` guard explicit through `zig run check_phase11_hvc_targetless_unregister_witness.zig --self-test` and `zig run check_phase11_hvc_targetless_unregister_witness.zig`.
+The same narrower continuity packet also keeps the dedicated `scripts\zigux/check_phase11_hvc_targetless_unregister_witness.zig` guard explicit through `zig run scripts/zigux/check_phase11_hvc_targetless_unregister_witness.zig -- --self-test` and `zig run scripts/zigux/check_phase11_hvc_targetless_unregister_witness.zig`.
 
-The same narrower continuity packet now also records 2 focused direct build checker routes through `zig run check_phase11_focused_direct_build_replays.zig --self-test` and `zig run check_phase11_focused_direct_build_replays.zig`, together with 2 focused direct build replays through `zigux/tests/phase11_hvc_modem_control_proof_build.zig` and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`.
+The same narrower continuity packet now also records 2 focused direct build checker routes through `zig run scripts/zigux/check_phase11_focused_direct_build_replays.zig -- --self-test` and `zig run scripts/zigux/check_phase11_focused_direct_build_replays.zig`, together with 2 focused direct build replays through `zigux/tests/phase11_hvc_modem_control_proof_build.zig` and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`.
 
 The shared current-head packet also now keeps `zigux/tests/phase11_dw_wdt_restart_build.zig` and `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` directly readable beside the returned driver-local matrices, so the watchdog teardown-or-failure-mode proof pair stays explicit even while the narrower shared inventory remains HVC-centered.
 

@@ -10,7 +10,7 @@ const TESTS_README_PATH_NAME = [_][]const u8{
 };
 
 fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {
-    const text_tests_readme_path_name_path = try guard.joinPath(allocator, root, "scripts\zigux/validate_phase8.zig");
+    const text_tests_readme_path_name_path = try guard.joinPath(allocator, root, "scripts/zigux/validate_phase8.zig");
     defer allocator.free(text_tests_readme_path_name_path);
     const text_tests_readme_path_name = try guard.readUtf8File(io, allocator, text_tests_readme_path_name_path);
     defer allocator.free(text_tests_readme_path_name);

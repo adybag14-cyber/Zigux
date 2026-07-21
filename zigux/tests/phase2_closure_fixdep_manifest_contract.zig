@@ -27,7 +27,7 @@ test "phase2 closure note and manifest keep fixdep support explicit" {
     try expectContains(closure, "`scripts\zigux/check_phase2_fixdep_gate.zig`");
     try expectContains(closure, "`scripts\zigux/check_fixdep_diff.zig`");
     try expectContains(closure, "`make -C zigux phase2-fixdep`");
-    try expectContains(closure, "PHASE2_SHARED_TOOLING_CHECKERS=zig run check_phase2_tool_manifest.zig,zig run check_phase2_bootstrap_workflow_routes.zig,zig run check_phase2_artifact_tools_manifest.zig,zig run check_phase2_kconfig_allconfig_helper_packet.zig,zig run check_phase2_cross.zig,zig run check_phase2_fixdep_gate.zig,zig run check_fixdep_diff.zig");
+    try expectContains(closure, "PHASE2_SHARED_TOOLING_CHECKERS=zig run scripts/zigux/check_phase2_tool_manifest.zig,zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig,zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig,zig run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig,zig run scripts/zigux/check_phase2_cross.zig,zig run scripts/zigux/check_phase2_fixdep_gate.zig,zig run scripts/zigux/check_fixdep_diff.zig");
     try expectContains(closure, "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/fixtures/phase2_tool_manifest.json");
@@ -50,8 +50,8 @@ test "closure validator preserves fixdep in shared tooling derivation" {
     try expectContains(validator, "SHARED_TOOLING_COMMANDS = (");
     try expectContains(validator, "SHARED_TOOLING_REQUIRED_NOTE_MARKERS = (");
     try expectContains(validator, "MANIFEST_SURFACE_KEYS = (");
-    try expectContains(validator, "\"zig run check_phase2_fixdep_gate.zig\",");
-    try expectContains(validator, "\"zig run check_fixdep_diff.zig\",");
+    try expectContains(validator, "\"zig run scripts/zigux/check_phase2_fixdep_gate.zig\",");
+    try expectContains(validator, "\"zig run scripts/zigux/check_fixdep_diff.zig\",");
     try expectContains(validator, "\"make -C zigux phase2-fixdep\",");
     try expectContains(validator, "expected_shared_tooling_line = \"PHASE2_SHARED_TOOLING_CHECKERS=\"");
     try expectContains(validator, "expected_routes_line = \"PHASE2_SHARED_MAKE_ROUTES=\"");
@@ -73,10 +73,10 @@ test "fixdep gate and make route keep the same closure packet" {
     const makefile = try readRepoFile(allocator, "zigux/Makefile");
     defer allocator.free(makefile);
     try expectLineOnce(makefile, "phase2-fixdep: phase2-toolchain");
-    try expectLineOnce(makefile, "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_fixdep_gate.zig --self-test");
+    try expectLineOnce(makefile, "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_fixdep_gate.zig -- --self-test");
     try expectLineOnce(makefile, "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_phase2_fixdep_gate.zig");
-    try expectLineOnce(makefile, "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_fixdep_diff.zig --self-test");
-    try expectLineOnce(makefile, "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_fixdep_diff.zig --zig \"$(ZIG_REPO_ROOT)\"");
+    try expectLineOnce(makefile, "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_fixdep_diff.zig -- --self-test");
+    try expectLineOnce(makefile, "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/check_fixdep_diff.zig -- --zig \"$(ZIG_REPO_ROOT)\"");
     try expectLineOnce(makefile, "cd $(ZIGUX_ROOT) && $(ZIG_REPO_ROOT) test scripts/zigux/fixdep.zig");
     try expectLineOnce(makefile, "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep");
 }

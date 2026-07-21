@@ -76,7 +76,7 @@ const REQUIRED_MARKERS__zigux_tests_phase3_notifier_abi_packet_manifest_json = [
     "\"zigux/bindings/notifier_abi.zig\"",
     "\"zigux/helpers/layout_assert.zig\"",
     "\"scripts\\zigux/check_phase3_notifier_abi_packet.zig\"",
-    "\"zig run scripts\\zigux/check_phase3_notifier_abi_packet.zig --self-test\"",
+    "\"zig run scripts\\zigux/check_phase3_notifier_abi_packet.zig -- --self-test\"",
     "\"scripts\\zigux/check_phase3_abi.zig\"",
     "\"scripts\\zigux/validate_phase3.zig\"",
 };

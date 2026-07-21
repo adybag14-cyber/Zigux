@@ -43,7 +43,7 @@ const SELF_TEST_NARROW = [_][]const u8{
 };
 
 const SELF_TEST_POLICY_SLICE = [_][]const u8{
-    "# Phase 3 Policy Slice\n- `PHASE3_POLICY_SLICE_FILE_COUNT=sample`\n- `zigux/helpers/unsafe_policy.zig`\n- `zigux/tests/phase3_policy_starter_packet_manifest.json`\n- `zig run scripts\\zigux/check_phase3_policy_starter_packet.zig`\n- `zig run scripts\\zigux/check_phase3_policy_dump.zig --self-test`\n",
+    "# Phase 3 Policy Slice\n- `PHASE3_POLICY_SLICE_FILE_COUNT=sample`\n- `zigux/helpers/unsafe_policy.zig`\n- `zigux/tests/phase3_policy_starter_packet_manifest.json`\n- `zig run scripts\\zigux/check_phase3_policy_starter_packet.zig`\n- `zig run scripts\\zigux/check_phase3_policy_dump.zig -- --self-test`\n",
 };
 
 const SELF_TEST_LOW_LEVEL_SURVEY = [_][]const u8{

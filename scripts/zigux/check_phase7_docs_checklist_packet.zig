@@ -35,18 +35,18 @@ const EXPECTED_COMPANIONS = [_][]const u8{
 };
 
 const EXPECTED_REPLAYS = [_][]const u8{
-    "zig run scripts\\zigux/check_phase7_shared_surface.zig",
-    "zig run scripts\\zigux/check_phase7_shared_surface.zig --self-test",
-    "zig run scripts\\zigux/check_phase7_build_wiring.zig",
-    "zig run scripts\\zigux/check_phase7_build_wiring.zig --self-test",
-    "zig run scripts\\zigux/check_phase7_make_wrapper_selftest_alignment.zig",
-    "zig run scripts\\zigux/check_phase7_make_wrapper_selftest_alignment.zig --self-test",
-    "zig run scripts\\zigux/check_phase7_argv_split_packet.zig",
-    "zig run scripts\\zigux/check_phase7_argv_split_packet.zig --self-test",
-    "zig run scripts\\zigux/check_phase7_string_helpers_format_boundary_packet.zig",
-    "zig run scripts\\zigux/check_phase7_string_helpers_format_boundary_packet.zig --self-test",
-    "zig run scripts\\zigux/validate_phase7.zig",
-    "zig run scripts\\zigux/validate_phase7.zig --self-test",
+    "zig run scripts/zigux/check_phase7_shared_surface.zig",
+    "zig run scripts/zigux/check_phase7_shared_surface.zig -- --self-test",
+    "zig run scripts/zigux/check_phase7_build_wiring.zig",
+    "zig run scripts/zigux/check_phase7_build_wiring.zig -- --self-test",
+    "zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig",
+    "zig run scripts/zigux/check_phase7_make_wrapper_selftest_alignment.zig -- --self-test",
+    "zig run scripts/zigux/check_phase7_argv_split_packet.zig",
+    "zig run scripts/zigux/check_phase7_argv_split_packet.zig -- --self-test",
+    "zig run scripts/zigux/check_phase7_string_helpers_format_boundary_packet.zig",
+    "zig run scripts/zigux/check_phase7_string_helpers_format_boundary_packet.zig -- --self-test",
+    "zig run scripts/zigux/validate_phase7.zig",
+    "zig run scripts/zigux/validate_phase7.zig -- --self-test",
     "make -C zigux phase7-validate",
 };
 
@@ -154,7 +154,7 @@ const REQUIRED_MARKERS__zigux_tests_README_md = [_][]const u8{
 
 const MAKEFILE_LINES = [_][]const u8{
     "phase7-validate:",
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig -- --self-test",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig",
 };
 

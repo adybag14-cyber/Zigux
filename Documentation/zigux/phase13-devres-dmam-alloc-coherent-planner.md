@@ -39,5 +39,5 @@ Adjacent boundary evidence stays unchanged:
 
 Standalone replay handles:
 - `zig test --dep devres -Mroot=zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig -Mdevres=lib/devres.zig`
-- `zig run check_phase13_devres_dmam_alloc_coherent_planner.zig`
+- `zig run scripts/zigux/check_phase13_devres_dmam_alloc_coherent_planner.zig`
 - `zig test zigux/tests/phase13_devres_dma_coherent.zig`

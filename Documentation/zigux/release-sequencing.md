@@ -10,7 +10,7 @@ It is a release-planning artifact, not a tranche-closure claim and not a substit
 - `RELEASE_PLAN_SCOPE=phase sequencing, tranche closure, and release coordination artifacts`
 - roadmap authority: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
 - bootstrap ledger authority: `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`
-- release-sequencing guard: `zig run check_release_sequencing.zig`
+- release-sequencing guard: `zig run scripts/zigux/check_release_sequencing.zig`
 - foundation closures: `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase2-closure.md`
 
 ## Sequencing Baseline
@@ -57,7 +57,7 @@ Keep the current release story ordered this way:
 When release-planning wording changes:
 
 1. reread this note beside the phase-local closure and coordination notes it references
-2. rerun `zig run check_release_sequencing.zig`
+2. rerun `zig run scripts/zigux/check_release_sequencing.zig`
 3. keep foundation, active-gating, conditional, and supporting phases in the same order unless roadmap-backed repo reality changes
 4. leave helper-local validation or closure expansion to the owning phase lane
 

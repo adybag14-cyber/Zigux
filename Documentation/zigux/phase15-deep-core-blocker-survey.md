@@ -109,15 +109,15 @@ That means the honest posture is still blocker accounting and reminder-surface m
 
 - current lane posture: `maintenance_mode`
 - replay before trusting this survey:
-  - `zig run check_phase15_docs_readme_alignment.zig`
-  - `zig run check_phase15_review_checklist_study_only_alignment.zig`
-  - `zig run check_phase15_scripts_readme_alignment.zig`
-  - `zig run check_phase15_tests_readme_alignment.zig`
-  - `zig run check_phase15_review_process_handoff.zig`
-  - `zig run check_phase15_handoff_note_alignment.zig`
-  - `zig run check_phase15_shared_summary_gap.zig`
-  - `zig run check_phase15_readiness_gate_packet.zig`
-  - `zig run validate_phase15.zig`
+  - `zig run scripts/zigux/check_phase15_docs_readme_alignment.zig`
+  - `zig run scripts/zigux/check_phase15_review_checklist_study_only_alignment.zig`
+  - `zig run scripts/zigux/check_phase15_scripts_readme_alignment.zig`
+  - `zig run scripts/zigux/check_phase15_tests_readme_alignment.zig`
+  - `zig run scripts/zigux/check_phase15_review_process_handoff.zig`
+  - `zig run scripts/zigux/check_phase15_handoff_note_alignment.zig`
+  - `zig run scripts/zigux/check_phase15_shared_summary_gap.zig`
+  - `zig run scripts/zigux/check_phase15_readiness_gate_packet.zig`
+  - `zig run scripts/zigux/validate_phase15.zig`
   - `zig test zigux/tests/phase15_freeze_map_governance.zig`
   - `zig test zigux/tests/phase15_parity_scorecard.zig`
   - `zig build test --build-file zigux/tests/phase15_build.zig`

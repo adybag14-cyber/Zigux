@@ -31,15 +31,15 @@ Keep `Documentation/zigux/phase13-release-notes-survey.md` and `Documentation/zi
 
 Keep `Documentation/zigux/phase13-release-packet-index.md` and `Documentation/zigux/phase12-phase13-release-handoff.md` aligned as PMO coordination companions when shared contributor wording also changes release-facing or cross-phase wording rather than treating either note as a replacement for the stable contributor-facing handle.
 
-stable shared-summary guard: `zig run check_phase13_shared_summary_surfaces.zig`
-tests-root alignment companion: `zig run check_phase13_tests_readme_alignment.zig`
-release-discipline validator: `zig run validate_phase13_release.zig`
+stable shared-summary guard: `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig`
+tests-root alignment companion: `zig run scripts/zigux/check_phase13_tests_readme_alignment.zig`
+release-discipline validator: `zig run scripts/zigux/validate_phase13_release.zig`
 
-Keep `zig run check_phase13_shared_summary_surfaces.zig` explicit as the shipped shared-summary guard for those reminder surfaces rather than as the contributor-facing handle itself.
+Keep `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig` explicit as the shipped shared-summary guard for those reminder surfaces rather than as the contributor-facing handle itself.
 
-Keep `zig run check_phase13_tests_readme_alignment.zig` explicit as the shipped tests-root alignment companion for that stable handle rather than as a new replay route or a Makefile-backed entrypoint.
+Keep `zig run scripts/zigux/check_phase13_tests_readme_alignment.zig` explicit as the shipped tests-root alignment companion for that stable handle rather than as a new replay route or a Makefile-backed entrypoint.
 
-Keep `zig run validate_phase13_release.zig` explicit as the shipped release-discipline validator for that stable handle rather than as a new replay route or a Makefile-backed entrypoint.
+Keep `zig run scripts/zigux/validate_phase13_release.zig` explicit as the shipped release-discipline validator for that stable handle rather than as a new replay route or a Makefile-backed entrypoint.
 
 `zigux/Makefile` is present on current `master`, but it still does not expose `make -C zigux phase13-validate` or `make -C zigux phase13`, so keep the file itself distinct from those missing Phase 13 route names and keep only the route names recorded as repo-reality gaps until the shared build handle returns.
 
@@ -84,7 +84,7 @@ If this is your first Phase 13 reminder-surface edit in a while, use this short 
 2. decide whether the change is shared contributor wording or helper-local proof, and stay on the shared side unless the packet forces a narrower helper note
 3. if the change also adjusts release-facing wording, reread `Documentation/zigux/phase13-release-packet-index.md` and `Documentation/zigux/phase12-phase13-release-handoff.md` before widening any summary text
 4. edit at most one shared reminder surface plus the smallest helper-local note needed to keep the packet truthful
-5. rerun `zig run check_phase13_shared_summary_surfaces.zig`, `zig run check_phase13_tests_readme_alignment.zig`, and `zig run validate_phase13_release.zig`
+5. rerun `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig`, `zig run scripts/zigux/check_phase13_tests_readme_alignment.zig`, and `zig run scripts/zigux/validate_phase13_release.zig`
 6. leave any absent route, replay, or helper framed as a repo-reality gap instead of promoting it into shipped evidence
 
 Contributor quick-start loop: open the workflow-guide, scripts-root, and tests-root trio first, reread the packet index plus the Phase 12 to Phase 13 handoff note when release-facing wording moves, keep the change to one shared reminder surface plus the smallest helper-local note, rerun the shared-summary, tests-root, and release-validator trio, and leave missing routes or helpers in the repo-reality-gap bucket.
@@ -130,10 +130,10 @@ When the change stays inside the shared Phase 13 reminder lane, use this bounded
 1. reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together before touching helper-local wording
 2. if release-facing or cross-phase wording also moves, reread `Documentation/zigux/phase13-release-packet-index.md` and `Documentation/zigux/phase12-phase13-release-handoff.md` before changing broader summary text
 3. update at most one shared reminder surface plus the smallest necessary helper-local packet note in the same change
-4. rerun `zig run check_phase13_shared_summary_surfaces.zig`, `zig run check_phase13_tests_readme_alignment.zig`, and `zig run validate_phase13_release.zig`
+4. rerun `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig`, `zig run scripts/zigux/check_phase13_tests_readme_alignment.zig`, and `zig run scripts/zigux/validate_phase13_release.zig`
 5. if a route, replay, or helper is absent on current `master`, keep it recorded as a repo-reality gap instead of promoting it into shipped evidence
 
-Shared contributor edit loop: reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together first, reread `Documentation/zigux/phase13-release-packet-index.md` and `Documentation/zigux/phase12-phase13-release-handoff.md` when release-facing or cross-phase wording moves, update at most one shared reminder surface plus the smallest helper-local packet note in the same change, rerun `zig run check_phase13_shared_summary_surfaces.zig`, `zig run check_phase13_tests_readme_alignment.zig`, and `zig run validate_phase13_release.zig`, and keep any absent route, replay, or helper recorded as a repo-reality gap instead of promoted shipped evidence.
+Shared contributor edit loop: reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together first, reread `Documentation/zigux/phase13-release-packet-index.md` and `Documentation/zigux/phase12-phase13-release-handoff.md` when release-facing or cross-phase wording moves, update at most one shared reminder surface plus the smallest helper-local packet note in the same change, rerun `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig`, `zig run scripts/zigux/check_phase13_tests_readme_alignment.zig`, and `zig run scripts/zigux/validate_phase13_release.zig`, and keep any absent route, replay, or helper recorded as a repo-reality gap instead of promoted shipped evidence.
 
 ## Helper-Local Packets
 
@@ -228,9 +228,9 @@ Before landing a broad Phase 13 reminder change, check that:
 - `Documentation/zigux/review-checklist.md` and `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` stay aligned as the supporting shared reminder surfaces for that stable handle
 - the release packet index and the Phase 12 to Phase 13 handoff note stay aligned as PMO coordination companions when release-facing or cross-phase wording changes
 - the release-coordination matrix and shared-helper sequencing note still describe the same active helper packet
-- the stable shared-summary guard remains `zig run check_phase13_shared_summary_surfaces.zig`
-- the shipped tests-root alignment companion remains `zig run check_phase13_tests_readme_alignment.zig` so the broader contributor wording and the tests-root reminder stay on the same Phase 13 packet
-- the shipped release-discipline validator remains `zig run validate_phase13_release.zig` so contributor workflow wording keeps the same shared release support named across the live Phase 13 reminder surfaces
+- the stable shared-summary guard remains `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig`
+- the shipped tests-root alignment companion remains `zig run scripts/zigux/check_phase13_tests_readme_alignment.zig` so the broader contributor wording and the tests-root reminder stay on the same Phase 13 packet
+- the shipped release-discipline validator remains `zig run scripts/zigux/validate_phase13_release.zig` so contributor workflow wording keeps the same shared release support named across the live Phase 13 reminder surfaces
 - helper-local owner maps for `libfs`, `devres`, and `landlock` remain explicit
 - the shipped `devres` packet still runs through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-iounmap-planner.md`, `Documentation/zigux/phase13-devres-iomap-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `scripts\zigux/check_phase13_devres_dma_boundary.zig`, `scripts\zigux/check_phase13_devres_dmam_alloc_coherent_planner.zig`, `scripts\zigux/check_phase13_devres_iounmap_planner.zig`, `scripts\zigux/check_phase13_devres_iomap_planner.zig`, `scripts\zigux/check_phase13_devres_mmio_packet.zig`, `scripts\zigux/check_phase13_devres_current_packet.zig`, `scripts\zigux/check_phase13_devres_scatterlist_planner.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig`, `zigux/tests/phase13_devres_iounmap_planner.zig`, `zigux/tests/phase13_devres_iounmap_planner_manifest.json`, `zigux/tests/phase13_devres_iomap_planner.zig`, `zigux/tests/phase13_devres_iomap_planner_manifest.json`, `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`, `lib/devres.zig`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, while `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts\zigux/check_phase13_devres_packet.zig`, and `scripts\zigux/check_phase13_devres_packet_alignment.zig` stay recorded as repo-reality gaps rather than shipped current-`master` evidence
 - adjacent notifier evidence stays adjacent rather than becoming a fifth helper family

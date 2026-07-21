@@ -72,7 +72,7 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
         std.mem.indexOf(u8, bridge_boundary, "`Documentation/zigux/phase8-perf-buffer-poll-slice.md`") != null,
     );
     try std.testing.expect(
-        std.mem.indexOf(u8, bridge_boundary, "`zig run check_phase8_perf_buffer_poll_gate.zig`") != null,
+        std.mem.indexOf(u8, bridge_boundary, "`zig run scripts/zigux/check_phase8_perf_buffer_poll_gate.zig`") != null,
     );
     try std.testing.expect(
         std.mem.indexOf(u8, bridge_boundary, "`make -C zigux phase8-perf-buffer-poll-test`") != null,
@@ -187,7 +187,7 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
         "phase8 perf-buffer wait budget normalizes bounded waits into ms and ns budgets",
     );
 
-    const validator = try readRepoFile("scripts\zigux/validate_phase8.zig");
+    const validator = try readRepoFile("scripts/zigux/validate_phase8.zig");
     defer std.testing.allocator.free(validator);
 
     try expectContains(

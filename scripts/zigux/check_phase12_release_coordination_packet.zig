@@ -87,7 +87,7 @@ const REQUIRED_MARKERS = [_][]const u8{
     "- name: Self-test current Phase 12 release-readiness packet checker",
     "run: zig run scripts/zigux/check_phase12_release_readiness_packet.zig -- --self-test",
     "- name: Validate current Phase 12 support bundle",
-    "run: zig run validate_phase12.zig",
+    "run: zig run scripts/zigux/validate_phase12.zig",
     "- name: Run current Phase 12 aggregate route",
     "run: make -C zigux phase12",
 };

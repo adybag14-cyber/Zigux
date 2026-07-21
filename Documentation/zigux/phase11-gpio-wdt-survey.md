@@ -101,8 +101,8 @@ The focused current-head manifest survey now fail-closes on the recovered
 manifest plus the coupled survey and validation matrix so this smaller packet
 cannot drift silently while the wider archival manifest path stays absent.
 
-`zig run check_phase11_gpio_current_head_manifest.zig --self-test`
-and `zig run check_phase11_gpio_current_head_manifest.zig`
+`zig run scripts/zigux/check_phase11_gpio_current_head_manifest.zig -- --self-test`
+and `zig run scripts/zigux/check_phase11_gpio_current_head_manifest.zig`
 now fail-closes on the recovered manifest, survey note, validation matrix, and
 dedicated build route so this current-head packet keeps one directly readable
 checker surface instead of leaving checker upkeep implicit.

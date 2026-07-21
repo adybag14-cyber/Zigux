@@ -32,10 +32,10 @@ For the shared ABI lane, this means the honest repo-reality statement now includ
 
 The replay surface exposed by the landed packet is:
 
-- `zig run check_phase3_idr_slot_starter_packet.zig --self-test`
-- `zig run check_phase3_idr_slot_starter_packet.zig --repo-root .`
-- `zig run check_phase3_idr_slot.zig --self-test`
-- `zig run check_phase3_idr_slot.zig --repo-root . --zig zig --cc gcc`
+- `zig run scripts/zigux/check_phase3_idr_slot_starter_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_idr_slot_starter_packet.zig -- --repo-root .`
+- `zig run scripts/zigux/check_phase3_idr_slot.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_idr_slot.zig -- --repo-root . --zig zig --cc gcc`
 - `zig build phase3-idr-slot --build-file zigux/tests/phase3_idr_slot_build.zig`
 - `zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig`
 - `zig build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig`

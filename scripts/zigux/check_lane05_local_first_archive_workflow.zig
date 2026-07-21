@@ -37,7 +37,7 @@ const REPO_ARCHIVE_PARTS_DIR = "repo_archive_parts_dir=\"${repo_archive_path}.pa
 const LOCAL_PARTS_GUARD = "if [ ! -d \"$repo_archive_parts_dir\" ]; then";
 const STAGE_HELPER_CMD = "zig run scripts/zigux/stage_pinned_zig_archive.zig";
 const STAGE_HELPER_ZIG_CMD = "zig run scripts/zigux/stage_pinned_zig_archive.zig";
-const REPO_ARCHIVE_CHECK_CMD = "zig run check_zig_toolchain.zig --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"";
+const REPO_ARCHIVE_CHECK_CMD = "zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"";
 const REPO_ARCHIVE_CHECK_ZIG_CMD = "zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"";
 const STAGE_HELPER_ROOT_ARG = "--root \"$GITHUB_WORKSPACE\"";
 const STAGE_HELPER_PARTS_ARG = "--parts-dir \"$repo_archive_parts_dir\"";
@@ -54,7 +54,7 @@ const README_SELF_TEST_CMD_PY = "python3 scripts/zigux/check-lane05-local-archiv
 const README_CHECK_CMD_PY = "python3 scripts/zigux/check-lane05-local-archive-readme.py";
 const README_SELF_TEST_CMD_ZIG = "zig run scripts/zigux/check_lane05_local_archive_readme.zig -- --self-test";
 const README_CHECK_CMD_ZIG = "zig run scripts/zigux/check_lane05_local_archive_readme.zig";
-const STAGE_HELPER_SELF_TEST_CMD_PY = "zig run scripts/zigux/stage_pinned_zig_archive.zig --self-test";
+const STAGE_HELPER_SELF_TEST_CMD_PY = "zig run scripts/zigux/stage_pinned_zig_archive.zig -- --self-test";
 
 const checker_self_test_pair = guard.RoutePair{ .python_route = SELF_TEST_CMD_PY, .zig_route = SELF_TEST_CMD_ZIG };
 const checker_check_pair = guard.RoutePair{ .python_route = CHECK_CMD_PY, .zig_route = CHECK_CMD_ZIG };
@@ -63,11 +63,11 @@ const readme_check_pair = guard.RoutePair{ .python_route = README_CHECK_CMD_PY, 
 const stage_helper_self_test_pair = guard.RoutePair{ .python_route = STAGE_HELPER_SELF_TEST_CMD_PY, .zig_route = STAGE_HELPER_SELF_TEST_CMD };
 
 const policy_cmd_pair = guard.RoutePair{
-    .python_route = "zig run scripts/zigux/check_zig_toolchain.zig --policy-only",
+    .python_route = "zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only",
     .zig_route = "zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only",
 };
 const archive_check_cmd_pair = guard.RoutePair{
-    .python_route = "zig run scripts/zigux/check_zig_toolchain.zig --archive-only --allow-missing",
+    .python_route = "zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing",
     .zig_route = "zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing",
 };
 const stage_helper_pair = guard.RoutePair{
@@ -85,7 +85,7 @@ const POLICY_MARKERS = [_][]const u8{
     "channel = policy[\"channel\"]",
     "filename = f\"zig-{target}-{channel}.tar.xz\"",
     "canonical_repo = \"adybag14-cyber/zig\"",
-    "canonical_tag = \"upstream-64dfaa568db0\"",
+    "canonical_tag = \"upstream-6c25d2bd58e4\"",
     "url = f\"https://ziglang.org/builds/{filename}\"",
     "canonical_url = f\"https://github.com/{canonical_repo}/releases/download/{canonical_tag}/{filename}\"",
     "print(f\"ZIGUX_ZIG_TARGET='{target}'\")",
@@ -236,7 +236,10 @@ fn countExactRunLine(text: []const u8, command: []const u8) usize {
 }
 
 fn requireExactRouteRunLineCountWF(io: Io, allocator: std.mem.Allocator, text: []const u8, pair: guard.RoutePair, expected: usize, label: []const u8) CheckerError!void {
-    const actual = countExactRunLine(text, pair.python_route) + countExactRunLine(text, pair.zig_route);
+    const actual = if (std.mem.eql(u8, pair.python_route, pair.zig_route))
+        countExactRunLine(text, pair.zig_route)
+    else
+        countExactRunLine(text, pair.python_route) + countExactRunLine(text, pair.zig_route);
     if (actual != expected) {
         const msg = try std.fmt.allocPrint(
             allocator,
@@ -496,7 +499,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
         allocator,
         good_workflow_fixture,
         REPO_ARCHIVE_CHECK_ZIG_CMD,
-        "zig run check_zig_toolchain.zig --archive-only --allow-missing",
+        "zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing",
     );
     defer allocator.free(missing_local_validation);
     try expectWorkflowFail(io, allocator, missing_local_validation);
@@ -525,7 +528,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
     const missing_tool_manifest_step = try replaceOnce(
         allocator,
         good_workflow_fixture,
-        "      - name: Self-test current Phase 2 tool manifest checker\n        run: zig run check_phase2_tool_manifest.zig --self-test\n",
+        "      - name: Self-test current Phase 2 tool manifest checker\n        run: zig run scripts/zigux/check_phase2_tool_manifest.zig -- --self-test\n",
         "",
     );
     defer allocator.free(missing_tool_manifest_step);
@@ -535,7 +538,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
     const missing_artifact_manifest_step = try replaceOnce(
         allocator,
         good_workflow_fixture,
-        "      - name: Check current Phase 2 artifact tools manifest packet\n        run: zig run check_phase2_artifact_tools_manifest.zig\n",
+        "      - name: Check current Phase 2 artifact tools manifest packet\n        run: zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig\n",
         "",
     );
     defer allocator.free(missing_artifact_manifest_step);
@@ -545,7 +548,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
     const missing_retained_step = try replaceOnce(
         allocator,
         good_workflow_fixture,
-        "      - name: Self-test current Phase 9 freeze-map study-boundaries checker\n        run: zig run check_phase9_freeze_map_study_boundaries.zig --self-test\n",
+        "      - name: Self-test current Phase 9 freeze-map study-boundaries checker\n        run: zig run scripts/zigux/check_phase9_freeze_map_study_boundaries.zig -- --self-test\n",
         "",
     );
     defer allocator.free(missing_retained_step);
@@ -555,7 +558,7 @@ pub fn runSelfTest(io: Io, allocator: std.mem.Allocator) !u8 {
     const missing_build_inventory_step = try replaceOnce(
         allocator,
         good_workflow_fixture,
-        "      - name: Self-test current Phase 11 build inventory checker\n        run: zig run check_phase11_build_inventory.zig --self-test\n",
+        "      - name: Self-test current Phase 11 build inventory checker\n        run: zig run scripts/zigux/check_phase11_build_inventory.zig -- --self-test\n",
         "",
     );
     defer allocator.free(missing_build_inventory_step);

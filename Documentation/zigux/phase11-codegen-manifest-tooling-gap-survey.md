@@ -61,43 +61,43 @@ The same current validator fixture also records the DesignWare build-route guard
 
 The exact deterministic command set recorded by the current shared validator fixture is:
 
-- `zig run validate_phase11.zig --self-test`
-- `zig run check_phase11_validate_manifest_roster.zig --self-test`
-- `zig run check_phase11_validate_manifest_roster.zig`
-- `zig run check_phase11_validate_check_roster.zig --self-test`
-- `zig run check_phase11_validate_check_roster.zig`
-- `zig run check_phase11_validate_route_alignment.zig --self-test`
-- `zig run check_phase11_validate_route_alignment.zig`
-- `zig run check_phase11_shared_tooling_manifest.zig --self-test`
-- `zig run check_phase11_shared_tooling_manifest.zig`
-- `zig run check_phase11_build_inventory.zig --self-test`
-- `zig run check_phase11_build_inventory.zig`
-- `zig run check_phase11_focused_direct_build_replays.zig --self-test`
-- `zig run check_phase11_focused_direct_build_replays.zig`
-- `zig run check_phase11_shared_replay_contract_counts.zig --self-test`
-- `zig run check_phase11_shared_replay_contract_counts.zig`
-- `zig run check_phase11_matrix_gap_survey.zig --self-test`
-- `zig run check_phase11_matrix_gap_survey.zig`
-- `zig run check_phase11_validation_matrix_gap_survey.zig --self-test`
-- `zig run check_phase11_validation_matrix_gap_survey.zig`
-- `zig run check_phase11_watchdog_lifecycle_parity_gap.zig --self-test`
-- `zig run check_phase11_watchdog_lifecycle_parity_gap.zig`
-- `zig run check_phase11_header_boundary_packet.zig --self-test`
-- `zig run check_phase11_header_boundary_packet.zig`
-- `zig run check_phase11_hvc_cleanup_current_head.zig --self-test`
-- `zig run check_phase11_hvc_cleanup_current_head.zig`
-- `zig run check_phase11_hvc_cleanup_prerequisite_packet.zig --self-test`
-- `zig run check_phase11_hvc_cleanup_prerequisite_packet.zig`
-- `zig run check_phase11_hvc_targetless_unregister_witness.zig --self-test`
-- `zig run check_phase11_hvc_targetless_unregister_witness.zig`
-- `zig run check_phase11_hvc_current_head_manifest.zig --self-test`
-- `zig run check_phase11_hvc_current_head_manifest.zig`
-- `zig run check_phase11_dw_wdt_teardown_packet.zig --self-test`
-- `zig run check_phase11_dw_wdt_teardown_packet.zig`
-- `zig run check_phase11_dw_wdt_verify_alignment.zig --self-test`
-- `zig run check_phase11_dw_wdt_verify_alignment.zig`
-- `zig run check_phase11_dw_wdt_build_route.zig --self-test`
-- `zig run check_phase11_dw_wdt_build_route.zig`
+- `zig run scripts/zigux/validate_phase11.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_validate_manifest_roster.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_validate_manifest_roster.zig`
+- `zig run scripts/zigux/check_phase11_validate_check_roster.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_validate_check_roster.zig`
+- `zig run scripts/zigux/check_phase11_validate_route_alignment.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_validate_route_alignment.zig`
+- `zig run scripts/zigux/check_phase11_shared_tooling_manifest.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_shared_tooling_manifest.zig`
+- `zig run scripts/zigux/check_phase11_build_inventory.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_build_inventory.zig`
+- `zig run scripts/zigux/check_phase11_focused_direct_build_replays.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_focused_direct_build_replays.zig`
+- `zig run scripts/zigux/check_phase11_shared_replay_contract_counts.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_shared_replay_contract_counts.zig`
+- `zig run scripts/zigux/check_phase11_matrix_gap_survey.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_matrix_gap_survey.zig`
+- `zig run scripts/zigux/check_phase11_validation_matrix_gap_survey.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_validation_matrix_gap_survey.zig`
+- `zig run scripts/zigux/check_phase11_watchdog_lifecycle_parity_gap.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_watchdog_lifecycle_parity_gap.zig`
+- `zig run scripts/zigux/check_phase11_header_boundary_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_header_boundary_packet.zig`
+- `zig run scripts/zigux/check_phase11_hvc_cleanup_current_head.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_hvc_cleanup_current_head.zig`
+- `zig run scripts/zigux/check_phase11_hvc_cleanup_prerequisite_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_hvc_cleanup_prerequisite_packet.zig`
+- `zig run scripts/zigux/check_phase11_hvc_targetless_unregister_witness.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_hvc_targetless_unregister_witness.zig`
+- `zig run scripts/zigux/check_phase11_hvc_current_head_manifest.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_hvc_current_head_manifest.zig`
+- `zig run scripts/zigux/check_phase11_dw_wdt_teardown_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_dw_wdt_teardown_packet.zig`
+- `zig run scripts/zigux/check_phase11_dw_wdt_verify_alignment.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_dw_wdt_verify_alignment.zig`
+- `zig run scripts/zigux/check_phase11_dw_wdt_build_route.zig -- --self-test`
+- `zig run scripts/zigux/check_phase11_dw_wdt_build_route.zig`
 - `zig build test --build-file zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig`
 - `zig build test --build-file zigux/tests/phase11_dw_wdt_build.zig`
 - `zig build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig`
@@ -113,7 +113,7 @@ The exact deterministic command set recorded by the current shared validator fix
 - `zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig`
 - `zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
-Use `zig run validate_phase11.zig --skip-zig-builds` when a scheduled environment cannot expose the pinned Zig toolchain or a runnable checkout; that still verifies the Python checker chain and records the skipped Zig proof-build count.
+Use `zig run scripts/zigux/validate_phase11.zig -- --skip-zig-builds` when a scheduled environment cannot expose the pinned Zig toolchain or a runnable checkout; that still verifies the Python checker chain and records the skipped Zig proof-build count.
 
 ## Live Gap Versus The Roadmap
 

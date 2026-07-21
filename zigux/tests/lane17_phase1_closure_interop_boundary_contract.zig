@@ -19,19 +19,19 @@ const Step = struct {
 const boundary_steps = [_]Step{
     .{
         .name = "Self-test current Phase 1 shared reminder checker",
-        .run = "zig run check_phase1_shared_reminder_packet.zig --self-test",
+        .run = "zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 shared reminder packet",
-        .run = "zig run check_phase1_shared_reminder_packet.zig",
+        .run = "zig run scripts/zigux/check_phase1_shared_reminder_packet.zig",
     },
     .{
         .name = "Self-test current Phase 1 closure validator",
-        .run = "zig run validate_phase1_closure.zig --self-test",
+        .run = "zig run scripts/zigux/validate_phase1_closure.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 closure packet",
-        .run = "zig run validate_phase1_closure.zig",
+        .run = "zig run scripts/zigux/validate_phase1_closure.zig",
     },
     .{
         .name = "Self-test current Phase 3 interop packet",
@@ -95,10 +95,10 @@ fn validateBoundary(haystack: []const u8) WorkflowError!void {
         previous_end = index + block.len;
     }
 
-    try requireAbsent(haystack, "        run: zig run check_phase1_shared_reminder_packet.zig --allow-missing");
-    try requireAbsent(haystack, "        run: zig run validate_phase1_closure.zig --allow-missing");
-    try requireAbsent(haystack, "        run: zig run validate_phase1_closure.zig --root");
-    try requireAbsent(haystack, "        run: zig run scripts/zigux/run_phase3_checks.zig --allow-missing");
+    try requireAbsent(haystack, "        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --allow-missing");
+    try requireAbsent(haystack, "        run: zig run scripts/zigux/validate_phase1_closure.zig -- --allow-missing");
+    try requireAbsent(haystack, "        run: zig run scripts/zigux/validate_phase1_closure.zig -- --root");
+    try requireAbsent(haystack, "        run: zig run scripts/zigux/run_phase3_checks.zig -- --allow-missing");
 }
 
 test "current bootstrap keeps shared reminder, closure, and interop gates adjacent" {
@@ -130,11 +130,11 @@ test "closure packet hands directly to the Phase 3 interop self-test" {
 test "contract rejects a missing closure packet" {
     const fixture =
         "      - name: Self-test current Phase 1 shared reminder checker\n" ++
-        "        run: zig run check_phase1_shared_reminder_packet.zig --self-test\n" ++
+        "        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test\n" ++
         "      - name: Check current Phase 1 shared reminder packet\n" ++
-        "        run: zig run check_phase1_shared_reminder_packet.zig\n" ++
+        "        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig\n" ++
         "      - name: Self-test current Phase 1 closure validator\n" ++
-        "        run: zig run validate_phase1_closure.zig --self-test\n" ++
+        "        run: zig run scripts/zigux/validate_phase1_closure.zig -- --self-test\n" ++
         "      - name: Self-test current Phase 3 interop packet\n" ++
         "        run: zig run scripts/zigux/validate_phase3_selftest.zig\n" ++
         "      - name: Check current Phase 3 interop packet\n" ++
@@ -144,13 +144,13 @@ test "contract rejects a missing closure packet" {
 }
 
 test "contract rejects duplicate boundary commands" {
-    const duplicate = workflow_text ++ "\n      - name: Check current Phase 1 closure packet\n        run: zig run validate_phase1_closure.zig\n";
+    const duplicate = workflow_text ++ "\n      - name: Check current Phase 1 closure packet\n        run: zig run scripts/zigux/validate_phase1_closure.zig\n";
 
     try std.testing.expectError(error.DuplicateWorkflowMarker, validateBoundary(duplicate));
 }
 
 test "contract rejects stale permissive closure variants" {
-    const stale = workflow_text ++ "\n        run: zig run validate_phase1_closure.zig --allow-missing\n";
+    const stale = workflow_text ++ "\n        run: zig run scripts/zigux/validate_phase1_closure.zig -- --allow-missing\n";
 
     try std.testing.expectError(error.StaleWorkflowVariant, validateBoundary(stale));
 }

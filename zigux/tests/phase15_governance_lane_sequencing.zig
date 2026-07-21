@@ -99,9 +99,9 @@ test "phase 15 governance-lane sequencing manifest records the current direct pa
     try expectSliceNotContains(manifest.still_missing_broader_paths, "zigux/tests/phase15_build.zig");
     try expectSliceNotContains(manifest.still_missing_broader_paths, "scripts\zigux/validate_phase15.zig");
     try expectSliceNotContains(manifest.still_missing_broader_paths, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
-    try expectSliceContains(manifest.maintenance_replay_commands, "zig run check_phase15_architecture_council_packet.zig");
-    try expectSliceContains(manifest.maintenance_replay_commands, "zig run check_phase15_handoff_note_alignment.zig");
-    try expectSliceContains(manifest.maintenance_replay_commands, "zig run validate_phase15.zig");
+    try expectSliceContains(manifest.maintenance_replay_commands, "zig run scripts/zigux/check_phase15_architecture_council_packet.zig");
+    try expectSliceContains(manifest.maintenance_replay_commands, "zig run scripts/zigux/check_phase15_handoff_note_alignment.zig");
+    try expectSliceContains(manifest.maintenance_replay_commands, "zig run scripts/zigux/validate_phase15.zig");
     try expectSliceContains(manifest.maintenance_replay_commands, "zig build test --build-file zigux/tests/phase15_build.zig");
     try expectSliceContains(manifest.maintenance_replay_commands, "zig test zigux/tests/phase15_governance_lane_sequencing.zig");
 }
@@ -137,9 +137,9 @@ test "phase 15 governance-lane sequencing note names the current packet and curr
     try expectContains(sequencing_note, "`scripts\zigux/check_phase15_architecture_council_packet.zig`");
     try expectContains(sequencing_note, "`scripts\zigux/check_phase15_handoff_note_alignment.zig`");
     try expectContains(sequencing_note, "`scripts\zigux/validate_phase15.zig`");
-    try expectContains(sequencing_note, "zig run check_phase15_architecture_council_packet.zig");
-    try expectContains(sequencing_note, "zig run check_phase15_handoff_note_alignment.zig");
-    try expectContains(sequencing_note, "zig run validate_phase15.zig");
+    try expectContains(sequencing_note, "zig run scripts/zigux/check_phase15_architecture_council_packet.zig");
+    try expectContains(sequencing_note, "zig run scripts/zigux/check_phase15_handoff_note_alignment.zig");
+    try expectContains(sequencing_note, "zig run scripts/zigux/validate_phase15.zig");
     try expectContains(sequencing_note, "zig build test --build-file zigux/tests/phase15_build.zig");
     try expectContains(sequencing_note, "zig test zigux/tests/phase15_governance_lane_sequencing.zig");
     try expectContains(sequencing_note, "a missing focused replay, blocked make-wrapper route, or absent shared-CI companion is already landed on current `master`");

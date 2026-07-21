@@ -19,8 +19,8 @@ The plain formatter path only serializes hex bytes, while the grouped ASCII pack
 
 ## Replay Routes
 
-- `zig run check_phase6_hexdump_packet.zig`
-- `zig run check_phase6_hexdump_route.zig`
+- `zig run scripts/zigux/check_phase6_hexdump_packet.zig`
+- `zig run scripts/zigux/check_phase6_hexdump_route.zig`
 - `zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-hexdump-review`
 - `zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig`

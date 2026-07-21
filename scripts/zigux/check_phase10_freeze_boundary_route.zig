@@ -6,8 +6,8 @@ pub const pass_marker = "PHASE10_FREEZE_BOUNDARY_ROUTE_SELF_TEST=pass";
 
 const VALIDATION_COMMANDS = [_][]const u8{
     "FREEZE_BOUNDARY_COMMAND",
-    "zig run validate_phase10.zig",
-    "zig run validate_phase10_closure.zig",
+    "zig run scripts/zigux/validate_phase10.zig",
+    "zig run scripts/zigux/validate_phase10_closure.zig",
 };
 
 const MANIFEST_PATH = [_][]const u8{

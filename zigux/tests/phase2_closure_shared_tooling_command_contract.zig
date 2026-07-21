@@ -5,13 +5,13 @@ const validator_path = "scripts\zigux/validate_phase2_closure.zig";
 const manifest_path = "zigux/tests/fixtures/phase2_tool_manifest.json";
 
 const shared_tooling_commands = [_][]const u8{
-    "zig run check_phase2_tool_manifest.zig",
-    "zig run check_phase2_bootstrap_workflow_routes.zig",
-    "zig run check_phase2_artifact_tools_manifest.zig",
-    "zig run check_phase2_kconfig_allconfig_helper_packet.zig",
-    "zig run check_phase2_cross.zig",
-    "zig run check_phase2_fixdep_gate.zig",
-    "zig run check_fixdep_diff.zig",
+    "zig run scripts/zigux/check_phase2_tool_manifest.zig",
+    "zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig",
+    "zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig",
+    "zig run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig",
+    "zig run scripts/zigux/check_phase2_cross.zig",
+    "zig run scripts/zigux/check_phase2_fixdep_gate.zig",
+    "zig run scripts/zigux/check_fixdep_diff.zig",
 };
 
 const manifest_checker_paths = [_][]const u8{
@@ -61,7 +61,7 @@ fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
 }
 
 fn sharedToolingLine() []const u8 {
-    return "PHASE2_SHARED_TOOLING_CHECKERS=zig run check_phase2_tool_manifest.zig,zig run check_phase2_bootstrap_workflow_routes.zig,zig run check_phase2_artifact_tools_manifest.zig,zig run check_phase2_kconfig_allconfig_helper_packet.zig,zig run check_phase2_cross.zig,zig run check_phase2_fixdep_gate.zig,zig run check_fixdep_diff.zig";
+    return "PHASE2_SHARED_TOOLING_CHECKERS=zig run scripts/zigux/check_phase2_tool_manifest.zig,zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig,zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig,zig run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig,zig run scripts/zigux/check_phase2_cross.zig,zig run scripts/zigux/check_phase2_fixdep_gate.zig,zig run scripts/zigux/check_fixdep_diff.zig";
 }
 
 test "phase2 closure note keeps shared tooling commands explicit and ordered" {
@@ -100,7 +100,7 @@ test "phase2 closure validator derives the same shared tooling command packet" {
 
     try expectContains(validator, "\"PHASE2_SHARED_TOOLING_CHECKERS=\"");
     try expectContains(validator, "SHARED_TOOLING_COMMANDS");
-    try expectNotContains(validator, "PHASE2_SHARED_TOOLING_CHECKERS=zig run check_phase2_tool_manifest.zig,zig run check_phase2_cross.zig");
+    try expectNotContains(validator, "PHASE2_SHARED_TOOLING_CHECKERS=zig run scripts/zigux/check_phase2_tool_manifest.zig,zig run scripts/zigux/check_phase2_cross.zig");
 }
 
 test "phase2 tool manifest still carries the shared tooling checker roster" {

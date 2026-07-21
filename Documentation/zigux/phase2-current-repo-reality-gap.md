@@ -15,7 +15,7 @@ Direct current-`master` reads in this slot still materialize these bounded Phase
 - `scripts\zigux/check_phase2_cross_selftest_alignment.zig`
 - `.github/workflows/zigux-bootstrap.yml`
 
-The surviving docs-root and checker surfaces already agree that the `phase2-cross` target-mode replay reaches the same live toolchain preflight through `zig run check_phase2_cross.zig --target <matrix-zig-target>`, because that target-mode path reruns `zig run check_zig_toolchain.zig --zig "<resolved-zig>"` before the cross-target Zig tests.
+The surviving docs-root and checker surfaces already agree that the `phase2-cross` target-mode replay reaches the same live toolchain preflight through `zig run scripts/zigux/check_phase2_cross.zig -- --target <matrix-zig-target>`, because that target-mode path reruns `zig run scripts/zigux/check_zig_toolchain.zig -- --zig "<resolved-zig>"` before the cross-target Zig tests.
 
 ## What Does Not Materialize
 

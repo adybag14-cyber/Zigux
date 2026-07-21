@@ -21,8 +21,8 @@
     "scripts\zigux/check_phase3_dev_t_starter_packet.zig"
   ],
   "replay_routes": [
-    "zig run check_phase3_dev_t_starter_packet.zig --self-test",
-    "zig run check_phase3_dev_t_starter_packet.zig",
+    "zig run scripts/zigux/check_phase3_dev_t_starter_packet.zig -- --self-test",
+    "zig run scripts/zigux/check_phase3_dev_t_starter_packet.zig",
     "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all"
   ],
   "repo_reality_gaps": [],

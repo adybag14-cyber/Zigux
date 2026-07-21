@@ -30,13 +30,13 @@ This note does not claim:
 
 ## Validation
 Rerun the focused guard before treating this evidence as current:
-- `zig run check_phase12_libbpf_reviewability_gate_snapshot.zig --self-test`
-- `zig run check_phase12_libbpf_reviewability_gate_snapshot.zig`
+- `zig run scripts/zigux/check_phase12_libbpf_reviewability_gate_snapshot.zig -- --self-test`
+- `zig run scripts/zigux/check_phase12_libbpf_reviewability_gate_snapshot.zig`
 
 Then keep the broader validator-side packet in its existing order:
-- `zig run check_phase12_libbpf_snapshot.zig --self-test`
-- `zig run check_phase12_libbpf_snapshot.zig`
-- `zig run validate_phase12.zig`
+- `zig run scripts/zigux/check_phase12_libbpf_snapshot.zig -- --self-test`
+- `zig run scripts/zigux/check_phase12_libbpf_snapshot.zig`
+- `zig run scripts/zigux/validate_phase12.zig`
 - `make -C zigux phase12-validate`
 
 ## Next Bounded Step

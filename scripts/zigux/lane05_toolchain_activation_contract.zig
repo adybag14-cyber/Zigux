@@ -39,7 +39,7 @@ pub fn checkToolchainActivationMarkers(workflow: []const u8) !void {
     try requireContains(workflow, "verify_and_activate_archive \"$archive_path\"");
     try requireContains(workflow, "            tar -xJf \"$archive\" -C .zig-toolchain");
     try requireContains(workflow, "activate_extracted_zig");
-    try routes.requireRoute(workflow, "              if zig run check_zig_toolchain.zig --zig \"$zig_path\"; then\n", "              if zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then\n");
+    try routes.requireRoute(workflow, "              if zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then\n", "              if zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then\n");
     try requireContains(workflow, "          zig_path=\"$extract_root/zig\"\n");
     try requireContains(workflow, "          echo \"$extract_root\" >> \"$GITHUB_PATH\"\n");
     try requireContains(workflow, "          \"$zig_path\" version\n");
@@ -53,10 +53,10 @@ pub fn checkToolchainActivationOrder(workflow: []const u8) !void {
     try requireOrder(workflow, "          extract_root=\"$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL\"\n", "          try_local_archive() {\n");
     try requireOrder(workflow, "          try_local_archive() {\n", "verify_and_activate_archive \"$repo_archive_path\"");
     const repo_activate_index = std.mem.indexOf(u8, workflow, "verify_and_activate_archive \"$repo_archive_path\"") orelse return error.MissingWorkflowMarker;
-    const repo_probe_index = routes.routeIndex(workflow, "              if zig run check_zig_toolchain.zig --zig \"$zig_path\"; then\n", "              if zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then\n") orelse return error.MissingWorkflowMarker;
+    const repo_probe_index = routes.routeIndex(workflow, "              if zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then\n", "              if zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then\n") orelse return error.MissingWorkflowMarker;
     const download_index = std.mem.indexOf(u8, workflow, "          try_download() {\n") orelse return error.MissingWorkflowMarker;
     const archive_activate_index = std.mem.indexOf(u8, workflow, "verify_and_activate_archive \"$archive_path\"") orelse return error.MissingWorkflowMarker;
-    const archive_probe_index = routes.routeIndex(workflow, "                if zig run check_zig_toolchain.zig --zig \"$zig_path\"; then\n", "                if zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then\n") orelse return error.MissingWorkflowMarker;
+    const archive_probe_index = routes.routeIndex(workflow, "                if zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then\n", "                if zig run scripts/zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then\n") orelse return error.MissingWorkflowMarker;
     try std.testing.expect(repo_activate_index < repo_probe_index);
     try std.testing.expect(download_index < archive_activate_index);
     try std.testing.expect(archive_activate_index < archive_probe_index);
@@ -96,13 +96,13 @@ test "Lane 05 activation rejects adding archive paths to GITHUB_PATH" {
         \\          }
         \\          try_local_archive() {
         \\            verify_and_activate_archive "$repo_archive_path"
-        \\              if zig run check_zig_toolchain.zig --zig "$zig_path"; then
+        \\              if zig run scripts/zigux/check_zig_toolchain.zig -- --zig "$zig_path"; then
         \\                return 0
         \\              fi
         \\          }
         \\          try_download() {
         \\            verify_and_activate_archive "$archive_path"
-        \\                if zig run check_zig_toolchain.zig --zig "$zig_path"; then
+        \\                if zig run scripts/zigux/check_zig_toolchain.zig -- --zig "$zig_path"; then
         \\                  return 0
         \\                fi
         \\          }
@@ -136,13 +136,13 @@ test "Lane 05 activation rejects running zig before GITHUB_PATH export" {
         \\          }
         \\          try_local_archive() {
         \\            verify_and_activate_archive "$repo_archive_path"
-        \\              if zig run check_zig_toolchain.zig --zig "$zig_path"; then
+        \\              if zig run scripts/zigux/check_zig_toolchain.zig -- --zig "$zig_path"; then
         \\                return 0
         \\              fi
         \\          }
         \\          try_download() {
         \\            verify_and_activate_archive "$archive_path"
-        \\                if zig run check_zig_toolchain.zig --zig "$zig_path"; then
+        \\                if zig run scripts/zigux/check_zig_toolchain.zig -- --zig "$zig_path"; then
         \\                  return 0
         \\                fi
         \\          }

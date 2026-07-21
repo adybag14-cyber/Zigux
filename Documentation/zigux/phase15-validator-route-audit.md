@@ -36,11 +36,11 @@ The current shared replay route is already broader than a single review-process 
 
 `make -C zigux phase15-validate` currently reruns:
 
-1. `zig run validate_phase15.zig`
-2. `zig run check_phase15_docs_readme_alignment.zig`
-3. `zig run check_phase15_scripts_readme_alignment.zig`
-4. `zig run check_phase15_review_process_handoff.zig`
-5. `zig run check_phase15_shared_summary_gap.zig`
+1. `zig run scripts/zigux/validate_phase15.zig`
+2. `zig run scripts/zigux/check_phase15_docs_readme_alignment.zig`
+3. `zig run scripts/zigux/check_phase15_scripts_readme_alignment.zig`
+4. `zig run scripts/zigux/check_phase15_review_process_handoff.zig`
+5. `zig run scripts/zigux/check_phase15_shared_summary_gap.zig`
 
 `zigux/tests/phase15_build.zig` also still wires the parked test packet through these Zig test modules:
 
@@ -102,8 +102,8 @@ The goal of that follow-up should be simple:
 
 Use the existing parked route, not a new one:
 
-1. `zig run check_phase15_scripts_readme_alignment.zig --self-test`
-2. `zig run check_phase15_scripts_readme_alignment.zig`
+1. `zig run scripts/zigux/check_phase15_scripts_readme_alignment.zig -- --self-test`
+2. `zig run scripts/zigux/check_phase15_scripts_readme_alignment.zig`
 3. `make -C zigux phase15-validate`
 4. `zig build test --build-file zigux/tests/phase15_build.zig`
 5. `make -C zigux phase15`

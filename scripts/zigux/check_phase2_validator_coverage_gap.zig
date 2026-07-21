@@ -6,13 +6,13 @@ pub const live_pass_marker = "PHASE2_VALIDATOR_COVERAGE_GAP=pass";
 pub const self_test_pass_marker = "PHASE2_VALIDATOR_COVERAGE_GAP_SELF_TEST=pass";
 
 const LIVE_WORKFLOW_LINES = [_][]const u8{
-    "run: zig run scripts\\zigux/check_phase2_bootstrap_workflow_routes.zig --self-test",
+    "run: zig run scripts\\zigux/check_phase2_bootstrap_workflow_routes.zig -- --self-test",
     "run: zig run scripts\\zigux/check_phase2_bootstrap_workflow_routes.zig",
     "run: make -C zigux phase2",
 };
 
 const LIVE_MAKEFILE_LINES = [_][]const u8{
-    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_bootstrap_workflow_routes.zig --self-test",
+    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_bootstrap_workflow_routes.zig -- --self-test",
     "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_bootstrap_workflow_routes.zig",
     "phase2: phase2-validate",
 };
@@ -24,10 +24,10 @@ const VALIDATOR_PRESENT_MARKERS = [_][]const u8{
 };
 
 const VALIDATOR_GAP_MARKERS = [_][]const u8{
-    "run: zig run scripts\\zigux/check_phase2_bootstrap_workflow_routes.zig --self-test",
+    "run: zig run scripts\\zigux/check_phase2_bootstrap_workflow_routes.zig -- --self-test",
     "run: zig run scripts\\zigux/check_phase2_bootstrap_workflow_routes.zig",
     "run: make -C zigux phase2",
-    "\"$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_bootstrap_workflow_routes.zig --self-test\",",
+    "\"$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_bootstrap_workflow_routes.zig -- --self-test\",",
     "\"$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_bootstrap_workflow_routes.zig\",",
 };
 

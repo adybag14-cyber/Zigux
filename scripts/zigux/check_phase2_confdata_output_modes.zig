@@ -17,7 +17,7 @@ const source_markers = [_][]const u8{
 const workflow_markers = [_][]const u8{
     "- 'scripts/zigux/check_phase2_confdata_output_modes.zig'",
     "- name: Setup pinned Zig toolchain",
-    "canonical_tag = \"upstream-64dfaa568db0\"",
+    "canonical_tag = \"upstream-6c25d2bd58e4\"",
     "zig test scripts/zigux/check_phase2_confdata_output_modes.zig",
     "zig run scripts/zigux/check_phase2_confdata_output_modes.zig -- --self-test",
     "zig run scripts/zigux/check_phase2_confdata_output_modes.zig",

@@ -27,8 +27,8 @@ It is shared validation substrate wiring that makes those live helpers reviewabl
 
 ## Replay routes
 
-- `zig run check_phase7_leaf_libraries.zig --self-test`
-- `zig run check_phase7_leaf_libraries.zig --repo-root . --skip-exec`
+- `zig run scripts/zigux/check_phase7_leaf_libraries.zig -- --self-test`
+- `zig run scripts/zigux/check_phase7_leaf_libraries.zig -- --repo-root . --skip-exec`
 - `zig build phase7-leaf-libraries-starter-packet --build-file zigux/tests/phase7_leaf_libraries_starter_packet_build.zig`
 
 ## Scope

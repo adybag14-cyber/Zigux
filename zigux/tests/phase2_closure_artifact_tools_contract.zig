@@ -54,7 +54,7 @@ test "phase2 closure note keeps artifact tools out of repo-reality gaps" {
         "`scripts/zigux/artifact_diff.zig` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair instead of falling back into repo-reality-gap wording.",
     );
     try requireContains(closure, artifact_tool_checker);
-    try requireContains(closure, "zig run check_phase2_artifact_tools_manifest.zig");
+    try requireContains(closure, "zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig");
     try requireContains(closure, artifact_tool_manifest);
     try requireContains(closure, artifact_diff_helper);
     try requireExactOnce(closure, "`scripts/zigux/artifact_diff.zig` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair");

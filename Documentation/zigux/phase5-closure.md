@@ -96,7 +96,7 @@ Keep the no-extra-sample boundary explicit across this closure packet too:
 
 The current closure packet stays intentionally narrow. The shared Phase 5 guard and the landed sample-owned routes remain the honest replay surfaces that current `master` already names directly:
 
-- `zig run check_phase5_review_guide_surface.zig --self-test`
+- `zig run scripts/zigux/check_phase5_review_guide_surface.zig -- --self-test`
 - `zig test samples/zigux/bytestream_fifo.zig`
 - `zig test samples/zigux/bytestream_fifo_window_contract.zig`
 - `zig test --dep bytestream_fifo_sample -Mroot=zigux/tests/phase5_bytestream_fifo.zig -Mbytestream_fifo_sample=samples/zigux/bytestream_fifo.zig`

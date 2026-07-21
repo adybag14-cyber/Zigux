@@ -42,8 +42,8 @@ const markers_0 = [_][]const u8{
 const markers_1 = [_][]const u8{
     "\"phase\": \"Phase 3\"",
     "\"replay_routes\"",
-    "zig run validate_phase3_policy_unsafe_survey.zig --self-test",
-    "zig run validate_phase3_policy_unsafe_survey.zig",
+    "zig run scripts/zigux/validate_phase3_policy_unsafe_survey.zig -- --self-test",
+    "zig run scripts/zigux/validate_phase3_policy_unsafe_survey.zig",
 };
 
 const contracts = [_]FileContract{

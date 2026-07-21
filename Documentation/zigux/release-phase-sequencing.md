@@ -39,7 +39,7 @@ It is a release-planning artifact only. It does not close any tranche, create a 
    - boundary: keep workqueue and ring-buffer follow-through study-only, and keep `net/core/skbuff.c` plus `kernel/rcu/tree.c` under freeze-map ownership
 4. **Phase 15 governance readiness packet**
    - status: landed governance packet with validator-first maintenance replay, not broader route closure
-   - shipped readiness evidence: `zig run validate_phase15.zig`, `zigux/tests/phase15_build.zig`, and `zigux/tests/phase15_readiness_gap_matrix.json`
+   - shipped readiness evidence: `zig run scripts/zigux/validate_phase15.zig`, `zigux/tests/phase15_build.zig`, and `zigux/tests/phase15_readiness_gap_matrix.json`
    - current blocker: no dedicated `phase15-validate`, `phase15-test`, `phase15`, or shared workflow route is directly readable on current `master`
    - boundary: do not turn governance readiness into a freeze-map status change or deep-core delivery approval claim
 

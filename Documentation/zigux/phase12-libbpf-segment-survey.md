@@ -16,7 +16,7 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
   - `zigux/tests/phase12_build.zig`
   - `zigux/Makefile`
 - public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this libbpf note is not a commit-pinned raw GitHub fallback artifact
-- rollback owner and reversible-delivery drill: restore the last truthful survey wording in this note, then rerun `zig run check_build_only_phase12_surface.zig --self-test`, `zig run check_phase12_libbpf_snapshot.zig --self-test`, `zig run check_phase12_libbpf_snapshot.zig`, `zig run check_phase12_release_readiness_packet.zig --self-test`, `zig run validate_phase12.zig`, and the shipped wrapper `make -C zigux phase12-validate`; then rerun `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-test`, and `make -C zigux phase12` so the shared Phase 12 release packet stays reviewable without pretending those shared routes already exercise the parked direct `phase12_libbpf_*` replay files directly
+- rollback owner and reversible-delivery drill: restore the last truthful survey wording in this note, then rerun `zig run scripts/zigux/check_build_only_phase12_surface.zig -- --self-test`, `zig run scripts/zigux/check_phase12_libbpf_snapshot.zig -- --self-test`, `zig run scripts/zigux/check_phase12_libbpf_snapshot.zig`, `zig run scripts/zigux/check_phase12_release_readiness_packet.zig -- --self-test`, `zig run scripts/zigux/validate_phase12.zig`, and the shipped wrapper `make -C zigux phase12-validate`; then rerun `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-test`, and `make -C zigux phase12` so the shared Phase 12 release packet stays reviewable without pretending those shared routes already exercise the parked direct `phase12_libbpf_*` replay files directly
 
 ## Why this slice exists
 The roadmap places `tools/lib/bpf/libbpf.c` in Phase 12 alongside the other high-risk production-facing consumers because the file is both large and semantically dense even though it lives under `tools/`.
@@ -62,12 +62,12 @@ This survey slice does not claim:
 
 ## Gates
 1. rerun the shared build-only Phase 12 surface checker self-test
-   - `zig run check_build_only_phase12_surface.zig --self-test`
+   - `zig run scripts/zigux/check_build_only_phase12_surface.zig -- --self-test`
 2. rerun the shipped validator-side support bundle as shared packet evidence, not as a focused libbpf replay
-   - `zig run check_phase12_libbpf_snapshot.zig --self-test`
-   - `zig run check_phase12_libbpf_snapshot.zig`
-   - `zig run check_phase12_release_readiness_packet.zig --self-test`
-   - `zig run validate_phase12.zig`
+   - `zig run scripts/zigux/check_phase12_libbpf_snapshot.zig -- --self-test`
+   - `zig run scripts/zigux/check_phase12_libbpf_snapshot.zig`
+   - `zig run scripts/zigux/check_phase12_release_readiness_packet.zig -- --self-test`
+   - `zig run scripts/zigux/validate_phase12.zig`
    - shipped wrapper evidence on current `master`: `make -C zigux phase12-validate`
 3. rerun the current shipped smoke-first Phase 12 replay order as shared packet evidence, not as a focused libbpf replay
    - `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`

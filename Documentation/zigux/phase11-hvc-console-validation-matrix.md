@@ -151,11 +151,11 @@ modem-control helper summaries reviewable on current `master`.
 - keep `scripts\zigux/check_phase11_focused_direct_build_replays.zig` explicit as
   the guard for the dedicated modem-control and targetless-unregister build
   routes while those proofs stay outside the shared three-entry build inventory
-- keep `zig run check_phase11_hvc_cleanup_prerequisite_packet.zig --self-test`
-  and `zig run check_phase11_hvc_cleanup_prerequisite_packet.zig`
+- keep `zig run scripts/zigux/check_phase11_hvc_cleanup_prerequisite_packet.zig -- --self-test`
+  and `zig run scripts/zigux/check_phase11_hvc_cleanup_prerequisite_packet.zig`
   explicit as the dedicated teardown-prerequisite reminder guard
-- keep `zig run check_phase11_hvc_current_head_manifest.zig --self-test`
-  and `zig run check_phase11_hvc_current_head_manifest.zig`
+- keep `zig run scripts/zigux/check_phase11_hvc_current_head_manifest.zig -- --self-test`
+  and `zig run scripts/zigux/check_phase11_hvc_current_head_manifest.zig`
   explicit as the machine-readable current-head manifest guard
 - keep `zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig`
   explicit as a focused direct-readback proof route outside the shared

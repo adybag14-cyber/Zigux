@@ -6,8 +6,8 @@ This note keeps the current bounded Phase 3 ABI header-family packet truthful on
 
 - `PHASE3_ABI_HEADER_FAMILY_SURVEY_PATH=Documentation/zigux/phase3-abi-header-family-survey.md`
 - `PHASE3_ABI_HEADER_FAMILY_VALIDATOR_PATH=scripts\zigux/validate_phase3_abi_header_family_survey.zig`
-- `PHASE3_ABI_HEADER_FAMILY_VALIDATOR_SELF_TEST=zig run validate_phase3_abi_header_family_survey.zig --self-test`
-- `PHASE3_ABI_HEADER_FAMILY_VALIDATOR_RUN=zig run validate_phase3_abi_header_family_survey.zig`
+- `PHASE3_ABI_HEADER_FAMILY_VALIDATOR_SELF_TEST=zig run scripts/zigux/validate_phase3_abi_header_family_survey.zig -- --self-test`
+- `PHASE3_ABI_HEADER_FAMILY_VALIDATOR_RUN=zig run scripts/zigux/validate_phase3_abi_header_family_survey.zig`
 - `PHASE3_ABI_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md`
 - `PHASE3_ABI_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
 - `PHASE3_ABI_CATALOG_HELPER=scripts/zigux/phase3_catalog.zig`

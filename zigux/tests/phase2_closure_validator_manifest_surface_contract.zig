@@ -2,8 +2,8 @@ const std = @import("std");
 const testing = std.testing;
 
 const validator_commands = [_][]const u8{
-    "zig run validate_phase2.zig",
-    "zig run validate_phase2_closure.zig",
+    "zig run scripts/zigux/validate_phase2.zig",
+    "zig run scripts/zigux/validate_phase2_closure.zig",
 };
 
 fn readText(path: []const u8) ![]u8 {
@@ -110,18 +110,18 @@ test "phase2 closure note, manifest, and workflow expose validator replay surfac
     try requireContains(manifest, "\"scripts\zigux/validate_phase2_closure.zig\"");
     try requireContains(manifest, "\"repo_reality_gaps\": []");
 
-    try requireContains(workflow, "run: zig run validate_phase2.zig\n");
-    try requireContains(workflow, "run: zig run validate_phase2_closure.zig --self-test\n");
-    try requireContains(workflow, "run: zig run validate_phase2_closure.zig\n");
+    try requireContains(workflow, "run: zig run scripts/zigux/validate_phase2.zig\n");
+    try requireContains(workflow, "run: zig run scripts/zigux/validate_phase2_closure.zig -- --self-test\n");
+    try requireContains(workflow, "run: zig run scripts/zigux/validate_phase2_closure.zig\n");
     try requireOrdered(
         workflow,
-        "run: zig run validate_phase2.zig\n",
-        "run: zig run validate_phase2_closure.zig --self-test",
+        "run: zig run scripts/zigux/validate_phase2.zig\n",
+        "run: zig run scripts/zigux/validate_phase2_closure.zig -- --self-test",
     );
     try requireOrdered(
         workflow,
-        "run: zig run validate_phase2_closure.zig --self-test\n",
-        "run: zig run validate_phase2_closure.zig\n",
+        "run: zig run scripts/zigux/validate_phase2_closure.zig -- --self-test\n",
+        "run: zig run scripts/zigux/validate_phase2_closure.zig\n",
     );
 
     try requireOrdered(
@@ -129,5 +129,5 @@ test "phase2 closure note, manifest, and workflow expose validator replay surfac
         "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
         "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/validate_phase2_closure.zig",
     );
-    try requireMissing(closure, "PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2_closure.zig");
+    try requireMissing(closure, "PHASE2_CLOSURE_VALIDATORS=zig run scripts/zigux/validate_phase2_closure.zig");
 }

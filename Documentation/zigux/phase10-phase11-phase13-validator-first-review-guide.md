@@ -14,22 +14,22 @@ Keep `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigu
 
 Keep the current validator-first route explicit:
 
-- `zig run check_phase10_bootstrap_route.zig --self-test`
-- `zig run check_phase10_bootstrap_route.zig`
-- `zig run check_phase10_docs_readme_shared_packet.zig --self-test`
-- `zig run check_phase10_docs_readme_shared_packet.zig`
-- `zig run check_phase10_core_packet.zig`
-- `zig run check_phase10_shared_freeze_boundary.zig`
-- `zig run check_phase10_ring_packet.zig`
-- `zig run check_phase10_input_packet.zig`
-- `zig run check_phase10_mmio_packet.zig`
-- `zig run check_phase10_harness_coverage.zig --self-test`
-- `zig run check_phase10_harness_coverage.zig`
-- `zig run check_phase10_tests_readme_core_surfaces.zig --self-test`
-- `zig run check_phase10_tests_readme_core_surfaces.zig`
-- `zig run check_phase10_closure_manifest_counts.zig`
-- `zig run validate_phase10.zig`
-- `zig run validate_phase10_closure.zig`
+- `zig run scripts/zigux/check_phase10_bootstrap_route.zig -- --self-test`
+- `zig run scripts/zigux/check_phase10_bootstrap_route.zig`
+- `zig run scripts/zigux/check_phase10_docs_readme_shared_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase10_docs_readme_shared_packet.zig`
+- `zig run scripts/zigux/check_phase10_core_packet.zig`
+- `zig run scripts/zigux/check_phase10_shared_freeze_boundary.zig`
+- `zig run scripts/zigux/check_phase10_ring_packet.zig`
+- `zig run scripts/zigux/check_phase10_input_packet.zig`
+- `zig run scripts/zigux/check_phase10_mmio_packet.zig`
+- `zig run scripts/zigux/check_phase10_harness_coverage.zig -- --self-test`
+- `zig run scripts/zigux/check_phase10_harness_coverage.zig`
+- `zig run scripts/zigux/check_phase10_tests_readme_core_surfaces.zig -- --self-test`
+- `zig run scripts/zigux/check_phase10_tests_readme_core_surfaces.zig`
+- `zig run scripts/zigux/check_phase10_closure_manifest_counts.zig`
+- `zig run scripts/zigux/validate_phase10.zig`
+- `zig run scripts/zigux/validate_phase10_closure.zig`
 - `make -C zigux phase10-validate`
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
@@ -113,15 +113,15 @@ Reviewer wording should keep `kernel/workqueue.c` and `kernel/trace/ring_buffer.
 
 Keep the current pre-replay checker stack and returned shared validation route explicit:
 
-- `zig run check_phase11_build_inventory.zig`
-- `zig run check_phase11_shared_replay_contract_counts.zig`
-- `zig run check_phase11_matrix_gap_survey.zig`
-- `zig run check_phase11_validation_matrix_gap_survey.zig`
-- `zig run check_phase11_hvc_cleanup_current_head.zig`
-- `zig run check_phase11_hvc_targetless_unregister_witness.zig`
-- `zig run check_phase11_dw_wdt_teardown_packet.zig`
-- `zig run check_phase11_dw_wdt_verify_alignment.zig`
-- `zig run validate_phase11.zig`
+- `zig run scripts/zigux/check_phase11_build_inventory.zig`
+- `zig run scripts/zigux/check_phase11_shared_replay_contract_counts.zig`
+- `zig run scripts/zigux/check_phase11_matrix_gap_survey.zig`
+- `zig run scripts/zigux/check_phase11_validation_matrix_gap_survey.zig`
+- `zig run scripts/zigux/check_phase11_hvc_cleanup_current_head.zig`
+- `zig run scripts/zigux/check_phase11_hvc_targetless_unregister_witness.zig`
+- `zig run scripts/zigux/check_phase11_dw_wdt_teardown_packet.zig`
+- `zig run scripts/zigux/check_phase11_dw_wdt_verify_alignment.zig`
+- `zig run scripts/zigux/validate_phase11.zig`
 - `make -C zigux phase11-validate`
 - `zig build test --build-file zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig`
 - `zig build test --build-file zigux/tests/phase11_dw_wdt_build.zig`
@@ -203,8 +203,8 @@ Reviewer prompts:
 
 Keep the current contributor-facing guard path explicit:
 
-- `zig run check_phase13_shared_summary_surfaces.zig`
-- `zig run check_phase13_tests_readme_alignment.zig`
+- `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig`
+- `zig run scripts/zigux/check_phase13_tests_readme_alignment.zig`
 
 Keep these contributor-facing and helper-local surfaces aligned in the same review:
 

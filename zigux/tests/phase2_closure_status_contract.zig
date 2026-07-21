@@ -40,7 +40,7 @@ test "phase 2 closure note keeps current parked status and restored surface poin
     try expectContains(closure, "`PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest`");
     try expectContains(closure, "manifest: `zigux/tests/fixtures/phase2_tool_manifest.json`");
     try expectContains(closure, "shared note: `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`");
-    try expectContains(closure, "shared validator pair: `zig run validate_phase2.zig` and `zig run validate_phase2_closure.zig`");
+    try expectContains(closure, "shared validator pair: `zig run scripts/zigux/validate_phase2.zig` and `zig run scripts/zigux/validate_phase2_closure.zig`");
     try expectMissing(closure, "`PHASE2_STATUS=closed`");
     try expectMissing(closure, "`PHASE2_CLOSURE_RESTORE_STATE=workflow_only`");
 }

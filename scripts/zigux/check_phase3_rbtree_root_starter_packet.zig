@@ -6,7 +6,7 @@ pub const live_pass_marker = "PHASE3_RBTREE_ROOT_PACKET=pass";
 pub const self_test_pass_marker = "PHASE3_RBTREE_ROOT_PACKET_SELF_TEST=pass";
 
 const REQUIRED_REPLAY_ROUTES = [_][]const u8{
-    "zig run scripts\\zigux/check_phase3_rbtree_root_starter_packet.zig --self-test",
+    "zig run scripts\\zigux/check_phase3_rbtree_root_starter_packet.zig -- --self-test",
     "zig run scripts\\zigux/check_phase3_rbtree_root_starter_packet.zig",
     "zig build phase3-rbtree-root-starter-packet --build-file zigux/tests/phase3_rbtree_root_starter_packet_build.zig",
 };

@@ -9,7 +9,7 @@ It exists to keep the later-phase release surfaces easy to find without implying
 - `RELEASE_PACKET_STATUS=active_not_closed`
 - lane owner: `PMO / Release Management`
 - scope: active release sequencing, tranche-closure companions, release-boundary reminders, and governance-closeout inputs across the later roadmap phases
-- docs-root release index guard: `zig run check_release_planning_index.zig`
+- docs-root release index guard: `zig run scripts/zigux/check_release_planning_index.zig`
 
 ## Active Packet
 
@@ -43,7 +43,7 @@ When PMO release wording changes, reread this note beside:
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase14-release-boundary-survey.md`
 - `Documentation/zigux/phase15-architecture-council-review-process.md`
-- `zig run check_release_planning_index.zig`
+- `zig run scripts/zigux/check_release_planning_index.zig`
 
 ## Boundaries
 
@@ -53,4 +53,4 @@ When PMO release wording changes, reread this note beside:
 
 ## Next Bounded Step
 
-Leave this note parked unless one of the indexed owner notes moves or a later-phase PMO surface becomes hard to discover from current release-planning rereads. If that happens, land only the smallest index-side truthfulness repair and rerun `zig run check_release_planning_index.zig`.
+Leave this note parked unless one of the indexed owner notes moves or a later-phase PMO surface becomes hard to discover from current release-planning rereads. If that happens, land only the smallest index-side truthfulness repair and rerun `zig run scripts/zigux/check_release_planning_index.zig`.

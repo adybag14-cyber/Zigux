@@ -16,7 +16,7 @@ Read these files before you open or update a change:
 
 Use `Documentation/zigux/contributor-entrypoints.md` to pick the right bounded guide for docs, checklist, or workflow work, and use `Documentation/zigux/contributor-workflow.md` for the routine edit loop once the lane is chosen.
 
-For docs-only reminder, checklist, or contributor workflow guidance changes, use `Documentation/zigux/developer-enablement-contributor-workflow.md` and rerun `zig run check_developer_enablement_workflow.zig`.
+For docs-only reminder, checklist, or contributor workflow guidance changes, use `Documentation/zigux/developer-enablement-contributor-workflow.md` and rerun `zig run scripts/zigux/check_developer_enablement_workflow.zig`.
 
 Keep the top-level contributor onboarding packet aligned through:
 
@@ -24,7 +24,7 @@ Keep the top-level contributor onboarding packet aligned through:
 2. `Documentation/zigux/contributor-entrypoints.md`
 3. `Documentation/zigux/contributor-workflow.md`
 
-Top-level onboarding guard: `zig run check_contributor_onboarding_packet.zig`
+Top-level onboarding guard: `zig run scripts/zigux/check_contributor_onboarding_packet.zig`
 
 If your change touches the shared contributor packet for Phase 13, also reread:
 
@@ -55,7 +55,7 @@ Every change should keep these explicit:
 - rollback owner and fallback path
 - any repo-reality gaps that are still gaps on current `master`
 
-If you update the top-level contributor onboarding packet, rerun `zig run check_contributor_onboarding_packet.zig` so the start-here entrypoint, onboarding guide, and routine workflow note stay aligned.
+If you update the top-level contributor onboarding packet, rerun `zig run scripts/zigux/check_contributor_onboarding_packet.zig` so the start-here entrypoint, onboarding guide, and routine workflow note stay aligned.
 
 If you update a shared reminder surface, reread the neighboring docs, scripts, and tests notes together so they keep describing the same shipped packet.
 
@@ -65,7 +65,7 @@ If your change is shared Phase 13 contributor wording rather than helper-local p
 
 1. reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together first
 2. keep `Documentation/zigux/phase13-release-coordination-matrix.md` and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` aligned as supporting coordination companions rather than the stable contributor-facing handle itself
-3. rerun `zig run check_phase13_shared_summary_surfaces.zig`, `zig run check_phase13_tests_readme_alignment.zig`, and `zig run validate_phase13_release.zig`
+3. rerun `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig`, `zig run scripts/zigux/check_phase13_tests_readme_alignment.zig`, and `zig run scripts/zigux/validate_phase13_release.zig`
 4. keep `zigux/Makefile` distinct from the still-missing `make -C zigux phase13-validate` and `make -C zigux phase13` routes
 
 ## Phase 13 Contributor Packet

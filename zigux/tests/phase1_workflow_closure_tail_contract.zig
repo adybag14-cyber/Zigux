@@ -12,43 +12,43 @@ const RequiredStep = struct {
 const phase1_tail_steps = [_]RequiredStep{
     .{
         .name = "- name: Self-test current Phase 1 bench checker",
-        .run = "\n        run: zig run check_phase1_bench.zig --self-test\n",
+        .run = "\n        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test\n",
     },
     .{
         .name = "- name: Check current Phase 1 bench packet",
-        .run = "\n        run: zig run check_phase1_bench.zig\n",
+        .run = "\n        run: zig run scripts/zigux/check_phase1_bench.zig\n",
     },
     .{
         .name = "- name: Self-test current Phase 1 bench live-check workflow guard",
-        .run = "\n        run: zig run check_phase1_bench_live_check_workflow.zig --self-test\n",
+        .run = "\n        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test\n",
     },
     .{
         .name = "- name: Check current Phase 1 bench live-check workflow guard packet",
-        .run = "\n        run: zig run check_phase1_bench_live_check_workflow.zig\n",
+        .run = "\n        run: zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig\n",
     },
     .{
         .name = "- name: Self-test current Phase 1 find-bit bench anchor checker",
-        .run = "\n        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test\n",
+        .run = "\n        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test\n",
     },
     .{
         .name = "- name: Check current Phase 1 find-bit bench anchor packet",
-        .run = "\n        run: zig run check_phase1_find_bit_bench_anchors.zig\n",
+        .run = "\n        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig\n",
     },
     .{
         .name = "- name: Self-test current Phase 1 shared reminder checker",
-        .run = "\n        run: zig run check_phase1_shared_reminder_packet.zig --self-test\n",
+        .run = "\n        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test\n",
     },
     .{
         .name = "- name: Check current Phase 1 shared reminder packet",
-        .run = "\n        run: zig run check_phase1_shared_reminder_packet.zig\n",
+        .run = "\n        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig\n",
     },
     .{
         .name = "- name: Self-test current Phase 1 closure validator",
-        .run = "\n        run: zig run validate_phase1_closure.zig --self-test\n",
+        .run = "\n        run: zig run scripts/zigux/validate_phase1_closure.zig -- --self-test\n",
     },
     .{
         .name = "- name: Check current Phase 1 closure packet",
-        .run = "\n        run: zig run validate_phase1_closure.zig\n",
+        .run = "\n        run: zig run scripts/zigux/validate_phase1_closure.zig\n",
     },
 };
 

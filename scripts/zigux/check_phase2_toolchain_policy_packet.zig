@@ -15,15 +15,15 @@ const EXPECTED_REQUIRED_ROUTES = [_][]const u8{
 };
 
 const WORKFLOW_LINES = [_][]const u8{
-    "run: zig run scripts\\zigux/check_zig_toolchain.zig --policy-only",
-    "run: zig run scripts\\zigux/check_zig_toolchain.zig --archive-only --allow-missing",
+    "run: zig run scripts\\zigux/check_zig_toolchain.zig -- --policy-only",
+    "run: zig run scripts\\zigux/check_zig_toolchain.zig -- --archive-only --allow-missing",
     "run: make -C zigux phase2-toolchain",
 };
 
 const BOOTSTRAP_MARKERS = [_][]const u8{
     "`scripts/zigux/zig-toolchain-policy.json`",
-    "`zig run scripts\\zigux/check_zig_toolchain.zig --policy-only`",
-    "`zig run scripts\\zigux/check_zig_toolchain.zig --archive-only --allow-missing`",
+    "`zig run scripts\\zigux/check_zig_toolchain.zig -- --policy-only`",
+    "`zig run scripts\\zigux/check_zig_toolchain.zig -- --archive-only --allow-missing`",
     "`make -C zigux phase2-toolchain`",
     "keeps the minimum version in lockstep",
     "limits archive digests to `x86_64-linux`",
@@ -31,8 +31,8 @@ const BOOTSTRAP_MARKERS = [_][]const u8{
 
 const MAKEFILE_LINES = [_][]const u8{
     "phase2-toolchain:",
-    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig --policy-only",
-    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig --archive-only --allow-missing",
+    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig -- --policy-only",
+    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_zig_toolchain.zig -- --archive-only --allow-missing",
 };
 
 fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {

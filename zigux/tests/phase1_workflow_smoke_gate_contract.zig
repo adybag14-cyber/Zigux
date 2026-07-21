@@ -56,15 +56,15 @@ test "Phase 1 shared smoke remains after closure validation" {
 
     const shared_reminder_index = try markerIndex(
         workflow_text,
-        "- name: Check current Phase 1 shared reminder packet\n        run: zig run check_phase1_shared_reminder_packet.zig\n",
+        "- name: Check current Phase 1 shared reminder packet\n        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig\n",
     );
     const closure_selftest_index = try markerIndex(
         workflow_text,
-        "- name: Self-test current Phase 1 closure validator\n        run: zig run validate_phase1_closure.zig --self-test\n",
+        "- name: Self-test current Phase 1 closure validator\n        run: zig run scripts/zigux/validate_phase1_closure.zig -- --self-test\n",
     );
     const closure_check_index = try markerIndex(
         workflow_text,
-        "- name: Check current Phase 1 closure packet\n        run: zig run validate_phase1_closure.zig\n",
+        "- name: Check current Phase 1 closure packet\n        run: zig run scripts/zigux/validate_phase1_closure.zig\n",
     );
     const smoke_index = try markerIndex(workflow_text, smoke_marker);
 

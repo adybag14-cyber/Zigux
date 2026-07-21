@@ -143,8 +143,8 @@ const markers_1 = [_][]const u8{
     "scripts/zigux/check_phase3_list_hlist_starter_packet.zig",
     "\"phase\": \"Phase 3\"",
     "\"replay_routes\"",
-    "zig run check_phase3_shared_tests_routes.zig --self-test",
-    "zig run check_phase3_shared_tests_routes.zig",
+    "zig run scripts/zigux/check_phase3_shared_tests_routes.zig -- --self-test",
+    "zig run scripts/zigux/check_phase3_shared_tests_routes.zig",
 };
 
 const markers_2 = [_][]const u8{

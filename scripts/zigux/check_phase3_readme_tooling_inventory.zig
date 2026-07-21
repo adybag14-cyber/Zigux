@@ -98,11 +98,11 @@ const markers_0 = [_][]const u8{
 };
 
 const markers_1 = [_][]const u8{
-    "zig run scripts/zigux/check_phase3_wrapper_templates.zig --self-test",
+    "zig run scripts/zigux/check_phase3_wrapper_templates.zig -- --self-test",
     "\"phase\": \"Phase 3\"",
     "\"replay_routes\"",
-    "zig run check_phase3_readme_tooling_inventory.zig --self-test",
-    "zig run check_phase3_readme_tooling_inventory.zig",
+    "zig run scripts/zigux/check_phase3_readme_tooling_inventory.zig -- --self-test",
+    "zig run scripts/zigux/check_phase3_readme_tooling_inventory.zig",
 };
 
 const contracts = [_]FileContract{

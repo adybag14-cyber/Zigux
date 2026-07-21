@@ -10,7 +10,7 @@ const REQUIRED_MARKERS__Documentation_zigux_phase3-ida-range-slice_md = [_][]con
     "`zigux/helpers/ida_range_view.zig`",
     "`zigux/tests/phase3_ida_range_dump.zig`",
     "`scripts\\zigux/check_phase3_ida_range.zig`",
-    "`zig run scripts\\zigux/check_phase3_ida_range.zig --repo-root . --zig zig --cc gcc`",
+    "`zig run scripts\\zigux/check_phase3_ida_range.zig -- --repo-root . --zig zig --cc gcc`",
     "helper-local ida range packet",
 };
 
@@ -70,7 +70,7 @@ const REQUIRED_MARKERS__zigux_tests_fixtures_phase3_ida_range_manifest_json = [_
 };
 
 const SELF_TEST_CASES = [_][]const u8{
-    "`zig run scripts\\zigux/check_phase3_ida_range.zig --repo-root . --zig zig --cc gcc`",
+    "`zig run scripts\\zigux/check_phase3_ida_range.zig -- --repo-root . --zig zig --cc gcc`",
     "pub const RangeSummary = struct {",
     "\"unordered_window\"",
     "\"name\": \"clamped_ceiling_full\"",

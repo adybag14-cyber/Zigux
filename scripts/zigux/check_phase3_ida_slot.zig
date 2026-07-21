@@ -37,7 +37,7 @@ const REQUIRED_MARKERS__zigux_tests_fixtures_phase3_ida_slot_expected_json = [_]
 const REQUIRED_MARKERS__zigux_tests_fixtures_phase3_ida_slot_manifest_json = [_][]const u8{
     "\"slug\": \"phase3-ida-slot\"",
     "\"status\": \"starter_and_dump_packet_present\"",
-    "\"zig run scripts\\zigux/check_phase3_ida_slot.zig --repo-root . --zig zig --cc gcc\"",
+    "\"zig run scripts\\zigux/check_phase3_ida_slot.zig -- --repo-root . --zig zig --cc gcc\"",
 };
 
 fn checkRepo(io: Io, allocator: std.mem.Allocator, root: []const u8) !void {

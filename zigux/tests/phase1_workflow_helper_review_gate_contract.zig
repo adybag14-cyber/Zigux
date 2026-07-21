@@ -11,51 +11,51 @@ const Command = struct {
 const helper_review_commands = [_]Command{
     .{
         .name = "Self-test current Phase 1 direct-owner checker",
-        .run = "zig run check_phase1_direct_owner_markers.zig --self-test",
+        .run = "zig run scripts/zigux/check_phase1_direct_owner_markers.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 direct-owner markers",
-        .run = "zig run check_phase1_direct_owner_markers.zig",
+        .run = "zig run scripts/zigux/check_phase1_direct_owner_markers.zig",
     },
     .{
         .name = "Self-test current Phase 1 direct-anchor manifest gate",
-        .run = "zig run check_phase1_direct_anchor_manifest_gate.zig --self-test",
+        .run = "zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 direct-anchor manifest gate",
-        .run = "zig run check_phase1_direct_anchor_manifest_gate.zig",
+        .run = "zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig",
     },
     .{
         .name = "Self-test current Phase 1 string review checker",
-        .run = "zig run check_phase1_string_review_packet.zig --self-test",
+        .run = "zig run scripts/zigux/check_phase1_string_review_packet.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 string review packet",
-        .run = "zig run check_phase1_string_review_packet.zig",
+        .run = "zig run scripts/zigux/check_phase1_string_review_packet.zig",
     },
     .{
         .name = "Self-test current Phase 1 find-bit review checker",
-        .run = "zig run check_phase1_find_bit_review_packet.zig --self-test",
+        .run = "zig run scripts/zigux/check_phase1_find_bit_review_packet.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 find-bit review packet",
-        .run = "zig run check_phase1_find_bit_review_packet.zig",
+        .run = "zig run scripts/zigux/check_phase1_find_bit_review_packet.zig",
     },
     .{
         .name = "Self-test current Phase 1 bitmap direct-anchor checker",
-        .run = "zig run check_phase1_bitmap_direct_anchors.zig --self-test",
+        .run = "zig run scripts/zigux/check_phase1_bitmap_direct_anchors.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 bitmap direct-anchor packet",
-        .run = "zig run check_phase1_bitmap_direct_anchors.zig",
+        .run = "zig run scripts/zigux/check_phase1_bitmap_direct_anchors.zig",
     },
     .{
         .name = "Self-test current Phase 1 rbtree review checker",
-        .run = "zig run check_phase1_rbtree_review_packet.zig --self-test",
+        .run = "zig run scripts/zigux/check_phase1_rbtree_review_packet.zig -- --self-test",
     },
     .{
         .name = "Check current Phase 1 rbtree review packet",
-        .run = "zig run check_phase1_rbtree_review_packet.zig",
+        .run = "zig run scripts/zigux/check_phase1_rbtree_review_packet.zig",
     },
 };
 
@@ -88,12 +88,12 @@ test "workflow keeps exact Phase 1 helper-review command pairs" {
         _ = try commandIndex(command);
     }
 
-    try requireMissing("run: zig run check_phase1_direct_owner_markers.zig --allow-missing\n");
-    try requireMissing("run: zig run check_phase1_direct_anchor_manifest_gate.zig --allow-missing\n");
-    try requireMissing("run: zig run check_phase1_string_review_packet.zig --allow-missing\n");
-    try requireMissing("run: zig run check_phase1_find_bit_review_packet.zig --allow-missing\n");
-    try requireMissing("run: zig run check_phase1_bitmap_direct_anchors.zig --allow-missing\n");
-    try requireMissing("run: zig run check_phase1_rbtree_review_packet.zig --allow-missing\n");
+    try requireMissing("run: zig run scripts/zigux/check_phase1_direct_owner_markers.zig -- --allow-missing\n");
+    try requireMissing("run: zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig -- --allow-missing\n");
+    try requireMissing("run: zig run scripts/zigux/check_phase1_string_review_packet.zig -- --allow-missing\n");
+    try requireMissing("run: zig run scripts/zigux/check_phase1_find_bit_review_packet.zig -- --allow-missing\n");
+    try requireMissing("run: zig run scripts/zigux/check_phase1_bitmap_direct_anchors.zig -- --allow-missing\n");
+    try requireMissing("run: zig run scripts/zigux/check_phase1_rbtree_review_packet.zig -- --allow-missing\n");
 }
 
 test "helper-review gates run in direct-owner to rbtree order" {
@@ -108,13 +108,13 @@ test "helper-review gates run in direct-owner to rbtree order" {
 test "helper-review cluster stays after Phase 2 closure and before route summary" {
     const phase2_closure = try markerIndex(
         workflow,
-        "- name: Check current Phase 2 closure packet\n        run: zig run validate_phase2_closure.zig\n",
+        "- name: Check current Phase 2 closure packet\n        run: zig run scripts/zigux/validate_phase2_closure.zig\n",
     );
     const direct_owner = try commandIndex(helper_review_commands[0]);
     const rbtree_review = try commandIndex(helper_review_commands[helper_review_commands.len - 1]);
     const route_summary = try markerIndex(
         workflow,
-        "- name: Self-test current Phase 1 route summary checker\n        run: zig run check_phase1_route_summary_counts.zig --self-test\n",
+        "- name: Self-test current Phase 1 route summary checker\n        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test\n",
     );
 
     try std.testing.expect(phase2_closure < direct_owner);
@@ -125,19 +125,19 @@ test "helper-review route-summary handoff stays before bench shared reminder and
     const rbtree_review = try commandIndex(helper_review_commands[helper_review_commands.len - 1]);
     const route_summary_check = try markerIndex(
         workflow,
-        "- name: Check current Phase 1 route summary packet\n        run: zig run check_phase1_route_summary_counts.zig\n",
+        "- name: Check current Phase 1 route summary packet\n        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig\n",
     );
     const bench_selftest = try markerIndex(
         workflow,
-        "- name: Self-test current Phase 1 bench checker\n        run: zig run check_phase1_bench.zig --self-test\n",
+        "- name: Self-test current Phase 1 bench checker\n        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test\n",
     );
     const shared_reminder = try markerIndex(
         workflow,
-        "- name: Self-test current Phase 1 shared reminder checker\n        run: zig run check_phase1_shared_reminder_packet.zig --self-test\n",
+        "- name: Self-test current Phase 1 shared reminder checker\n        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test\n",
     );
     const closure_check = try markerIndex(
         workflow,
-        "- name: Check current Phase 1 closure packet\n        run: zig run validate_phase1_closure.zig\n",
+        "- name: Check current Phase 1 closure packet\n        run: zig run scripts/zigux/validate_phase1_closure.zig\n",
     );
 
     try std.testing.expect(rbtree_review < route_summary_check);

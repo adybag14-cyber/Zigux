@@ -18,9 +18,9 @@ const MAKEFILE_VARIABLE_MARKERS = [_][]const u8{
 
 const MAKEFILE_ROUTE_MARKERS = [_][]const u8{
     "phase2-toolchain:",
-    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_toolchain_pinning.zig --self-test",
+    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_toolchain_pinning.zig -- --self-test",
     "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_toolchain_pinning.zig",
-    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_toolchain_pin_scope.zig --self-test",
+    "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_toolchain_pin_scope.zig -- --self-test",
     "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_toolchain_pin_scope.zig",
     "phase2-kconfig: phase2-toolchain",
     "phase2-genksyms: phase2-toolchain",
@@ -37,8 +37,8 @@ const WORKFLOW_MARKERS = [_][]const u8{
     "extract_root=\"$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL\"",
     "repo_archive_path=\"third_party/$ZIGUX_ZIG_FILENAME\"",
     "repo_archive_parts_dir=\"${repo_archive_path}.parts\"",
-    "if zig run scripts\\zigux/check_zig_toolchain.zig --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"; then",
-    "if zig run scripts\\zigux/check_zig_toolchain.zig --zig \"$zig_path\"; then",
+    "if zig run scripts\\zigux/check_zig_toolchain.zig -- --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"; then",
+    "if zig run scripts\\zigux/check_zig_toolchain.zig -- --zig \"$zig_path\"; then",
     "echo \"$extract_root\" >> \"$GITHUB_PATH\"",
 };
 

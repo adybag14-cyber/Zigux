@@ -12,7 +12,7 @@ const workflow_markers = [_][]const u8{
     "- 'scripts/zigux/check_lane05_archive_parts_workflow.zig'",
     "- 'scripts/zigux/check_lane05_archive_parts_packet.zig'",
     "- name: Setup pinned Zig toolchain",
-    "canonical_tag = \"upstream-64dfaa568db0\"",
+    "canonical_tag = \"upstream-6c25d2bd58e4\"",
     "zig test scripts/zigux/check_zig_toolchain.zig",
     "zig test scripts/zigux/check_lane05_archive_parts_packet.zig",
     "zig test scripts/zigux/check_lane05_archive_parts_workflow.zig",

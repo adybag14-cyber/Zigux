@@ -8,19 +8,19 @@ const DirectGate = struct {
 const direct_gates = [_]DirectGate{
     .{
         .name = "- name: Self-test current Phase 1 direct-owner checker",
-        .command = "        run: zig run check_phase1_direct_owner_markers.zig --self-test\n",
+        .command = "        run: zig run scripts/zigux/check_phase1_direct_owner_markers.zig -- --self-test\n",
     },
     .{
         .name = "- name: Check current Phase 1 direct-owner markers",
-        .command = "        run: zig run check_phase1_direct_owner_markers.zig\n",
+        .command = "        run: zig run scripts/zigux/check_phase1_direct_owner_markers.zig\n",
     },
     .{
         .name = "- name: Self-test current Phase 1 direct-anchor manifest gate",
-        .command = "        run: zig run check_phase1_direct_anchor_manifest_gate.zig --self-test\n",
+        .command = "        run: zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig -- --self-test\n",
     },
     .{
         .name = "- name: Check current Phase 1 direct-anchor manifest gate",
-        .command = "        run: zig run check_phase1_direct_anchor_manifest_gate.zig\n",
+        .command = "        run: zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig\n",
     },
 };
 
@@ -42,38 +42,38 @@ test "phase1 direct gates stay ordered between closure and review gates" {
 
     try expectBefore(
         workflow,
-        "        run: zig run validate_phase2_closure.zig\n",
-        "        run: zig run check_phase1_direct_owner_markers.zig --self-test\n",
+        "        run: zig run scripts/zigux/validate_phase2_closure.zig\n",
+        "        run: zig run scripts/zigux/check_phase1_direct_owner_markers.zig -- --self-test\n",
     );
     try expectBefore(
         workflow,
-        "        run: zig run check_phase1_direct_owner_markers.zig --self-test\n",
-        "        run: zig run check_phase1_direct_owner_markers.zig\n",
+        "        run: zig run scripts/zigux/check_phase1_direct_owner_markers.zig -- --self-test\n",
+        "        run: zig run scripts/zigux/check_phase1_direct_owner_markers.zig\n",
     );
     try expectBefore(
         workflow,
-        "        run: zig run check_phase1_direct_owner_markers.zig\n",
-        "        run: zig run check_phase1_direct_anchor_manifest_gate.zig --self-test\n",
+        "        run: zig run scripts/zigux/check_phase1_direct_owner_markers.zig\n",
+        "        run: zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig -- --self-test\n",
     );
     try expectBefore(
         workflow,
-        "        run: zig run check_phase1_direct_anchor_manifest_gate.zig --self-test\n",
-        "        run: zig run check_phase1_direct_anchor_manifest_gate.zig\n",
+        "        run: zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig -- --self-test\n",
+        "        run: zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig\n",
     );
     try expectBefore(
         workflow,
-        "        run: zig run check_phase1_direct_anchor_manifest_gate.zig\n",
-        "        run: zig run check_phase1_string_review_packet.zig --self-test\n",
+        "        run: zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig\n",
+        "        run: zig run scripts/zigux/check_phase1_string_review_packet.zig -- --self-test\n",
     );
     try expectBefore(
         workflow,
-        "        run: zig run check_phase1_direct_anchor_manifest_gate.zig\n",
-        "        run: zig run check_phase1_route_summary_counts.zig --self-test\n",
+        "        run: zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig\n",
+        "        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test\n",
     );
     try expectBefore(
         workflow,
-        "        run: zig run check_phase1_direct_anchor_manifest_gate.zig\n",
-        "        run: zig run check_phase1_shared_reminder_packet.zig --self-test\n",
+        "        run: zig run scripts/zigux/check_phase1_direct_anchor_manifest_gate.zig\n",
+        "        run: zig run scripts/zigux/check_phase1_shared_reminder_packet.zig -- --self-test\n",
     );
 }
 

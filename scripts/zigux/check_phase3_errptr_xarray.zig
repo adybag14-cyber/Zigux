@@ -78,13 +78,13 @@ const REQUIRED_MARKERS__zigux_tests_fixtures_phase3_errptr_xarray_manifest_json 
     "\"zigux/tests/phase3_errptr_xarray_dump.zig\"",
     "\"zigux/tests/phase3_errptr_xarray_dump_build.zig\"",
     "\"zigux/tests/fixtures/phase3_errptr_xarray/expected.json\"",
-    "\"zig run scripts\\zigux/check_phase3_errptr_xarray.zig --repo-root . --zig zig --cc gcc\"",
+    "\"zig run scripts\\zigux/check_phase3_errptr_xarray.zig -- --repo-root . --zig zig --cc gcc\"",
     "\"repo_reality_gaps\": []",
 };
 
 const REQUIRED_REPLAY_ROUTES = [_][]const u8{
-    "zig run scripts\\zigux/check_phase3_errptr_xarray.zig --self-test",
-    "zig run scripts\\zigux/check_phase3_errptr_xarray.zig --repo-root . --zig zig --cc gcc",
+    "zig run scripts\\zigux/check_phase3_errptr_xarray.zig -- --self-test",
+    "zig run scripts\\zigux/check_phase3_errptr_xarray.zig -- --repo-root . --zig zig --cc gcc",
     "zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig",
 };
 

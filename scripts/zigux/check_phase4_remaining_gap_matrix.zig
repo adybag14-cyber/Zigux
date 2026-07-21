@@ -191,7 +191,7 @@ pub fn main(init: std.process.Init) !void {
 // reviewability_only_no_perf_threshold
 // `zigux/tests/phase4_perf_baseline_manifest.json`
 // shared CI perf promotion pending
-// `zig run scripts\zigux/check_phase4_perf_baseline_packet.zig --self-test` then `zig run scripts\zigux/check_phase4_perf_baseline_packet.zig`
+// `zig run scripts\zigux/check_phase4_perf_baseline_packet.zig -- --self-test` then `zig run scripts\zigux/check_phase4_perf_baseline_packet.zig`
 // Validation and Perf Team owning that policy decision
 // gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
 // rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
@@ -232,4 +232,4 @@ pub fn main(init: std.process.Init) !void {
 // phase4_test_fsmount_survey.zig
 // phase4-test-fsmount-survey
 // DROPPED_STALE_OWNER_MARKERS
-// Documentation/zigux/phase4-validation-matrix.md: `zig run scripts\zigux/check_phase4_perf_baseline_packet.zig --self-test` then `zig run scripts\zigux/check_phase4_perf_baseline_packet.zig`
+// Documentation/zigux/phase4-validation-matrix.md: `zig run scripts\zigux/check_phase4_perf_baseline_packet.zig -- --self-test` then `zig run scripts\zigux/check_phase4_perf_baseline_packet.zig`

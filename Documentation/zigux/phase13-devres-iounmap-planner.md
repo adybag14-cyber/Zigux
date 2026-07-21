@@ -32,5 +32,5 @@ Adjacent boundary evidence stays unchanged:
 
 Standalone replay handles:
 - `zig test --dep devres -Mroot=zigux/tests/phase13_devres_iounmap_planner.zig -Mdevres=lib/devres.zig`
-- `zig run check_phase13_devres_iounmap_planner.zig`
-- `zig run check_phase13_devres_mmio_packet.zig --self-test`
+- `zig run scripts/zigux/check_phase13_devres_iounmap_planner.zig`
+- `zig run scripts/zigux/check_phase13_devres_mmio_packet.zig -- --self-test`

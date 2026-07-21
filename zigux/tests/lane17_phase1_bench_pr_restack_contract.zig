@@ -17,27 +17,27 @@ const expected_step_name =
 ;
 
 const expected_step_command =
-    \\run: zig run check_phase1_bench.zig
+    \\run: zig run scripts/zigux/check_phase1_bench.zig
 ;
 
 const good_workflow =
     \\      - name: Self-test current Phase 1 route summary checker
-    \\        run: zig run check_phase1_route_summary_counts.zig --self-test
+    \\        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test
     \\
     \\      - name: Check current Phase 1 route summary packet
-    \\        run: zig run check_phase1_route_summary_counts.zig
+    \\        run: zig run scripts/zigux/check_phase1_route_summary_counts.zig
     \\
     \\      - name: Self-test current Phase 1 bench checker
-    \\        run: zig run check_phase1_bench.zig --self-test
+    \\        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test
     \\
     \\      - name: Check current Phase 1 bench packet
-    \\        run: zig run check_phase1_bench.zig
+    \\        run: zig run scripts/zigux/check_phase1_bench.zig
     \\
     \\      - name: Self-test current Phase 1 find-bit bench anchor checker
-    \\        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test
+    \\        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test
     \\
     \\      - name: Check current Phase 1 find-bit bench anchor packet
-    \\        run: zig run check_phase1_find_bit_bench_anchors.zig
+    \\        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig
 ;
 
 fn requireBenchWorkflowRestackReady(patch: WorkflowPatch) !void {
@@ -46,7 +46,7 @@ fn requireBenchWorkflowRestackReady(patch: WorkflowPatch) !void {
     try std.testing.expectEqual(@as(usize, 3), patch.additions);
     try std.testing.expectEqual(@as(usize, 0), patch.deletions);
     try std.testing.expectEqualStrings("Check current Phase 1 bench packet", patch.inserted_step);
-    try std.testing.expectEqualStrings("zig run check_phase1_bench.zig", patch.inserted_command);
+    try std.testing.expectEqualStrings("zig run scripts/zigux/check_phase1_bench.zig", patch.inserted_command);
     try std.testing.expectEqual(@as(usize, 0), patch.behind_by);
     try std.testing.expectEqualStrings("ahead", patch.status);
 
@@ -73,7 +73,7 @@ test "bench workflow PR is ready only after current-master restack" {
         .additions = 3,
         .deletions = 0,
         .inserted_step = "Check current Phase 1 bench packet",
-        .inserted_command = "zig run check_phase1_bench.zig",
+        .inserted_command = "zig run scripts/zigux/check_phase1_bench.zig",
         .workflow_after_restack = good_workflow,
         .ahead_by = 1,
         .behind_by = 0,
@@ -87,7 +87,7 @@ test "stale branch state is rejected even with the right workflow edit" {
         .additions = 3,
         .deletions = 0,
         .inserted_step = "Check current Phase 1 bench packet",
-        .inserted_command = "zig run check_phase1_bench.zig",
+        .inserted_command = "zig run scripts/zigux/check_phase1_bench.zig",
         .workflow_after_restack = good_workflow,
         .ahead_by = 2,
         .behind_by = 290,
@@ -100,14 +100,14 @@ test "duplicate or misplaced live bench checks fail the contract" {
         good_workflow ++
         \\
         \\      - name: Check current Phase 1 bench packet
-        \\        run: zig run check_phase1_bench.zig
+        \\        run: zig run scripts/zigux/check_phase1_bench.zig
         ;
     try std.testing.expectError(error.TestExpectedEqual, requireBenchWorkflowRestackReady(.{
         .changed_files = &.{".github/workflows/zigux-bootstrap.yml"},
         .additions = 3,
         .deletions = 0,
         .inserted_step = "Check current Phase 1 bench packet",
-        .inserted_command = "zig run check_phase1_bench.zig",
+        .inserted_command = "zig run scripts/zigux/check_phase1_bench.zig",
         .workflow_after_restack = duplicated,
         .ahead_by = 1,
         .behind_by = 0,
@@ -116,20 +116,20 @@ test "duplicate or misplaced live bench checks fail the contract" {
 
     const misplaced =
         \\      - name: Self-test current Phase 1 bench checker
-        \\        run: zig run check_phase1_bench.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase1_bench.zig -- --self-test
         \\
         \\      - name: Self-test current Phase 1 find-bit bench anchor checker
-        \\        run: zig run check_phase1_find_bit_bench_anchors.zig --self-test
+        \\        run: zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test
         \\
         \\      - name: Check current Phase 1 bench packet
-        \\        run: zig run check_phase1_bench.zig
+        \\        run: zig run scripts/zigux/check_phase1_bench.zig
     ;
     try std.testing.expectError(error.TestUnexpectedResult, requireBenchWorkflowRestackReady(.{
         .changed_files = &.{".github/workflows/zigux-bootstrap.yml"},
         .additions = 3,
         .deletions = 0,
         .inserted_step = "Check current Phase 1 bench packet",
-        .inserted_command = "zig run check_phase1_bench.zig",
+        .inserted_command = "zig run scripts/zigux/check_phase1_bench.zig",
         .workflow_after_restack = misplaced,
         .ahead_by = 1,
         .behind_by = 0,
@@ -143,7 +143,7 @@ test "non-workflow or widened edits stay out of the bench insertion PR" {
         .additions = 4,
         .deletions = 0,
         .inserted_step = "Check current Phase 1 bench packet",
-        .inserted_command = "zig run check_phase1_bench.zig",
+        .inserted_command = "zig run scripts/zigux/check_phase1_bench.zig",
         .workflow_after_restack = good_workflow,
         .ahead_by = 1,
         .behind_by = 0,

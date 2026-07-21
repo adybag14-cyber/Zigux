@@ -58,7 +58,7 @@ test "phase1 closure note advertises the string review guard as current reminder
     defer std.testing.allocator.free(closure);
 
     try expectContains(closure, "`scripts\zigux/check_phase1_string_review_packet.zig`");
-    try expectContains(closure, "PHASE1_STRING_REVIEW_GUARD=zig run check_phase1_string_review_packet.zig");
+    try expectContains(closure, "PHASE1_STRING_REVIEW_GUARD=zig run scripts/zigux/check_phase1_string_review_packet.zig");
     try expectContains(closure, "helper-local string sysfs newline-aware equality and lookup-order anchors stay explicit");
     try expectContains(closure, "`memtostr()`, `memtostrPad()`, and `memtostr_pad()`");
 }

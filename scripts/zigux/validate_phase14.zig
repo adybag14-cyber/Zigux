@@ -516,7 +516,7 @@ pub fn main(init: std.process.Init) !void {
 //
 // const REQUIRED_MARKERS___github_workflows_zigux-bootstrap_yml = [_][]const u8{
 //     "- name: Self-test current Phase 14 shared smoke route checker",
-//     "run: zig run scripts\\zigux/check_phase14_shared_smoke_route.zig --self-test",
+//     "run: zig run scripts\\zigux/check_phase14_shared_smoke_route.zig -- --self-test",
 //     "- name: Run current Phase 14 validate route",
 //     "run: make -C zigux phase14-validate",
 // };

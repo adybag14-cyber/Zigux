@@ -31,7 +31,7 @@
     "scripts/zigux/check_phase11_shared_tooling_manifest.zig"
   ],
   "shared_routes": [
-    "zig run validate_phase11.zig",
+    "zig run scripts/zigux/validate_phase11.zig",
     "make -C zigux phase11-validate"
   ],
   "proof_builds": [

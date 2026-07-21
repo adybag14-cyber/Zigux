@@ -30,19 +30,19 @@ test "Phase 1 bench live-check workflow guard keeps self-test and live commands 
     defer std.testing.allocator.free(workflow);
 
     try requireContains(workflow, "Self-test current Phase 1 bench checker");
-    try requireContains(workflow, "zig run check_phase1_bench.zig --self-test");
+    try requireContains(workflow, "zig run scripts/zigux/check_phase1_bench.zig -- --self-test");
     try requireContains(workflow, "Check current Phase 1 bench packet");
-    try requireContains(workflow, "zig run check_phase1_bench.zig");
+    try requireContains(workflow, "zig run scripts/zigux/check_phase1_bench.zig");
 
     try requireContains(workflow, "Self-test current Phase 1 bench live-check workflow guard");
-    try requireContains(workflow, "zig run check_phase1_bench_live_check_workflow.zig --self-test");
+    try requireContains(workflow, "zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --self-test");
     try requireContains(workflow, "Check current Phase 1 bench live-check workflow guard packet");
-    try requireContains(workflow, "zig run check_phase1_bench_live_check_workflow.zig");
+    try requireContains(workflow, "zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig");
 
     try requireContains(workflow, "Self-test current Phase 1 find-bit bench anchor checker");
-    try requireContains(workflow, "zig run check_phase1_find_bit_bench_anchors.zig --self-test");
+    try requireContains(workflow, "zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig -- --self-test");
     try requireContains(workflow, "Check current Phase 1 find-bit bench anchor packet");
-    try requireContains(workflow, "zig run check_phase1_find_bit_bench_anchors.zig");
+    try requireContains(workflow, "zig run scripts/zigux/check_phase1_find_bit_bench_anchors.zig");
 }
 
 test "Phase 1 bench live-check workflow guard stays between bench packet and find-bit anchors" {
@@ -106,5 +106,5 @@ test "Phase 1 bench live-check workflow guard remains before shared reminder and
         "Check current Phase 1 closure packet",
     );
 
-    try requireAbsent(workflow, "zig run check_phase1_bench_live_check_workflow.zig --allow-missing");
+    try requireAbsent(workflow, "zig run scripts/zigux/check_phase1_bench_live_check_workflow.zig -- --allow-missing");
 }

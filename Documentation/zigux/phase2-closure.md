@@ -8,7 +8,7 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
 - `PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest`
 - manifest: `zigux/tests/fixtures/phase2_tool_manifest.json`
 - shared note: `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
-- shared validator pair: `zig run validate_phase2.zig` and `zig run validate_phase2_closure.zig`
+- shared validator pair: `zig run scripts/zigux/validate_phase2.zig` and `zig run scripts/zigux/validate_phase2_closure.zig`
 
 ## Current Genksyms Evidence
 
@@ -18,12 +18,12 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
 - `scripts/zigux/genksyms_version_before_invalid_long_option_test.zig`, `scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig`, `scripts/zigux/genksyms_inline_short_option_argument_test.zig`, `scripts/zigux/genksyms_repeated_version_before_abbrev_argument_failure_test.zig`, and `scripts/zigux/genksyms_abbreviated_warning_quiet_terminator_test.zig` remain the standalone proof packet carried by the shipped bridge route.
 - `zigux/tests/fixtures/genksyms_bridge/manifest.json` remains the live packet manifest, and `zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json` is now part of the directly named process-output fixture set instead of sitting only in the helper-local manifest.
 - The bridge expected-output packet now explicitly records the eleven committed replay cases, including the dash-prefixed long and short option argument-as-data cases, so the closure note does not fall back to the older minimal/debug/long-options-only fixture shape.
-- `zig run check_genksyms_bridge.zig --self-test`
-- `zig run check_genksyms_bridge.zig`
-- `zig run check_phase2_genksyms_selftest_alignment.zig --self-test`
-- `zig run check_phase2_genksyms_selftest_alignment.zig`
-- `zig run check_phase2_genksyms_dual_implementation_survey.zig --self-test`
-- `zig run check_phase2_genksyms_dual_implementation_survey.zig`
+- `zig run scripts/zigux/check_genksyms_bridge.zig -- --self-test`
+- `zig run scripts/zigux/check_genksyms_bridge.zig`
+- `zig run scripts/zigux/check_phase2_genksyms_selftest_alignment.zig -- --self-test`
+- `zig run scripts/zigux/check_phase2_genksyms_selftest_alignment.zig`
+- `zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig -- --self-test`
+- `zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig`
 - `zig test scripts/zigux/genksyms.zig`
 - `make -C zigux phase2-genksyms`
 - `PHASE2_CURRENT_GENKSYMS_BRIDGE_PACKET=zigux/tests/fixtures/genksyms_bridge/minimal_expected.json,zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json,zigux/tests/fixtures/genksyms_bridge/inline_short_option_arguments_expected.json,zigux/tests/fixtures/genksyms_bridge/long_options_expected.json,zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json,zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json,zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json,zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json,zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json,zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json,zigux/tests/fixtures/genksyms_bridge/dash_prefixed_short_option_arguments_as_data_expected.json`
@@ -39,20 +39,20 @@ This note keeps the shared Phase 2 closure packet parked while making the curren
 - `PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT=16`
 - `PHASE2_KCONFIG_BRIDGE_CONFDATA_HELPER_ANCHOR_COUNT=36`
 - `scripts/zigux/artifact_diff.zig` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` remain the current artifact-support reminder pair instead of falling back into repo-reality-gap wording.
-- `zig run check_phase2_tool_manifest.zig`
-- `zig run check_phase2_bootstrap_workflow_routes.zig`
-- `zig run check_phase2_artifact_tools_manifest.zig`
-- `zig run check_phase2_kconfig_allconfig_helper_packet.zig`
-- `zig run check_phase2_cross.zig`
-- `zig run check_phase2_fixdep_gate.zig`
-- `zig run check_fixdep_diff.zig`
+- `zig run scripts/zigux/check_phase2_tool_manifest.zig`
+- `zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig`
+- `zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig`
+- `zig run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig`
+- `zig run scripts/zigux/check_phase2_cross.zig`
+- `zig run scripts/zigux/check_phase2_fixdep_gate.zig`
+- `zig run scripts/zigux/check_fixdep_diff.zig`
 - `make -C zigux phase2-fixdep`
-- `PHASE2_SHARED_TOOLING_CHECKERS=zig run check_phase2_tool_manifest.zig,zig run check_phase2_bootstrap_workflow_routes.zig,zig run check_phase2_artifact_tools_manifest.zig,zig run check_phase2_kconfig_allconfig_helper_packet.zig,zig run check_phase2_cross.zig,zig run check_phase2_fixdep_gate.zig,zig run check_fixdep_diff.zig`
+- `PHASE2_SHARED_TOOLING_CHECKERS=zig run scripts/zigux/check_phase2_tool_manifest.zig,zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig,zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig,zig run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig,zig run scripts/zigux/check_phase2_cross.zig,zig run scripts/zigux/check_phase2_fixdep_gate.zig,zig run scripts/zigux/check_fixdep_diff.zig`
 
 ## Shared Replay Routes
 
 - `PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2`
-- `PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2.zig,zig run validate_phase2_closure.zig`
+- `PHASE2_CLOSURE_VALIDATORS=zig run scripts/zigux/validate_phase2.zig,zig run scripts/zigux/validate_phase2_closure.zig`
 
 ## Repo-Reality Gaps
 

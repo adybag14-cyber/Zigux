@@ -8,8 +8,8 @@ pub const self_test_pass_marker = "PHASE7_SHARED_CONTROL_GAP_SELF_TEST=pass";
 const FileContract = struct { rel: []const u8, markers: []const []const u8 };
 
 const markers_0 = [_][]const u8{
-    "run: zig run check_phase7_shared_control_gap.zig --self-test",
-    "run: zig run check_phase7_shared_control_gap.zig",
+    "run: zig run scripts/zigux/check_phase7_shared_control_gap.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase7_shared_control_gap.zig",
 };
 
 const markers_1 = [_][]const u8{
@@ -88,7 +88,7 @@ const markers_6 = [_][]const u8{
 
 const markers_7 = [_][]const u8{
     "phase7-validate:",
-    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig --self-test",
+    "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig -- --self-test",
     "cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig",
 };
 
@@ -177,7 +177,7 @@ pub fn main(init: std.process.Init) !void {
 // Run Phase 7 runtime helper tests
 // make -C zigux phase7-validate
 // make -C zigux phase7-test
-// zig run scripts\zigux/validate_phase7.zig --self-test
+// zig run scripts\zigux/validate_phase7.zig -- --self-test
 // zig run scripts\zigux/validate_phase7.zig
 // zig build test --build-file zigux/tests/phase7_build.zig --summary all
 // ABSENT_MAKEFILE_MARKERS
@@ -192,9 +192,9 @@ pub fn main(init: std.process.Init) !void {
 // phase7-argv-split-test:
 // phase7-argv-split-survey:
 // REQUIRED_WORKFLOW_LINES
-// run: zig run scripts\zigux/check_phase7_shared_control_gap.zig --self-test
+// run: zig run scripts\zigux/check_phase7_shared_control_gap.zig -- --self-test
 // run: zig run scripts\zigux/check_phase7_shared_control_gap.zig
-// run: zig run scripts\zigux/check_phase7_make_wrapper_selftest_alignment.zig --self-test
+// run: zig run scripts\zigux/check_phase7_make_wrapper_selftest_alignment.zig -- --self-test
 // run: zig run scripts\zigux/check_phase7_make_wrapper_selftest_alignment.zig
 // REQUIRED_SEQUENCING_SNIPPETS
 // - shared control-surface packet, lane `P7-Y05`:
@@ -251,7 +251,7 @@ pub fn main(init: std.process.Init) !void {
 // shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate follow-ons
 // REQUIRED_MAKEFILE_LINES
 // phase7-validate:
-// cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig --self-test
+// cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig -- --self-test
 // cd $(ZIGUX_ROOT) && $(ZIG) run scripts/zigux/validate_phase7.zig
 // phase7-rbtree-test:
 // phase7-rbtree-survey:

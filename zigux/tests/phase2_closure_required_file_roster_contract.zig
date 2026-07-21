@@ -41,29 +41,29 @@ const validator_surface_contract =
 
 const validator_command_contract =
     \\VALIDATOR_COMMANDS = (
-    \\    "zig run validate_phase2.zig",
-    \\    "zig run validate_phase2_closure.zig",
+    \\    "zig run scripts/zigux/validate_phase2.zig",
+    \\    "zig run scripts/zigux/validate_phase2_closure.zig",
     \\)
     \\
     \\GENKSYMS_COMMANDS = (
-    \\    "zig run check_genksyms_bridge.zig --self-test",
-    \\    "zig run check_genksyms_bridge.zig",
-    \\    "zig run check_phase2_genksyms_selftest_alignment.zig --self-test",
-    \\    "zig run check_phase2_genksyms_selftest_alignment.zig",
-    \\    "zig run check_phase2_genksyms_dual_implementation_survey.zig --self-test",
-    \\    "zig run check_phase2_genksyms_dual_implementation_survey.zig",
+    \\    "zig run scripts/zigux/check_genksyms_bridge.zig -- --self-test",
+    \\    "zig run scripts/zigux/check_genksyms_bridge.zig",
+    \\    "zig run scripts/zigux/check_phase2_genksyms_selftest_alignment.zig -- --self-test",
+    \\    "zig run scripts/zigux/check_phase2_genksyms_selftest_alignment.zig",
+    \\    "zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig -- --self-test",
+    \\    "zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig",
     \\    "zig test scripts/zigux/genksyms.zig",
     \\    "make -C zigux phase2-genksyms",
     \\)
     \\
     \\SHARED_TOOLING_COMMANDS = (
-    \\    "zig run check_phase2_tool_manifest.zig",
-    \\    "zig run check_phase2_bootstrap_workflow_routes.zig",
-    \\    "zig run check_phase2_artifact_tools_manifest.zig",
-    \\    "zig run check_phase2_kconfig_allconfig_helper_packet.zig",
-    \\    "zig run check_phase2_cross.zig",
-    \\    "zig run check_phase2_fixdep_gate.zig",
-    \\    "zig run check_fixdep_diff.zig",
+    \\    "zig run scripts/zigux/check_phase2_tool_manifest.zig",
+    \\    "zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig",
+    \\    "zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig",
+    \\    "zig run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig",
+    \\    "zig run scripts/zigux/check_phase2_cross.zig",
+    \\    "zig run scripts/zigux/check_phase2_fixdep_gate.zig",
+    \\    "zig run scripts/zigux/check_fixdep_diff.zig",
     \\)
 ;
 
@@ -151,12 +151,12 @@ test "phase2 closure command rosters stay split by purpose" {
     };
 
     try expectOrdered(validator_command_contract, &command_groups);
-    try expectContains(validator_command_contract, "zig run validate_phase2.zig");
-    try expectContains(validator_command_contract, "zig run validate_phase2_closure.zig");
-    try expectContains(validator_command_contract, "zig run check_phase2_genksyms_dual_implementation_survey.zig --self-test");
+    try expectContains(validator_command_contract, "zig run scripts/zigux/validate_phase2.zig");
+    try expectContains(validator_command_contract, "zig run scripts/zigux/validate_phase2_closure.zig");
+    try expectContains(validator_command_contract, "zig run scripts/zigux/check_phase2_genksyms_dual_implementation_survey.zig -- --self-test");
     try expectContains(validator_command_contract, "make -C zigux phase2-genksyms");
-    try expectContains(validator_command_contract, "zig run check_phase2_tool_manifest.zig");
-    try expectContains(validator_command_contract, "zig run check_phase2_kconfig_allconfig_helper_packet.zig");
-    try expectContains(validator_command_contract, "zig run check_fixdep_diff.zig");
+    try expectContains(validator_command_contract, "zig run scripts/zigux/check_phase2_tool_manifest.zig");
+    try expectContains(validator_command_contract, "zig run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig");
+    try expectContains(validator_command_contract, "zig run scripts/zigux/check_fixdep_diff.zig");
     try expectNotContains(validator_command_contract, "\"make -C zigux phase2\",");
 }

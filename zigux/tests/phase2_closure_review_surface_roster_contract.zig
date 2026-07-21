@@ -29,7 +29,7 @@ const closure_status_markers = [_][]const u8{
     "PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest",
     "manifest: `zigux/tests/fixtures/phase2_tool_manifest.json`",
     "shared note: `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
-    "shared validator pair: `zig run validate_phase2.zig` and `zig run validate_phase2_closure.zig`",
+    "shared validator pair: `zig run scripts/zigux/validate_phase2.zig` and `zig run scripts/zigux/validate_phase2_closure.zig`",
 };
 
 fn readFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
@@ -120,6 +120,6 @@ test "phase2 closure note pins status and validator replay markers" {
     }
 
     try expectContains(closure, "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2");
-    try expectContains(closure, "PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2.zig,zig run validate_phase2_closure.zig");
+    try expectContains(closure, "PHASE2_CLOSURE_VALIDATORS=zig run scripts/zigux/validate_phase2.zig,zig run scripts/zigux/validate_phase2_closure.zig");
     try expectMissing(closure, "PHASE2_STATUS=active");
 }

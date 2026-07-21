@@ -669,7 +669,7 @@ test "atomic64 diff wrapper keeps rollback ownership and threshold posture expli
 
 test "atomic64 diff wrapper keeps the phase4 replay routes measurable" {
     try expectAtomic64MatrixMarkerCount(
-        "`zig run validate_phase4.zig` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml`",
+        "`zig run scripts/zigux/validate_phase4.zig` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml`",
         1,
     );
     try expectAtomic64MatrixMarkerCount(

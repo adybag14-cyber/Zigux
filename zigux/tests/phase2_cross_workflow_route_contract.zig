@@ -3,15 +3,15 @@ const std = @import("std");
 const workflow_path = ".github/workflows/zigux-bootstrap.yml";
 const makefile_path = "zigux/Makefile";
 
-const cross_self_test = "run: zig run check_phase2_cross.zig --self-test";
-const cross_check = "run: zig run check_phase2_cross.zig";
-const alignment_self_test = "run: zig run check_phase2_cross_selftest_alignment.zig --self-test";
-const alignment_check = "run: zig run check_phase2_cross_selftest_alignment.zig";
-const workflow_routes_self_test = "run: zig run check_phase2_bootstrap_workflow_routes.zig --self-test";
-const workflow_routes_check = "run: zig run check_phase2_bootstrap_workflow_routes.zig";
+const cross_self_test = "run: zig run scripts/zigux/check_phase2_cross.zig -- --self-test";
+const cross_check = "run: zig run scripts/zigux/check_phase2_cross.zig";
+const alignment_self_test = "run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig -- --self-test";
+const alignment_check = "run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig";
+const workflow_routes_self_test = "run: zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig -- --self-test";
+const workflow_routes_check = "run: zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig";
 const phase2_cross_route = "run: make -C zigux phase2-cross";
 const phase2_fixdep_route = "run: make -C zigux phase2-fixdep";
-const required_routes_self_test = "run: zig run check_phase2_required_make_routes.zig --self-test";
+const required_routes_self_test = "run: zig run scripts/zigux/check_phase2_required_make_routes.zig -- --self-test";
 const make_phase2_cross_rule = "phase2-cross:";
 const make_cross_checker = "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig";
 const make_alignment_checker = "$(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig";
@@ -106,15 +106,15 @@ test "makefile phase2-cross route stays direct-checker scoped" {
 
 test "contract catches stale matrix job text and route misordering" {
     const good_workflow =
-        \\run: zig run check_phase2_cross.zig --self-test
-        \\run: zig run check_phase2_cross.zig
-        \\run: zig run check_phase2_cross_selftest_alignment.zig --self-test
-        \\run: zig run check_phase2_cross_selftest_alignment.zig
-        \\run: zig run check_phase2_bootstrap_workflow_routes.zig --self-test
-        \\run: zig run check_phase2_bootstrap_workflow_routes.zig
+        \\run: zig run scripts/zigux/check_phase2_cross.zig -- --self-test
+        \\run: zig run scripts/zigux/check_phase2_cross.zig
+        \\run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig -- --self-test
+        \\run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig
+        \\run: zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig -- --self-test
+        \\run: zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig
         \\run: make -C zigux phase2-fixdep
         \\run: make -C zigux phase2-cross
-        \\run: zig run check_phase2_required_make_routes.zig --self-test
+        \\run: zig run scripts/zigux/check_phase2_required_make_routes.zig -- --self-test
     ;
     try validateWorkflow(good_workflow);
 
@@ -122,39 +122,39 @@ test "contract catches stale matrix job text and route misordering" {
     try std.testing.expectError(OrderError.ForbiddenMarkerPresent, validateWorkflow(stale_matrix));
 
     const reordered =
-        \\run: zig run check_phase2_cross.zig --self-test
-        \\run: zig run check_phase2_cross.zig
-        \\run: zig run check_phase2_cross_selftest_alignment.zig --self-test
-        \\run: zig run check_phase2_cross_selftest_alignment.zig
-        \\run: zig run check_phase2_bootstrap_workflow_routes.zig --self-test
-        \\run: zig run check_phase2_bootstrap_workflow_routes.zig
+        \\run: zig run scripts/zigux/check_phase2_cross.zig -- --self-test
+        \\run: zig run scripts/zigux/check_phase2_cross.zig
+        \\run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig -- --self-test
+        \\run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig
+        \\run: zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig -- --self-test
+        \\run: zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig
         \\run: make -C zigux phase2-cross
         \\run: make -C zigux phase2-fixdep
-        \\run: zig run check_phase2_required_make_routes.zig --self-test
+        \\run: zig run scripts/zigux/check_phase2_required_make_routes.zig -- --self-test
     ;
     try std.testing.expectError(OrderError.OutOfOrder, validateWorkflow(reordered));
 }
 
 test "contract catches duplicate workflow and makefile markers" {
     const duplicate_workflow =
-        \\run: zig run check_phase2_cross.zig --self-test
-        \\run: zig run check_phase2_cross.zig
-        \\run: zig run check_phase2_cross.zig
-        \\run: zig run check_phase2_cross_selftest_alignment.zig --self-test
-        \\run: zig run check_phase2_cross_selftest_alignment.zig
-        \\run: zig run check_phase2_bootstrap_workflow_routes.zig --self-test
-        \\run: zig run check_phase2_bootstrap_workflow_routes.zig
+        \\run: zig run scripts/zigux/check_phase2_cross.zig -- --self-test
+        \\run: zig run scripts/zigux/check_phase2_cross.zig
+        \\run: zig run scripts/zigux/check_phase2_cross.zig
+        \\run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig -- --self-test
+        \\run: zig run scripts/zigux/check_phase2_cross_selftest_alignment.zig
+        \\run: zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig -- --self-test
+        \\run: zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig
         \\run: make -C zigux phase2-fixdep
         \\run: make -C zigux phase2-cross
-        \\run: zig run check_phase2_required_make_routes.zig --self-test
+        \\run: zig run scripts/zigux/check_phase2_required_make_routes.zig -- --self-test
     ;
     try std.testing.expectError(OrderError.DuplicateMarker, validateWorkflow(duplicate_workflow));
 
     const good_makefile =
         \\phase2-cross:
-        \\    $(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig --self-test
+        \\    $(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig -- --self-test
         \\    $(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross.zig
-        \\    $(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig --self-test
+        \\    $(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig -- --self-test
         \\    $(ZIG) run $(PHASE2_SCRIPT_ROOT)/check_phase2_cross_selftest_alignment.zig
     ;
     try validateMakefile(good_makefile);

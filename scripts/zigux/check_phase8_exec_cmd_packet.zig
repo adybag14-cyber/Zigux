@@ -54,7 +54,7 @@ const FILE_MARKER_ENTRIES = [_]struct { file: []const u8, markers: []const []con
     } },
     .{ .file = "Documentation/zigux/phase8-tooling-lane-sequencing.md", .markers = &[_][]const u8{
         "### 1. Exec-cmd lane",
-        "shared validator-first entrypoint: `zig run validate_phase8.zig`",
+        "shared validator-first entrypoint: `zig run scripts/zigux/validate_phase8.zig`",
         "`Documentation/zigux/phase8-exec-cmd-slice.md`",
         "`tools/lib/subcmd/exec-cmd.zig`",
         "`zigux/tests/phase8_exec_cmd.zig`",

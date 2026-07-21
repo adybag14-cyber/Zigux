@@ -436,7 +436,7 @@ fn runSelfTest(io: Io, allocator: std.mem.Allocator, zig_bin: []const u8) !u8 {
 
     case_count += 1;
     try populateRepo(io, allocator, root);
-    const manifest_only_route = "zig run scripts/zigux/manifest_only_selftest.zig --self-test";
+    const manifest_only_route = "zig run scripts/zigux/manifest_only_selftest.zig -- --self-test";
     try writeSyntheticManifest(io, allocator, root, &.{manifest_only_route});
     const expected_manifest_gap = "manifest self-test replay route missing from SELFTEST_COMMANDS: scripts/zigux/manifest_only_selftest.zig --self-test";
     const manifest_gap_issues = try validateManifestSelftestCoverage(io, allocator, root);

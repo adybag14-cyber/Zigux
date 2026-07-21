@@ -49,7 +49,7 @@ test "phase 2 closure manifest notes keep shared local archive and installer rem
     try expectOrder(
         closure,
         "scripts\zigux/check_phase2_tool_manifest.zig",
-        "PHASE2_SHARED_TOOLING_CHECKERS=zig run check_phase2_tool_manifest.zig",
+        "PHASE2_SHARED_TOOLING_CHECKERS=zig run scripts/zigux/check_phase2_tool_manifest.zig",
     );
 }
 
@@ -102,10 +102,10 @@ test "phase 2 closure manifest notes keep artifact support and scripts-root remi
     try expectContains(closure, "scripts/zigux/artifact_diff.zig");
     try expectContains(closure, "zigux/tests/fixtures/phase2_artifact_tools_manifest.json");
     try expectContains(closure, "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2");
-    try expectContains(closure, "PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2.zig,zig run validate_phase2_closure.zig");
+    try expectContains(closure, "PHASE2_CLOSURE_VALIDATORS=zig run scripts/zigux/validate_phase2.zig,zig run scripts/zigux/validate_phase2_closure.zig");
     try expectOrder(
         closure,
         "PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain",
-        "PHASE2_CLOSURE_VALIDATORS=zig run validate_phase2.zig",
+        "PHASE2_CLOSURE_VALIDATORS=zig run scripts/zigux/validate_phase2.zig",
     );
 }

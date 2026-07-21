@@ -16,7 +16,7 @@ const SCOREBOARD_MARKERS = [_][]const u8{
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "Documentation/zigux/phase10-closure-evidence.md",
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
-    "zig run validate_phase10.zig --self-test",
+    "zig run scripts/zigux/validate_phase10.zig -- --self-test",
     "zig run scripts/zigux/check_phase10_ring_manifest_destinations.zig -- --self-test",
     "zig run scripts/zigux/check_phase10_sample_runtime_scoreboard.zig -- --self-test",
     "zig run scripts/zigux/check_phase10_sample_runtime_scoreboard.zig --",

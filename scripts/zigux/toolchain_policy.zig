@@ -381,10 +381,10 @@ test "archive duplicate suffix detection stays exact" {
     ));
     try std.testing.expect(!archiveNameMatchesPolicy("zig-x86_64-linux-other.tar.xz", expected));
 
-    const windows_expected = "zig-x86_64-windows-0.17.0-dev.1415+64dfaa568.zip";
+    const windows_expected = "zig-x86_64-windows-0.17.0-dev.1443+6c25d2bd5.zip";
     try std.testing.expect(archiveNameMatchesPolicy(windows_expected, windows_expected));
     try std.testing.expect(archiveNameMatchesPolicy(
-        "zig-x86_64-windows-0.17.0-dev.1415+64dfaa568 (1).zip",
+        "zig-x86_64-windows-0.17.0-dev.1443+6c25d2bd5 (1).zip",
         windows_expected,
     ));
 }

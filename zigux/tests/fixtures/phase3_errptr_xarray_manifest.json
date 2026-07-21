@@ -17,8 +17,8 @@
     "scripts\zigux/check_phase3_errptr_xarray.zig"
   ],
   "replay_routes": [
-    "zig run check_phase3_errptr_xarray.zig --self-test",
-    "zig run check_phase3_errptr_xarray.zig --repo-root . --zig zig --cc gcc",
+    "zig run scripts/zigux/check_phase3_errptr_xarray.zig -- --self-test",
+    "zig run scripts/zigux/check_phase3_errptr_xarray.zig -- --repo-root . --zig zig --cc gcc",
     "zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig"
   ],
   "repo_reality_gaps": [],

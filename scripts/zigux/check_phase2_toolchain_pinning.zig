@@ -6,9 +6,9 @@ const policy = @import("toolchain_policy.zig");
 pub const live_pass_marker = "PHASE2_TOOLCHAIN_PINNING=pass";
 pub const self_test_pass_marker = "PHASE2_TOOLCHAIN_PINNING_SELF_TEST=pass";
 
-const expected_channel = "0.17.0-dev.1415+64dfaa568";
-const expected_linux_sha = "f72f19cbae9f4e649d7b2c5040aec6ccb93dce08048738bcfdf1a03475cd0c93";
-const expected_windows_sha = "6fa26a51b2a9bff2952bb11458c863580731021d65dbb04bc42680cfa5a7140f";
+const expected_channel = "0.17.0-dev.1443+6c25d2bd5";
+const expected_linux_sha = "4620f31b3889dcdcb257e6a0da6a4bc9a0b2b8e3db04219c1c160798e2cdc5a9";
+const expected_windows_sha = "0c538cabcea1ef1d114b99f6e9f3099d4c4c22070daa19819511b783c5f40211";
 
 const expected_targets = [_][]const u8{
     "x86_64-linux",
@@ -28,7 +28,7 @@ const expected_routes = [_][]const u8{
 const workflow_markers = [_][]const u8{
     "- name: Setup pinned Zig toolchain",
     "target = \"x86_64-linux\"",
-    "canonical_tag = \"upstream-64dfaa568db0\"",
+    "canonical_tag = \"upstream-6c25d2bd58e4\"",
     "run: zig run scripts/zigux/check_zig_toolchain.zig -- --self-test",
     "run: zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only",
     "run: zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing",
@@ -45,11 +45,11 @@ const workflow_markers = [_][]const u8{
 const third_party_markers = [_][]const u8{
     "policy targets: `x86_64-linux`, `x86_64-windows`",
     "repo-local Lane 05 staging target: `x86_64-linux`",
-    "channel: `0.17.0-dev.1415+64dfaa568`",
-    "upstream-64dfaa568db0",
-    "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz",
+    "channel: `0.17.0-dev.1443+6c25d2bd5`",
+    "upstream-6c25d2bd58e4",
+    "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz",
     expected_linux_sha,
-    "zig-x86_64-windows-0.17.0-dev.1415+64dfaa568.zip",
+    "zig-x86_64-windows-0.17.0-dev.1443+6c25d2bd5.zip",
     expected_windows_sha,
 };
 

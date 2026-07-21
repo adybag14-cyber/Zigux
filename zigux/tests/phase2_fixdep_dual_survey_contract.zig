@@ -105,7 +105,7 @@ test "fixdep helper and reminder surfaces keep the survey packet replayable" {
     try expectContains(tests_readme, "current `master` also directly materializes `scripts\zigux/check_phase2_fixdep_gate.zig`, `scripts\zigux/check_fixdep_diff.zig`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`");
     try expectContains(tests_readme, "zigux/tests/fixtures/fixdep/cases.json");
     try expectContains(scripts_readme, "scripts\zigux/check_phase2_fixdep_gate.zig");
-    try expectContains(scripts_readme, "zig run check_fixdep_diff.zig --self-test");
+    try expectContains(scripts_readme, "zig run scripts/zigux/check_fixdep_diff.zig -- --self-test");
     try expectContains(makefile, "phase2-fixdep: phase2-toolchain");
     try expectContains(makefile, "check-phase2-fixdep-gate.py --self-test");
     try expectContains(makefile, "check-fixdep-diff.py --zig");

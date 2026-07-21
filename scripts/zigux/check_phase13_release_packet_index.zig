@@ -20,7 +20,7 @@ const REQUIRED_MARKERS = [_][]const u8{
     "- `make -C zigux phase13`",
     "- `zigux/tests/phase13_build.zig`",
     "This index is a coordination artifact, not a closure claim.",
-    "then land only the smallest reminder-side truthfulness repair and rerun `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig --`, `zig run scripts/zigux/check_phase13_tests_readme_alignment.zig --`, `zig run scripts/zigux/check_phase13_roadmap_traceability.zig --`, and `zig run validate_phase13_release.zig`.",
+    "then land only the smallest reminder-side truthfulness repair and rerun `zig run scripts/zigux/check_phase13_shared_summary_surfaces.zig --`, `zig run scripts/zigux/check_phase13_tests_readme_alignment.zig --`, `zig run scripts/zigux/check_phase13_roadmap_traceability.zig --`, and `zig run scripts/zigux/validate_phase13_release.zig`.",
     "release-packet index companion: `Documentation/zigux/phase13-release-packet-index.md`",
     "4. `Documentation/zigux/phase13-release-packet-index.md`",
     "`Documentation/zigux/phase13-release-packet-index.md`",

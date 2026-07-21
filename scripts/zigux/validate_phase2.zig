@@ -6,7 +6,7 @@ const policy = @import("toolchain_policy.zig");
 pub const live_pass_marker = "PHASE2_VALIDATION=pass";
 pub const self_test_pass_marker = "PHASE2_VALIDATION_SELF_TEST=pass";
 
-const expected_channel = "0.17.0-dev.1415+64dfaa568";
+const expected_channel = "0.17.0-dev.1443+6c25d2bd5";
 const expected_targets = [_][]const u8{
     "x86_64-linux",
     "x86_64-windows",
@@ -73,14 +73,14 @@ const required_paths = [_][]const u8{
 const workflow_markers = [_][]const u8{
     "- name: Setup pinned Zig toolchain",
     "target = \"x86_64-linux\"",
-    "canonical_tag = \"upstream-64dfaa568db0\"",
+    "canonical_tag = \"upstream-6c25d2bd58e4\"",
     "run: zig run scripts/zigux/check_zig_toolchain.zig -- --self-test",
-    "run: zig run check_phase2_toolchain_pinning.zig --self-test",
-    "run: zig run check_phase2_toolchain_pin_scope.zig --self-test",
-    "run: zig run check_kconfig_bridge.zig --self-test",
-    "run: zig run check_genksyms_bridge.zig --self-test",
-    "run: zig run check_phase2_fixdep_gate.zig --self-test",
-    "run: zig run check_fixdep_diff.zig --self-test",
+    "run: zig run scripts/zigux/check_phase2_toolchain_pinning.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase2_toolchain_pin_scope.zig -- --self-test",
+    "run: zig run scripts/zigux/check_kconfig_bridge.zig -- --self-test",
+    "run: zig run scripts/zigux/check_genksyms_bridge.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase2_fixdep_gate.zig -- --self-test",
+    "run: zig run scripts/zigux/check_fixdep_diff.zig -- --self-test",
     "run: make -C zigux phase2-toolchain",
     "run: make -C zigux phase2-kconfig",
     "run: make -C zigux phase2-cross",
@@ -89,7 +89,7 @@ const workflow_markers = [_][]const u8{
     "run: make -C zigux phase2-validate",
     "run: make -C zigux phase2",
     "validate_phase2.zig",
-    "run: zig run validate_phase2_closure.zig --self-test",
+    "run: zig run scripts/zigux/validate_phase2_closure.zig -- --self-test",
     "validate_phase2_closure.zig",
 };
 
@@ -137,7 +137,7 @@ const tool_manifest_markers = [_][]const u8{
     "\"fixture_roster\"",
     "\"make_wrappers\"",
     "\"policy\"",
-    "zig-x86_64-linux-0.17.0-dev.1415+64dfaa568.tar.xz",
+    "zig-x86_64-linux-0.17.0-dev.1443+6c25d2bd5.tar.xz",
     "check_phase2_toolchain_pinning.zig",
     "check_phase2_toolchain_pin_scope.zig",
     "validate_phase2.zig",

@@ -64,8 +64,8 @@ This note keeps the current Phase 2 repo-tooling packet explicit from the script
 
 ## Replay Commands
 
-- `zig run check_phase2_scripts_root_tooling_inventory.zig --self-test`
-- `zig run check_phase2_scripts_root_tooling_inventory.zig`
+- `zig run scripts/zigux/check_phase2_scripts_root_tooling_inventory.zig -- --self-test`
+- `zig run scripts/zigux/check_phase2_scripts_root_tooling_inventory.zig`
 - `make -C zigux phase2-toolchain`
 - `make -C zigux phase2-tools`
 - `make -C zigux phase2-kconfig`

@@ -314,8 +314,8 @@ test "phase13 devres scatterlist planner note preserves standalone replay handle
 
     try requireContains(note, "zig test --dep devres_scatterlist -Mroot=zigux/tests/phase13_devres_scatterlist.zig -Mdevres_scatterlist=lib/devres_scatterlist.zig");
     try requireContains(note, "zig build test --build-file zigux/tests/phase13_devres_scatterlist_build.zig");
-    try requireContains(note, "zig run check_phase13_devres_scatterlist_planner.zig");
-    try requireContains(note, "zig run check_phase13_devres_scatterlist_planner.zig --self-test");
+    try requireContains(note, "zig run scripts/zigux/check_phase13_devres_scatterlist_planner.zig");
+    try requireContains(note, "zig run scripts/zigux/check_phase13_devres_scatterlist_planner.zig -- --self-test");
     try requireContains(note, "zig test zigux/tests/phase13_devres_dma_coherent.zig");
 }
 

@@ -7,22 +7,22 @@ const phase3_tail_markers = [_][]const u8{
 };
 
 const phase4_markers = [_][]const u8{
-    "      - name: Self-test current Phase 4 repo-reality warning checker\n        run: zig run check_phase4_repo_reality_warning.zig --self-test",
-    "      - name: Check current Phase 4 repo-reality warning packet\n        run: zig run check_phase4_repo_reality_warning.zig",
-    "      - name: Self-test current Phase 4 reversible-delivery pin checker\n        run: zig run check_phase4_reversible_delivery_pins.zig --self-test",
-    "      - name: Check current Phase 4 reversible-delivery pin packet\n        run: zig run check_phase4_reversible_delivery_pins.zig",
-    "      - name: Self-test current Phase 4 tests README checker\n        run: zig run check_phase4_tests_readme_packet.zig --self-test",
-    "      - name: Check current Phase 4 tests README packet\n        run: zig run check_phase4_tests_readme_packet.zig",
+    "      - name: Self-test current Phase 4 repo-reality warning checker\n        run: zig run scripts/zigux/check_phase4_repo_reality_warning.zig -- --self-test",
+    "      - name: Check current Phase 4 repo-reality warning packet\n        run: zig run scripts/zigux/check_phase4_repo_reality_warning.zig",
+    "      - name: Self-test current Phase 4 reversible-delivery pin checker\n        run: zig run scripts/zigux/check_phase4_reversible_delivery_pins.zig -- --self-test",
+    "      - name: Check current Phase 4 reversible-delivery pin packet\n        run: zig run scripts/zigux/check_phase4_reversible_delivery_pins.zig",
+    "      - name: Self-test current Phase 4 tests README checker\n        run: zig run scripts/zigux/check_phase4_tests_readme_packet.zig -- --self-test",
+    "      - name: Check current Phase 4 tests README packet\n        run: zig run scripts/zigux/check_phase4_tests_readme_packet.zig",
     "      - name: Validate Phase 4 rollback routes\n        run: make -C zigux phase4-validate",
     "      - name: Run Phase 4 rollback tests\n        run: make -C zigux phase4-test",
     "      - name: Run Phase 4 artifact-diff contract make route\n        run: make -C zigux phase4-artifact-diff-contract",
-    "      - name: Self-test current Phase 4 artifact-diff helper\n        run: zig run scripts/zigux/artifact_diff.zig --self-test",
-    "      - name: Self-test current Phase 4 artifact-diff contract checker\n        run: zig run check_artifact_diff_contract.zig --self-test",
-    "      - name: Check current Phase 4 artifact-diff contract packet\n        run: zig run check_artifact_diff_contract.zig",
-    "      - name: Self-test current Phase 4 artifact-diff determinism checker\n        run: zig run check_phase4_artifact_diff_determinism.zig --self-test",
-    "      - name: Check current Phase 4 artifact-diff determinism packet\n        run: zig run check_phase4_artifact_diff_determinism.zig",
-    "      - name: Self-test current Phase 4 artifact-diff validator replay checker\n        run: zig run check_phase4_artifact_diff_validator_replays.zig --self-test",
-    "      - name: Check current Phase 4 artifact-diff validator replay packet\n        run: zig run check_phase4_artifact_diff_validator_replays.zig",
+    "      - name: Self-test current Phase 4 artifact-diff helper\n        run: zig run scripts/zigux/artifact_diff.zig -- --self-test",
+    "      - name: Self-test current Phase 4 artifact-diff contract checker\n        run: zig run scripts/zigux/check_artifact_diff_contract.zig -- --self-test",
+    "      - name: Check current Phase 4 artifact-diff contract packet\n        run: zig run scripts/zigux/check_artifact_diff_contract.zig",
+    "      - name: Self-test current Phase 4 artifact-diff determinism checker\n        run: zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test",
+    "      - name: Check current Phase 4 artifact-diff determinism packet\n        run: zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig",
+    "      - name: Self-test current Phase 4 artifact-diff validator replay checker\n        run: zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test",
+    "      - name: Check current Phase 4 artifact-diff validator replay packet\n        run: zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig",
 };
 
 const later_route_markers = [_][]const u8{
@@ -79,7 +79,7 @@ test "phase4 rollback gates stay ahead of artifact-diff gates" {
     const rollback_validate = try markerIndex(workflow_source, "      - name: Validate Phase 4 rollback routes\n        run: make -C zigux phase4-validate");
     const rollback_tests = try markerIndex(workflow_source, "      - name: Run Phase 4 rollback tests\n        run: make -C zigux phase4-test");
     const artifact_route = try markerIndex(workflow_source, "      - name: Run Phase 4 artifact-diff contract make route\n        run: make -C zigux phase4-artifact-diff-contract");
-    const artifact_helper = try markerIndex(workflow_source, "      - name: Self-test current Phase 4 artifact-diff helper\n        run: zig run scripts/zigux/artifact_diff.zig --self-test");
+    const artifact_helper = try markerIndex(workflow_source, "      - name: Self-test current Phase 4 artifact-diff helper\n        run: zig run scripts/zigux/artifact_diff.zig -- --self-test");
 
     try std.testing.expect(rollback_validate < rollback_tests);
     try std.testing.expect(rollback_tests < artifact_route);
@@ -90,12 +90,12 @@ test "phase4 artifact-diff live packet keeps helper self-tests before packet che
     const workflow_source = try readWorkflowSource(std.testing.allocator);
     defer std.testing.allocator.free(workflow_source);
 
-    const artifact_contract_selftest = try markerIndex(workflow_source, "      - name: Self-test current Phase 4 artifact-diff contract checker\n        run: zig run check_artifact_diff_contract.zig --self-test");
-    const artifact_contract_check = try markerIndex(workflow_source, "      - name: Check current Phase 4 artifact-diff contract packet\n        run: zig run check_artifact_diff_contract.zig");
-    const determinism_selftest = try markerIndex(workflow_source, "      - name: Self-test current Phase 4 artifact-diff determinism checker\n        run: zig run check_phase4_artifact_diff_determinism.zig --self-test");
-    const determinism_check = try markerIndex(workflow_source, "      - name: Check current Phase 4 artifact-diff determinism packet\n        run: zig run check_phase4_artifact_diff_determinism.zig");
-    const replay_selftest = try markerIndex(workflow_source, "      - name: Self-test current Phase 4 artifact-diff validator replay checker\n        run: zig run check_phase4_artifact_diff_validator_replays.zig --self-test");
-    const replay_check = try markerIndex(workflow_source, "      - name: Check current Phase 4 artifact-diff validator replay packet\n        run: zig run check_phase4_artifact_diff_validator_replays.zig");
+    const artifact_contract_selftest = try markerIndex(workflow_source, "      - name: Self-test current Phase 4 artifact-diff contract checker\n        run: zig run scripts/zigux/check_artifact_diff_contract.zig -- --self-test");
+    const artifact_contract_check = try markerIndex(workflow_source, "      - name: Check current Phase 4 artifact-diff contract packet\n        run: zig run scripts/zigux/check_artifact_diff_contract.zig");
+    const determinism_selftest = try markerIndex(workflow_source, "      - name: Self-test current Phase 4 artifact-diff determinism checker\n        run: zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test");
+    const determinism_check = try markerIndex(workflow_source, "      - name: Check current Phase 4 artifact-diff determinism packet\n        run: zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig");
+    const replay_selftest = try markerIndex(workflow_source, "      - name: Self-test current Phase 4 artifact-diff validator replay checker\n        run: zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test");
+    const replay_check = try markerIndex(workflow_source, "      - name: Check current Phase 4 artifact-diff validator replay packet\n        run: zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig");
 
     try std.testing.expect(artifact_contract_selftest < artifact_contract_check);
     try std.testing.expect(artifact_contract_check < determinism_selftest);

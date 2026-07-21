@@ -29,7 +29,7 @@ The directly readable Phase 4 packet therefore stays reviewable in a fully align
   * `scripts\zigux/check_artifact_diff_contract.zig` is directly readable again on current `master` and now exact-publishes the matching helper replay plus the 25-base-case / 30-case bytes-aware contract packet, including `cli_missing_mode_value` in the base catalog.
   * `scripts\zigux/check_phase4_artifact_diff_determinism.zig` now exact-requires the broader `Documentation/zigux/artifact-diff.md` note to keep the refreshed helper, contract, determinism, and helper output-contract anchor lines whenever that file is present in the checked tree.
   * `scripts\zigux/validate_phase4.zig` is directly readable again on current `master` and keeps the current artifact-diff helper, contract, determinism, and validator-replay checks explicit inside the shared Phase 4 validator packet.
-  * `.github/workflows/zigux-bootstrap.yml` keeps the directly readable artifact-diff packet reviewable through separate named steps for `zig run scripts/zigux/artifact_diff.zig --self-test`, `zig run check_artifact_diff_contract.zig --self-test`, `zig run check_artifact_diff_contract.zig`, `zig run check_phase4_artifact_diff_determinism.zig --self-test`, `zig run check_phase4_artifact_diff_determinism.zig`, `zig run check_phase4_artifact_diff_validator_replays.zig --self-test`, and `zig run check_phase4_artifact_diff_validator_replays.zig` rather than routing the current artifact-diff packet only through one shared `make -C zigux phase4-validate` step.
+  * `.github/workflows/zigux-bootstrap.yml` keeps the directly readable artifact-diff packet reviewable through separate named steps for `zig run scripts/zigux/artifact_diff.zig -- --self-test`, `zig run scripts/zigux/check_artifact_diff_contract.zig -- --self-test`, `zig run scripts/zigux/check_artifact_diff_contract.zig`, `zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test`, `zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig`, `zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test`, and `zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig` rather than routing the current artifact-diff packet only through one shared `make -C zigux phase4-validate` step.
   * `zigux/Makefile` also keeps the narrower `make -C zigux phase4-artifact-diff-contract` route explicit for the helper self-test plus contract self-test and live contract replay packet instead of leaving that replay path discoverable only through workflow step names.
   * `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, and `scripts\zigux/check_phase4_repo_reality_warning.zig` still keep the broader validator, build, and bitmap authenticated-readback caveat explicit without treating the owner-and-rollback note itself as a missing current-head companion.
 ## Current Exact Helper Checks
@@ -72,14 +72,14 @@ No remaining owner-and-rollback note readback caveat is left inside this lane on
 ## Direct Replay Surface
 
 Current directly readable Python replay and warning surfaces in this run were:
-  * `zig run scripts/zigux/artifact_diff.zig --self-test`
-  * `zig run check_artifact_diff_contract.zig --self-test`
-  * `zig run check_artifact_diff_contract.zig`
-  * `zig run check_phase4_repo_reality_warning.zig --self-test`
-  * `zig run check_phase4_artifact_diff_determinism.zig --self-test`
-  * `zig run check_phase4_artifact_diff_determinism.zig`
-  * `zig run check_phase4_artifact_diff_validator_replays.zig --self-test`
-  * `zig run check_phase4_artifact_diff_validator_replays.zig`
+  * `zig run scripts/zigux/artifact_diff.zig -- --self-test`
+  * `zig run scripts/zigux/check_artifact_diff_contract.zig -- --self-test`
+  * `zig run scripts/zigux/check_artifact_diff_contract.zig`
+  * `zig run scripts/zigux/check_phase4_repo_reality_warning.zig -- --self-test`
+  * `zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test`
+  * `zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig`
+  * `zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test`
+  * `zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig`
 
 The dedicated `make -C zigux phase4-artifact-diff-contract` route stays cataloged through `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml`; this lane's exact replay section keeps the directly readable Python command bodies explicit because that make route simply replays the helper self-test, contract self-test, and live contract packet listed below.
 
@@ -87,32 +87,32 @@ The dedicated `make -C zigux phase4-artifact-diff-contract` route stays cataloge
 
 These are the exact top-level pass markers implied by the current directly readable Python command bodies in this run. Treat them as the lane-local replay record unless a future run re-verifies the commands against a different current-head packet.
 
-  * `zig run scripts/zigux/artifact_diff.zig --self-test`
+  * `zig run scripts/zigux/artifact_diff.zig -- --self-test`
     * `ARTIFACT_DIFF_SELF_TEST=pass`
     * `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23`
     * `ARTIFACT_DIFF_SELF_TEST_CASES=text_pass,text_mismatch,json_pass,json_mismatch,json_invalid_expected,json_invalid_actual,json_invalid_both,json_missing_expected,json_missing_actual,json_missing_both,bytes_pass,bytes_drift,text_missing_expected,text_missing_actual,text_missing_both,bytes_missing_expected,bytes_missing_actual,bytes_missing_both,legacy_sha256_alias,missing_mode_value_rejected,missing_positional_arguments_rejected,invalid_mode_rejected,extra_positional_rejected`
-  * `zig run check_artifact_diff_contract.zig --self-test`
+  * `zig run scripts/zigux/check_artifact_diff_contract.zig -- --self-test`
     * `ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass`
     * `ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=24`
     * `ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES=catalog_shape,review_note_marker_round_trip,review_note_owner_marker_drift,review_note_marker_drift,cli_help_round_trip,cli_help_line_drift,cli_missing_argument_parser_round_trip,cli_missing_argument_parser_stderr_drift,cli_invalid_mode_parser_round_trip,cli_invalid_mode_parser_stderr_drift,helper_summary_round_trip,contract_summary_round_trip,helper_summary_status_drift,helper_summary_count_drift,helper_summary_duplicate_case_drift,helper_summary_case_order_drift,contract_summary_status_drift,contract_summary_base_count_drift,contract_summary_base_case_order_drift,contract_summary_repeat_count_drift,contract_summary_repeat_case_order_drift,contract_summary_case_count_drift,contract_summary_duplicate_case_drift,contract_summary_case_order_drift`
-  * `zig run check_artifact_diff_contract.zig`
+  * `zig run scripts/zigux/check_artifact_diff_contract.zig`
     * `ARTIFACT_DIFF_CONTRACT=pass`
     * `ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=25`
     * `ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5`
     * `ARTIFACT_DIFF_CONTRACT_CASE_COUNT=30`
-  * `zig run check_phase4_artifact_diff_determinism.zig --self-test`
+  * `zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig -- --self-test`
     * `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass`
     * `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=13`
     * `PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES=round_trip,survey_marker_drift,survey_packet_drift,survey_exact_packet_drift,review_checklist_drift,note_marker_drift,broader_note_marker_drift,broader_note_stale_packet_drift,repo_warning_drift,helper_mode_drift,helper_catalog_drift,contract_catalog_drift,direct_packet_missing`
-  * `zig run check_phase4_artifact_diff_determinism.zig`
+  * `zig run scripts/zigux/check_phase4_artifact_diff_determinism.zig`
     * `PHASE4_ARTIFACT_DIFF_DETERMINISM=pass`
     * `PHASE4_ARTIFACT_DIFF_DETERMINISM_DIRECT_PACKET_MEMBERS=11`
     * `PHASE4_ARTIFACT_DIFF_DETERMINISM_AUTH_MISSING_BROADER_COMPANIONS=0`
-  * `zig run check_phase4_artifact_diff_validator_replays.zig --self-test`
+  * `zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test`
     * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST=pass`
     * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT=14`
     * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASES=catalog_shape,validator_marker_round_trip,validator_helper_marker_drift,validator_marker_drift,validator_replay_marker_drift,repo_reality_handoff_round_trip,repo_reality_handoff_drift,repo_reality_handoff_note_missing,workflow_marker_round_trip,workflow_make_route_marker_drift,workflow_marker_drift,workflow_missing,artifact_diff_note_round_trip,artifact_diff_note_marker_drift`
-  * `zig run check_phase4_artifact_diff_validator_replays.zig`
+  * `zig run scripts/zigux/check_phase4_artifact_diff_validator_replays.zig`
     * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=pass`
     * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MODE=validator_present`
     * `PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7`

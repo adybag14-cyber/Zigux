@@ -2,13 +2,13 @@ const std = @import("std");
 const testing = std.testing;
 
 const shared_tooling_checkers = [_][]const u8{
-    "zig run check_phase2_tool_manifest.zig",
-    "zig run check_phase2_bootstrap_workflow_routes.zig",
-    "zig run check_phase2_artifact_tools_manifest.zig",
-    "zig run check_phase2_kconfig_allconfig_helper_packet.zig",
-    "zig run check_phase2_cross.zig",
-    "zig run check_phase2_fixdep_gate.zig",
-    "zig run check_fixdep_diff.zig",
+    "zig run scripts/zigux/check_phase2_tool_manifest.zig",
+    "zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig",
+    "zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig",
+    "zig run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig",
+    "zig run scripts/zigux/check_phase2_cross.zig",
+    "zig run scripts/zigux/check_phase2_fixdep_gate.zig",
+    "zig run scripts/zigux/check_fixdep_diff.zig",
 };
 
 const shared_make_routes = [_][]const u8{
@@ -102,7 +102,7 @@ test "phase2 closure note pins the shared tooling checker packet" {
         "scripts\zigux/check_phase2_cross.zig",
         "scripts\zigux/check_phase2_fixdep_gate.zig",
     );
-    try requireMissing(closure, "PHASE2_SHARED_TOOLING_CHECKERS=zig run check_phase2_tool_manifest.zig,zig run check_phase2_cross.zig");
+    try requireMissing(closure, "PHASE2_SHARED_TOOLING_CHECKERS=zig run scripts/zigux/check_phase2_tool_manifest.zig,zig run scripts/zigux/check_phase2_cross.zig");
 }
 
 test "phase2 manifest and workflow keep shared tooling surfaces live" {
@@ -124,13 +124,13 @@ test "phase2 manifest and workflow keep shared tooling surfaces live" {
 
     try requireOrdered(
         workflow,
-        "run: zig run check_phase2_bootstrap_workflow_routes.zig",
-        "run: zig run check_phase2_artifact_tools_manifest.zig",
+        "run: zig run scripts/zigux/check_phase2_bootstrap_workflow_routes.zig",
+        "run: zig run scripts/zigux/check_phase2_artifact_tools_manifest.zig",
     );
     try requireOrdered(
         workflow,
-        "run: zig run check_phase2_kconfig_allconfig_helper_packet.zig",
-        "run: zig run check_phase2_kbuild_routes.zig --self-test",
+        "run: zig run scripts/zigux/check_phase2_kconfig_allconfig_helper_packet.zig",
+        "run: zig run scripts/zigux/check_phase2_kbuild_routes.zig -- --self-test",
     );
 }
 

@@ -21,8 +21,8 @@ This note records one bounded shared-helper starter packet for the existing Phas
 
 ## Replay Route
 
-- `zig run check_phase3_rbtree_root_starter_packet.zig --self-test`
-- `zig run check_phase3_rbtree_root_starter_packet.zig`
+- `zig run scripts/zigux/check_phase3_rbtree_root_starter_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_rbtree_root_starter_packet.zig`
 - `zig build phase3-rbtree-root-starter-packet --build-file zigux/tests/phase3_rbtree_root_starter_packet_build.zig`
 
 ## Scope

@@ -6,14 +6,14 @@ pub const live_pass_marker = "PHASE4_ARTIFACT_DIFF_EXACT_REPLAY=pass";
 pub const self_test_pass_marker = "PHASE4_ARTIFACT_DIFF_EXACT_REPLAY_SELF_TEST=pass";
 
 const DIRECT_REPLAY_COMMANDS = [_][]const u8{
-    "zig run scripts/zigux/artifact_diff.zig --self-test",
-    "zig run scripts\\zigux/check_artifact_diff_contract.zig --self-test",
+    "zig run scripts/zigux/artifact_diff.zig -- --self-test",
+    "zig run scripts\\zigux/check_artifact_diff_contract.zig -- --self-test",
     "zig run scripts\\zigux/check_artifact_diff_contract.zig",
-    "zig run scripts\\zigux/check_phase4_artifact_diff_determinism.zig --self-test",
+    "zig run scripts\\zigux/check_phase4_artifact_diff_determinism.zig -- --self-test",
     "zig run scripts\\zigux/check_phase4_artifact_diff_determinism.zig",
-    "zig run scripts\\zigux/check_phase4_artifact_diff_validator_replays.zig --self-test",
+    "zig run scripts\\zigux/check_phase4_artifact_diff_validator_replays.zig -- --self-test",
     "zig run scripts\\zigux/check_phase4_artifact_diff_validator_replays.zig",
-    "zig run scripts\\zigux/check_phase4_artifact_diff_exact_replay.zig --self-test",
+    "zig run scripts\\zigux/check_phase4_artifact_diff_exact_replay.zig -- --self-test",
     "zig run scripts\\zigux/check_phase4_artifact_diff_exact_replay.zig",
 };
 

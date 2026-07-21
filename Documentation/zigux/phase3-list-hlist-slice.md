@@ -33,12 +33,12 @@ This note records one bounded shared-helper starter-plus-dump packet for the exi
 ## Replay Route
 
 - `zig test zigux/bindings/notifier_list_shape.zig`
-- `zig run check_phase3_list_hlist_starter_packet.zig --self-test`
-- `zig run check_phase3_list_hlist_starter_packet.zig`
+- `zig run scripts/zigux/check_phase3_list_hlist_starter_packet.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_list_hlist_starter_packet.zig`
 - `zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig`
 - `make -C zigux phase3-list-hlist-starter-packet`
-- `zig run check_phase3_list_hlist.zig --self-test`
-- `zig run check_phase3_list_hlist.zig --repo-root . --zig zig --cc gcc`
+- `zig run scripts/zigux/check_phase3_list_hlist.zig -- --self-test`
+- `zig run scripts/zigux/check_phase3_list_hlist.zig -- --repo-root . --zig zig --cc gcc`
 - `zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig`
 - `make -C zigux phase3-list-hlist-dump`
 

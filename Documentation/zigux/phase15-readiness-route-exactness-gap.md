@@ -85,8 +85,8 @@ This note does not claim:
 
 ## Replay
 
-- `zig run check_phase15_readiness_route_exactness.zig --self-test`
-- `zig run check_phase15_readiness_route_exactness.zig`
+- `zig run scripts/zigux/check_phase15_readiness_route_exactness.zig -- --self-test`
+- `zig run scripts/zigux/check_phase15_readiness_route_exactness.zig`
 
 ## Next bounded step
 

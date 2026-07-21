@@ -46,25 +46,25 @@ const validator_marker_packet = [_][]const u8{
 };
 
 const required_workflow_lines = [_][]const u8{
-    "run: zig run check_zig_toolchain.zig --self-test",
-    "run: zig run check_zig_toolchain.zig --policy-only",
-    "run: zig run check_zig_toolchain.zig --archive-only --allow-missing",
-    "run: zig run check_lane05_local_first_archive_workflow.zig --self-test",
-    "run: zig run check_lane05_local_first_archive_workflow.zig",
-    "run: zig run check_lane05_local_archive_readme.zig --self-test",
-    "run: zig run check_lane05_local_archive_readme.zig",
-    "run: zig run check_lane05_install_zig_archive_verification.zig --self-test",
-    "run: zig run check_lane05_install_zig_archive_verification.zig",
-    "run: zig run scripts/zigux/install_zig.zig --self-test",
-    "run: zig run scripts/zigux/stage_pinned_zig_archive.zig --self-test",
-    "run: zig run check_lane05_stage_helper_contract.zig --self-test",
-    "run: zig run check_lane05_stage_helper_contract.zig",
-    "run: zig run check_lane05_stage_helper_selftest.zig --self-test",
-    "run: zig run check_lane05_stage_helper_selftest.zig",
-    "run: zig run check_lane01_bootstrap_charter_alignment.zig --self-test",
-    "run: zig run check_lane01_bootstrap_charter_alignment.zig",
-    "run: zig run check_phase1_route_summary_counts.zig --self-test",
-    "run: zig run check_phase1_route_summary_counts.zig",
+    "run: zig run scripts/zigux/check_zig_toolchain.zig -- --self-test",
+    "run: zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only",
+    "run: zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing",
+    "run: zig run scripts/zigux/check_lane05_local_first_archive_workflow.zig -- --self-test",
+    "run: zig run scripts/zigux/check_lane05_local_first_archive_workflow.zig",
+    "run: zig run scripts/zigux/check_lane05_local_archive_readme.zig -- --self-test",
+    "run: zig run scripts/zigux/check_lane05_local_archive_readme.zig",
+    "run: zig run scripts/zigux/check_lane05_install_zig_archive_verification.zig -- --self-test",
+    "run: zig run scripts/zigux/check_lane05_install_zig_archive_verification.zig",
+    "run: zig run scripts/zigux/install_zig.zig -- --self-test",
+    "run: zig run scripts/zigux/stage_pinned_zig_archive.zig -- --self-test",
+    "run: zig run scripts/zigux/check_lane05_stage_helper_contract.zig -- --self-test",
+    "run: zig run scripts/zigux/check_lane05_stage_helper_contract.zig",
+    "run: zig run scripts/zigux/check_lane05_stage_helper_selftest.zig -- --self-test",
+    "run: zig run scripts/zigux/check_lane05_stage_helper_selftest.zig",
+    "run: zig run scripts/zigux/check_lane01_bootstrap_charter_alignment.zig -- --self-test",
+    "run: zig run scripts/zigux/check_lane01_bootstrap_charter_alignment.zig",
+    "run: zig run scripts/zigux/check_phase1_route_summary_counts.zig -- --self-test",
+    "run: zig run scripts/zigux/check_phase1_route_summary_counts.zig",
     "run: make -C zigux phase6-validate",
     "run: zig build test --build-file zigux/tests/phase6_build.zig --summary all",
     "run: zig run scripts/zigux/validate_bootstrap.zig -- --self-test",
@@ -134,9 +134,9 @@ test "Lane 03 workflow line packet stays narrower than Phase 2 route ownership" 
     try std.testing.expectEqual(@as(usize, 23), required_workflow_lines.len);
     try expectUnique(&required_workflow_lines);
     try std.testing.expectEqual(@as(usize, 23), countWithPrefix(&required_workflow_lines, "run: "));
-    try std.testing.expect(contains(&required_workflow_lines, "run: zig run check_zig_toolchain.zig --policy-only"));
-    try std.testing.expect(contains(&required_workflow_lines, "run: zig run check_zig_toolchain.zig --archive-only --allow-missing"));
-    try std.testing.expect(contains(&required_workflow_lines, "run: zig run scripts/zigux/stage_pinned_zig_archive.zig --self-test"));
+    try std.testing.expect(contains(&required_workflow_lines, "run: zig run scripts/zigux/check_zig_toolchain.zig -- --policy-only"));
+    try std.testing.expect(contains(&required_workflow_lines, "run: zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --allow-missing"));
+    try std.testing.expect(contains(&required_workflow_lines, "run: zig run scripts/zigux/stage_pinned_zig_archive.zig -- --self-test"));
     try std.testing.expect(contains(&required_workflow_lines, "run: make -C zigux phase6-validate"));
     try std.testing.expect(contains(&required_workflow_lines, "run: zig run scripts/zigux/validate_bootstrap.zig -- --self-test"));
     try std.testing.expect(contains(&required_workflow_lines, "run: zig run scripts/zigux/validate_bootstrap.zig"));

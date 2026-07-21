@@ -54,7 +54,7 @@ const SCRIPTS_LIVE_GUARDS = "- `scripts\\zigux/check_phase1_string_review_packet
 
 const SCRIPTS_ROOT_REL = "scripts/zigux/README.md";
 
-const SCRIPTS_SELF_TESTS = "- `zig run validate_phase1_closure.zig`, `zig run check_phase1_string_review_packet.zig --self-test`, and `zig run check_phase1_direct_owner_markers.zig --self-test`, and `zig run check_phase1_bench.zig --self-test` replay the shipped bounded Phase 1 reminder checks";
+const SCRIPTS_SELF_TESTS = "- `zig run scripts/zigux/validate_phase1_closure.zig`, `zig run scripts/zigux/check_phase1_string_review_packet.zig -- --self-test`, and `zig run scripts/zigux/check_phase1_direct_owner_markers.zig -- --self-test`, and `zig run scripts/zigux/check_phase1_bench.zig -- --self-test` replay the shipped bounded Phase 1 reminder checks";
 
 const SMOKE_ROUTE_REL = "zigux/tests/phase1_host_tools_smoke.zig";
 
@@ -316,7 +316,7 @@ fn collectFailures(
             else => return err,
         };
         defer allocator.free(text);
-        const marker = "- `zig run validate_phase1_closure.zig`, `zig run check_phase1_string_review_packet.zig --self-test`, and `zig run check_phase1_direct_owner_markers.zig --self-test`, and `zig run check_phase1_bench.zig --self-test` replay the shipped bounded Phase 1 reminder checks";
+        const marker = "- `zig run scripts/zigux/validate_phase1_closure.zig`, `zig run scripts/zigux/check_phase1_string_review_packet.zig -- --self-test`, and `zig run scripts/zigux/check_phase1_direct_owner_markers.zig -- --self-test`, and `zig run scripts/zigux/check_phase1_bench.zig -- --self-test` replay the shipped bounded Phase 1 reminder checks";
         const count = guard.countOccurrences(text, marker);
         if (count != 1) {
             const issue = try std.fmt.allocPrint(allocator, "scripts_root:self_tests:expected=1:actual={d}", .{count});

@@ -47,9 +47,9 @@ This packet keeps that distinction honest: it records the current boundary evide
   - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
   - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
 - dedicated compile-route guard surface:
-  - `zig run check_phase14_rcu_compile_route.zig`
+  - `zig run scripts/zigux/check_phase14_rcu_compile_route.zig`
 - dedicated rollback guard surface:
-  - `zig run check_phase14_rcu_rollback_guardrail.zig`
+  - `zig run scripts/zigux/check_phase14_rcu_rollback_guardrail.zig`
 
 ## Boundary findings
 - grace-period sequence publication still stays in C because `rcu_start_this_gp`, `rcu_gp_init`, and `__note_gp_changes` remain coupled to the live `rcu_node` hierarchy and GP sequencing state

@@ -54,7 +54,7 @@ That broader deferred packet still includes `/sys/devices/system/cpu/online` rea
 
 Those setup-side routing and ring-ownership steps remain intentionally deferred even though the helper-local routing summaries are already reviewable on current `master`.
 
-The timing-adjacent poll reminder also stays explicit through `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `zig run check_phase8_perf_buffer_poll_gate.zig`, `make -C zigux phase8-perf-buffer-poll-test`, and the shared `phase8` routes; that dedicated packet keeps no standalone timer helper behavior, no standalone clockevent helper behavior, and no broader timeout-sensitive routing behavior explicit while the surrounding setup-side bridge remains deferred.
+The timing-adjacent poll reminder also stays explicit through `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `zig run scripts/zigux/check_phase8_perf_buffer_poll_gate.zig`, `make -C zigux phase8-perf-buffer-poll-test`, and the shared `phase8` routes; that dedicated packet keeps no standalone timer helper behavior, no standalone clockevent helper behavior, and no broader timeout-sensitive routing behavior explicit while the surrounding setup-side bridge remains deferred.
 
 ## Non-goals
 This survey does not yet claim:

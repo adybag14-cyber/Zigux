@@ -24,10 +24,10 @@ test "phase2 tests readme keeps local archive reminder packet explicit" {
     try expectContains(tests_readme, "scripts\zigux/check_lane05_local_first_archive_workflow.zig");
     try expectContains(tests_readme, "scripts\zigux/check_lane05_local_archive_readme.zig");
     try expectContains(tests_readme, "third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz");
-    try expectContains(tests_readme, "zig run check_zig_toolchain.zig --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz --archive-target x86_64-linux");
+    try expectContains(tests_readme, "zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.877+a3ae499dc.tar.xz --archive-target x86_64-linux");
     try expectContains(tests_readme, "local-first `third_party`, canonical `adybag14-cyber/zig` release, mirror, then direct-download bootstrap order");
-    try expectContains(tests_readme, "zig run check_lane05_local_first_archive_workflow.zig --self-test");
-    try expectContains(tests_readme, "zig run check_lane05_local_archive_readme.zig --self-test");
+    try expectContains(tests_readme, "zig run scripts/zigux/check_lane05_local_first_archive_workflow.zig -- --self-test");
+    try expectContains(tests_readme, "zig run scripts/zigux/check_lane05_local_archive_readme.zig -- --self-test");
 
     try expectOrder(
         tests_readme,
@@ -69,7 +69,7 @@ test "lane05 archive checkers expose the guarded local first replay commands" {
 
     try expectContains(workflow_checker, "zig run scripts/zigux/stage_pinned_zig_archive.zig");
     try expectContains(workflow_checker, "--parts-dir \"$repo_archive_parts_dir\"");
-    try expectContains(workflow_checker, "zig run check_zig_toolchain.zig --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"");
+    try expectContains(workflow_checker, "zig run scripts/zigux/check_zig_toolchain.zig -- --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"");
     try expectContains(workflow_checker, "elif try_download \"$ZIGUX_ZIG_CANONICAL_URL\"; then");
     try expectContains(workflow_checker, "if try_download \"$ZIGUX_ZIG_URL\"; then");
 
