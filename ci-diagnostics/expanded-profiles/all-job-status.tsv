@@ -1,0 +1,11 @@
+Resolve rolling-linux-sync source	completed	success	90370970061
+Cold-build arm64 / defconfig	completed	success	90371024158
+Cold-build x86_64 / allmodconfig	completed	failure	90371024180
+Cold-build i686 / defconfig	completed	success	90371024185
+Cold-build armv7 / defconfig	completed	success	90371024208
+Cold-build riscv64 / defconfig	completed	success	90371024209
+Cold-build i686 / allmodconfig	completed	failure	90371024213
+Cold-build arm64 / allmodconfig	completed	failure	90371024232
+Cold-build riscv64 / allmodconfig	completed	failure	90371024236
+Cold-build armv7 / allmodconfig	completed	failure	90371024239
+Cold-build x86_64 / defconfig	completed	success	90371024250
