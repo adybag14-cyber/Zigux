@@ -1,0 +1,136 @@
+name: Diagnose expanded-profile failures
+
+on:
+  push:
+    branches:
+      - ci/diagnose-expanded-profile-failures
+    paths:
+      - .github/workflows/diagnose-expanded-profile-failures.yml
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      TARGET_HEAD_SHA: 874f263a51917381e1b9fe25ca619ceae0f1bf93
+      TARGET_WORKFLOW: weekly-cold-rolling-linux.yml
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ci/diagnose-expanded-profile-failures
+
+      - name: Collect failed job logs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          api="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}"
+          out="ci-diagnostics/expanded-profiles"
+          rm -rf "${out}"
+          mkdir -p "${out}/logs"
+
+          curl --fail --silent --show-error --location \
+            --retry 5 --retry-all-errors \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "${api}/actions/workflows/${TARGET_WORKFLOW}/runs?branch=master&event=push&per_page=50" \
+            > "${out}/runs.json"
+
+          run_id="$(jq -r --arg sha "${TARGET_HEAD_SHA}" \
+            '[.workflow_runs[] | select(.head_sha == $sha)][0].id // empty' \
+            "${out}/runs.json")"
+
+          if [ -z "${run_id}" ]; then
+            run_id="$(jq -r '.workflow_runs[0].id // empty' "${out}/runs.json")"
+          fi
+          test -n "${run_id}"
+          echo "${run_id}" > "${out}/run-id.txt"
+
+          curl --fail --silent --show-error --location \
+            --retry 5 --retry-all-errors \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "${api}/actions/runs/${run_id}/jobs?filter=latest&per_page=100" \
+            > "${out}/jobs.json"
+
+          jq '{total_count, jobs: [.jobs[] | {id,name,status,conclusion,started_at,completed_at,html_url,steps}]}' \
+            "${out}/jobs.json" > "${out}/jobs-summary.json"
+
+          mapfile -t failed_jobs < <(jq -r \
+            '.jobs[] | select(.conclusion == "failure" or .conclusion == "timed_out" or .conclusion == "cancelled") | [.id,.name,.conclusion] | @tsv' \
+            "${out}/jobs.json")
+
+          : > "${out}/failure-report.txt"
+          {
+            echo "Workflow run: ${run_id}"
+            echo "Target head SHA: ${TARGET_HEAD_SHA}"
+            echo "Failed job count: ${#failed_jobs[@]}"
+            echo
+          } >> "${out}/failure-report.txt"
+
+          for row in "${failed_jobs[@]}"; do
+            IFS=$'\t' read -r job_id job_name conclusion <<< "${row}"
+            safe_name="$(printf '%s' "${job_name}" | tr -cs 'A-Za-z0-9._-' '-')"
+            log_path="${out}/logs/${job_id}-${safe_name}.log"
+
+            curl --fail --silent --show-error --location \
+              --retry 5 --retry-all-errors \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "${api}/actions/jobs/${job_id}/logs" \
+              -o "${log_path}"
+
+            {
+              echo "================================================================"
+              echo "JOB: ${job_name}"
+              echo "JOB ID: ${job_id}"
+              echo "CONCLUSION: ${conclusion}"
+              echo "LOG: ${log_path}"
+              echo "----------------------------------------------------------------"
+              python3 - "${log_path}" <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          path = pathlib.Path(sys.argv[1])
+          text = path.read_text(errors="replace")
+          lines = text.splitlines()
+          pattern = re.compile(
+              r"(?:^|\b)(?:error:|fatal:|undefined reference|No rule to make target|"
+              r"not found|unrecognized|unsupported|failed|failure|Killed|out of memory|"
+              r"No space left|BTF:|pahole|modpost:|ld:|collect2:)",
+              re.IGNORECASE,
+          )
+          matches = [(i + 1, line) for i, line in enumerate(lines) if pattern.search(line)]
+          selected = matches[-250:]
+          if selected:
+              for line_no, line in selected:
+                  print(f"{line_no}: {line}")
+          else:
+              for line_no, line in enumerate(lines[-250:], start=max(1, len(lines) - 249)):
+                  print(f"{line_no}: {line}")
+          PY
+              echo
+            } >> "${out}/failure-report.txt"
+          done
+
+          jq -r '.jobs[] | [.name,.status,.conclusion,.id] | @tsv' "${out}/jobs.json" \
+            > "${out}/all-job-status.tsv"
+
+      - name: Commit diagnostic report
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add ci-diagnostics/expanded-profiles
+          git commit -m "ci: record expanded-profile failure diagnostics"
+          git push origin HEAD:ci/diagnose-expanded-profile-failures
