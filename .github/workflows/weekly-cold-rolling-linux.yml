@@ -21,13 +21,14 @@ concurrency:
 
 env:
   SOURCE_BRANCH: rolling-linux-sync
-  ARCH: x86_64
+  # Linux Kbuild uses ARCH=x86 for both 32-bit and 64-bit x86 builds.
+  ARCH: x86
   BUILD_TARGETS: "bzImage modules"
   CCACHE_DISABLE: "1"
 
 jobs:
   cold-build:
-    name: Cold-build rolling-linux-sync
+    name: Cold-build rolling-linux-sync for x86_64
     runs-on: ubuntu-24.04
     timeout-minutes: 360
 
@@ -245,6 +246,7 @@ jobs:
               "source_short_commit": os.environ["SOURCE_SHORT_SHA"],
               "kernel_release": os.environ["KERNEL_RELEASE"],
               "architecture": "x86_64",
+              "kbuild_arch": "x86",
               "configuration": "x86_64_defconfig",
               "targets": ["bzImage", "modules"],
               "elapsed_seconds": int(os.environ["ELAPSED_SECONDS"]),
