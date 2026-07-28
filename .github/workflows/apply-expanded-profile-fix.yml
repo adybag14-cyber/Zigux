@@ -1,6 +1,11 @@
 name: Apply expanded-profile validation fix
 
 on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - .github/workflows/apply-expanded-profile-fix.yml
   push:
     branches:
       - ci/fix-expanded-profile-failures
