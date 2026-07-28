@@ -1,5 +1,5 @@
-name: Weekly multi-architecture cold build of rolling Linux sync
-run-name: Multi-arch cold Linux build — rolling-linux-sync @ ${{ github.run_number }}
+name: Weekly dual-profile multi-architecture cold build of rolling Linux sync
+run-name: Dual-profile multi-arch cold Linux build — rolling-linux-sync @ ${{ github.run_number }}
 
 on:
   schedule:
@@ -58,19 +58,31 @@ jobs:
           echo "Resolved ${SOURCE_BRANCH} to ${source_sha}."
 
   cold-build:
-    name: Cold-build ${{ matrix.architecture }}
+    name: Cold-build ${{ matrix.architecture }} / ${{ matrix.profile }}
     needs: resolve-source
     runs-on: ubuntu-24.04
     timeout-minutes: 360
 
     strategy:
       fail-fast: false
-      max-parallel: 5
+      max-parallel: 10
       matrix:
         include:
           - architecture: x86_64
+            profile: defconfig
             kbuild_arch: x86
-            defconfig: x86_64_defconfig
+            config_target: x86_64_defconfig
+            cross_compile: ""
+            toolchain_packages: gcc
+            image_target: bzImage
+            image_path: arch/x86/boot/bzImage
+            expected_elf_class: ELF64
+            expected_elf_machine: Advanced Micro Devices X86-64
+
+          - architecture: x86_64
+            profile: allmodconfig
+            kbuild_arch: x86_64
+            config_target: allmodconfig
             cross_compile: ""
             toolchain_packages: gcc
             image_target: bzImage
@@ -79,8 +91,20 @@ jobs:
             expected_elf_machine: Advanced Micro Devices X86-64
 
           - architecture: i686
+            profile: defconfig
             kbuild_arch: x86
-            defconfig: i386_defconfig
+            config_target: i386_defconfig
+            cross_compile: i686-linux-gnu-
+            toolchain_packages: gcc-i686-linux-gnu
+            image_target: bzImage
+            image_path: arch/x86/boot/bzImage
+            expected_elf_class: ELF32
+            expected_elf_machine: Intel 80386
+
+          - architecture: i686
+            profile: allmodconfig
+            kbuild_arch: i386
+            config_target: allmodconfig
             cross_compile: i686-linux-gnu-
             toolchain_packages: gcc-i686-linux-gnu
             image_target: bzImage
@@ -89,8 +113,20 @@ jobs:
             expected_elf_machine: Intel 80386
 
           - architecture: arm64
+            profile: defconfig
             kbuild_arch: arm64
-            defconfig: defconfig
+            config_target: defconfig
+            cross_compile: aarch64-linux-gnu-
+            toolchain_packages: gcc-aarch64-linux-gnu
+            image_target: Image
+            image_path: arch/arm64/boot/Image
+            expected_elf_class: ELF64
+            expected_elf_machine: AArch64
+
+          - architecture: arm64
+            profile: allmodconfig
+            kbuild_arch: arm64
+            config_target: allmodconfig
             cross_compile: aarch64-linux-gnu-
             toolchain_packages: gcc-aarch64-linux-gnu
             image_target: Image
@@ -99,8 +135,20 @@ jobs:
             expected_elf_machine: AArch64
 
           - architecture: armv7
+            profile: defconfig
             kbuild_arch: arm
-            defconfig: multi_v7_defconfig
+            config_target: multi_v7_defconfig
+            cross_compile: arm-linux-gnueabihf-
+            toolchain_packages: gcc-arm-linux-gnueabihf
+            image_target: zImage
+            image_path: arch/arm/boot/zImage
+            expected_elf_class: ELF32
+            expected_elf_machine: ARM
+
+          - architecture: armv7
+            profile: allmodconfig
+            kbuild_arch: arm
+            config_target: allmodconfig
             cross_compile: arm-linux-gnueabihf-
             toolchain_packages: gcc-arm-linux-gnueabihf
             image_target: zImage
@@ -109,8 +157,20 @@ jobs:
             expected_elf_machine: ARM
 
           - architecture: riscv64
+            profile: defconfig
             kbuild_arch: riscv
-            defconfig: defconfig
+            config_target: defconfig
+            cross_compile: riscv64-linux-gnu-
+            toolchain_packages: gcc-riscv64-linux-gnu
+            image_target: Image
+            image_path: arch/riscv/boot/Image
+            expected_elf_class: ELF64
+            expected_elf_machine: RISC-V
+
+          - architecture: riscv64
+            profile: allmodconfig
+            kbuild_arch: riscv
+            config_target: allmodconfig
             cross_compile: riscv64-linux-gnu-
             toolchain_packages: gcc-riscv64-linux-gnu
             image_target: Image
@@ -120,8 +180,9 @@ jobs:
 
     env:
       ARCHITECTURE: ${{ matrix.architecture }}
+      PROFILE: ${{ matrix.profile }}
       KBUILD_ARCH: ${{ matrix.kbuild_arch }}
-      DEFCONFIG: ${{ matrix.defconfig }}
+      CONFIG_TARGET: ${{ matrix.config_target }}
       CROSS_COMPILE: ${{ matrix.cross_compile }}
       TOOLCHAIN_PACKAGES: ${{ matrix.toolchain_packages }}
       IMAGE_TARGET: ${{ matrix.image_target }}
@@ -132,12 +193,13 @@ jobs:
       SOURCE_SHORT_SHA: ${{ needs.resolve-source.outputs.source_short_sha }}
 
     steps:
-      - name: Record runner and architecture baseline
+      - name: Record runner, architecture and profile baseline
         shell: bash
         run: |
           set -euo pipefail
-          log_dir="${GITHUB_WORKSPACE}/build-logs/${ARCHITECTURE}"
-          mkdir -p "${log_dir}" "${GITHUB_WORKSPACE}/artifacts/${ARCHITECTURE}"
+          build_id="${ARCHITECTURE}-${PROFILE}"
+          log_dir="${GITHUB_WORKSPACE}/build-logs/${build_id}"
+          mkdir -p "${log_dir}" "${GITHUB_WORKSPACE}/artifacts/${build_id}"
 
           {
             echo "Cold build: true"
@@ -145,8 +207,9 @@ jobs:
             echo "Source branch: ${SOURCE_BRANCH}"
             echo "Source commit: ${SOURCE_SHA}"
             echo "Architecture label: ${ARCHITECTURE}"
+            echo "Build profile: ${PROFILE}"
             echo "Kbuild ARCH: ${KBUILD_ARCH}"
-            echo "Defconfig: ${DEFCONFIG}"
+            echo "Configuration target: ${CONFIG_TARGET}"
             echo "Cross compiler prefix: ${CROSS_COMPILE:-native}"
             echo "Image target: ${IMAGE_TARGET}"
             echo "Image path: ${IMAGE_PATH}"
@@ -166,7 +229,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          log_dir="${GITHUB_WORKSPACE}/build-logs/${ARCHITECTURE}"
+          build_id="${ARCHITECTURE}-${PROFILE}"
+          log_dir="${GITHUB_WORKSPACE}/build-logs/${build_id}"
 
           sudo apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -205,11 +269,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          source_root="${RUNNER_TEMP}/zigux-${ARCHITECTURE}-source"
-          source_archive="${RUNNER_TEMP}/zigux-${ARCHITECTURE}.tar.gz"
-          out_dir="${GITHUB_WORKSPACE}/out-${ARCHITECTURE}"
+          build_id="${ARCHITECTURE}-${PROFILE}"
+          source_root="${RUNNER_TEMP}/zigux-${build_id}-source"
+          source_archive="${RUNNER_TEMP}/zigux-${build_id}.tar.gz"
+          out_dir="${GITHUB_WORKSPACE}/out-${build_id}"
 
-          # Every architecture receives an empty source and output tree.
+          # Every matrix row receives an empty source and output tree.
           rm -rf "${source_root}" "${source_archive}" "${out_dir}"
           mkdir -p "${source_root}" "${out_dir}"
 
@@ -222,14 +287,16 @@ jobs:
           test -s "${source_root}/Makefile"
           grep -q '^VERSION = ' "${source_root}/Makefile"
 
+          echo "BUILD_ID=${build_id}" >> "${GITHUB_ENV}"
           echo "SOURCE_ROOT=${source_root}" >> "${GITHUB_ENV}"
           echo "OUT_DIR=${out_dir}" >> "${GITHUB_ENV}"
 
-      - name: Configure clean ${{ matrix.architecture }} kernel tree
+      - name: Configure clean ${{ matrix.architecture }} / ${{ matrix.profile }} kernel tree
+        id: configure
         shell: bash
         run: |
           set -euo pipefail
-          log_dir="${GITHUB_WORKSPACE}/build-logs/${ARCHITECTURE}"
+          log_dir="${GITHUB_WORKSPACE}/build-logs/${BUILD_ID}"
 
           unset CCACHE_DIR CCACHE_BASEDIR CCACHE_COMPILERCHECK || true
           export CCACHE_DISABLE=1
@@ -244,7 +311,16 @@ jobs:
             O="${OUT_DIR}" \
             ARCH="${KBUILD_ARCH}" \
             CROSS_COMPILE="${CROSS_COMPILE}" \
-            "${DEFCONFIG}"
+            "${CONFIG_TARGET}"
+
+          adjustments="none"
+          if [ "${PROFILE}" = "allmodconfig" ]; then
+            # Keep allmodconfig broad while avoiding warning-only and Rust
+            # cross-toolchain failures that do not measure C kernel coverage.
+            "${SOURCE_ROOT}/scripts/config" --file "${OUT_DIR}/.config" --disable WERROR
+            "${SOURCE_ROOT}/scripts/config" --file "${OUT_DIR}/.config" --disable RUST
+            adjustments="CONFIG_WERROR=n,CONFIG_RUST=n"
+          fi
 
           make -C "${SOURCE_ROOT}" \
             O="${OUT_DIR}" \
@@ -252,7 +328,36 @@ jobs:
             CROSS_COMPILE="${CROSS_COMPILE}" \
             olddefconfig
 
+          case "${ARCHITECTURE}" in
+            x86_64|arm64|riscv64)
+              grep -qx 'CONFIG_64BIT=y' "${OUT_DIR}/.config"
+              ;;
+            i686|armv7)
+              if grep -qx 'CONFIG_64BIT=y' "${OUT_DIR}/.config"; then
+                echo "::error::${ARCHITECTURE}/${PROFILE} unexpectedly selected CONFIG_64BIT=y."
+                exit 1
+              fi
+              ;;
+          esac
+
+          if [ "${PROFILE}" = "allmodconfig" ]; then
+            grep -qx '# CONFIG_WERROR is not set' "${OUT_DIR}/.config"
+            grep -qx '# CONFIG_RUST is not set' "${OUT_DIR}/.config"
+            grep -qx 'CONFIG_MODULES=y' "${OUT_DIR}/.config"
+          fi
+
+          configured_module_symbols="$(grep -c '=m$' "${OUT_DIR}/.config" || true)"
+          echo "configured_module_symbols=${configured_module_symbols}" >> "${GITHUB_OUTPUT}"
+          echo "config_adjustments=${adjustments}" >> "${GITHUB_OUTPUT}"
+
           cp "${OUT_DIR}/.config" "${log_dir}/kernel.config"
+          {
+            echo "Profile: ${PROFILE}"
+            echo "Configuration target: ${CONFIG_TARGET}"
+            echo "CI adjustments: ${adjustments}"
+            echo "Configured module symbols: ${configured_module_symbols}"
+          } | tee "${log_dir}/configuration-summary.txt"
+
           make -s -C "${SOURCE_ROOT}" \
             O="${OUT_DIR}" \
             ARCH="${KBUILD_ARCH}" \
@@ -260,12 +365,12 @@ jobs:
             kernelrelease \
             | tee "${log_dir}/configured-kernel-release.txt"
 
-      - name: Cold compile ${{ matrix.architecture }} image and modules
+      - name: Cold compile ${{ matrix.architecture }} / ${{ matrix.profile }} image and modules
         id: compile
         shell: bash
         run: |
           set -euo pipefail
-          log_dir="${GITHUB_WORKSPACE}/build-logs/${ARCHITECTURE}"
+          log_dir="${GITHUB_WORKSPACE}/build-logs/${BUILD_ID}"
           started_epoch="$(date +%s)"
 
           export KBUILD_BUILD_USER=github-actions
@@ -284,15 +389,18 @@ jobs:
 
           finished_epoch="$(date +%s)"
           elapsed_seconds="$((finished_epoch - started_epoch))"
-          echo "elapsed_seconds=${elapsed_seconds}" >> "${GITHUB_OUTPUT}"
-          echo "Cold ${ARCHITECTURE} compile completed in ${elapsed_seconds} seconds."
+          built_module_count="$(find "${OUT_DIR}" -type f -name '*.ko' -print | wc -l)"
 
-      - name: Verify ${{ matrix.architecture }} kernel outputs
+          echo "elapsed_seconds=${elapsed_seconds}" >> "${GITHUB_OUTPUT}"
+          echo "built_module_count=${built_module_count}" >> "${GITHUB_OUTPUT}"
+          echo "Cold ${ARCHITECTURE}/${PROFILE} compile completed in ${elapsed_seconds} seconds with ${built_module_count} modules."
+
+      - name: Verify ${{ matrix.architecture }} / ${{ matrix.profile }} kernel outputs
         id: verify
         shell: bash
         run: |
           set -euo pipefail
-          log_dir="${GITHUB_WORKSPACE}/build-logs/${ARCHITECTURE}"
+          log_dir="${GITHUB_WORKSPACE}/build-logs/${BUILD_ID}"
           image="${OUT_DIR}/${IMAGE_PATH}"
           vmlinux="${OUT_DIR}/vmlinux"
 
@@ -317,11 +425,11 @@ jobs:
           actual_machine="$(readelf -h "${vmlinux}" | awk -F: '/^[[:space:]]*Machine:/{sub(/^[[:space:]]+/, "", $2); print $2}')"
 
           if [ "${actual_class}" != "${EXPECTED_ELF_CLASS}" ]; then
-            echo "::error::Expected ${EXPECTED_ELF_CLASS} for ${ARCHITECTURE}, got ${actual_class}."
+            echo "::error::Expected ${EXPECTED_ELF_CLASS} for ${ARCHITECTURE}/${PROFILE}, got ${actual_class}."
             exit 1
           fi
           if [ "${actual_machine}" != "${EXPECTED_ELF_MACHINE}" ]; then
-            echo "::error::Expected machine '${EXPECTED_ELF_MACHINE}' for ${ARCHITECTURE}, got '${actual_machine}'."
+            echo "::error::Expected machine '${EXPECTED_ELF_MACHINE}' for ${ARCHITECTURE}/${PROFILE}, got '${actual_machine}'."
             exit 1
           fi
 
@@ -329,21 +437,24 @@ jobs:
           echo "safe_release=${safe_release}" >> "${GITHUB_OUTPUT}"
           echo "image_basename=$(basename "${IMAGE_PATH}")" >> "${GITHUB_OUTPUT}"
 
-      - name: Package verified ${{ matrix.architecture }} outputs
+      - name: Package verified ${{ matrix.architecture }} / ${{ matrix.profile }} outputs
         id: package
         env:
           KERNEL_RELEASE: ${{ steps.verify.outputs.kernel_release }}
           SAFE_RELEASE: ${{ steps.verify.outputs.safe_release }}
           IMAGE_BASENAME: ${{ steps.verify.outputs.image_basename }}
           ELAPSED_SECONDS: ${{ steps.compile.outputs.elapsed_seconds }}
+          BUILT_MODULE_COUNT: ${{ steps.compile.outputs.built_module_count }}
+          CONFIGURED_MODULE_SYMBOLS: ${{ steps.configure.outputs.configured_module_symbols }}
+          CONFIG_ADJUSTMENTS: ${{ steps.configure.outputs.config_adjustments }}
         shell: bash
         run: |
           set -euo pipefail
-          log_dir="${GITHUB_WORKSPACE}/build-logs/${ARCHITECTURE}"
-          stage_dir="${RUNNER_TEMP}/zigux-${ARCHITECTURE}-package"
-          checksum_manifest="${RUNNER_TEMP}/zigux-${ARCHITECTURE}-SHA256SUMS"
-          artifact_name="zigux-linux-${SAFE_RELEASE}-${ARCHITECTURE}-${SOURCE_SHORT_SHA}"
-          artifact_dir="${GITHUB_WORKSPACE}/artifacts/${ARCHITECTURE}"
+          log_dir="${GITHUB_WORKSPACE}/build-logs/${BUILD_ID}"
+          stage_dir="${RUNNER_TEMP}/zigux-${BUILD_ID}-package"
+          checksum_manifest="${RUNNER_TEMP}/zigux-${BUILD_ID}-SHA256SUMS"
+          artifact_name="zigux-linux-${SAFE_RELEASE}-${ARCHITECTURE}-${PROFILE}-${SOURCE_SHORT_SHA}"
+          artifact_dir="${GITHUB_WORKSPACE}/artifacts/${BUILD_ID}"
           package_path="${artifact_dir}/${artifact_name}.tar.xz"
           checksum_path="${package_path}.sha256"
 
@@ -377,8 +488,11 @@ jobs:
 
           export \
             ARCHITECTURE \
+            PROFILE \
             KBUILD_ARCH \
-            DEFCONFIG \
+            CONFIG_TARGET \
+            CONFIG_ADJUSTMENTS \
+            CONFIGURED_MODULE_SYMBOLS \
             CROSS_COMPILE \
             IMAGE_TARGET \
             IMAGE_PATH \
@@ -387,15 +501,17 @@ jobs:
             SOURCE_SHA \
             SOURCE_SHORT_SHA \
             KERNEL_RELEASE \
-            ELAPSED_SECONDS
+            ELAPSED_SECONDS \
+            BUILT_MODULE_COUNT
 
           python3 - <<'PY' > "${stage_dir}/metadata/build-manifest.json"
           import json
           import os
           from datetime import datetime, timezone
 
+          adjustments = os.environ["CONFIG_ADJUSTMENTS"]
           manifest = {
-              "schema": 2,
+              "schema": 3,
               "project": "Zigux rolling Linux sync",
               "cold_build": True,
               "cache_restored": False,
@@ -404,9 +520,13 @@ jobs:
               "source_short_commit": os.environ["SOURCE_SHORT_SHA"],
               "kernel_release": os.environ["KERNEL_RELEASE"],
               "architecture": os.environ["ARCHITECTURE"],
+              "profile": os.environ["PROFILE"],
               "kbuild_arch": os.environ["KBUILD_ARCH"],
               "cross_compile": os.environ["CROSS_COMPILE"],
-              "configuration": os.environ["DEFCONFIG"],
+              "configuration_target": os.environ["CONFIG_TARGET"],
+              "ci_config_adjustments": [] if adjustments == "none" else adjustments.split(","),
+              "configured_module_symbols": int(os.environ["CONFIGURED_MODULE_SYMBOLS"]),
+              "built_module_count": int(os.environ["BUILT_MODULE_COUNT"]),
               "targets": [os.environ["IMAGE_TARGET"], "modules"],
               "image_path": os.environ["IMAGE_PATH"],
               "expected_elf_class": os.environ["EXPECTED_ELF_CLASS"],
@@ -426,7 +546,11 @@ jobs:
             > "${checksum_manifest}"
           mv "${checksum_manifest}" "${stage_dir}/SHA256SUMS"
 
-          XZ_OPT='-T0 -6' tar -C "${stage_dir}" -cJf "${package_path}" .
+          if [ "${PROFILE}" = "allmodconfig" ]; then
+            XZ_OPT='-T0 -3' tar -C "${stage_dir}" -cJf "${package_path}" .
+          else
+            XZ_OPT='-T0 -6' tar -C "${stage_dir}" -cJf "${package_path}" .
+          fi
           sha256sum "${package_path}" > "${checksum_path}"
 
           echo "artifact_name=${artifact_name}" >> "${GITHUB_OUTPUT}"
@@ -434,13 +558,16 @@ jobs:
           echo "checksum_path=${checksum_path}" >> "${GITHUB_OUTPUT}"
 
           {
-            echo "## ${ARCHITECTURE} cold Linux build succeeded"
+            echo "## ${ARCHITECTURE} ${PROFILE} cold Linux build succeeded"
             echo
             echo "- Source branch: \`${SOURCE_BRANCH}\`"
             echo "- Source commit: \`${SOURCE_SHA}\`"
             echo "- Kernel release: \`${KERNEL_RELEASE}\`"
             echo "- Kbuild architecture: \`${KBUILD_ARCH}\`"
-            echo "- Configuration: \`${DEFCONFIG}\`"
+            echo "- Configuration target: \`${CONFIG_TARGET}\`"
+            echo "- CI config adjustments: \`${CONFIG_ADJUSTMENTS}\`"
+            echo "- Configured module symbols: **${CONFIGURED_MODULE_SYMBOLS}**"
+            echo "- Built module files: **${BUILT_MODULE_COUNT}**"
             echo "- Cross compiler: \`${CROSS_COMPILE:-native}\`"
             echo "- Targets: \`${IMAGE_TARGET} modules\`"
             echo "- Cache restored: **no**"
@@ -448,7 +575,7 @@ jobs:
             echo "- Artifact: \`${artifact_name}\`"
           } >> "${GITHUB_STEP_SUMMARY}"
 
-      - name: Upload ${{ matrix.architecture }} kernel package
+      - name: Upload ${{ matrix.architecture }} / ${{ matrix.profile }} kernel package
         uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.package.outputs.artifact_name }}
@@ -456,14 +583,14 @@ jobs:
             ${{ steps.package.outputs.package_path }}
             ${{ steps.package.outputs.checksum_path }}
           if-no-files-found: error
-          retention-days: 28
+          retention-days: 8
           compression-level: 0
 
-      - name: Upload ${{ matrix.architecture }} diagnostic logs
+      - name: Upload ${{ matrix.architecture }} / ${{ matrix.profile }} diagnostic logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
-          name: zigux-linux-${{ matrix.architecture }}-cold-build-logs-${{ github.run_id }}
-          path: build-logs/${{ matrix.architecture }}/
+          name: zigux-linux-${{ matrix.architecture }}-${{ matrix.profile }}-cold-build-logs-${{ github.run_id }}
+          path: build-logs/${{ matrix.architecture }}-${{ matrix.profile }}/
           if-no-files-found: warn
-          retention-days: 28
+          retention-days: 8
