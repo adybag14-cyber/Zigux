@@ -78,6 +78,7 @@ jobs:
             image_path: arch/x86/boot/bzImage
             expected_elf_class: ELF64
             expected_elf_machine: Advanced Micro Devices X86-64
+            expected_64bit: "yes"
 
           - architecture: x86_64
             profile: allmodconfig
@@ -89,6 +90,7 @@ jobs:
             image_path: arch/x86/boot/bzImage
             expected_elf_class: ELF64
             expected_elf_machine: Advanced Micro Devices X86-64
+            expected_64bit: "yes"
 
           - architecture: i686
             profile: defconfig
@@ -100,6 +102,7 @@ jobs:
             image_path: arch/x86/boot/bzImage
             expected_elf_class: ELF32
             expected_elf_machine: Intel 80386
+            expected_64bit: "no"
 
           - architecture: i686
             profile: allmodconfig
@@ -111,6 +114,7 @@ jobs:
             image_path: arch/x86/boot/bzImage
             expected_elf_class: ELF32
             expected_elf_machine: Intel 80386
+            expected_64bit: "no"
 
           - architecture: arm64
             profile: defconfig
@@ -122,6 +126,7 @@ jobs:
             image_path: arch/arm64/boot/Image
             expected_elf_class: ELF64
             expected_elf_machine: AArch64
+            expected_64bit: "yes"
 
           - architecture: arm64
             profile: allmodconfig
@@ -133,6 +138,7 @@ jobs:
             image_path: arch/arm64/boot/Image
             expected_elf_class: ELF64
             expected_elf_machine: AArch64
+            expected_64bit: "yes"
 
           - architecture: armv7
             profile: defconfig
@@ -144,6 +150,7 @@ jobs:
             image_path: arch/arm/boot/zImage
             expected_elf_class: ELF32
             expected_elf_machine: ARM
+            expected_64bit: "no"
 
           - architecture: armv7
             profile: allmodconfig
@@ -155,6 +162,7 @@ jobs:
             image_path: arch/arm/boot/zImage
             expected_elf_class: ELF32
             expected_elf_machine: ARM
+            expected_64bit: "no"
 
           - architecture: riscv64
             profile: defconfig
@@ -166,6 +174,7 @@ jobs:
             image_path: arch/riscv/boot/Image
             expected_elf_class: ELF64
             expected_elf_machine: RISC-V
+            expected_64bit: "yes"
 
           - architecture: riscv64
             profile: allmodconfig
@@ -177,6 +186,7 @@ jobs:
             image_path: arch/riscv/boot/Image
             expected_elf_class: ELF64
             expected_elf_machine: RISC-V
+            expected_64bit: "yes"
 
     env:
       ARCHITECTURE: ${{ matrix.architecture }}
@@ -189,6 +199,7 @@ jobs:
       IMAGE_PATH: ${{ matrix.image_path }}
       EXPECTED_ELF_CLASS: ${{ matrix.expected_elf_class }}
       EXPECTED_ELF_MACHINE: ${{ matrix.expected_elf_machine }}
+      EXPECTED_64BIT: ${{ matrix.expected_64bit }}
       SOURCE_SHA: ${{ needs.resolve-source.outputs.source_sha }}
       SOURCE_SHORT_SHA: ${{ needs.resolve-source.outputs.source_short_sha }}
 
@@ -245,6 +256,8 @@ jobs:
             kmod \
             libelf-dev \
             libssl-dev \
+            lz4 \
+            lzop \
             perl \
             pkg-config \
             python3 \
@@ -274,7 +287,6 @@ jobs:
           source_archive="${RUNNER_TEMP}/zigux-${build_id}.tar.gz"
           out_dir="${GITHUB_WORKSPACE}/out-${build_id}"
 
-          # Every matrix row receives an empty source and output tree.
           rm -rf "${source_root}" "${source_archive}" "${out_dir}"
           mkdir -p "${source_root}" "${out_dir}"
 
@@ -315,11 +327,12 @@ jobs:
 
           adjustments="none"
           if [ "${PROFILE}" = "allmodconfig" ]; then
-            # Keep allmodconfig broad while avoiding warning-only and Rust
-            # cross-toolchain failures that do not measure C kernel coverage.
+            # Preserve broad allmodconfig coverage while removing options that
+            # depend on warning policy or unavailable cross-language/plugin SDKs.
             "${SOURCE_ROOT}/scripts/config" --file "${OUT_DIR}/.config" --disable WERROR
             "${SOURCE_ROOT}/scripts/config" --file "${OUT_DIR}/.config" --disable RUST
-            adjustments="CONFIG_WERROR=n,CONFIG_RUST=n"
+            "${SOURCE_ROOT}/scripts/config" --file "${OUT_DIR}/.config" --disable GCC_PLUGINS
+            adjustments="CONFIG_WERROR=n,CONFIG_RUST=n,CONFIG_GCC_PLUGINS=n"
           fi
 
           make -C "${SOURCE_ROOT}" \
@@ -328,22 +341,34 @@ jobs:
             CROSS_COMPILE="${CROSS_COMPILE}" \
             olddefconfig
 
-          case "${ARCHITECTURE}" in
-            x86_64|arm64|riscv64)
-              grep -qx 'CONFIG_64BIT=y' "${OUT_DIR}/.config"
-              ;;
-            i686|armv7)
-              if grep -qx 'CONFIG_64BIT=y' "${OUT_DIR}/.config"; then
-                echo "::error::${ARCHITECTURE}/${PROFILE} unexpectedly selected CONFIG_64BIT=y."
-                exit 1
-              fi
-              ;;
-          esac
+          config_enabled() {
+            grep -Eq "^CONFIG_${1}=(y|m)$" "${OUT_DIR}/.config"
+          }
+          require_y() {
+            if ! grep -qx "CONFIG_${1}=y" "${OUT_DIR}/.config"; then
+              echo "::error::${ARCHITECTURE}/${PROFILE} requires CONFIG_${1}=y."
+              exit 1
+            fi
+          }
+          require_disabled() {
+            if config_enabled "$1"; then
+              echo "::error::${ARCHITECTURE}/${PROFILE} left CONFIG_${1} enabled."
+              exit 1
+            fi
+          }
+
+          if [ "${EXPECTED_64BIT}" = "yes" ]; then
+            require_y 64BIT
+          elif config_enabled 64BIT; then
+            echo "::error::${ARCHITECTURE}/${PROFILE} unexpectedly selected CONFIG_64BIT."
+            exit 1
+          fi
 
           if [ "${PROFILE}" = "allmodconfig" ]; then
-            grep -qx '# CONFIG_WERROR is not set' "${OUT_DIR}/.config"
-            grep -qx '# CONFIG_RUST is not set' "${OUT_DIR}/.config"
-            grep -qx 'CONFIG_MODULES=y' "${OUT_DIR}/.config"
+            require_disabled WERROR
+            require_disabled RUST
+            require_disabled GCC_PLUGINS
+            require_y MODULES
           fi
 
           configured_module_symbols="$(grep -c '=m$' "${OUT_DIR}/.config" || true)"
@@ -389,7 +414,7 @@ jobs:
 
           finished_epoch="$(date +%s)"
           elapsed_seconds="$((finished_epoch - started_epoch))"
-          built_module_count="$(find "${OUT_DIR}" -type f -name '*.ko' -print | wc -l)"
+          built_module_count="$(find "${OUT_DIR}" -type f -name '*.ko' -print | wc -l | tr -d ' ')"
 
           echo "elapsed_seconds=${elapsed_seconds}" >> "${GITHUB_OUTPUT}"
           echo "built_module_count=${built_module_count}" >> "${GITHUB_OUTPUT}"
@@ -416,10 +441,8 @@ jobs:
             kernelrelease)"
           safe_release="$(printf '%s' "${kernel_release}" | tr -c 'A-Za-z0-9._-' '-')"
 
-          file "${image}" "${vmlinux}" \
-            | tee "${log_dir}/output-file-types.txt"
-          readelf -h "${vmlinux}" \
-            | tee "${log_dir}/vmlinux-elf-header.txt"
+          file "${image}" "${vmlinux}" | tee "${log_dir}/output-file-types.txt"
+          readelf -h "${vmlinux}" | tee "${log_dir}/vmlinux-elf-header.txt"
 
           actual_class="$(readelf -h "${vmlinux}" | awk -F: '/^[[:space:]]*Class:/{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2}')"
           actual_machine="$(readelf -h "${vmlinux}" | awk -F: '/^[[:space:]]*Machine:/{sub(/^[[:space:]]+/, "", $2); print $2}')"
@@ -487,22 +510,10 @@ jobs:
           cp -a "${log_dir}/." "${stage_dir}/metadata/"
 
           export \
-            ARCHITECTURE \
-            PROFILE \
-            KBUILD_ARCH \
-            CONFIG_TARGET \
-            CONFIG_ADJUSTMENTS \
-            CONFIGURED_MODULE_SYMBOLS \
-            CROSS_COMPILE \
-            IMAGE_TARGET \
-            IMAGE_PATH \
-            EXPECTED_ELF_CLASS \
-            EXPECTED_ELF_MACHINE \
-            SOURCE_SHA \
-            SOURCE_SHORT_SHA \
-            KERNEL_RELEASE \
-            ELAPSED_SECONDS \
-            BUILT_MODULE_COUNT
+            ARCHITECTURE PROFILE KBUILD_ARCH CONFIG_TARGET CONFIG_ADJUSTMENTS \
+            CONFIGURED_MODULE_SYMBOLS CROSS_COMPILE IMAGE_TARGET IMAGE_PATH \
+            EXPECTED_ELF_CLASS EXPECTED_ELF_MACHINE SOURCE_SHA SOURCE_SHORT_SHA \
+            KERNEL_RELEASE ELAPSED_SECONDS BUILT_MODULE_COUNT
 
           python3 - <<'PY' > "${stage_dir}/metadata/build-manifest.json"
           import json
@@ -511,7 +522,7 @@ jobs:
 
           adjustments = os.environ["CONFIG_ADJUSTMENTS"]
           manifest = {
-              "schema": 3,
+              "schema": 4,
               "project": "Zigux rolling Linux sync",
               "cold_build": True,
               "cache_restored": False,
