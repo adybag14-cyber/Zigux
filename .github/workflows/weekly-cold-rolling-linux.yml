@@ -1,5 +1,5 @@
-name: Weekly cold build of rolling Linux sync
-run-name: Cold Linux build — rolling-linux-sync @ ${{ github.run_number }}
+name: Weekly multi-architecture cold build of rolling Linux sync
+run-name: Multi-arch cold Linux build — rolling-linux-sync @ ${{ github.run_number }}
 
 on:
   schedule:
@@ -21,27 +21,135 @@ concurrency:
 
 env:
   SOURCE_BRANCH: rolling-linux-sync
-  # Linux Kbuild uses ARCH=x86 for both 32-bit and 64-bit x86 builds.
-  ARCH: x86
-  BUILD_TARGETS: "bzImage modules"
   CCACHE_DISABLE: "1"
 
 jobs:
-  cold-build:
-    name: Cold-build rolling-linux-sync for x86_64
+  resolve-source:
+    name: Resolve rolling-linux-sync source
     runs-on: ubuntu-24.04
-    timeout-minutes: 360
+    timeout-minutes: 15
+    outputs:
+      source_sha: ${{ steps.source.outputs.source_sha }}
+      source_short_sha: ${{ steps.source.outputs.source_short_sha }}
 
     steps:
-      - name: Record runner baseline
+      - name: Resolve exact rolling source commit
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "${GITHUB_WORKSPACE}/build-logs" "${GITHUB_WORKSPACE}/artifacts"
+          ref_json="$(curl --fail --silent --show-error --location \
+            --retry 5 --retry-all-errors --retry-delay 3 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/git/ref/heads/${SOURCE_BRANCH}")"
+
+          source_sha="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["object"]["sha"])' <<<"${ref_json}")"
+          [[ "${source_sha}" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "::error::Could not resolve a 40-character commit SHA for ${SOURCE_BRANCH}."
+            exit 1
+          }
+
+          echo "source_sha=${source_sha}" >> "${GITHUB_OUTPUT}"
+          echo "source_short_sha=${source_sha:0:12}" >> "${GITHUB_OUTPUT}"
+          echo "Resolved ${SOURCE_BRANCH} to ${source_sha}."
+
+  cold-build:
+    name: Cold-build ${{ matrix.architecture }}
+    needs: resolve-source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        include:
+          - architecture: x86_64
+            kbuild_arch: x86
+            defconfig: x86_64_defconfig
+            cross_compile: ""
+            toolchain_packages: gcc
+            image_target: bzImage
+            image_path: arch/x86/boot/bzImage
+            expected_elf_class: ELF64
+            expected_elf_machine: Advanced Micro Devices X86-64
+
+          - architecture: i686
+            kbuild_arch: x86
+            defconfig: i386_defconfig
+            cross_compile: i686-linux-gnu-
+            toolchain_packages: gcc-i686-linux-gnu
+            image_target: bzImage
+            image_path: arch/x86/boot/bzImage
+            expected_elf_class: ELF32
+            expected_elf_machine: Intel 80386
+
+          - architecture: arm64
+            kbuild_arch: arm64
+            defconfig: defconfig
+            cross_compile: aarch64-linux-gnu-
+            toolchain_packages: gcc-aarch64-linux-gnu
+            image_target: Image
+            image_path: arch/arm64/boot/Image
+            expected_elf_class: ELF64
+            expected_elf_machine: AArch64
+
+          - architecture: armv7
+            kbuild_arch: arm
+            defconfig: multi_v7_defconfig
+            cross_compile: arm-linux-gnueabihf-
+            toolchain_packages: gcc-arm-linux-gnueabihf
+            image_target: zImage
+            image_path: arch/arm/boot/zImage
+            expected_elf_class: ELF32
+            expected_elf_machine: ARM
+
+          - architecture: riscv64
+            kbuild_arch: riscv
+            defconfig: defconfig
+            cross_compile: riscv64-linux-gnu-
+            toolchain_packages: gcc-riscv64-linux-gnu
+            image_target: Image
+            image_path: arch/riscv/boot/Image
+            expected_elf_class: ELF64
+            expected_elf_machine: RISC-V
+
+    env:
+      ARCHITECTURE: ${{ matrix.architecture }}
+      KBUILD_ARCH: ${{ matrix.kbuild_arch }}
+      DEFCONFIG: ${{ matrix.defconfig }}
+      CROSS_COMPILE: ${{ matrix.cross_compile }}
+      TOOLCHAIN_PACKAGES: ${{ matrix.toolchain_packages }}
+      IMAGE_TARGET: ${{ matrix.image_target }}
+      IMAGE_PATH: ${{ matrix.image_path }}
+      EXPECTED_ELF_CLASS: ${{ matrix.expected_elf_class }}
+      EXPECTED_ELF_MACHINE: ${{ matrix.expected_elf_machine }}
+      SOURCE_SHA: ${{ needs.resolve-source.outputs.source_sha }}
+      SOURCE_SHORT_SHA: ${{ needs.resolve-source.outputs.source_short_sha }}
+
+    steps:
+      - name: Record runner and architecture baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_dir="${GITHUB_WORKSPACE}/build-logs/${ARCHITECTURE}"
+          mkdir -p "${log_dir}" "${GITHUB_WORKSPACE}/artifacts/${ARCHITECTURE}"
+
           {
             echo "Cold build: true"
             echo "Cache restore: disabled"
             echo "Source branch: ${SOURCE_BRANCH}"
+            echo "Source commit: ${SOURCE_SHA}"
+            echo "Architecture label: ${ARCHITECTURE}"
+            echo "Kbuild ARCH: ${KBUILD_ARCH}"
+            echo "Defconfig: ${DEFCONFIG}"
+            echo "Cross compiler prefix: ${CROSS_COMPILE:-native}"
+            echo "Image target: ${IMAGE_TARGET}"
+            echo "Image path: ${IMAGE_PATH}"
             echo "Runner: ${RUNNER_NAME}"
             echo "Runner OS: ${RUNNER_OS}"
             echo "Runner architecture: ${RUNNER_ARCH}"
@@ -52,12 +160,14 @@ jobs:
             free -h
             echo
             nproc
-          } | tee "${GITHUB_WORKSPACE}/build-logs/runner-baseline.txt"
+          } | tee "${log_dir}/runner-baseline.txt"
 
-      - name: Install Linux build dependencies
+      - name: Install Linux build and cross-compilation dependencies
         shell: bash
         run: |
           set -euo pipefail
+          log_dir="${GITHUB_WORKSPACE}/build-logs/${ARCHITECTURE}"
+
           sudo apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             bc \
@@ -76,84 +186,86 @@ jobs:
             python3 \
             rsync \
             xz-utils \
-            zstd
+            zstd \
+            ${TOOLCHAIN_PACKAGES}
+
+          compiler="${CROSS_COMPILE}gcc"
+          linker="${CROSS_COMPILE}ld"
+          command -v "${compiler}"
+          command -v "${linker}"
 
           {
-            gcc --version | head -n 1
-            ld --version | head -n 1
+            "${compiler}" --version | head -n 1
+            "${linker}" --version | head -n 1
             make --version | head -n 1
             pahole --version
-          } | tee "${GITHUB_WORKSPACE}/build-logs/toolchain-versions.txt"
+          } | tee "${log_dir}/toolchain-versions.txt"
 
-      - name: Resolve and download exact rolling source commit
-        id: source
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Download clean source snapshot
         shell: bash
         run: |
           set -euo pipefail
-          source_root="${RUNNER_TEMP}/zigux-rolling-linux-source"
-          source_archive="${RUNNER_TEMP}/zigux-rolling-linux.tar.gz"
+          source_root="${RUNNER_TEMP}/zigux-${ARCHITECTURE}-source"
+          source_archive="${RUNNER_TEMP}/zigux-${ARCHITECTURE}.tar.gz"
+          out_dir="${GITHUB_WORKSPACE}/out-${ARCHITECTURE}"
 
-          # A cold build starts from an empty source and output tree every time.
-          rm -rf "${source_root}" "${source_archive}" "${GITHUB_WORKSPACE}/out"
-          mkdir -p "${source_root}" "${GITHUB_WORKSPACE}/out"
-
-          ref_json="$(curl --fail --silent --show-error --location \
-            --retry 5 --retry-all-errors --retry-delay 3 \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/git/ref/heads/${SOURCE_BRANCH}")"
-
-          source_sha="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["object"]["sha"])' <<<"${ref_json}")"
-          [[ "${source_sha}" =~ ^[0-9a-f]{40}$ ]] || {
-            echo "::error::Could not resolve a 40-character commit SHA for ${SOURCE_BRANCH}."
-            exit 1
-          }
+          # Every architecture receives an empty source and output tree.
+          rm -rf "${source_root}" "${source_archive}" "${out_dir}"
+          mkdir -p "${source_root}" "${out_dir}"
 
           curl --fail --location \
             --retry 5 --retry-all-errors --retry-delay 5 \
-            "https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${source_sha}" \
+            "https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${SOURCE_SHA}" \
             -o "${source_archive}"
           tar -xzf "${source_archive}" --strip-components=1 -C "${source_root}"
 
           test -s "${source_root}/Makefile"
           grep -q '^VERSION = ' "${source_root}/Makefile"
 
-          echo "source_sha=${source_sha}" >> "${GITHUB_OUTPUT}"
-          echo "source_short_sha=${source_sha:0:12}" >> "${GITHUB_OUTPUT}"
-          echo "source_root=${source_root}" >> "${GITHUB_OUTPUT}"
-          echo "Resolved ${SOURCE_BRANCH} to ${source_sha}."
+          echo "SOURCE_ROOT=${source_root}" >> "${GITHUB_ENV}"
+          echo "OUT_DIR=${out_dir}" >> "${GITHUB_ENV}"
 
-      - name: Configure a clean x86_64 kernel tree
-        env:
-          SOURCE_ROOT: ${{ steps.source.outputs.source_root }}
+      - name: Configure clean ${{ matrix.architecture }} kernel tree
         shell: bash
         run: |
           set -euo pipefail
-          out_dir="${GITHUB_WORKSPACE}/out"
+          log_dir="${GITHUB_WORKSPACE}/build-logs/${ARCHITECTURE}"
 
-          # Do not allow a host ccache configuration to make this incremental.
           unset CCACHE_DIR CCACHE_BASEDIR CCACHE_COMPILERCHECK || true
           export CCACHE_DISABLE=1
 
-          make -C "${SOURCE_ROOT}" O="${out_dir}" ARCH="${ARCH}" mrproper
-          make -C "${SOURCE_ROOT}" O="${out_dir}" ARCH="${ARCH}" x86_64_defconfig
-          make -C "${SOURCE_ROOT}" O="${out_dir}" ARCH="${ARCH}" olddefconfig
+          make -C "${SOURCE_ROOT}" \
+            O="${OUT_DIR}" \
+            ARCH="${KBUILD_ARCH}" \
+            CROSS_COMPILE="${CROSS_COMPILE}" \
+            mrproper
 
-          cp "${out_dir}/.config" "${GITHUB_WORKSPACE}/build-logs/kernel.config"
-          make -C "${SOURCE_ROOT}" O="${out_dir}" ARCH="${ARCH}" kernelrelease \
-            | tee "${GITHUB_WORKSPACE}/build-logs/configured-kernel-release.txt"
+          make -C "${SOURCE_ROOT}" \
+            O="${OUT_DIR}" \
+            ARCH="${KBUILD_ARCH}" \
+            CROSS_COMPILE="${CROSS_COMPILE}" \
+            "${DEFCONFIG}"
 
-      - name: Cold compile bzImage and modules
+          make -C "${SOURCE_ROOT}" \
+            O="${OUT_DIR}" \
+            ARCH="${KBUILD_ARCH}" \
+            CROSS_COMPILE="${CROSS_COMPILE}" \
+            olddefconfig
+
+          cp "${OUT_DIR}/.config" "${log_dir}/kernel.config"
+          make -s -C "${SOURCE_ROOT}" \
+            O="${OUT_DIR}" \
+            ARCH="${KBUILD_ARCH}" \
+            CROSS_COMPILE="${CROSS_COMPILE}" \
+            kernelrelease \
+            | tee "${log_dir}/configured-kernel-release.txt"
+
+      - name: Cold compile ${{ matrix.architecture }} image and modules
         id: compile
-        env:
-          SOURCE_ROOT: ${{ steps.source.outputs.source_root }}
         shell: bash
         run: |
           set -euo pipefail
-          out_dir="${GITHUB_WORKSPACE}/out"
+          log_dir="${GITHUB_WORKSPACE}/build-logs/${ARCHITECTURE}"
           started_epoch="$(date +%s)"
 
           export KBUILD_BUILD_USER=github-actions
@@ -163,83 +275,127 @@ jobs:
           unset CCACHE_DIR CCACHE_BASEDIR CCACHE_COMPILERCHECK || true
 
           make -C "${SOURCE_ROOT}" \
-            O="${out_dir}" \
-            ARCH="${ARCH}" \
+            O="${OUT_DIR}" \
+            ARCH="${KBUILD_ARCH}" \
+            CROSS_COMPILE="${CROSS_COMPILE}" \
             -j"$(nproc)" \
-            ${BUILD_TARGETS} 2>&1 \
-            | tee "${GITHUB_WORKSPACE}/build-logs/kernel-build.log"
+            "${IMAGE_TARGET}" modules 2>&1 \
+            | tee "${log_dir}/kernel-build.log"
 
           finished_epoch="$(date +%s)"
           elapsed_seconds="$((finished_epoch - started_epoch))"
           echo "elapsed_seconds=${elapsed_seconds}" >> "${GITHUB_OUTPUT}"
-          echo "Cold compile completed in ${elapsed_seconds} seconds."
+          echo "Cold ${ARCHITECTURE} compile completed in ${elapsed_seconds} seconds."
 
-      - name: Verify kernel outputs
+      - name: Verify ${{ matrix.architecture }} kernel outputs
         id: verify
-        env:
-          SOURCE_ROOT: ${{ steps.source.outputs.source_root }}
         shell: bash
         run: |
           set -euo pipefail
-          out_dir="${GITHUB_WORKSPACE}/out"
-          bzimage="${out_dir}/arch/x86/boot/bzImage"
-          vmlinux="${out_dir}/vmlinux"
+          log_dir="${GITHUB_WORKSPACE}/build-logs/${ARCHITECTURE}"
+          image="${OUT_DIR}/${IMAGE_PATH}"
+          vmlinux="${OUT_DIR}/vmlinux"
 
-          test -s "${bzimage}"
+          test -s "${image}"
           test -s "${vmlinux}"
-          test -s "${out_dir}/System.map"
-          test -s "${out_dir}/.config"
+          test -s "${OUT_DIR}/System.map"
+          test -s "${OUT_DIR}/.config"
 
-          kernel_release="$(make -s -C "${SOURCE_ROOT}" O="${out_dir}" ARCH="${ARCH}" kernelrelease)"
+          kernel_release="$(make -s -C "${SOURCE_ROOT}" \
+            O="${OUT_DIR}" \
+            ARCH="${KBUILD_ARCH}" \
+            CROSS_COMPILE="${CROSS_COMPILE}" \
+            kernelrelease)"
           safe_release="$(printf '%s' "${kernel_release}" | tr -c 'A-Za-z0-9._-' '-')"
 
-          file "${bzimage}" "${vmlinux}" \
-            | tee "${GITHUB_WORKSPACE}/build-logs/output-file-types.txt"
+          file "${image}" "${vmlinux}" \
+            | tee "${log_dir}/output-file-types.txt"
           readelf -h "${vmlinux}" \
-            | tee "${GITHUB_WORKSPACE}/build-logs/vmlinux-elf-header.txt"
+            | tee "${log_dir}/vmlinux-elf-header.txt"
+
+          actual_class="$(readelf -h "${vmlinux}" | awk -F: '/^[[:space:]]*Class:/{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2}')"
+          actual_machine="$(readelf -h "${vmlinux}" | awk -F: '/^[[:space:]]*Machine:/{sub(/^[[:space:]]+/, "", $2); print $2}')"
+
+          if [ "${actual_class}" != "${EXPECTED_ELF_CLASS}" ]; then
+            echo "::error::Expected ${EXPECTED_ELF_CLASS} for ${ARCHITECTURE}, got ${actual_class}."
+            exit 1
+          fi
+          if [ "${actual_machine}" != "${EXPECTED_ELF_MACHINE}" ]; then
+            echo "::error::Expected machine '${EXPECTED_ELF_MACHINE}' for ${ARCHITECTURE}, got '${actual_machine}'."
+            exit 1
+          fi
 
           echo "kernel_release=${kernel_release}" >> "${GITHUB_OUTPUT}"
           echo "safe_release=${safe_release}" >> "${GITHUB_OUTPUT}"
+          echo "image_basename=$(basename "${IMAGE_PATH}")" >> "${GITHUB_OUTPUT}"
 
-      - name: Package verified build outputs
+      - name: Package verified ${{ matrix.architecture }} outputs
         id: package
         env:
-          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
-          SOURCE_SHORT_SHA: ${{ steps.source.outputs.source_short_sha }}
           KERNEL_RELEASE: ${{ steps.verify.outputs.kernel_release }}
           SAFE_RELEASE: ${{ steps.verify.outputs.safe_release }}
+          IMAGE_BASENAME: ${{ steps.verify.outputs.image_basename }}
           ELAPSED_SECONDS: ${{ steps.compile.outputs.elapsed_seconds }}
         shell: bash
         run: |
           set -euo pipefail
-          out_dir="${GITHUB_WORKSPACE}/out"
-          stage_dir="${RUNNER_TEMP}/zigux-linux-package"
-          checksum_manifest="${RUNNER_TEMP}/zigux-linux-SHA256SUMS"
-          artifact_name="zigux-linux-${SAFE_RELEASE}-${SOURCE_SHORT_SHA}"
-          package_path="${GITHUB_WORKSPACE}/artifacts/${artifact_name}.tar.xz"
+          log_dir="${GITHUB_WORKSPACE}/build-logs/${ARCHITECTURE}"
+          stage_dir="${RUNNER_TEMP}/zigux-${ARCHITECTURE}-package"
+          checksum_manifest="${RUNNER_TEMP}/zigux-${ARCHITECTURE}-SHA256SUMS"
+          artifact_name="zigux-linux-${SAFE_RELEASE}-${ARCHITECTURE}-${SOURCE_SHORT_SHA}"
+          artifact_dir="${GITHUB_WORKSPACE}/artifacts/${ARCHITECTURE}"
+          package_path="${artifact_dir}/${artifact_name}.tar.xz"
           checksum_path="${package_path}.sha256"
 
           rm -rf "${stage_dir}"
           rm -f "${checksum_manifest}"
-          mkdir -p "${stage_dir}/boot" "${stage_dir}/debug" "${stage_dir}/metadata"
+          mkdir -p \
+            "${stage_dir}/boot" \
+            "${stage_dir}/debug" \
+            "${stage_dir}/metadata" \
+            "${stage_dir}/rootfs"
 
-          install -m 0644 "${out_dir}/arch/x86/boot/bzImage" "${stage_dir}/boot/bzImage"
-          install -m 0644 "${out_dir}/vmlinux" "${stage_dir}/debug/vmlinux"
-          install -m 0644 "${out_dir}/System.map" "${stage_dir}/debug/System.map"
-          install -m 0644 "${out_dir}/.config" "${stage_dir}/metadata/kernel.config"
-          if [ -s "${out_dir}/Module.symvers" ]; then
-            install -m 0644 "${out_dir}/Module.symvers" "${stage_dir}/metadata/Module.symvers"
+          install -m 0644 "${OUT_DIR}/${IMAGE_PATH}" "${stage_dir}/boot/${IMAGE_BASENAME}"
+          install -m 0644 "${OUT_DIR}/vmlinux" "${stage_dir}/debug/vmlinux"
+          install -m 0644 "${OUT_DIR}/System.map" "${stage_dir}/debug/System.map"
+          install -m 0644 "${OUT_DIR}/.config" "${stage_dir}/metadata/kernel.config"
+          if [ -s "${OUT_DIR}/Module.symvers" ]; then
+            install -m 0644 "${OUT_DIR}/Module.symvers" "${stage_dir}/metadata/Module.symvers"
           fi
-          cp -a "${GITHUB_WORKSPACE}/build-logs/." "${stage_dir}/metadata/"
 
-          export SOURCE_SHA SOURCE_SHORT_SHA KERNEL_RELEASE ELAPSED_SECONDS
+          if [ -s "${OUT_DIR}/modules.order" ]; then
+            make -s -C "${SOURCE_ROOT}" \
+              O="${OUT_DIR}" \
+              ARCH="${KBUILD_ARCH}" \
+              CROSS_COMPILE="${CROSS_COMPILE}" \
+              INSTALL_MOD_PATH="${stage_dir}/rootfs" \
+              INSTALL_MOD_STRIP=1 \
+              modules_install
+          fi
+
+          cp -a "${log_dir}/." "${stage_dir}/metadata/"
+
+          export \
+            ARCHITECTURE \
+            KBUILD_ARCH \
+            DEFCONFIG \
+            CROSS_COMPILE \
+            IMAGE_TARGET \
+            IMAGE_PATH \
+            EXPECTED_ELF_CLASS \
+            EXPECTED_ELF_MACHINE \
+            SOURCE_SHA \
+            SOURCE_SHORT_SHA \
+            KERNEL_RELEASE \
+            ELAPSED_SECONDS
+
           python3 - <<'PY' > "${stage_dir}/metadata/build-manifest.json"
           import json
           import os
           from datetime import datetime, timezone
 
           manifest = {
-              "schema": 1,
+              "schema": 2,
               "project": "Zigux rolling Linux sync",
               "cold_build": True,
               "cache_restored": False,
@@ -247,10 +403,14 @@ jobs:
               "source_commit": os.environ["SOURCE_SHA"],
               "source_short_commit": os.environ["SOURCE_SHORT_SHA"],
               "kernel_release": os.environ["KERNEL_RELEASE"],
-              "architecture": "x86_64",
-              "kbuild_arch": "x86",
-              "configuration": "x86_64_defconfig",
-              "targets": ["bzImage", "modules"],
+              "architecture": os.environ["ARCHITECTURE"],
+              "kbuild_arch": os.environ["KBUILD_ARCH"],
+              "cross_compile": os.environ["CROSS_COMPILE"],
+              "configuration": os.environ["DEFCONFIG"],
+              "targets": [os.environ["IMAGE_TARGET"], "modules"],
+              "image_path": os.environ["IMAGE_PATH"],
+              "expected_elf_class": os.environ["EXPECTED_ELF_CLASS"],
+              "expected_elf_machine": os.environ["EXPECTED_ELF_MACHINE"],
               "elapsed_seconds": int(os.environ["ELAPSED_SECONDS"]),
               "completed_at": datetime.now(timezone.utc).isoformat(),
               "github_run_id": os.environ.get("GITHUB_RUN_ID", ""),
@@ -259,8 +419,6 @@ jobs:
           print(json.dumps(manifest, indent=2, sort_keys=True))
           PY
 
-          # Build the payload checksum manifest outside the staging tree so it
-          # cannot accidentally hash itself while the redirection is open.
           find "${stage_dir}" -type f -print0 \
             | sort -z \
             | xargs -0 sha256sum \
@@ -276,19 +434,21 @@ jobs:
           echo "checksum_path=${checksum_path}" >> "${GITHUB_OUTPUT}"
 
           {
-            echo "## Weekly cold Linux build succeeded"
+            echo "## ${ARCHITECTURE} cold Linux build succeeded"
             echo
             echo "- Source branch: \`${SOURCE_BRANCH}\`"
             echo "- Source commit: \`${SOURCE_SHA}\`"
             echo "- Kernel release: \`${KERNEL_RELEASE}\`"
-            echo "- Configuration: \`x86_64_defconfig\`"
-            echo "- Targets: \`${BUILD_TARGETS}\`"
+            echo "- Kbuild architecture: \`${KBUILD_ARCH}\`"
+            echo "- Configuration: \`${DEFCONFIG}\`"
+            echo "- Cross compiler: \`${CROSS_COMPILE:-native}\`"
+            echo "- Targets: \`${IMAGE_TARGET} modules\`"
             echo "- Cache restored: **no**"
             echo "- Compile time: **${ELAPSED_SECONDS} seconds**"
             echo "- Artifact: \`${artifact_name}\`"
           } >> "${GITHUB_STEP_SUMMARY}"
 
-      - name: Upload compiled kernel package
+      - name: Upload ${{ matrix.architecture }} kernel package
         uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.package.outputs.artifact_name }}
@@ -299,11 +459,11 @@ jobs:
           retention-days: 28
           compression-level: 0
 
-      - name: Upload diagnostic logs
+      - name: Upload ${{ matrix.architecture }} diagnostic logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
-          name: zigux-linux-cold-build-logs-${{ github.run_id }}
-          path: build-logs/
+          name: zigux-linux-${{ matrix.architecture }}-cold-build-logs-${{ github.run_id }}
+          path: build-logs/${{ matrix.architecture }}/
           if-no-files-found: warn
           retention-days: 28
