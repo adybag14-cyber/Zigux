@@ -214,11 +214,13 @@ jobs:
           set -euo pipefail
           out_dir="${GITHUB_WORKSPACE}/out"
           stage_dir="${RUNNER_TEMP}/zigux-linux-package"
+          checksum_manifest="${RUNNER_TEMP}/zigux-linux-SHA256SUMS"
           artifact_name="zigux-linux-${SAFE_RELEASE}-${SOURCE_SHORT_SHA}"
           package_path="${GITHUB_WORKSPACE}/artifacts/${artifact_name}.tar.xz"
           checksum_path="${package_path}.sha256"
 
           rm -rf "${stage_dir}"
+          rm -f "${checksum_manifest}"
           mkdir -p "${stage_dir}/boot" "${stage_dir}/debug" "${stage_dir}/metadata"
 
           install -m 0644 "${out_dir}/arch/x86/boot/bzImage" "${stage_dir}/boot/bzImage"
@@ -257,11 +259,14 @@ jobs:
           print(json.dumps(manifest, indent=2, sort_keys=True))
           PY
 
+          # Build the payload checksum manifest outside the staging tree so it
+          # cannot accidentally hash itself while the redirection is open.
           find "${stage_dir}" -type f -print0 \
             | sort -z \
             | xargs -0 sha256sum \
             | sed "s#${stage_dir}/##" \
-            > "${stage_dir}/SHA256SUMS"
+            > "${checksum_manifest}"
+          mv "${checksum_manifest}" "${stage_dir}/SHA256SUMS"
 
           XZ_OPT='-T0 -6' tar -C "${stage_dir}" -cJf "${package_path}" .
           sha256sum "${package_path}" > "${checksum_path}"
