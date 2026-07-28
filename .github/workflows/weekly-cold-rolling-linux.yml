@@ -1,0 +1,309 @@
+name: Weekly cold build of rolling Linux sync
+run-name: Cold Linux build — rolling-linux-sync @ ${{ github.run_number }}
+
+on:
+  schedule:
+    # GitHub schedules use UTC. Run each Sunday at 03:17 UTC.
+    - cron: "17 3 * * 0"
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/weekly-cold-rolling-linux.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zigux-weekly-cold-rolling-linux
+  cancel-in-progress: false
+
+env:
+  SOURCE_BRANCH: rolling-linux-sync
+  # Linux Kbuild uses ARCH=x86 for both 32-bit and 64-bit x86 builds.
+  ARCH: x86
+  BUILD_TARGETS: "bzImage modules"
+  CCACHE_DISABLE: "1"
+
+jobs:
+  cold-build:
+    name: Cold-build rolling-linux-sync for x86_64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+
+    steps:
+      - name: Record runner baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${GITHUB_WORKSPACE}/build-logs" "${GITHUB_WORKSPACE}/artifacts"
+          {
+            echo "Cold build: true"
+            echo "Cache restore: disabled"
+            echo "Source branch: ${SOURCE_BRANCH}"
+            echo "Runner: ${RUNNER_NAME}"
+            echo "Runner OS: ${RUNNER_OS}"
+            echo "Runner architecture: ${RUNNER_ARCH}"
+            echo "Started UTC: $(date -u --iso-8601=seconds)"
+            echo
+            df -h
+            echo
+            free -h
+            echo
+            nproc
+          } | tee "${GITHUB_WORKSPACE}/build-logs/runner-baseline.txt"
+
+      - name: Install Linux build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            bc \
+            binutils \
+            bison \
+            build-essential \
+            cpio \
+            dwarves \
+            file \
+            flex \
+            kmod \
+            libelf-dev \
+            libssl-dev \
+            perl \
+            pkg-config \
+            python3 \
+            rsync \
+            xz-utils \
+            zstd
+
+          {
+            gcc --version | head -n 1
+            ld --version | head -n 1
+            make --version | head -n 1
+            pahole --version
+          } | tee "${GITHUB_WORKSPACE}/build-logs/toolchain-versions.txt"
+
+      - name: Resolve and download exact rolling source commit
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_root="${RUNNER_TEMP}/zigux-rolling-linux-source"
+          source_archive="${RUNNER_TEMP}/zigux-rolling-linux.tar.gz"
+
+          # A cold build starts from an empty source and output tree every time.
+          rm -rf "${source_root}" "${source_archive}" "${GITHUB_WORKSPACE}/out"
+          mkdir -p "${source_root}" "${GITHUB_WORKSPACE}/out"
+
+          ref_json="$(curl --fail --silent --show-error --location \
+            --retry 5 --retry-all-errors --retry-delay 3 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/git/ref/heads/${SOURCE_BRANCH}")"
+
+          source_sha="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["object"]["sha"])' <<<"${ref_json}")"
+          [[ "${source_sha}" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "::error::Could not resolve a 40-character commit SHA for ${SOURCE_BRANCH}."
+            exit 1
+          }
+
+          curl --fail --location \
+            --retry 5 --retry-all-errors --retry-delay 5 \
+            "https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${source_sha}" \
+            -o "${source_archive}"
+          tar -xzf "${source_archive}" --strip-components=1 -C "${source_root}"
+
+          test -s "${source_root}/Makefile"
+          grep -q '^VERSION = ' "${source_root}/Makefile"
+
+          echo "source_sha=${source_sha}" >> "${GITHUB_OUTPUT}"
+          echo "source_short_sha=${source_sha:0:12}" >> "${GITHUB_OUTPUT}"
+          echo "source_root=${source_root}" >> "${GITHUB_OUTPUT}"
+          echo "Resolved ${SOURCE_BRANCH} to ${source_sha}."
+
+      - name: Configure a clean x86_64 kernel tree
+        env:
+          SOURCE_ROOT: ${{ steps.source.outputs.source_root }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          out_dir="${GITHUB_WORKSPACE}/out"
+
+          # Do not allow a host ccache configuration to make this incremental.
+          unset CCACHE_DIR CCACHE_BASEDIR CCACHE_COMPILERCHECK || true
+          export CCACHE_DISABLE=1
+
+          make -C "${SOURCE_ROOT}" O="${out_dir}" ARCH="${ARCH}" mrproper
+          make -C "${SOURCE_ROOT}" O="${out_dir}" ARCH="${ARCH}" x86_64_defconfig
+          make -C "${SOURCE_ROOT}" O="${out_dir}" ARCH="${ARCH}" olddefconfig
+
+          cp "${out_dir}/.config" "${GITHUB_WORKSPACE}/build-logs/kernel.config"
+          make -C "${SOURCE_ROOT}" O="${out_dir}" ARCH="${ARCH}" kernelrelease \
+            | tee "${GITHUB_WORKSPACE}/build-logs/configured-kernel-release.txt"
+
+      - name: Cold compile bzImage and modules
+        id: compile
+        env:
+          SOURCE_ROOT: ${{ steps.source.outputs.source_root }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          out_dir="${GITHUB_WORKSPACE}/out"
+          started_epoch="$(date +%s)"
+
+          export KBUILD_BUILD_USER=github-actions
+          export KBUILD_BUILD_HOST=zigux-cold-runner
+          export KBUILD_BUILD_VERSION=1
+          export CCACHE_DISABLE=1
+          unset CCACHE_DIR CCACHE_BASEDIR CCACHE_COMPILERCHECK || true
+
+          make -C "${SOURCE_ROOT}" \
+            O="${out_dir}" \
+            ARCH="${ARCH}" \
+            -j"$(nproc)" \
+            ${BUILD_TARGETS} 2>&1 \
+            | tee "${GITHUB_WORKSPACE}/build-logs/kernel-build.log"
+
+          finished_epoch="$(date +%s)"
+          elapsed_seconds="$((finished_epoch - started_epoch))"
+          echo "elapsed_seconds=${elapsed_seconds}" >> "${GITHUB_OUTPUT}"
+          echo "Cold compile completed in ${elapsed_seconds} seconds."
+
+      - name: Verify kernel outputs
+        id: verify
+        env:
+          SOURCE_ROOT: ${{ steps.source.outputs.source_root }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          out_dir="${GITHUB_WORKSPACE}/out"
+          bzimage="${out_dir}/arch/x86/boot/bzImage"
+          vmlinux="${out_dir}/vmlinux"
+
+          test -s "${bzimage}"
+          test -s "${vmlinux}"
+          test -s "${out_dir}/System.map"
+          test -s "${out_dir}/.config"
+
+          kernel_release="$(make -s -C "${SOURCE_ROOT}" O="${out_dir}" ARCH="${ARCH}" kernelrelease)"
+          safe_release="$(printf '%s' "${kernel_release}" | tr -c 'A-Za-z0-9._-' '-')"
+
+          file "${bzimage}" "${vmlinux}" \
+            | tee "${GITHUB_WORKSPACE}/build-logs/output-file-types.txt"
+          readelf -h "${vmlinux}" \
+            | tee "${GITHUB_WORKSPACE}/build-logs/vmlinux-elf-header.txt"
+
+          echo "kernel_release=${kernel_release}" >> "${GITHUB_OUTPUT}"
+          echo "safe_release=${safe_release}" >> "${GITHUB_OUTPUT}"
+
+      - name: Package verified build outputs
+        id: package
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+          SOURCE_SHORT_SHA: ${{ steps.source.outputs.source_short_sha }}
+          KERNEL_RELEASE: ${{ steps.verify.outputs.kernel_release }}
+          SAFE_RELEASE: ${{ steps.verify.outputs.safe_release }}
+          ELAPSED_SECONDS: ${{ steps.compile.outputs.elapsed_seconds }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          out_dir="${GITHUB_WORKSPACE}/out"
+          stage_dir="${RUNNER_TEMP}/zigux-linux-package"
+          checksum_manifest="${RUNNER_TEMP}/zigux-linux-SHA256SUMS"
+          artifact_name="zigux-linux-${SAFE_RELEASE}-${SOURCE_SHORT_SHA}"
+          package_path="${GITHUB_WORKSPACE}/artifacts/${artifact_name}.tar.xz"
+          checksum_path="${package_path}.sha256"
+
+          rm -rf "${stage_dir}"
+          rm -f "${checksum_manifest}"
+          mkdir -p "${stage_dir}/boot" "${stage_dir}/debug" "${stage_dir}/metadata"
+
+          install -m 0644 "${out_dir}/arch/x86/boot/bzImage" "${stage_dir}/boot/bzImage"
+          install -m 0644 "${out_dir}/vmlinux" "${stage_dir}/debug/vmlinux"
+          install -m 0644 "${out_dir}/System.map" "${stage_dir}/debug/System.map"
+          install -m 0644 "${out_dir}/.config" "${stage_dir}/metadata/kernel.config"
+          if [ -s "${out_dir}/Module.symvers" ]; then
+            install -m 0644 "${out_dir}/Module.symvers" "${stage_dir}/metadata/Module.symvers"
+          fi
+          cp -a "${GITHUB_WORKSPACE}/build-logs/." "${stage_dir}/metadata/"
+
+          export SOURCE_SHA SOURCE_SHORT_SHA KERNEL_RELEASE ELAPSED_SECONDS
+          python3 - <<'PY' > "${stage_dir}/metadata/build-manifest.json"
+          import json
+          import os
+          from datetime import datetime, timezone
+
+          manifest = {
+              "schema": 1,
+              "project": "Zigux rolling Linux sync",
+              "cold_build": True,
+              "cache_restored": False,
+              "source_branch": "rolling-linux-sync",
+              "source_commit": os.environ["SOURCE_SHA"],
+              "source_short_commit": os.environ["SOURCE_SHORT_SHA"],
+              "kernel_release": os.environ["KERNEL_RELEASE"],
+              "architecture": "x86_64",
+              "kbuild_arch": "x86",
+              "configuration": "x86_64_defconfig",
+              "targets": ["bzImage", "modules"],
+              "elapsed_seconds": int(os.environ["ELAPSED_SECONDS"]),
+              "completed_at": datetime.now(timezone.utc).isoformat(),
+              "github_run_id": os.environ.get("GITHUB_RUN_ID", ""),
+              "github_run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+          }
+          print(json.dumps(manifest, indent=2, sort_keys=True))
+          PY
+
+          # Build the payload checksum manifest outside the staging tree so it
+          # cannot accidentally hash itself while the redirection is open.
+          find "${stage_dir}" -type f -print0 \
+            | sort -z \
+            | xargs -0 sha256sum \
+            | sed "s#${stage_dir}/##" \
+            > "${checksum_manifest}"
+          mv "${checksum_manifest}" "${stage_dir}/SHA256SUMS"
+
+          XZ_OPT='-T0 -6' tar -C "${stage_dir}" -cJf "${package_path}" .
+          sha256sum "${package_path}" > "${checksum_path}"
+
+          echo "artifact_name=${artifact_name}" >> "${GITHUB_OUTPUT}"
+          echo "package_path=${package_path}" >> "${GITHUB_OUTPUT}"
+          echo "checksum_path=${checksum_path}" >> "${GITHUB_OUTPUT}"
+
+          {
+            echo "## Weekly cold Linux build succeeded"
+            echo
+            echo "- Source branch: \`${SOURCE_BRANCH}\`"
+            echo "- Source commit: \`${SOURCE_SHA}\`"
+            echo "- Kernel release: \`${KERNEL_RELEASE}\`"
+            echo "- Configuration: \`x86_64_defconfig\`"
+            echo "- Targets: \`${BUILD_TARGETS}\`"
+            echo "- Cache restored: **no**"
+            echo "- Compile time: **${ELAPSED_SECONDS} seconds**"
+            echo "- Artifact: \`${artifact_name}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Upload compiled kernel package
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.package.outputs.artifact_name }}
+          path: |
+            ${{ steps.package.outputs.package_path }}
+            ${{ steps.package.outputs.checksum_path }}
+          if-no-files-found: error
+          retention-days: 28
+          compression-level: 0
+
+      - name: Upload diagnostic logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: zigux-linux-cold-build-logs-${{ github.run_id }}
+          path: build-logs/
+          if-no-files-found: warn
+          retention-days: 28
