@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
-      TARGET_HEAD_SHA: 874f263a51917381e1b9fe25ca619ceae0f1bf93
+      TARGET_HEAD_SHA: c2664fe44acb3ad130d92103904d08d0e6949859
       TARGET_WORKFLOW: weekly-cold-rolling-linux.yml
     steps:
       - uses: actions/checkout@v4
