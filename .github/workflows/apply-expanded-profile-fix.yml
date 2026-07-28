@@ -1,0 +1,67 @@
+name: Apply expanded-profile validation fix
+
+on:
+  push:
+    branches:
+      - ci/fix-expanded-profile-failures
+    paths:
+      - .github/workflows/apply-expanded-profile-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ci/fix-expanded-profile-failures
+
+      - name: Replace literal Kconfig checks with semantic checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('.github/workflows/weekly-cold-rolling-linux.yml')
+          text = path.read_text()
+          old = '''          if [ "${PROFILE}" = "allmodconfig" ]; then
+            grep -qx '# CONFIG_WERROR is not set' "${OUT_DIR}/.config"
+            grep -qx '# CONFIG_RUST is not set' "${OUT_DIR}/.config"
+            grep -qx 'CONFIG_MODULES=y' "${OUT_DIR}/.config"
+          fi
+'''
+          new = '''          if [ "${PROFILE}" = "allmodconfig" ]; then
+            if grep -Eq '^CONFIG_WERROR=(y|m)$' "${OUT_DIR}/.config"; then
+              echo "::error::${ARCHITECTURE}/${PROFILE} left CONFIG_WERROR enabled."
+              exit 1
+            fi
+            if grep -Eq '^CONFIG_RUST=(y|m)$' "${OUT_DIR}/.config"; then
+              echo "::error::${ARCHITECTURE}/${PROFILE} left CONFIG_RUST enabled."
+              exit 1
+            fi
+            if ! grep -qx 'CONFIG_MODULES=y' "${OUT_DIR}/.config"; then
+              echo "::error::${ARCHITECTURE}/${PROFILE} did not enable CONFIG_MODULES=y."
+              exit 1
+            fi
+          fi
+'''
+          if old not in text:
+              raise SystemExit('expected allmodconfig validation block not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+
+          git rm .github/workflows/apply-expanded-profile-fix.yml
+          git diff --check
+
+      - name: Commit repaired workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .github/workflows/weekly-cold-rolling-linux.yml
+          git commit -m "fix(ci): validate allmodconfig options semantically"
+          git push origin HEAD:ci/fix-expanded-profile-failures
