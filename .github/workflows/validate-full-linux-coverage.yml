@@ -21,7 +21,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
@@ -165,6 +165,29 @@ jobs:
             }
           done
           sudo apt-get --simulate install rustup >/dev/null
+
+      - name: Exercise pinned Rust and bindgen installation
+        shell: bash
+        run: |
+          set -euo pipefail
+          rust_version="$(jq -r '.rust_toolchain.rust_version' .github/config/full-linux-coverage.json)"
+          bindgen_crate="$(jq -r '.rust_toolchain.bindgen_crate' .github/config/full-linux-coverage.json)"
+          bindgen_version="$(jq -r '.rust_toolchain.bindgen_version' .github/config/full-linux-coverage.json)"
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends rustup
+          export RUSTUP_HOME="${RUNNER_TEMP}/rustup-home"
+          export CARGO_HOME="${RUNNER_TEMP}/cargo-home"
+          export RUSTUP_TOOLCHAIN="${rust_version}"
+          rustup toolchain install "${rust_version}" \
+            --profile minimal \
+            --component rust-src \
+            --component rustfmt \
+            --component clippy
+          cargo install "${bindgen_crate}" \
+            --version "=${bindgen_version}" \
+            --locked \
+            --root "${RUNNER_TEMP}/bindgen"
+          rustc --version
+          "${RUNNER_TEMP}/bindgen/bin/bindgen" --version | grep -F "${bindgen_version}"
 
       - name: Repository hygiene
         shell: bash
