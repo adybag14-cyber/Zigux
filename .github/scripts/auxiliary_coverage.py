@@ -100,7 +100,25 @@ def main() -> int:
             rc = runner.run(["make", "-C", str(source_root / "tools/testing/selftests"), "-k", f"-j{jobs}", "FORCE_TARGETS=1"], cwd=source_root, env=env)
         elif task == "kunit":
             mapping_root = out_root / "kunit"
-            rc = runner.run([sys.executable, str(source_root / "tools/testing/kunit/kunit.py"), "build", "--build_dir", str(mapping_root), "--jobs", jobs], cwd=source_root, env=env)
+            mapping_root.mkdir(parents=True, exist_ok=True)
+            kunit_config = source_root / "tools/testing/kunit/configs/default.config"
+            if not kunit_config.is_file():
+                raise FileNotFoundError(f"KUnit default configuration was not found: {kunit_config}")
+            rc = runner.run(
+                [
+                    sys.executable,
+                    str(source_root / "tools/testing/kunit/kunit.py"),
+                    "build",
+                    "--build_dir",
+                    str(mapping_root),
+                    "--kunitconfig",
+                    str(kunit_config),
+                    "--jobs",
+                    jobs,
+                ],
+                cwd=source_root,
+                env=env,
+            )
         elif task == "perf":
             mapping_root = source_root / "tools/perf"
             rc = runner.run(["make", "-C", str(mapping_root), "-k", f"-j{jobs}"], cwd=source_root, env=env)
