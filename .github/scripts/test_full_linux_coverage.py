@@ -86,6 +86,9 @@ def test_config_and_matrices(temp: Path) -> None:
     assert dtbs["counts"]["dtbs"] == 21 and dtbs["counts"]["auxiliary"] == 0
     auxiliary = generate_plan("auxiliary", temp / "auxiliary.json")
     assert auxiliary["counts"]["auxiliary"] == 11 and auxiliary["counts"]["dtbs"] == 0
+    auxiliary_source = (ROOT / ".github/scripts/auxiliary_coverage.py").read_text(encoding="utf-8")
+    assert 'mapping_root.mkdir(parents=True, exist_ok=True)' in auxiliary_source
+    assert '"--kunitconfig"' in auxiliary_source
 
 
 def test_object_mapping_and_log_compaction(temp: Path) -> None:
