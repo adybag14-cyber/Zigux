@@ -1,0 +1,118 @@
+name: Apply Rust coverage repair
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - .github/workflows/apply-rust-coverage-repair.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Apply assertion-checked Rust coverage fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from __future__ import annotations
+
+          import json
+          from pathlib import Path
+
+          root = Path('.')
+          config_path = root / '.github/config/full-linux-coverage.json'
+          script_path = root / '.github/scripts/kernel_coverage.py'
+          test_path = root / '.github/scripts/test_full_linux_coverage.py'
+          docs_path = root / 'docs/FULL-LINUX-COVERAGE.md'
+
+          config = json.loads(config_path.read_text(encoding='utf-8'))
+          config['rust_llvm_toolchain'] = {
+              'version': '20.1.8',
+              'archive': 'llvm-20.1.8-x86_64.tar.xz',
+              'base_url': 'https://www.kernel.org/pub/tools/llvm/files',
+          }
+          config_path.write_text(json.dumps(config, indent=2) + '\n', encoding='utf-8')
+
+          text = script_path.read_text(encoding='utf-8')
+
+          old = '''    def add_llvm() -> Path:\n        cfg = config["llvm_toolchain"]\n'''
+          new = '''    def add_llvm(toolchain_key: str = "llvm_toolchain") -> Path:\n        cfg = config[toolchain_key]\n'''
+          assert old in text, 'add_llvm definition changed unexpectedly'
+          text = text.replace(old, new, 1)
+
+          old = '''    elif toolchain == "rust":\n        add_llvm()\n'''
+          new = '''    elif toolchain == "rust":\n        add_llvm("rust_llvm_toolchain")\n'''
+          assert old in text, 'Rust add_llvm call changed unexpectedly'
+          text = text.replace(old, new, 1)
+
+          marker = '''def config_y(config_path: Path, symbol: str) -> bool:\n    wanted = f"CONFIG_{symbol}=y"\n    return wanted in config_path.read_text(encoding="utf-8", errors="replace").splitlines()\n\n\n'''
+          assert marker in text, 'config_y helper changed unexpectedly'
+          helpers = marker + '''RUST_KCONFIG_SYMBOLS = (\n    "HAVE_RUST",\n    "RUST_IS_AVAILABLE",\n    "RUST",\n    "MODVERSIONS",\n    "GENDWARFKSYMS",\n    "GCC_PLUGINS",\n    "GCC_PLUGIN_RANDSTRUCT",\n    "RANDSTRUCT",\n    "RANDSTRUCT_FULL",\n    "RANDSTRUCT_PERFORMANCE",\n    "DEBUG_INFO_BTF",\n    "PAHOLE_HAS_LANG_EXCLUDE",\n    "LTO",\n    "LTO_CLANG",\n    "LTO_CLANG_THIN",\n    "LTO_CLANG_FULL",\n    "CFI",\n    "HAVE_CFI_ICALL_NORMALIZE_INTEGERS_RUSTC",\n    "KASAN",\n    "CC_IS_CLANG",\n    "KASAN_SW_TAGS",\n    "EXPOLINE",\n    "WERROR",\n)\n\n\ndef config_state(config_path: Path, symbol: str) -> str:\n    if not config_path.is_file():\n        return "missing-config"\n    enabled = f"CONFIG_{symbol}="\n    disabled = f"# CONFIG_{symbol} is not set"\n    for line in config_path.read_text(encoding="utf-8", errors="replace").splitlines():\n        if line.startswith(enabled):\n            return line.split("=", 1)[1]\n        if line == disabled:\n            return "n"\n    return "absent"\n\n\ndef write_rust_kconfig_diagnostics(config_path: Path, record_dir: Path, phase: str) -> dict[str, str]:\n    states = {symbol: config_state(config_path, symbol) for symbol in RUST_KCONFIG_SYMBOLS}\n    payload = {"phase": phase, "symbols": states}\n    (record_dir / f"rust-kconfig-{phase}.json").write_text(\n        json.dumps(payload, indent=2, sort_keys=True) + "\\n", encoding="utf-8"\n    )\n    return states\n\n\n'''
+          text = text.replace(marker, helpers, 1)
+
+          old = '''        if row["kind"] == "rust":\n            runner.run(make_command(source_root, out_root, row, "rustavailable"), env=env, check=True)\n            for symbol in row.get("disable", []):\n                scripts_config(source_root, out_root, "--disable", symbol, runner, env)\n                adjustments.append(f"CONFIG_{symbol}=n")\n            for symbol in row.get("enable", ["RUST", "MODULES"]):\n                scripts_config(source_root, out_root, "--enable", symbol, runner, env)\n                adjustments.append(f"CONFIG_{symbol}=y")\n            for symbol in extract_rust_sample_symbols(source_root):\n                scripts_config(source_root, out_root, "--enable", symbol, runner, env)\n                adjustments.append(f"CONFIG_{symbol}=y(requested)")\n'''
+          new = '''        rust_sample_symbols: list[str] = []\n        if row["kind"] == "rust":\n            # Rust's Kconfig entry has architecture and hardening dependencies.\n            # Settle all blockers first; requesting RUST in the same pass can cause\n            # Kconfig to discard it before HAVE_RUST and related derived symbols update.\n            rust_blockers = [\n                "WERROR",\n                "MODVERSIONS",\n                "GCC_PLUGINS",\n                "GCC_PLUGIN_RANDSTRUCT",\n                "RANDSTRUCT_FULL",\n                "RANDSTRUCT_PERFORMANCE",\n                "DEBUG_INFO_BTF",\n                "LTO",\n                "LTO_CLANG",\n                "LTO_CLANG_THIN",\n                "LTO_CLANG_FULL",\n                "CFI",\n                "KASAN",\n                "KASAN_SW_TAGS",\n            ]\n            for symbol in dict.fromkeys([*rust_blockers, *row.get("disable", [])]):\n                scripts_config(source_root, out_root, "--disable", symbol, runner, env)\n                adjustments.append(f"CONFIG_{symbol}=n")\n\n            runner.run(make_command(source_root, out_root, row, "olddefconfig"), env=env, check=True)\n            runner.run(make_command(source_root, out_root, row, "rustavailable"), env=env, check=True)\n            runner.run(make_command(source_root, out_root, row, "olddefconfig"), env=env, check=True)\n\n            config_path = out_root / ".config"\n            before = write_rust_kconfig_diagnostics(config_path, record_dir, "before-enable")\n            manifest["rust_kconfig_before_enable"] = before\n            missing_prerequisites = [\n                symbol for symbol in ("HAVE_RUST", "RUST_IS_AVAILABLE") if before.get(symbol) != "y"\n            ]\n            if missing_prerequisites:\n                raise RuntimeError(\n                    "Rust architecture prerequisites unavailable after Kconfig reconciliation: "\n                    + ", ".join(f"CONFIG_{symbol}={before.get(symbol)}" for symbol in missing_prerequisites)\n                )\n\n            for symbol in row.get("enable", ["RUST", "MODULES"]):\n                scripts_config(source_root, out_root, "--enable", symbol, runner, env)\n                adjustments.append(f"CONFIG_{symbol}=y")\n            runner.run(make_command(source_root, out_root, row, "olddefconfig"), env=env, check=True)\n\n            enabled = write_rust_kconfig_diagnostics(config_path, record_dir, "after-enable")\n            manifest["rust_kconfig_after_enable"] = enabled\n            if enabled.get("RUST") != "y":\n                blockers = {key: value for key, value in enabled.items() if value not in {"n", "absent"}}\n                raise RuntimeError(\n                    "CONFIG_RUST=y was rejected after two-phase Kconfig reconciliation; "\n                    f"diagnostic symbols: {json.dumps(blockers, sort_keys=True)}"\n                )\n\n            rust_sample_symbols = extract_rust_sample_symbols(source_root)\n            manifest["rust_sample_symbols_requested"] = rust_sample_symbols\n            for symbol in rust_sample_symbols:\n                scripts_config(source_root, out_root, "--enable", symbol, runner, env)\n                adjustments.append(f"CONFIG_{symbol}=y(requested)")\n'''
+          assert old in text, 'Rust Kconfig block changed unexpectedly'
+          text = text.replace(old, new, 1)
+
+          old = '''        if row["kind"] == "rust" and not config_y(config_path, "RUST"):\n            raise RuntimeError("CONFIG_RUST=y was requested but Kconfig did not enable it")\n'''
+          new = '''        if row["kind"] == "rust":\n            final_rust_state = write_rust_kconfig_diagnostics(config_path, record_dir, "final")\n            manifest["rust_kconfig_final"] = final_rust_state\n            manifest["rust_sample_symbols_enabled"] = [\n                symbol for symbol in rust_sample_symbols if config_y(config_path, symbol)\n            ]\n            if final_rust_state.get("RUST") != "y":\n                raise RuntimeError(\n                    "CONFIG_RUST=y was lost during final Kconfig reconciliation; "\n                    f"see {record_dir / 'rust-kconfig-final.json'}"\n                )\n'''
+          assert old in text, 'final Rust Kconfig check changed unexpectedly'
+          text = text.replace(old, new, 1)
+
+          old = '''    finally:\n        manifest["elapsed_seconds"] = round(time.time() - started, 3)\n        manifest["finished_utc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())\n        compact_log(log_path)\n'''
+          new = '''    finally:\n        config_path = out_root / ".config"\n        if config_path.is_file():\n            shutil.copy2(config_path, record_dir / "kernel.config")\n            if row["kind"] == "rust":\n                manifest.setdefault(\n                    "rust_kconfig_final",\n                    write_rust_kconfig_diagnostics(config_path, record_dir, "failure-or-final"),\n                )\n        if row["kind"] == "rust":\n            generated_bindings = out_root / "rust/bindings/bindings_generated.rs"\n            if generated_bindings.is_file():\n                bindings_copy = record_dir / "bindings-generated.rs"\n                shutil.copy2(generated_bindings, bindings_copy)\n                subprocess.run(\n                    ["zstd", "-q", "-f", "-10", str(bindings_copy), "-o", str(bindings_copy) + ".zst"],\n                    check=False,\n                )\n                if Path(str(bindings_copy) + ".zst").is_file():\n                    bindings_copy.unlink(missing_ok=True)\n        manifest["elapsed_seconds"] = round(time.time() - started, 3)\n        manifest["finished_utc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())\n        compact_log(log_path)\n'''
+          assert old in text, 'finally block changed unexpectedly'
+          text = text.replace(old, new, 1)
+          script_path.write_text(text, encoding='utf-8')
+
+          test_text = test_path.read_text(encoding='utf-8')
+          anchor = '''    assert config["rust_toolchain"]["bindgen_version"] == "0.71.1"\n'''
+          assert anchor in test_text, 'Rust toolchain assertion changed unexpectedly'
+          test_text = test_text.replace(\n              anchor,\n              anchor\n              + '''    assert config["rust_llvm_toolchain"]["version"] == "20.1.8"\n'''
+              + '''    assert config["rust_llvm_toolchain"]["archive"] == "llvm-20.1.8-x86_64.tar.xz"\n''',\n              1,\n          )
+          anchor = '''    assert 'f"={bindgen_version}"' in kernel_source\n'''
+          assert anchor in test_text, 'kernel source assertion anchor changed unexpectedly'
+          test_text = test_text.replace(\n              anchor,\n              anchor\n              + '''    assert 'add_llvm("rust_llvm_toolchain")' in kernel_source\n'''
+              + '''    assert 'rust-kconfig-{phase}.json' in kernel_source\n'''
+              + '''    assert 'Rust architecture prerequisites unavailable after Kconfig reconciliation' in kernel_source\n'''
+              + '''    assert 'bindings-generated.rs' in kernel_source\n''',\n              1,\n          )
+          test_path.write_text(test_text, encoding='utf-8')
+
+          docs = docs_path.read_text(encoding='utf-8')
+          docs += '''\n## Rust coverage reliability\n\nRust coverage uses a dedicated pinned LLVM/libclang toolchain rather than the newest LLVM compatibility matrix. The row settles architecture and hardening Kconfig prerequisites before requesting `CONFIG_RUST=y`, records each dependency state, preserves the final `.config`, and archives generated bindings on failure. All seven supported Rust architecture rows are live-tested before changes are merged.\n'''
+          docs_path.write_text(docs, encoding='utf-8')
+          PY
+
+          python3 -m py_compile .github/scripts/kernel_coverage.py .github/scripts/test_full_linux_coverage.py
+          python3 -m json.tool .github/config/full-linux-coverage.json >/dev/null
+          git diff --check
+
+      - name: Commit production changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add \
+            .github/config/full-linux-coverage.json \
+            .github/scripts/kernel_coverage.py \
+            .github/scripts/test_full_linux_coverage.py \
+            docs/FULL-LINUX-COVERAGE.md
+          if git diff --cached --quiet; then
+            echo "Production repair is already applied."
+            exit 0
+          fi
+          git commit -m "ci: fix Rust coverage Kconfig and bindgen toolchain"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
