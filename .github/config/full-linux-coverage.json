@@ -462,7 +462,8 @@
         "libcap-dev",
         "libmount-dev",
         "libnuma-dev",
-        "liburing-dev"
+        "liburing-dev",
+        "libasound2-dev"
       ]
     },
     {
@@ -499,7 +500,8 @@
       "label": "bpftool",
       "extra_packages": [
         "libcap-dev",
-        "binutils-dev"
+        "binutils-dev",
+        "llvm"
       ]
     },
     {

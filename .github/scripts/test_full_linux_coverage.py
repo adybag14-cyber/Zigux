@@ -72,8 +72,11 @@ def test_config_and_matrices(temp: Path) -> None:
     for row in full["groups"]["auxiliary"]:
         if row.get("toolchain") == "rust":
             assert {"bindgen-0.71", "rustup"}.issubset(row["extra_packages"])
-    perf = next(row for row in full["groups"]["auxiliary"] if row["id"] == "perf")
+    auxiliary_by_id = {row["id"]: row for row in full["groups"]["auxiliary"]}
+    perf = auxiliary_by_id["perf"]
     assert {"libtraceevent-dev", "libtracefs-dev", "libcapstone-dev", "libpfm4-dev", "libbabeltrace2-dev"}.issubset(perf["extra_packages"])
+    assert "libasound2-dev" in auxiliary_by_id["selftests"]["extra_packages"]
+    assert "llvm" in auxiliary_by_id["bpftool"]["extra_packages"]
     all_ids = [row["id"] for rows in full["groups"].values() for row in rows]
     assert len(all_ids) == len(set(all_ids))
 
