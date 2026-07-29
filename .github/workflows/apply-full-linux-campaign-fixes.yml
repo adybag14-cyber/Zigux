@@ -65,20 +65,10 @@ jobs:
           elif regression not in text:
               raise SystemExit('KUnit regression assertion block is in an unexpected state')
           tests_path.write_text(text, encoding='utf-8')
-
-          validation_path = Path('.github/workflows/validate-full-linux-coverage.yml')
-          validation = validation_path.read_text(encoding='utf-8')
-          old_check = "if not re.fullmatch(r'[0-9a-f]{64}', rust_checksum):"
-          new_check = "if not re.match(r'^[0-9a-f]{64}(?:\\s|$)', rust_checksum):"
-          if old_check in validation:
-              validation = validation.replace(old_check, new_check)
-          elif new_check not in validation:
-              raise SystemExit('Rust checksum validation is in an unexpected state')
-          validation_path.write_text(validation, encoding='utf-8')
           PY
           git diff --check
 
-      - name: Commit follow-up production fixes
+      - name: Commit non-workflow production fixes
         shell: bash
         run: |
           set -euo pipefail
@@ -86,10 +76,9 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add .github/config/full-linux-coverage.json \
             .github/scripts/auxiliary_coverage.py \
-            .github/scripts/test_full_linux_coverage.py \
-            .github/workflows/validate-full-linux-coverage.yml
+            .github/scripts/test_full_linux_coverage.py
           if git diff --cached --quiet; then
-            echo 'Follow-up fixes are already present.'
+            echo 'Non-workflow follow-up fixes are already present.'
             exit 0
           fi
           git commit -m "ci: complete campaign prerequisite fixes"
