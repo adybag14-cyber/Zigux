@@ -1,0 +1,119 @@
+name: Apply full Linux campaign fixes
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - .github/workflows/apply-full-linux-campaign-fixes.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ci/fix-full-linux-campaign-30451881719
+          fetch-depth: 1
+
+      - name: Apply assertion-checked production fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('.')
+
+          def replace_once(path: Path, old: str, new: str) -> None:
+              text = path.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one matching block, found {count}')
+              path.write_text(text.replace(old, new), encoding='utf-8')
+
+          config_path = root / '.github/config/full-linux-coverage.json'
+          config = json.loads(config_path.read_text(encoding='utf-8'))
+          config['rust_toolchain'] = {
+              'rust_version': '1.96.1',
+              'bindgen_binary': 'bindgen-0.71',
+          }
+          for task in config['auxiliary_tasks']:
+              if task.get('toolchain') == 'rust':
+                  extras = task.setdefault('extra_packages', [])
+                  for package in ('bindgen-0.71', 'rustup'):
+                      if package not in extras:
+                          extras.append(package)
+              if task['id'] == 'perf':
+                  extras = task.setdefault('extra_packages', [])
+                  for package in ('libbabeltrace2-dev', 'libcapstone-dev', 'libpfm4-dev', 'libtraceevent-dev', 'libtracefs-dev'):
+                      if package not in extras:
+                          extras.append(package)
+          config_path.write_text(json.dumps(config, indent=2) + '\n', encoding='utf-8')
+
+          matrix_path = root / '.github/scripts/full_linux_matrix.py'
+          replace_once(
+              matrix_path,
+              '                "extra_packages": ["libclang-dev"],\n',
+              '                "extra_packages": ["bindgen-0.71", "rustup"],\n',
+          )
+
+          kernel_path = root / '.github/scripts/kernel_coverage.py'
+          replace_once(
+              kernel_path,
+              '''    def add_llvm(rust: bool = False) -> None:\n        cfg = config["rust_toolchain"] if rust else config["llvm_toolchain"]\n        archive = cfg["archive"]\n        archive_path = tool_root / archive\n        extract_root = tool_root / ("rust-llvm" if rust else "llvm")\n        verified_download(cfg["base_url"], archive, archive_path)\n        extract_archive(archive_path, extract_root)\n        clang = find_executable(extract_root, "clang")\n        path_parts.append(str(clang.parent))\n        metadata["clang"] = str(clang)\n        metadata["llvm_archive"] = archive\n        if rust:\n            rustc = find_executable(extract_root, "rustc")\n            bindgen = find_executable(extract_root, "bindgen")\n            path_parts.extend([str(rustc.parent), str(bindgen.parent)])\n            metadata["rustc"] = str(rustc)\n            metadata["bindgen"] = str(bindgen)\n            rust_sources = list(extract_root.rglob("lib/rustlib/src/rust/library"))\n            if not rust_sources:\n                raise FileNotFoundError("RUST_LIB_SRC was not found in the kernel.org LLVM+Rust bundle")\n            env["RUST_LIB_SRC"] = str(rust_sources[0])\n            env["RUSTC"] = str(rustc)\n            rustdoc = find_executable(extract_root, "rustdoc")\n            env["RUSTDOC"] = str(rustdoc)\n            env["BINDGEN"] = str(bindgen)\n''',
+              '''    def add_llvm() -> Path:\n        cfg = config["llvm_toolchain"]\n        archive = cfg["archive"]\n        archive_path = tool_root / archive\n        extract_root = tool_root / "llvm"\n        verified_download(cfg["base_url"], archive, archive_path)\n        extract_archive(archive_path, extract_root)\n        clang = find_executable(extract_root, "clang")\n        path_parts.append(str(clang.parent))\n        metadata["clang"] = str(clang)\n        metadata["llvm_archive"] = archive\n        libclang_candidates = sorted(\n            (path for path in extract_root.rglob("libclang.so*") if path.is_file()),\n            key=lambda path: (path.name != "libclang.so", len(path.parts), str(path)),\n        )\n        if libclang_candidates:\n            env["LIBCLANG_PATH"] = str(libclang_candidates[0].parent)\n            metadata["libclang"] = str(libclang_candidates[0])\n        return extract_root\n''',
+          )
+          replace_once(kernel_path, '        add_llvm(False)\n', '        add_llvm()\n')
+          replace_once(
+              kernel_path,
+              '''    elif toolchain == "rust":\n        add_llvm(True)\n        env["LLVM"] = "1"\n        if not row.get("llvm_ias", True) and row.get("gcc_triple"):\n            env["LLVM_IAS"] = "0"\n            env["CROSS_COMPILE"] = add_gcc(row["gcc_triple"])\n''',
+              '''    elif toolchain == "rust":\n        add_llvm()\n        rust_cfg = config["rust_toolchain"]\n        rust_version = rust_cfg["rust_version"]\n        rustup = shutil.which("rustup")\n        if not rustup:\n            raise FileNotFoundError("rustup was not found; install the rustup package for Rust rows")\n        rustup_home = tool_root / "rustup-home"\n        cargo_home = tool_root / "cargo-home"\n        rust_env = env.copy()\n        rust_env.update({"RUSTUP_HOME": str(rustup_home), "CARGO_HOME": str(cargo_home)})\n        subprocess.run(\n            [\n                rustup, "toolchain", "install", rust_version,\n                "--profile", "minimal",\n                "--component", "rust-src",\n                "--component", "rustfmt",\n                "--component", "clippy",\n            ],\n            env=rust_env,\n            check=True,\n        )\n        rustc = find_executable(rustup_home / "toolchains", "rustc")\n        rustdoc = find_executable(rustup_home / "toolchains", "rustdoc")\n        rustfmt = find_executable(rustup_home / "toolchains", "rustfmt")\n        clippy = find_executable(rustup_home / "toolchains", "clippy-driver")\n        bindgen_name = rust_cfg.get("bindgen_binary", "bindgen-0.71")\n        bindgen_text = shutil.which(bindgen_name)\n        if not bindgen_text:\n            raise FileNotFoundError(f"{bindgen_name} was not found; install the pinned bindgen package")\n        bindgen = Path(bindgen_text)\n        rust_sources = sorted(rustup_home.rglob("lib/rustlib/src/rust/library"))\n        if not rust_sources:\n            raise FileNotFoundError("RUST_LIB_SRC was not installed by rustup")\n        path_parts.extend([str(rustc.parent), str(bindgen.parent)])\n        env.update(\n            {\n                "LLVM": "1",\n                "RUSTUP_HOME": str(rustup_home),\n                "CARGO_HOME": str(cargo_home),\n                "RUSTUP_TOOLCHAIN": rust_version,\n                "RUSTC": str(rustc),\n                "RUSTDOC": str(rustdoc),\n                "RUSTFMT": str(rustfmt),\n                "CLIPPY_DRIVER": str(clippy),\n                "BINDGEN": str(bindgen),\n                "RUST_LIB_SRC": str(rust_sources[0]),\n            }\n        )\n        metadata.update(\n            {\n                "rustup": rustup,\n                "rust_version": rust_version,\n                "rustc": str(rustc),\n                "rustc_version": subprocess.check_output([str(rustc), "--version"], text=True).strip(),\n                "bindgen": str(bindgen),\n                "bindgen_version": subprocess.check_output([str(bindgen), "--version"], text=True).strip(),\n            }\n        )\n        if not row.get("llvm_ias", True) and row.get("gcc_triple"):\n            env["LLVM_IAS"] = "0"\n            env["CROSS_COMPILE"] = add_gcc(row["gcc_triple"])\n''',
+          )
+
+          auxiliary_path = root / '.github/scripts/auxiliary_coverage.py'
+          replace_once(
+              auxiliary_path,
+              '''            rc = runner.run([sys.executable, str(source_root / "tools/testing/kunit/kunit.py"), "build", "--build_dir", str(mapping_root), "--jobs", jobs], cwd=source_root, env=env)\n''',
+              '''            kunit_config = source_root / "tools/testing/kunit/configs/default.config"\n            if not kunit_config.is_file():\n                raise FileNotFoundError(f"KUnit default configuration was not found: {kunit_config}")\n            rc = runner.run(\n                [\n                    sys.executable,\n                    str(source_root / "tools/testing/kunit/kunit.py"),\n                    "build",\n                    "--build_dir",\n                    str(mapping_root),\n                    "--kunitconfig",\n                    str(kunit_config),\n                    "--jobs",\n                    jobs,\n                ],\n                cwd=source_root,\n                env=env,\n            )\n''',
+          )
+
+          tests_path = root / '.github/scripts/test_full_linux_coverage.py'
+          replace_once(
+              tests_path,
+              '''    assert len({item["id"] for item in config["auxiliary_tasks"]}) == 11\n\n    full = generate_plan("full", temp / "full.json")\n''',
+              '''    assert len({item["id"] for item in config["auxiliary_tasks"]}) == 11\n    assert config["rust_toolchain"]["rust_version"] == "1.96.1"\n    assert config["rust_toolchain"]["bindgen_binary"] == "bindgen-0.71"\n\n    full = generate_plan("full", temp / "full.json")\n''',
+          )
+          replace_once(
+              tests_path,
+              '''    assert full["total_jobs"] == 179\n    all_ids = [row["id"] for rows in full["groups"].values() for row in rows]\n''',
+              '''    assert full["total_jobs"] == 179\n    for row in full["groups"]["rust"]:\n        assert {"bindgen-0.71", "rustup"}.issubset(row["extra_packages"])\n    for row in full["groups"]["auxiliary"]:\n        if row.get("toolchain") == "rust":\n            assert {"bindgen-0.71", "rustup"}.issubset(row["extra_packages"])\n    perf = next(row for row in full["groups"]["auxiliary"] if row["id"] == "perf")\n    assert {"libtraceevent-dev", "libtracefs-dev", "libcapstone-dev", "libpfm4-dev", "libbabeltrace2-dev"}.issubset(perf["extra_packages"])\n    all_ids = [row["id"] for rows in full["groups"].values() for row in rows]\n''',
+          )
+
+          docs_path = root / 'docs/FULL-LINUX-COVERAGE.md'
+          docs = docs_path.read_text(encoding='utf-8')
+          section = '''\n## Rust toolchain policy\n\nRust rows use the pinned Rust 1.96.1 toolchain installed through Ubuntu's `rustup` package, the pinned `bindgen-0.71` package, and the same verified kernel.org LLVM archive used by LLVM rows. This satisfies the rolling source's s390 minimum while keeping `rust-src`, `rustfmt`, and Clippy available for Rust developer targets.\n\nKUnit is built from `tools/testing/kunit/configs/default.config`, and the perf row installs its required traceevent, tracefs, Capstone, libpfm, and Babeltrace 2 development libraries.\n'''
+          if '## Rust toolchain policy' not in docs:
+              docs_path.write_text(docs.rstrip() + '\n' + section, encoding='utf-8')
+          PY
+          git diff --check
+
+      - name: Commit production fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .github/config/full-linux-coverage.json \
+            .github/scripts/auxiliary_coverage.py \
+            .github/scripts/full_linux_matrix.py \
+            .github/scripts/kernel_coverage.py \
+            .github/scripts/test_full_linux_coverage.py \
+            docs/FULL-LINUX-COVERAGE.md
+          git commit -m "ci: fix Rust perf and KUnit coverage rows"
+          git push origin HEAD:ci/fix-full-linux-campaign-30451881719
