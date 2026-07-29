@@ -1,0 +1,561 @@
+{
+  "schema": 1,
+  "source_branch": "rolling-linux-sync",
+  "gcc_toolchain": {
+    "version": "14.2.0",
+    "base_url": "https://www.kernel.org/pub/tools/crosstool/files/bin/x86_64/14.2.0"
+  },
+  "llvm_toolchain": {
+    "version": "22.1.8",
+    "archive": "llvm-22.1.8-x86_64.tar.xz",
+    "base_url": "https://www.kernel.org/pub/tools/llvm/files"
+  },
+  "rust_toolchain": {
+    "llvm_version": "22.1.6",
+    "rust_version": "1.95.0",
+    "archive": "llvm-22.1.6-rust-1.95.0-x86_64.tar.xz",
+    "base_url": "https://www.kernel.org/pub/tools/llvm/rust/files"
+  },
+  "architectures": [
+    {
+      "id": "alpha",
+      "label": "Alpha",
+      "kbuild_arch": "alpha",
+      "config_target": "defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "alpha-linux",
+      "llvm_supported": false,
+      "rust_supported": false
+    },
+    {
+      "id": "arc",
+      "label": "ARC",
+      "kbuild_arch": "arc",
+      "config_target": "defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "arc-linux",
+      "llvm_supported": false,
+      "rust_supported": false
+    },
+    {
+      "id": "arm",
+      "label": "ARMv7",
+      "kbuild_arch": "arm",
+      "config_target": "multi_v7_defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "arm-linux-gnueabi",
+      "llvm_supported": true,
+      "rust_supported": true
+    },
+    {
+      "id": "arm64",
+      "label": "ARM64",
+      "kbuild_arch": "arm64",
+      "config_target": "defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "aarch64-linux",
+      "llvm_supported": true,
+      "rust_supported": true
+    },
+    {
+      "id": "csky",
+      "label": "C-SKY",
+      "kbuild_arch": "csky",
+      "config_target": "defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "csky-linux",
+      "llvm_supported": false,
+      "rust_supported": false
+    },
+    {
+      "id": "hexagon",
+      "label": "Hexagon",
+      "kbuild_arch": "hexagon",
+      "config_target": "defconfig",
+      "preferred_toolchain": "llvm",
+      "gcc_triple": "",
+      "llvm_supported": true,
+      "rust_supported": false
+    },
+    {
+      "id": "loongarch",
+      "label": "LoongArch64",
+      "kbuild_arch": "loongarch",
+      "config_target": "defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "loongarch64-linux",
+      "llvm_supported": true,
+      "rust_supported": true
+    },
+    {
+      "id": "m68k",
+      "label": "M68K",
+      "kbuild_arch": "m68k",
+      "config_target": "defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "m68k-linux",
+      "llvm_supported": false,
+      "rust_supported": false
+    },
+    {
+      "id": "microblaze",
+      "label": "MicroBlaze",
+      "kbuild_arch": "microblaze",
+      "config_target": "defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "microblaze-linux",
+      "llvm_supported": false,
+      "rust_supported": false
+    },
+    {
+      "id": "mips",
+      "label": "MIPS",
+      "kbuild_arch": "mips",
+      "config_target": "malta_defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "mips-linux",
+      "llvm_supported": true,
+      "rust_supported": false
+    },
+    {
+      "id": "nios2",
+      "label": "Nios II",
+      "kbuild_arch": "nios2",
+      "config_target": "defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "nios2-linux",
+      "llvm_supported": false,
+      "rust_supported": false
+    },
+    {
+      "id": "openrisc",
+      "label": "OpenRISC",
+      "kbuild_arch": "openrisc",
+      "config_target": "defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "or1k-linux",
+      "llvm_supported": false,
+      "rust_supported": false
+    },
+    {
+      "id": "parisc",
+      "label": "PA-RISC",
+      "kbuild_arch": "parisc",
+      "config_target": "defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "hppa-linux",
+      "llvm_supported": false,
+      "rust_supported": false
+    },
+    {
+      "id": "powerpc",
+      "label": "PowerPC",
+      "kbuild_arch": "powerpc",
+      "config_target": "ppc64_defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "powerpc64-linux",
+      "llvm_supported": true,
+      "rust_supported": false
+    },
+    {
+      "id": "riscv",
+      "label": "RISC-V 64",
+      "kbuild_arch": "riscv",
+      "config_target": "defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "riscv64-linux",
+      "llvm_supported": true,
+      "rust_supported": true
+    },
+    {
+      "id": "s390",
+      "label": "s390x",
+      "kbuild_arch": "s390",
+      "config_target": "defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "s390-linux",
+      "llvm_supported": true,
+      "rust_supported": true,
+      "rust_disable": [
+        "EXPOLINE"
+      ]
+    },
+    {
+      "id": "sh",
+      "label": "SuperH",
+      "kbuild_arch": "sh",
+      "config_target": "shx3_defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "sh4-linux",
+      "llvm_supported": false,
+      "rust_supported": false
+    },
+    {
+      "id": "sparc",
+      "label": "SPARC64",
+      "kbuild_arch": "sparc",
+      "config_target": "sparc64_defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "sparc64-linux",
+      "llvm_supported": true,
+      "llvm_ias": false,
+      "rust_supported": false
+    },
+    {
+      "id": "um",
+      "label": "User Mode Linux",
+      "kbuild_arch": "um",
+      "config_target": "defconfig",
+      "preferred_toolchain": "native-gcc",
+      "gcc_triple": "",
+      "llvm_supported": true,
+      "rust_supported": true
+    },
+    {
+      "id": "x86",
+      "label": "x86_64",
+      "kbuild_arch": "x86",
+      "config_target": "x86_64_defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "x86_64-linux",
+      "llvm_supported": true,
+      "rust_supported": true
+    },
+    {
+      "id": "xtensa",
+      "label": "Xtensa",
+      "kbuild_arch": "xtensa",
+      "config_target": "defconfig",
+      "preferred_toolchain": "gcc",
+      "gcc_triple": "xtensa-linux",
+      "llvm_supported": false,
+      "rust_supported": false
+    }
+  ],
+  "hardening_profiles": [
+    {
+      "id": "gcc-randstruct",
+      "architecture": "x86",
+      "label": "GCC plugin RANDSTRUCT",
+      "toolchain": "native-gcc",
+      "config_target": "x86_64_defconfig",
+      "enable": [
+        "GCC_PLUGINS",
+        "GCC_PLUGIN_RANDSTRUCT",
+        "RANDSTRUCT_FULL"
+      ],
+      "disable": [
+        "WERROR",
+        "RUST"
+      ],
+      "extra_packages": [
+        "gcc-13-plugin-dev"
+      ]
+    },
+    {
+      "id": "gcc-latent-entropy",
+      "architecture": "x86",
+      "label": "GCC latent entropy plugin",
+      "toolchain": "native-gcc",
+      "config_target": "x86_64_defconfig",
+      "enable": [
+        "GCC_PLUGINS",
+        "GCC_PLUGIN_LATENT_ENTROPY"
+      ],
+      "disable": [
+        "WERROR",
+        "RUST"
+      ],
+      "extra_packages": [
+        "gcc-13-plugin-dev"
+      ]
+    },
+    {
+      "id": "clang-cfi",
+      "architecture": "x86",
+      "label": "Clang CFI",
+      "toolchain": "llvm",
+      "config_target": "x86_64_defconfig",
+      "enable": [
+        "LTO_CLANG_THIN",
+        "CFI"
+      ],
+      "disable": [
+        "WERROR",
+        "RUST",
+        "GCC_PLUGINS"
+      ]
+    },
+    {
+      "id": "clang-thinlto",
+      "architecture": "x86",
+      "label": "Clang ThinLTO",
+      "toolchain": "llvm",
+      "config_target": "x86_64_defconfig",
+      "enable": [
+        "LTO_CLANG_THIN"
+      ],
+      "disable": [
+        "WERROR",
+        "RUST",
+        "GCC_PLUGINS"
+      ]
+    },
+    {
+      "id": "kasan-generic",
+      "architecture": "x86",
+      "label": "Generic KASAN",
+      "toolchain": "native-gcc",
+      "config_target": "x86_64_defconfig",
+      "enable": [
+        "KASAN",
+        "KASAN_GENERIC"
+      ],
+      "disable": [
+        "WERROR",
+        "RUST",
+        "GCC_PLUGINS"
+      ]
+    },
+    {
+      "id": "kasan-sw-tags",
+      "architecture": "arm64",
+      "label": "Software-tag KASAN",
+      "toolchain": "llvm",
+      "config_target": "defconfig",
+      "enable": [
+        "KASAN",
+        "KASAN_SW_TAGS"
+      ],
+      "disable": [
+        "WERROR",
+        "RUST",
+        "GCC_PLUGINS"
+      ]
+    },
+    {
+      "id": "kcsan",
+      "architecture": "x86",
+      "label": "KCSAN",
+      "toolchain": "native-gcc",
+      "config_target": "x86_64_defconfig",
+      "enable": [
+        "KCSAN"
+      ],
+      "disable": [
+        "WERROR",
+        "RUST",
+        "GCC_PLUGINS"
+      ]
+    },
+    {
+      "id": "ubsan",
+      "architecture": "x86",
+      "label": "UBSAN",
+      "toolchain": "native-gcc",
+      "config_target": "x86_64_defconfig",
+      "enable": [
+        "UBSAN"
+      ],
+      "disable": [
+        "WERROR",
+        "RUST",
+        "GCC_PLUGINS"
+      ]
+    },
+    {
+      "id": "btf",
+      "architecture": "x86",
+      "label": "BTF debug info",
+      "toolchain": "native-gcc",
+      "config_target": "x86_64_defconfig",
+      "enable": [
+        "DEBUG_INFO",
+        "DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT",
+        "DEBUG_INFO_BTF"
+      ],
+      "disable": [
+        "WERROR",
+        "RUST",
+        "GCC_PLUGINS"
+      ]
+    },
+    {
+      "id": "preempt-rt",
+      "architecture": "x86",
+      "label": "PREEMPT_RT",
+      "toolchain": "native-gcc",
+      "config_target": "x86_64_defconfig",
+      "enable": [
+        "PREEMPT_RT"
+      ],
+      "disable": [
+        "WERROR",
+        "RUST",
+        "GCC_PLUGINS"
+      ]
+    },
+    {
+      "id": "lock-debug",
+      "architecture": "x86",
+      "label": "Lockdep/prove locking",
+      "toolchain": "native-gcc",
+      "config_target": "x86_64_defconfig",
+      "enable": [
+        "PROVE_LOCKING",
+        "LOCKDEP"
+      ],
+      "disable": [
+        "WERROR",
+        "RUST",
+        "GCC_PLUGINS"
+      ]
+    },
+    {
+      "id": "gcov",
+      "architecture": "x86",
+      "label": "GCOV all kernel",
+      "toolchain": "native-gcc",
+      "config_target": "x86_64_defconfig",
+      "enable": [
+        "GCOV_KERNEL",
+        "GCOV_PROFILE_ALL"
+      ],
+      "disable": [
+        "WERROR",
+        "RUST",
+        "GCC_PLUGINS"
+      ]
+    },
+    {
+      "id": "kcov",
+      "architecture": "x86",
+      "label": "KCOV",
+      "toolchain": "native-gcc",
+      "config_target": "x86_64_defconfig",
+      "enable": [
+        "KCOV"
+      ],
+      "disable": [
+        "WERROR",
+        "RUST",
+        "GCC_PLUGINS"
+      ]
+    }
+  ],
+  "auxiliary_tasks": [
+    {
+      "id": "headers",
+      "task": "headers",
+      "label": "Exported UAPI headers",
+      "extra_packages": []
+    },
+    {
+      "id": "samples",
+      "task": "samples",
+      "label": "Kernel samples",
+      "extra_packages": []
+    },
+    {
+      "id": "selftests",
+      "task": "selftests",
+      "label": "Kernel selftests build",
+      "extra_packages": [
+        "libcap-dev",
+        "libmount-dev",
+        "libnuma-dev",
+        "liburing-dev"
+      ]
+    },
+    {
+      "id": "kunit",
+      "task": "kunit",
+      "label": "KUnit build",
+      "extra_packages": []
+    },
+    {
+      "id": "perf",
+      "task": "perf",
+      "label": "perf userspace tool",
+      "extra_packages": [
+        "libbabeltrace-dev",
+        "libcap-dev",
+        "libdw-dev",
+        "libiberty-dev",
+        "libnuma-dev",
+        "libperl-dev",
+        "libslang2-dev",
+        "libunwind-dev",
+        "libzstd-dev",
+        "python3-dev"
+      ]
+    },
+    {
+      "id": "bpftool",
+      "task": "bpftool",
+      "label": "bpftool",
+      "extra_packages": [
+        "libcap-dev",
+        "binutils-dev"
+      ]
+    },
+    {
+      "id": "objtool",
+      "task": "objtool",
+      "label": "objtool",
+      "extra_packages": []
+    },
+    {
+      "id": "docs-html",
+      "task": "docs-html",
+      "label": "HTML documentation",
+      "extra_packages": [
+        "graphviz",
+        "python3-sphinx",
+        "python3-sphinx-rtd-theme"
+      ]
+    },
+    {
+      "id": "rusttest",
+      "task": "rusttest",
+      "label": "Rust tests",
+      "toolchain": "rust",
+      "extra_packages": [
+        "libclang-dev"
+      ]
+    },
+    {
+      "id": "rustdoc",
+      "task": "rustdoc",
+      "label": "Rust documentation",
+      "toolchain": "rust",
+      "extra_packages": [
+        "libclang-dev"
+      ]
+    },
+    {
+      "id": "rust-analyzer",
+      "task": "rust-analyzer",
+      "label": "Rust analyzer metadata",
+      "toolchain": "rust",
+      "extra_packages": [
+        "libclang-dev"
+      ]
+    }
+  ],
+  "baseline_disable": [
+    "WERROR",
+    "RUST",
+    "GCC_PLUGINS",
+    "DEBUG_INFO",
+    "KASAN",
+    "KCSAN",
+    "GCOV_KERNEL"
+  ],
+  "source_extensions": [
+    ".c",
+    ".S",
+    ".s",
+    ".rs"
+  ]
+}

@@ -1,0 +1,141 @@
+name: Full Linux coverage row
+
+on:
+  workflow_call:
+    inputs:
+      row_json:
+        description: One generated matrix row as compact JSON.
+        required: true
+        type: string
+      source_sha:
+        description: Exact rolling-linux-sync commit to build.
+        required: true
+        type: string
+      runner_type:
+        description: kernel or auxiliary.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+
+    steps:
+      - name: Check out campaign infrastructure
+        uses: actions/checkout@v4
+
+      - name: Parse row and artifact identity
+        id: row
+        env:
+          ROW_JSON: ${{ inputs.row_json }}
+          RUNNER_TYPE: ${{ inputs.runner_type }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' >> "${GITHUB_OUTPUT}"
+          import json
+          import os
+          import re
+
+          row = json.loads(os.environ["ROW_JSON"])
+          prefix = "aux-" if os.environ["RUNNER_TYPE"] == "auxiliary" else ""
+          artifact_id = prefix + row["id"]
+          if not re.fullmatch(r"[A-Za-z0-9._-]+", artifact_id):
+              raise SystemExit(f"unsafe artifact id: {artifact_id!r}")
+          print(f"artifact_id={artifact_id}")
+          print("extra_packages=" + " ".join(row.get("extra_packages", [])))
+          PY
+
+      - name: Reclaim runner disk for cold compilation
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo rm -rf /usr/local/lib/android /opt/ghc /usr/share/dotnet || true
+          sudo apt-get clean
+          df -h
+
+      - name: Install kernel, tool, test and documentation prerequisites
+        env:
+          EXTRA_PACKAGES: ${{ steps.row.outputs.extra_packages }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          read -r -a extras <<< "${EXTRA_PACKAGES}"
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            bc \
+            binutils \
+            bison \
+            build-essential \
+            cpio \
+            curl \
+            dwarves \
+            file \
+            flex \
+            gawk \
+            git \
+            jq \
+            kmod \
+            libelf-dev \
+            libssl-dev \
+            lz4 \
+            lzop \
+            make \
+            pahole \
+            perl \
+            pkg-config \
+            python3 \
+            rsync \
+            sparse \
+            tar \
+            u-boot-tools \
+            xz-utils \
+            zstd \
+            "${extras[@]}"
+
+      - name: Execute cold coverage row
+        id: execute
+        env:
+          ROW_JSON: ${{ inputs.row_json }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          RUNNER_TYPE: ${{ inputs.runner_type }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          rm -rf coverage-record
+          mkdir -p coverage-record
+          script=.github/scripts/kernel_coverage.py
+          if [ "${RUNNER_TYPE}" = auxiliary ]; then
+            script=.github/scripts/auxiliary_coverage.py
+          fi
+
+          python3 "${script}" \
+            --row-json "${ROW_JSON}" \
+            --config .github/config/full-linux-coverage.json \
+            --repository "${GITHUB_REPOSITORY}" \
+            --source-sha "${SOURCE_SHA}" \
+            --record-root coverage-record
+          rc=$?
+          echo "exit_code=${rc}" >> "${GITHUB_OUTPUT}"
+          exit 0
+
+      - name: Upload compact coverage record
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-record-${{ steps.row.outputs.artifact_id }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: coverage-record/records/
+          if-no-files-found: error
+          retention-days: 8
+          compression-level: 9
+
+      - name: Preserve row failure in workflow status
+        if: steps.execute.outputs.exit_code != '0'
+        shell: bash
+        run: |
+          echo "::error::Coverage row ${{ steps.row.outputs.artifact_id }} failed. Its diagnostic record was uploaded."
+          exit 1
