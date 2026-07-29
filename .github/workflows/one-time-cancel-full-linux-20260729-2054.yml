@@ -1,0 +1,44 @@
+name: One-time clear damaged full Linux campaign queue
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/one-time-cancel-full-linux-20260729-2054.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: zigux-full-linux-source-coverage
+  cancel-in-progress: true
+
+jobs:
+  clear:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Record queue clearance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          marker="$(jq -n \
+            --arg cleared_at "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+            --arg workflow_sha "${GITHUB_SHA}" \
+            '{cleared_at:$cleared_at,workflow_sha:$workflow_sha,concurrency_group:"zigux-full-linux-source-coverage"}')"
+          encoded="$(printf '%s\n' "${marker}" | base64 -w0)"
+          body="$(jq -n \
+            --arg message "ci: record full Linux queue clearance" \
+            --arg content "${encoded}" \
+            '{message:$message,content:$content}')"
+          curl --fail --silent --show-error --location \
+            --request PUT \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "Accept: application/vnd.github+json" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/contents/.github/full-linux-queue-cleared.json" \
+            --data "${body}" >/dev/null
+          echo "Damaged full Linux campaign and pending replacement were superseded."
