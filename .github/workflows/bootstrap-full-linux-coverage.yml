@@ -29,6 +29,7 @@ jobs:
         run: |
           set -euo pipefail
           cat .github/full-linux-payload/part*.b64 | base64 -d > /tmp/full-linux-coverage-payload.tar.gz
+          gzip -t /tmp/full-linux-coverage-payload.tar.gz
           tar -xzf /tmp/full-linux-coverage-payload.tar.gz -C .
           rm -rf .github/full-linux-payload
           rm -f .github/workflows/bootstrap-full-linux-coverage.yml
