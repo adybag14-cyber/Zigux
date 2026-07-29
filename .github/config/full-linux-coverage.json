@@ -12,7 +12,8 @@
   },
   "rust_toolchain": {
     "rust_version": "1.96.1",
-    "bindgen_binary": "bindgen-0.71"
+    "bindgen_crate": "bindgen-cli",
+    "bindgen_version": "0.71.1"
   },
   "architectures": [
     {
@@ -527,7 +528,6 @@
       "toolchain": "rust",
       "extra_packages": [
         "libclang-dev",
-        "bindgen-0.71",
         "rustup"
       ]
     },
@@ -538,7 +538,6 @@
       "toolchain": "rust",
       "extra_packages": [
         "libclang-dev",
-        "bindgen-0.71",
         "rustup"
       ]
     },
@@ -549,7 +548,6 @@
       "toolchain": "rust",
       "extra_packages": [
         "libclang-dev",
-        "bindgen-0.71",
         "rustup"
       ]
     }
