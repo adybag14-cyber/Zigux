@@ -239,11 +239,35 @@ def setup_toolchain(
         rustdoc = find_executable(rustup_home / "toolchains", "rustdoc")
         rustfmt = find_executable(rustup_home / "toolchains", "rustfmt")
         clippy = find_executable(rustup_home / "toolchains", "clippy-driver")
-        bindgen_name = rust_cfg.get("bindgen_binary", "bindgen-0.71")
-        bindgen_text = shutil.which(bindgen_name)
-        if not bindgen_text:
-            raise FileNotFoundError(f"{bindgen_name} was not found; install the pinned bindgen package")
-        bindgen = Path(bindgen_text)
+        cargo = find_executable(rustup_home / "toolchains", "cargo")
+        bindgen_crate = rust_cfg.get("bindgen_crate", "bindgen-cli")
+        bindgen_version = rust_cfg["bindgen_version"]
+        bindgen_root = tool_root / "bindgen"
+        cargo_env = rust_env.copy()
+        cargo_env.update(
+            {
+                "RUSTUP_TOOLCHAIN": rust_version,
+                "CARGO_NET_RETRY": "5",
+                "CARGO_HTTP_TIMEOUT": "120",
+            }
+        )
+        subprocess.run(
+            [
+                str(cargo),
+                "install",
+                bindgen_crate,
+                "--version",
+                f"={bindgen_version}",
+                "--locked",
+                "--root",
+                str(bindgen_root),
+            ],
+            env=cargo_env,
+            check=True,
+        )
+        bindgen = bindgen_root / "bin/bindgen"
+        if not bindgen.is_file():
+            raise FileNotFoundError(f"Pinned bindgen executable was not installed: {bindgen}")
         rust_sources = sorted(rustup_home.rglob("lib/rustlib/src/rust/library"))
         if not rust_sources:
             raise FileNotFoundError("RUST_LIB_SRC was not installed by rustup")
@@ -268,6 +292,8 @@ def setup_toolchain(
                 "rust_version": rust_version,
                 "rustc": str(rustc),
                 "rustc_version": subprocess.check_output([str(rustc), "--version"], text=True).strip(),
+                "cargo": str(cargo),
+                "bindgen_crate": bindgen_crate,
                 "bindgen": str(bindgen),
                 "bindgen_version": subprocess.check_output([str(bindgen), "--version"], text=True).strip(),
             }

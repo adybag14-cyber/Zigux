@@ -147,6 +147,6 @@ It is not proof that every object linked, that every kernel booted, that device-
 
 ## Rust toolchain policy
 
-Rust rows use the pinned Rust 1.96.1 toolchain installed through Ubuntu's `rustup` package, the pinned `bindgen-0.71` package, and the same verified kernel.org LLVM archive used by LLVM rows. This satisfies the rolling source's s390 minimum while keeping `rust-src`, `rustfmt`, and Clippy available for Rust developer targets.
+Rust rows use the pinned Rust 1.96.1 toolchain installed through Ubuntu's `rustup` package, a pinned `bindgen-cli` 0.71.1 installation built by Cargo, and the same verified kernel.org LLVM archive used by LLVM rows. This satisfies the rolling source's s390 minimum while keeping `rust-src`, `rustfmt`, and Clippy available for Rust developer targets.
 
 KUnit is built from `tools/testing/kunit/configs/default.config`, and the perf row installs its required traceevent, tracefs, Capstone, libpfm, and Babeltrace 2 development libraries.

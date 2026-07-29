@@ -62,16 +62,19 @@ def test_config_and_matrices(temp: Path) -> None:
     assert len({item["id"] for item in config["hardening_profiles"]}) == 13
     assert len({item["id"] for item in config["auxiliary_tasks"]}) == 11
     assert config["rust_toolchain"]["rust_version"] == "1.96.1"
-    assert config["rust_toolchain"]["bindgen_binary"] == "bindgen-0.71"
+    assert config["rust_toolchain"]["bindgen_crate"] == "bindgen-cli"
+    assert config["rust_toolchain"]["bindgen_version"] == "0.71.1"
 
     full = generate_plan("full", temp / "full.json")
     assert full["counts"] == EXPECTED_FULL_COUNTS
     assert full["total_jobs"] == 179
     for row in full["groups"]["rust"]:
-        assert {"bindgen-0.71", "rustup"}.issubset(row["extra_packages"])
+        assert "rustup" in row["extra_packages"]
+        assert "bindgen-0.71" not in row["extra_packages"]
     for row in full["groups"]["auxiliary"]:
         if row.get("toolchain") == "rust":
-            assert {"bindgen-0.71", "rustup"}.issubset(row["extra_packages"])
+            assert "rustup" in row["extra_packages"]
+        assert "bindgen-0.71" not in row["extra_packages"]
     auxiliary_by_id = {row["id"]: row for row in full["groups"]["auxiliary"]}
     perf = auxiliary_by_id["perf"]
     assert {"libtraceevent-dev", "libtracefs-dev", "libcapstone-dev", "libpfm4-dev", "libbabeltrace2-dev"}.issubset(perf["extra_packages"])
@@ -89,6 +92,9 @@ def test_config_and_matrices(temp: Path) -> None:
     auxiliary_source = (ROOT / ".github/scripts/auxiliary_coverage.py").read_text(encoding="utf-8")
     assert 'mapping_root.mkdir(parents=True, exist_ok=True)' in auxiliary_source
     assert '"--kunitconfig"' in auxiliary_source
+    kernel_source = (ROOT / ".github/scripts/kernel_coverage.py").read_text(encoding="utf-8")
+    assert '"install",\n                bindgen_crate' in kernel_source
+    assert 'f"={bindgen_version}"' in kernel_source
     auxiliary_source = (ROOT / ".github/scripts/auxiliary_coverage.py").read_text(encoding="utf-8")
     assert 'mapping_root.mkdir(parents=True, exist_ok=True)' in auxiliary_source
     assert '"--kunitconfig"' in auxiliary_source
