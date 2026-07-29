@@ -154,3 +154,7 @@ KUnit is built from `tools/testing/kunit/configs/default.config`, and the perf r
 ## Auxiliary header and Capstone policy
 
 The selftests row first generates UAPI headers in its own Kbuild output tree and passes that same `O=` tree into kselftest. The perf row builds Capstone 5.0.6 from the exact upstream commit `accf4df62f1fba6f92cae692985d27063552601c`, enabling x86 and RISC-V support instead of relying on Ubuntu's older Capstone headers.
+
+## Rust coverage reliability
+
+Rust coverage uses a dedicated pinned LLVM/libclang toolchain rather than the newest LLVM compatibility matrix. Each row settles architecture and hardening Kconfig prerequisites before requesting `CONFIG_RUST=y`, records dependency states, preserves the final `.config`, and archives generated bindings on failure. All seven supported Rust architecture rows are live-tested before changes are merged.

@@ -64,6 +64,8 @@ def test_config_and_matrices(temp: Path) -> None:
     assert config["rust_toolchain"]["rust_version"] == "1.96.1"
     assert config["rust_toolchain"]["bindgen_crate"] == "bindgen-cli"
     assert config["rust_toolchain"]["bindgen_version"] == "0.71.1"
+    assert config["rust_llvm_toolchain"]["version"] == "20.1.8"
+    assert config["rust_llvm_toolchain"]["archive"] == "llvm-20.1.8-x86_64.tar.xz"
     assert config["capstone_toolchain"]["tag"] == "5.0.6"
     assert config["capstone_toolchain"]["commit"] == "accf4df62f1fba6f92cae692985d27063552601c"
 
@@ -103,6 +105,10 @@ def test_config_and_matrices(temp: Path) -> None:
     kernel_source = (ROOT / ".github/scripts/kernel_coverage.py").read_text(encoding="utf-8")
     assert '"install",\n                bindgen_crate' in kernel_source
     assert 'f"={bindgen_version}"' in kernel_source
+    assert 'add_llvm("rust_llvm_toolchain")' in kernel_source
+    assert 'rust-kconfig-{phase}.json' in kernel_source
+    assert 'Rust architecture prerequisites unavailable after Kconfig reconciliation' in kernel_source
+    assert 'bindings-generated.rs' in kernel_source
 
 
 def test_object_mapping_and_log_compaction(temp: Path) -> None:

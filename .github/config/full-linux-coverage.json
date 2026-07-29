@@ -572,5 +572,10 @@
     "tag": "5.0.6",
     "commit": "accf4df62f1fba6f92cae692985d27063552601c",
     "architectures": "x86 riscv"
+  },
+  "rust_llvm_toolchain": {
+    "version": "20.1.8",
+    "archive": "llvm-20.1.8-x86_64.tar.xz",
+    "base_url": "https://www.kernel.org/pub/tools/llvm/files"
   }
 }
