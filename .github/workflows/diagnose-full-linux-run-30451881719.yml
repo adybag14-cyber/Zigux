@@ -1,9 +1,8 @@
 name: Diagnose full Linux campaign 30451881719
 
 on:
-  push:
-    branches:
-      - ci/fix-full-linux-campaign-30451881719
+  pull_request:
+    types: [opened, synchronize, reopened]
     paths:
       - .github/workflows/diagnose-full-linux-run-30451881719.yml
 
@@ -13,6 +12,7 @@ permissions:
 
 jobs:
   diagnose:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -59,7 +59,7 @@ jobs:
             echo
             echo '| State | Count |'
             echo '|---|---:|'
-            jq -r 'group_by((.conclusion // .status))[] | "| \(.[0].conclusion // .[0].status) | \(length) |"' /tmp/all-jobs.json
+            jq -r 'sort_by((.conclusion // .status)) | group_by((.conclusion // .status))[] | "| \(.[0].conclusion // .[0].status) | \(length) |"' /tmp/all-jobs.json
             echo
             echo '## Failed jobs'
             echo
