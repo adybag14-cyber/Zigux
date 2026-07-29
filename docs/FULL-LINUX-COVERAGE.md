@@ -144,3 +144,9 @@ all .c, .S, .s and .rs files in the exact source tree
 ```
 
 It is not proof that every object linked, that every kernel booted, that device-tree blobs match hardware, or that runtime tests passed. Those are separate validation layers.
+
+## Rust toolchain policy
+
+Rust rows use the pinned Rust 1.96.1 toolchain installed through Ubuntu's `rustup` package, the pinned `bindgen-0.71` package, and the same verified kernel.org LLVM archive used by LLVM rows. This satisfies the rolling source's s390 minimum while keeping `rust-src`, `rustfmt`, and Clippy available for Rust developer targets.
+
+KUnit is built from `tools/testing/kunit/configs/default.config`, and the perf row installs its required traceevent, tracefs, Capstone, libpfm, and Babeltrace 2 development libraries.

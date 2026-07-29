@@ -11,10 +11,8 @@
     "base_url": "https://www.kernel.org/pub/tools/llvm/files"
   },
   "rust_toolchain": {
-    "llvm_version": "22.1.6",
-    "rust_version": "1.95.0",
-    "archive": "llvm-22.1.6-rust-1.95.0-x86_64.tar.xz",
-    "base_url": "https://www.kernel.org/pub/tools/llvm/rust/files"
+    "rust_version": "1.96.1",
+    "bindgen_binary": "bindgen-0.71"
   },
   "architectures": [
     {
@@ -487,7 +485,12 @@
         "libslang2-dev",
         "libunwind-dev",
         "libzstd-dev",
-        "python3-dev"
+        "python3-dev",
+        "libbabeltrace2-dev",
+        "libcapstone-dev",
+        "libpfm4-dev",
+        "libtraceevent-dev",
+        "libtracefs-dev"
       ]
     },
     {
@@ -521,7 +524,9 @@
       "label": "Rust tests",
       "toolchain": "rust",
       "extra_packages": [
-        "libclang-dev"
+        "libclang-dev",
+        "bindgen-0.71",
+        "rustup"
       ]
     },
     {
@@ -530,7 +535,9 @@
       "label": "Rust documentation",
       "toolchain": "rust",
       "extra_packages": [
-        "libclang-dev"
+        "libclang-dev",
+        "bindgen-0.71",
+        "rustup"
       ]
     },
     {
@@ -539,7 +546,9 @@
       "label": "Rust analyzer metadata",
       "toolchain": "rust",
       "extra_packages": [
-        "libclang-dev"
+        "libclang-dev",
+        "bindgen-0.71",
+        "rustup"
       ]
     }
   ],

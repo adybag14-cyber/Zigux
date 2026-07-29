@@ -176,31 +176,25 @@ def setup_toolchain(
         metadata["gcc_archive"] = archive
         return str(gcc.with_name(f"{triple}-"))
 
-    def add_llvm(rust: bool = False) -> None:
-        cfg = config["rust_toolchain"] if rust else config["llvm_toolchain"]
+    def add_llvm() -> Path:
+        cfg = config["llvm_toolchain"]
         archive = cfg["archive"]
         archive_path = tool_root / archive
-        extract_root = tool_root / ("rust-llvm" if rust else "llvm")
+        extract_root = tool_root / "llvm"
         verified_download(cfg["base_url"], archive, archive_path)
         extract_archive(archive_path, extract_root)
         clang = find_executable(extract_root, "clang")
         path_parts.append(str(clang.parent))
         metadata["clang"] = str(clang)
         metadata["llvm_archive"] = archive
-        if rust:
-            rustc = find_executable(extract_root, "rustc")
-            bindgen = find_executable(extract_root, "bindgen")
-            path_parts.extend([str(rustc.parent), str(bindgen.parent)])
-            metadata["rustc"] = str(rustc)
-            metadata["bindgen"] = str(bindgen)
-            rust_sources = list(extract_root.rglob("lib/rustlib/src/rust/library"))
-            if not rust_sources:
-                raise FileNotFoundError("RUST_LIB_SRC was not found in the kernel.org LLVM+Rust bundle")
-            env["RUST_LIB_SRC"] = str(rust_sources[0])
-            env["RUSTC"] = str(rustc)
-            rustdoc = find_executable(extract_root, "rustdoc")
-            env["RUSTDOC"] = str(rustdoc)
-            env["BINDGEN"] = str(bindgen)
+        libclang_candidates = sorted(
+            (path for path in extract_root.rglob("libclang.so*") if path.is_file()),
+            key=lambda path: (path.name != "libclang.so", len(path.parts), str(path)),
+        )
+        if libclang_candidates:
+            env["LIBCLANG_PATH"] = str(libclang_candidates[0].parent)
+            metadata["libclang"] = str(libclang_candidates[0])
+        return extract_root
 
     if toolchain == "gcc":
         triple = row.get("gcc_triple", "")
@@ -211,7 +205,7 @@ def setup_toolchain(
         env.pop("CROSS_COMPILE", None)
         metadata["gcc"] = shutil.which("gcc") or "gcc"
     elif toolchain == "llvm":
-        add_llvm(False)
+        add_llvm()
         env["LLVM"] = "1"
         if not row.get("llvm_ias", True):
             triple = row.get("gcc_triple", "")
@@ -220,8 +214,64 @@ def setup_toolchain(
             env["LLVM_IAS"] = "0"
             env["CROSS_COMPILE"] = add_gcc(triple)
     elif toolchain == "rust":
-        add_llvm(True)
-        env["LLVM"] = "1"
+        add_llvm()
+        rust_cfg = config["rust_toolchain"]
+        rust_version = rust_cfg["rust_version"]
+        rustup = shutil.which("rustup")
+        if not rustup:
+            raise FileNotFoundError("rustup was not found; install the rustup package for Rust rows")
+        rustup_home = tool_root / "rustup-home"
+        cargo_home = tool_root / "cargo-home"
+        rust_env = env.copy()
+        rust_env.update({"RUSTUP_HOME": str(rustup_home), "CARGO_HOME": str(cargo_home)})
+        subprocess.run(
+            [
+                rustup, "toolchain", "install", rust_version,
+                "--profile", "minimal",
+                "--component", "rust-src",
+                "--component", "rustfmt",
+                "--component", "clippy",
+            ],
+            env=rust_env,
+            check=True,
+        )
+        rustc = find_executable(rustup_home / "toolchains", "rustc")
+        rustdoc = find_executable(rustup_home / "toolchains", "rustdoc")
+        rustfmt = find_executable(rustup_home / "toolchains", "rustfmt")
+        clippy = find_executable(rustup_home / "toolchains", "clippy-driver")
+        bindgen_name = rust_cfg.get("bindgen_binary", "bindgen-0.71")
+        bindgen_text = shutil.which(bindgen_name)
+        if not bindgen_text:
+            raise FileNotFoundError(f"{bindgen_name} was not found; install the pinned bindgen package")
+        bindgen = Path(bindgen_text)
+        rust_sources = sorted(rustup_home.rglob("lib/rustlib/src/rust/library"))
+        if not rust_sources:
+            raise FileNotFoundError("RUST_LIB_SRC was not installed by rustup")
+        path_parts.extend([str(rustc.parent), str(bindgen.parent)])
+        env.update(
+            {
+                "LLVM": "1",
+                "RUSTUP_HOME": str(rustup_home),
+                "CARGO_HOME": str(cargo_home),
+                "RUSTUP_TOOLCHAIN": rust_version,
+                "RUSTC": str(rustc),
+                "RUSTDOC": str(rustdoc),
+                "RUSTFMT": str(rustfmt),
+                "CLIPPY_DRIVER": str(clippy),
+                "BINDGEN": str(bindgen),
+                "RUST_LIB_SRC": str(rust_sources[0]),
+            }
+        )
+        metadata.update(
+            {
+                "rustup": rustup,
+                "rust_version": rust_version,
+                "rustc": str(rustc),
+                "rustc_version": subprocess.check_output([str(rustc), "--version"], text=True).strip(),
+                "bindgen": str(bindgen),
+                "bindgen_version": subprocess.check_output([str(bindgen), "--version"], text=True).strip(),
+            }
+        )
         if not row.get("llvm_ias", True) and row.get("gcc_triple"):
             env["LLVM_IAS"] = "0"
             env["CROSS_COMPILE"] = add_gcc(row["gcc_triple"])

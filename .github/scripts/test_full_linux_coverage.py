@@ -61,10 +61,19 @@ def test_config_and_matrices(temp: Path) -> None:
     assert {item["id"] for item in architectures if item["rust_supported"]} == EXPECTED_RUST
     assert len({item["id"] for item in config["hardening_profiles"]}) == 13
     assert len({item["id"] for item in config["auxiliary_tasks"]}) == 11
+    assert config["rust_toolchain"]["rust_version"] == "1.96.1"
+    assert config["rust_toolchain"]["bindgen_binary"] == "bindgen-0.71"
 
     full = generate_plan("full", temp / "full.json")
     assert full["counts"] == EXPECTED_FULL_COUNTS
     assert full["total_jobs"] == 179
+    for row in full["groups"]["rust"]:
+        assert {"bindgen-0.71", "rustup"}.issubset(row["extra_packages"])
+    for row in full["groups"]["auxiliary"]:
+        if row.get("toolchain") == "rust":
+            assert {"bindgen-0.71", "rustup"}.issubset(row["extra_packages"])
+    perf = next(row for row in full["groups"]["auxiliary"] if row["id"] == "perf")
+    assert {"libtraceevent-dev", "libtracefs-dev", "libcapstone-dev", "libpfm4-dev", "libbabeltrace2-dev"}.issubset(perf["extra_packages"])
     all_ids = [row["id"] for rows in full["groups"].values() for row in rows]
     assert len(all_ids) == len(set(all_ids))
 

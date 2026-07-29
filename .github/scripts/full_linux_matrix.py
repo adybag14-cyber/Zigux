@@ -126,7 +126,7 @@ def main() -> int:
                 "targets": ["all", "modules"],
                 "enable": ["RUST", "MODULES"],
                 "disable": arch.get("rust_disable", []),
-                "extra_packages": ["libclang-dev"],
+                "extra_packages": ["bindgen-0.71", "rustup"],
             }
         )
 
