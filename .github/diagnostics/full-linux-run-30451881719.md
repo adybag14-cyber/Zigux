@@ -1,6 +1,7 @@
 # Full Linux campaign 30451881719 diagnostic snapshot
 
-Generated: 2026-07-29T13:00:41Z
+Snapshot sequence: 2
+Generated: 2026-07-29T13:01:08Z
 
 ## Job-state totals
 
@@ -9,7 +10,7 @@ Generated: 2026-07-29T13:00:41Z
 | failure | 11 |
 | in_progress | 18 |
 | queued | 23 |
-| success | 31 |
+| success | 32 |
 
 ## Failed jobs
 
@@ -333,7 +334,6 @@ Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/905756
 ## In-progress or queued jobs at snapshot time
 
 - GCC plugin and incompatible hardening coverage (arm64, defconfig, WERROR, RUST, GCC_PLUGINS, KASA... / build: in_progress
-- LLVM/Clang coverage (arm, multi_v7_defconfig, arm-linux-gnueabi, llvm-arm-defconfig, arm, llvm, A... / build: in_progress
 - LLVM/Clang coverage (arm, allmodconfig, arm-linux-gnueabi, llvm-arm-allmodconfig, arm, llvm, ARMv... / build: in_progress
 - LLVM/Clang coverage (loongarch, allmodconfig, loongarch64-linux, llvm-loongarch-allmodconfig, loo... / build: in_progress
 - LLVM/Clang coverage (mips, allmodconfig, mips-linux, llvm-mips-allmodconfig, mips, llvm, MIPS, tr... / build: in_progress
@@ -350,7 +350,7 @@ Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/905756
 - LLVM/Clang coverage (loongarch, defconfig, loongarch64-linux, llvm-loongarch-defconfig, loongarch... / build: in_progress
 - Tools, samples, tests and documentation (graphviz, python3-sphinx, python3-sphinx-rtd-theme, docs... / build: in_progress
 - Device-tree coverage (true, powerpc, ppc64_defconfig, u-boot-tools, powerpc64-linux, dtbs-powerpc... / build: in_progress
-- Tools, samples, tests and documentation (libclang-dev, rusttest, auxiliary, Rust tests, rusttest,... / build: queued
+- Tools, samples, tests and documentation (libclang-dev, rusttest, auxiliary, Rust tests, rusttest,... / build: in_progress
 - Device-tree coverage (true, riscv, defconfig, u-boot-tools, riscv64-linux, dtbs-riscv, riscv, dtb... / build: queued
 - Device-tree coverage (true, s390, defconfig, u-boot-tools, s390-linux, dtbs-s390, s390, dtbs, s39... / build: queued
 - Device-tree coverage (true, sh, shx3_defconfig, u-boot-tools, sh4-linux, dtbs-sh, sh, dtbs, Super... / build: queued
@@ -373,3 +373,4 @@ Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/905756
 - GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build: queued
 - Architecture/Kconfig coverage (arm64, allmodconfig, aarch64-linux, arch-arm64-allmodconfig, arm64... / build: queued
 - Architecture/Kconfig coverage (arm64, allyesconfig, aarch64-linux, arch-arm64-allyesconfig, arm64... / build: queued
+- LLVM/Clang coverage (riscv, defconfig, riscv64-linux, llvm-riscv-defconfig, riscv, llvm, RISC-V 6... / build: queued
