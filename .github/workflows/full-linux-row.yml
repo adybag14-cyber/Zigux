@@ -113,6 +113,7 @@ jobs:
             script=.github/scripts/auxiliary_coverage.py
           fi
 
+          set +e
           python3 "${script}" \
             --row-json "${ROW_JSON}" \
             --config .github/config/full-linux-coverage.json \
@@ -120,6 +121,7 @@ jobs:
             --source-sha "${SOURCE_SHA}" \
             --record-root coverage-record
           rc=$?
+          set -e
           echo "exit_code=${rc}" >> "${GITHUB_OUTPUT}"
           exit 0
 
