@@ -50,7 +50,7 @@ jobs:
           set -euo pipefail
           python3 .github/scripts/test_full_linux_coverage.py
 
-      - name: Verify pinned toolchain archives and source configuration targets
+      - name: Verify pinned toolchains, packages, and source configuration targets
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
@@ -68,12 +68,12 @@ jobs:
 
           config = json.loads(Path('.github/config/full-linux-coverage.json').read_text())
 
-          def get(url: str, *, github: bool = False) -> str:
-              headers = {'User-Agent': 'Zigux-full-linux-coverage-validator/1'}
+          def get(url: str, *, github: bool = False, accept: str | None = None) -> str:
+              headers = {'User-Agent': 'Zigux-full-linux-coverage-validator/2'}
               if github:
                   headers.update({
                       'Authorization': f'Bearer {os.environ["GH_TOKEN"]}',
-                      'Accept': 'application/vnd.github+json',
+                      'Accept': accept or 'application/vnd.github+json',
                       'X-GitHub-Api-Version': '2022-11-28',
                   })
               request = urllib.request.Request(url, headers=headers)
@@ -95,7 +95,11 @@ jobs:
                   f'x86_64-gcc-{gcc["version"]}-nolibc-{triple}.tar.xz',
               )
           require_archive(config['llvm_toolchain']['base_url'], config['llvm_toolchain']['archive'])
-          require_archive(config['rust_toolchain']['base_url'], config['rust_toolchain']['archive'])
+
+          rust_version = config['rust_toolchain']['rust_version']
+          rust_checksum = get(f'https://static.rust-lang.org/dist/channel-rust-{rust_version}.toml.sha256').strip()
+          if not re.fullmatch(r'[0-9a-f]{64}', rust_checksum):
+              raise SystemExit(f'Rust {rust_version} channel checksum is invalid or unavailable')
 
           repository = os.environ['REPOSITORY']
           source_ref = urllib.parse.quote(os.environ['SOURCE_REF'], safe='')
@@ -108,8 +112,50 @@ jobs:
                   path = f'{arch_path}/configs/{target}'
                   url = f'https://api.github.com/repos/{repository}/contents/{path}?ref={source_ref}'
                   get(url, github=True)
-          print(f'verified {len(triples)} GCC archives, LLVM, LLVM+Rust, 21 architecture directories and custom defconfigs')
+
+          min_versions = get(
+              f'https://api.github.com/repos/{repository}/contents/scripts/min-tool-version.sh?ref={source_ref}',
+              github=True,
+              accept='application/vnd.github.raw+json',
+          )
+          s390_match = re.search(r'if \[ "\$SRCARCH" = "s390" \]; then\s+echo ([0-9.]+)', min_versions)
+          bindgen_match = re.search(r'bindgen\)\s+echo ([0-9.]+)', min_versions)
+          if not s390_match or not bindgen_match:
+              raise SystemExit('Could not parse rolling Rust/bindgen minimum versions')
+
+          def version_tuple(value: str) -> tuple[int, ...]:
+              return tuple(int(part) for part in value.split('.'))
+
+          if version_tuple(rust_version) < version_tuple(s390_match.group(1)):
+              raise SystemExit(f'Rust {rust_version} is below rolling s390 minimum {s390_match.group(1)}')
+          print(
+              f'verified {len(triples)} GCC archives, LLVM, Rust {rust_version}, '
+              '21 architecture directories and custom defconfigs'
+          )
           PY
+
+          required_packages=(
+            bindgen-0.71
+            rustup
+            libbabeltrace2-dev
+            libcapstone-dev
+            libpfm4-dev
+            libtraceevent-dev
+            libtracefs-dev
+            libasound2-dev
+            llvm
+          )
+          for package in "${required_packages[@]}"; do
+            apt-cache show "${package}" >/dev/null || {
+              echo "::error::Required Ubuntu package is unavailable: ${package}"
+              exit 1
+            }
+          done
+          bindgen_version="$(apt-cache show bindgen-0.71 | awk '/^Version:/{print $2; exit}')"
+          dpkg --compare-versions "${bindgen_version}" ge 0.71.1 || {
+            echo "::error::bindgen-0.71 ${bindgen_version} is below the rolling minimum 0.71.1."
+            exit 1
+          }
 
       - name: Repository hygiene
         shell: bash
