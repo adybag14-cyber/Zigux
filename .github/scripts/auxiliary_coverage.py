@@ -111,7 +111,6 @@ def main() -> int:
                     "-k",
                     f"-j{jobs}",
                     f"O={out_root}",
-                    "FORCE_TARGETS=1",
                 ],
                 cwd=source_root,
                 env=env,

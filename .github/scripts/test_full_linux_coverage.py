@@ -80,7 +80,7 @@ def test_config_and_matrices(temp: Path) -> None:
     auxiliary_by_id = {row["id"]: row for row in full["groups"]["auxiliary"]}
     perf = auxiliary_by_id["perf"]
     assert {"libtraceevent-dev", "libtracefs-dev", "libcapstone-dev", "libpfm4-dev", "libbabeltrace2-dev"}.issubset(perf["extra_packages"])
-    assert "libasound2-dev" in auxiliary_by_id["selftests"]["extra_packages"]
+    assert {"libasound2-dev", "libcap-ng-dev"}.issubset(auxiliary_by_id["selftests"]["extra_packages"])
     assert "llvm" in auxiliary_by_id["bpftool"]["extra_packages"]
     all_ids = [row["id"] for rows in full["groups"].values() for row in rows]
     assert len(all_ids) == len(set(all_ids))
@@ -96,6 +96,7 @@ def test_config_and_matrices(temp: Path) -> None:
     assert '"--kunitconfig"' in auxiliary_source
     assert 'make_command(source_root, out_root, {"kbuild_arch": "x86"}, "headers")' in auxiliary_source
     assert 'f"O={out_root}"' in auxiliary_source
+    assert 'FORCE_TARGETS=1' not in auxiliary_source
     assert 'capstone_commit != capstone_cfg["commit"]' in auxiliary_source
     assert '"pkg-config", "--modversion", "capstone"' in auxiliary_source
     kernel_source = (ROOT / ".github/scripts/kernel_coverage.py").read_text(encoding="utf-8")

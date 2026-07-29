@@ -464,7 +464,8 @@
         "libmount-dev",
         "libnuma-dev",
         "liburing-dev",
-        "libasound2-dev"
+        "libasound2-dev",
+        "libcap-ng-dev"
       ]
     },
     {
