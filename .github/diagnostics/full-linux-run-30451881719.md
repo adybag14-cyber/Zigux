@@ -1,16 +1,16 @@
 # Full Linux campaign 30451881719 diagnostic snapshot
 
 Snapshot sequence: 2
-Generated: 2026-07-29T13:06:33Z
+Generated: 2026-07-29T13:27:11Z
 
 ## Job-state totals
 
 | State | Count |
 |---|---:|
-| failure | 11 |
-| in_progress | 19 |
-| queued | 16 |
-| success | 39 |
+| cancelled | 23 |
+| failure | 16 |
+| queued | 1 |
+| success | 48 |
 
 ## Failed jobs
 
@@ -331,40 +331,195 @@ Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/905756
 2026-07-29T12:50:43.1185183Z   name: coverage-record-aux-bpftool-30451881719-1
 ```
 
+### Tools, samples, tests and documentation (libclang-dev, rusttest, auxiliary, Rust tests, rusttest,... / build
+
+Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/90576347444
+
+```text
+  "profile": "rusttest",
+  "task": "rusttest",
+  "toolchain": "rust"
+}
+2026-07-29T13:00:57.1781656Z   source_sha: 62cc90241548d5570ee68e01aaba6506964e9811
+2026-07-29T13:00:57.1781995Z   runner_type: auxiliary
+2026-07-29T13:00:57.1782259Z   scope: full
+--
+  "profile": "rusttest",
+  "task": "rusttest",
+  "toolchain": "rust"
+}
+2026-07-29T13:00:59.8660891Z   RUNNER_TYPE: auxiliary
+2026-07-29T13:00:59.8661113Z ##[endgroup]
+2026-07-29T13:00:59.8917446Z ##[group]Run set -euo pipefail
+--
+  "profile": "rusttest",
+  "task": "rusttest",
+  "toolchain": "rust"
+}
+2026-07-29T13:06:43.5293105Z   SOURCE_SHA: 62cc90241548d5570ee68e01aaba6506964e9811
+2026-07-29T13:06:43.5293381Z   RUNNER_TYPE: auxiliary
+2026-07-29T13:06:43.5293634Z ##[endgroup]
+2026-07-29T13:07:33.0489536Z ##[error]aux-rusttest: FileNotFoundError: bindgen was not found below /home/runner/work/_temp/full-linux-aux-rusttest/toolchains/rust-llvm
+2026-07-29T13:07:33.0495856Z {"build_id": "aux-rusttest", "mapped_source_count": null, "object_count": null, "status": "infrastructure_error"}
+2026-07-29T13:07:33.0603904Z ##[error]Process completed with exit code 1.
+2026-07-29T13:07:33.0761280Z ##[group]Run actions/upload-artifact@v7
+2026-07-29T13:07:33.0761536Z with:
+```
+
+### GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build
+
+Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/90578391755
+
+```text
+  "enable": [
+    "DEBUG_INFO",
+    "DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT",
+    "DEBUG_INFO_BTF"
+  ],
+  "gcc_triple": "x86_64-linux",
+  "id": "btf",
+--
+    "modules"
+  ],
+  "toolchain": "native-gcc"
+}
+2026-07-29T13:06:56.3405337Z   source_sha: 62cc90241548d5570ee68e01aaba6506964e9811
+2026-07-29T13:06:56.3405945Z   runner_type: kernel
+2026-07-29T13:06:56.3406396Z   scope: full
+--
+  "enable": [
+    "DEBUG_INFO",
+    "DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT",
+    "DEBUG_INFO_BTF"
+  ],
+  "gcc_triple": "x86_64-linux",
+  "id": "btf",
+--
+    "modules"
+  ],
+  "toolchain": "native-gcc"
+}
+2026-07-29T13:06:59.2827226Z   RUNNER_TYPE: kernel
+2026-07-29T13:06:59.2827481Z ##[endgroup]
+2026-07-29T13:06:59.3186138Z ##[group]Run set -euo pipefail
+--
+  "enable": [
+    "DEBUG_INFO",
+    "DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT",
+    "DEBUG_INFO_BTF"
+  ],
+  "gcc_triple": "x86_64-linux",
+  "id": "btf",
+--
+    "modules"
+  ],
+  "toolchain": "native-gcc"
+}
+2026-07-29T13:07:36.9493497Z   SOURCE_SHA: 62cc90241548d5570ee68e01aaba6506964e9811
+2026-07-29T13:07:36.9493791Z   RUNNER_TYPE: kernel
+2026-07-29T13:07:36.9494001Z ##[endgroup]
+```
+
+### Tools, samples, tests and documentation (libclang-dev, rustdoc, auxiliary, Rust documentation, ru... / build
+
+Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/90578841711
+
+```text
+  "profile": "rustdoc",
+  "task": "rustdoc",
+  "toolchain": "rust"
+}
+2026-07-29T13:06:57.1219392Z   source_sha: 62cc90241548d5570ee68e01aaba6506964e9811
+2026-07-29T13:06:57.1220032Z   runner_type: auxiliary
+2026-07-29T13:06:57.1220620Z   scope: full
+--
+  "profile": "rustdoc",
+  "task": "rustdoc",
+  "toolchain": "rust"
+}
+2026-07-29T13:06:59.1453322Z   RUNNER_TYPE: auxiliary
+2026-07-29T13:06:59.1453763Z ##[endgroup]
+2026-07-29T13:06:59.1839015Z ##[group]Run set -euo pipefail
+--
+  "profile": "rustdoc",
+  "task": "rustdoc",
+  "toolchain": "rust"
+}
+2026-07-29T13:08:02.7366439Z   SOURCE_SHA: 62cc90241548d5570ee68e01aaba6506964e9811
+2026-07-29T13:08:02.7366741Z   RUNNER_TYPE: auxiliary
+2026-07-29T13:08:02.7366959Z ##[endgroup]
+2026-07-29T13:09:17.9990161Z ##[error]aux-rustdoc: FileNotFoundError: bindgen was not found below /home/runner/work/_temp/full-linux-aux-rustdoc/toolchains/rust-llvm
+2026-07-29T13:09:17.9997452Z {"build_id": "aux-rustdoc", "mapped_source_count": null, "object_count": null, "status": "infrastructure_error"}
+2026-07-29T13:09:18.0119167Z ##[error]Process completed with exit code 1.
+2026-07-29T13:09:18.0214346Z ##[group]Run actions/upload-artifact@v7
+2026-07-29T13:09:18.0214650Z with:
+```
+
+### GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build
+
+Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/90579027641
+
+```text
+    "modules"
+  ],
+  "toolchain": "native-gcc"
+}
+2026-07-29T13:07:48.4156981Z   source_sha: 62cc90241548d5570ee68e01aaba6506964e9811
+2026-07-29T13:07:48.4157740Z   runner_type: kernel
+2026-07-29T13:07:48.4158246Z   scope: full
+--
+    "modules"
+  ],
+  "toolchain": "native-gcc"
+}
+2026-07-29T13:07:51.1761528Z   RUNNER_TYPE: kernel
+2026-07-29T13:07:51.1761880Z ##[endgroup]
+2026-07-29T13:07:51.2215435Z ##[group]Run set -euo pipefail
+--
+    "modules"
+  ],
+  "toolchain": "native-gcc"
+}
+2026-07-29T13:09:14.5892246Z   SOURCE_SHA: 62cc90241548d5570ee68e01aaba6506964e9811
+2026-07-29T13:09:14.5892679Z   RUNNER_TYPE: kernel
+2026-07-29T13:09:14.5892971Z ##[endgroup]
+```
+
+### Tools, samples, tests and documentation (libclang-dev, rust-analyzer, auxiliary, Rust analyzer me... / build
+
+Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/90579909433
+
+```text
+  "profile": "rust-analyzer",
+  "task": "rust-analyzer",
+  "toolchain": "rust"
+}
+2026-07-29T13:10:37.8808253Z   source_sha: 62cc90241548d5570ee68e01aaba6506964e9811
+2026-07-29T13:10:37.8808889Z   runner_type: auxiliary
+2026-07-29T13:10:37.8809378Z   scope: full
+--
+  "profile": "rust-analyzer",
+  "task": "rust-analyzer",
+  "toolchain": "rust"
+}
+2026-07-29T13:10:40.5341276Z   RUNNER_TYPE: auxiliary
+2026-07-29T13:10:40.5341563Z ##[endgroup]
+2026-07-29T13:10:40.5723818Z ##[group]Run set -euo pipefail
+--
+  "profile": "rust-analyzer",
+  "task": "rust-analyzer",
+  "toolchain": "rust"
+}
+2026-07-29T13:12:01.0141574Z   SOURCE_SHA: 62cc90241548d5570ee68e01aaba6506964e9811
+2026-07-29T13:12:01.0141883Z   RUNNER_TYPE: auxiliary
+2026-07-29T13:12:01.0142110Z ##[endgroup]
+2026-07-29T13:14:51.7424441Z ##[error]aux-rust-analyzer: FileNotFoundError: bindgen was not found below /home/runner/work/_temp/full-linux-aux-rust-analyzer/toolchains/rust-llvm
+2026-07-29T13:14:51.7435714Z {"build_id": "aux-rust-analyzer", "mapped_source_count": null, "object_count": null, "status": "infrastructure_error"}
+2026-07-29T13:14:51.7553734Z ##[error]Process completed with exit code 1.
+2026-07-29T13:14:51.7934891Z ##[group]Run actions/upload-artifact@v7
+2026-07-29T13:14:51.7935224Z with:
+```
+
 ## In-progress or queued jobs at snapshot time
 
-- GCC plugin and incompatible hardening coverage (arm64, defconfig, WERROR, RUST, GCC_PLUGINS, KASA... / build: in_progress
-- LLVM/Clang coverage (arm, allmodconfig, arm-linux-gnueabi, llvm-arm-allmodconfig, arm, llvm, ARMv... / build: in_progress
-- LLVM/Clang coverage (loongarch, allmodconfig, loongarch64-linux, llvm-loongarch-allmodconfig, loo... / build: in_progress
-- LLVM/Clang coverage (mips, allmodconfig, mips-linux, llvm-mips-allmodconfig, mips, llvm, MIPS, tr... / build: in_progress
-- Architecture/Kconfig coverage (arc, allyesconfig, arc-linux, arch-arc-allyesconfig, arc, architec... / build: in_progress
-- Architecture/Kconfig coverage (alpha, allyesconfig, alpha-linux, arch-alpha-allyesconfig, alpha, ... / build: in_progress
-- Architecture/Kconfig coverage (arc, allmodconfig, arc-linux, arch-arc-allmodconfig, arc, architec... / build: in_progress
-- LLVM/Clang coverage (arm64, defconfig, aarch64-linux, llvm-arm64-defconfig, arm64, llvm, ARM64, t... / build: in_progress
-- LLVM/Clang coverage (arm64, allmodconfig, aarch64-linux, llvm-arm64-allmodconfig, arm64, llvm, AR... / build: in_progress
-- LLVM/Clang coverage (hexagon, allmodconfig, llvm-hexagon-allmodconfig, hexagon, llvm, Hexagon, tr... / build: in_progress
-- Architecture/Kconfig coverage (alpha, allmodconfig, alpha-linux, arch-alpha-allmodconfig, alpha, ... / build: in_progress
-- Architecture/Kconfig coverage (arm, allmodconfig, arm-linux-gnueabi, arch-arm-allmodconfig, arm, ... / build: in_progress
-- LLVM/Clang coverage (loongarch, defconfig, loongarch64-linux, llvm-loongarch-defconfig, loongarch... / build: in_progress
-- Tools, samples, tests and documentation (libclang-dev, rusttest, auxiliary, Rust tests, rusttest,... / build: in_progress
-- Device-tree coverage (true, sh, shx3_defconfig, u-boot-tools, sh4-linux, dtbs-sh, sh, dtbs, Super... / build: in_progress
-- Device-tree coverage (true, um, defconfig, u-boot-tools, dtbs-um, um, dtbs, User Mode Linux devic... / build: in_progress
-- Architecture/Kconfig coverage (arm, allyesconfig, arm-linux-gnueabi, arch-arm-allyesconfig, arm, ... / build: in_progress
-- Architecture/Kconfig coverage (arm, randconfig, arm-linux-gnueabi, arch-arm-randconfig-0xC0FFEE, ... / build: in_progress
-- Architecture/Kconfig coverage (arm, randconfig, arm-linux-gnueabi, arch-arm-randconfig-0x5EED, ar... / build: in_progress
-- GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build: queued
-- Device-tree coverage (true, x86, x86_64_defconfig, u-boot-tools, x86_64-linux, dtbs-x86, x86, dtb... / build: queued
-- Tools, samples, tests and documentation (libclang-dev, rustdoc, auxiliary, Rust documentation, ru... / build: queued
-- GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build: queued
-- LLVM/Clang coverage (powerpc, ppc64_defconfig, powerpc64-linux, llvm-powerpc-defconfig, powerpc, ... / build: queued
-- Device-tree coverage (true, xtensa, defconfig, u-boot-tools, xtensa-linux, dtbs-xtensa, xtensa, d... / build: queued
-- GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build: queued
-- LLVM/Clang coverage (powerpc, allmodconfig, powerpc64-linux, llvm-powerpc-allmodconfig, powerpc, ... / build: queued
-- Tools, samples, tests and documentation (libclang-dev, rust-analyzer, auxiliary, Rust analyzer me... / build: queued
-- GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build: queued
-- Architecture/Kconfig coverage (arm64, defconfig, aarch64-linux, arch-arm64-defconfig, arm64, arch... / build: queued
-- GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build: queued
-- Architecture/Kconfig coverage (arm64, allmodconfig, aarch64-linux, arch-arm64-allmodconfig, arm64... / build: queued
-- Architecture/Kconfig coverage (arm64, allyesconfig, aarch64-linux, arch-arm64-allyesconfig, arm64... / build: queued
-- LLVM/Clang coverage (riscv, defconfig, riscv64-linux, llvm-riscv-defconfig, riscv, llvm, RISC-V 6... / build: queued
-- Architecture/Kconfig coverage (arm64, randconfig, aarch64-linux, arch-arm64-randconfig-0xC0FFEE, ... / build: queued
+- Aggregate source-to-object coverage report: queued
