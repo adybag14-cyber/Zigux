@@ -1,0 +1,31 @@
+name: Validate selftests and perf coverage fixes
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - .github/config/full-linux-coverage.json
+      - .github/scripts/auxiliary_coverage.py
+      - .github/workflows/validate-selftests-perf-fixes.yml
+
+permissions:
+  contents: read
+
+jobs:
+  selftests:
+    name: Live selftests coverage row
+    uses: ./.github/workflows/full-linux-row.yml
+    with:
+      source_sha: 62cc90241548d5570ee68e01aaba6506964e9811
+      runner_type: auxiliary
+      row_json: >-
+        {"id":"selftests","task":"selftests","label":"Kernel selftests build","kind":"auxiliary","profile":"selftests","extra_packages":["libcap-dev","libmount-dev","libnuma-dev","liburing-dev","libasound2-dev"]}
+
+  perf:
+    name: Live perf coverage row
+    uses: ./.github/workflows/full-linux-row.yml
+    with:
+      source_sha: 62cc90241548d5570ee68e01aaba6506964e9811
+      runner_type: auxiliary
+      row_json: >-
+        {"id":"perf","task":"perf","label":"perf userspace tool","kind":"auxiliary","profile":"perf","extra_packages":["libbabeltrace-dev","libcap-dev","libdw-dev","libiberty-dev","libnuma-dev","libperl-dev","libslang2-dev","libunwind-dev","libzstd-dev","python3-dev","libbabeltrace2-dev","libpfm4-dev","libtraceevent-dev","libtracefs-dev"]}
