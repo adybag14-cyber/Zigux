@@ -1,0 +1,122 @@
+name: Validate full Linux coverage infrastructure
+
+on:
+  pull_request:
+    paths:
+      - .github/config/full-linux-coverage.json
+      - .github/scripts/aggregate_linux_coverage.py
+      - .github/scripts/auxiliary_coverage.py
+      - .github/scripts/full_linux_matrix.py
+      - .github/scripts/kernel_coverage.py
+      - .github/scripts/test_full_linux_coverage.py
+      - .github/workflows/full-linux-row.yml
+      - .github/workflows/full-linux-source-coverage.yml
+      - .github/workflows/validate-full-linux-coverage.yml
+      - docs/FULL-LINUX-COVERAGE.md
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install validation dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends zstd
+
+      - name: Compile Python and parse configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile .github/scripts/*.py
+          python3 -m json.tool .github/config/full-linux-coverage.json >/dev/null
+          ruby -e 'require "yaml"; ARGV.each { |path| abort("invalid YAML: #{path}") unless YAML.parse_file(path) }' \
+            .github/workflows/full-linux-row.yml \
+            .github/workflows/full-linux-source-coverage.yml \
+            .github/workflows/validate-full-linux-coverage.yml
+
+      - name: Run offline matrix, mapping, archive-safety and aggregation tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/test_full_linux_coverage.py
+
+      - name: Verify pinned toolchain archives and source configuration targets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          SOURCE_REF: rolling-linux-sync
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          config = json.loads(Path('.github/config/full-linux-coverage.json').read_text())
+
+          def get(url: str, *, github: bool = False) -> str:
+              headers = {'User-Agent': 'Zigux-full-linux-coverage-validator/1'}
+              if github:
+                  headers.update({
+                      'Authorization': f'Bearer {os.environ["GH_TOKEN"]}',
+                      'Accept': 'application/vnd.github+json',
+                      'X-GitHub-Api-Version': '2022-11-28',
+                  })
+              request = urllib.request.Request(url, headers=headers)
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  return response.read().decode('utf-8', errors='replace')
+
+          checksum_cache = {}
+          def require_archive(base_url: str, archive: str) -> None:
+              text = checksum_cache.setdefault(base_url, get(base_url.rstrip('/') + '/sha256sums.asc'))
+              pattern = rf'^[0-9a-fA-F]{{64}}\s+\*?{re.escape(archive)}$'
+              if not re.search(pattern, text, re.MULTILINE):
+                  raise SystemExit(f'{archive} is absent from {base_url}/sha256sums.asc')
+
+          gcc = config['gcc_toolchain']
+          triples = {item.get('gcc_triple', '') for item in config['architectures'] if item.get('gcc_triple')}
+          for triple in sorted(triples):
+              require_archive(
+                  gcc['base_url'],
+                  f'x86_64-gcc-{gcc["version"]}-nolibc-{triple}.tar.xz',
+              )
+          require_archive(config['llvm_toolchain']['base_url'], config['llvm_toolchain']['archive'])
+          require_archive(config['rust_toolchain']['base_url'], config['rust_toolchain']['archive'])
+
+          repository = os.environ['REPOSITORY']
+          source_ref = urllib.parse.quote(os.environ['SOURCE_REF'], safe='')
+          for arch in config['architectures']:
+              arch_path = f'arch/{arch["kbuild_arch"]}'
+              url = f'https://api.github.com/repos/{repository}/contents/{arch_path}?ref={source_ref}'
+              get(url, github=True)
+              target = arch['config_target']
+              if target != 'defconfig':
+                  path = f'{arch_path}/configs/{target}'
+                  url = f'https://api.github.com/repos/{repository}/contents/{path}?ref={source_ref}'
+                  get(url, github=True)
+          print(f'verified {len(triples)} GCC archives, LLVM, LLVM+Rust, 21 architecture directories and custom defconfigs')
+          PY
+
+      - name: Repository hygiene
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          if git ls-files | grep -Eq '(^|/)__pycache__/|\.py[co]$'; then
+            echo '::error::Python bytecode files or directories must not be committed.'
+            exit 1
+          fi
