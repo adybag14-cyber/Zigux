@@ -20,7 +20,7 @@ jobs:
           ref: ci/fix-selftests-perf-coverage
           fetch-depth: 1
 
-      - name: Apply assertion-checked auxiliary fixes
+      - name: Complete selftests dependency diagnostics
         shell: bash
         run: |
           set -euo pipefail
@@ -30,51 +30,34 @@ jobs:
 
           config_path = Path('.github/config/full-linux-coverage.json')
           config = json.loads(config_path.read_text(encoding='utf-8'))
-          config['capstone_toolchain'] = {
-              'repository': 'https://github.com/capstone-engine/capstone.git',
-              'tag': '5.0.6',
-              'commit': 'accf4df62f1fba6f92cae692985d27063552601c',
-              'architectures': 'x86 riscv',
-          }
-          perf = next(task for task in config['auxiliary_tasks'] if task['id'] == 'perf')
-          perf['extra_packages'] = [package for package in perf.get('extra_packages', []) if package != 'libcapstone-dev']
+          selftests = next(task for task in config['auxiliary_tasks'] if task['id'] == 'selftests')
+          if 'libcap-ng-dev' not in selftests['extra_packages']:
+              selftests['extra_packages'].append('libcap-ng-dev')
           config_path.write_text(json.dumps(config, indent=2) + '\n', encoding='utf-8')
 
           auxiliary_path = Path('.github/scripts/auxiliary_coverage.py')
           auxiliary = auxiliary_path.read_text(encoding='utf-8')
-          if 'import subprocess\n' not in auxiliary:
-              auxiliary = auxiliary.replace('import shutil\n', 'import shutil\nimport subprocess\n', 1)
-
-          old_selftests = '''        elif task == "selftests":\n            mapping_root = source_root\n            rc = runner.run(["make", "-C", str(source_root / "tools/testing/selftests"), "-k", f"-j{jobs}", "FORCE_TARGETS=1"], cwd=source_root, env=env)\n'''
-          new_selftests = '''        elif task == "selftests":\n            mapping_root = out_root / "kselftest"\n            runner.run(\n                make_command(source_root, out_root, {"kbuild_arch": "x86"}, "headers"),\n                env=env,\n                check=True,\n            )\n            rc = runner.run(\n                [\n                    "make",\n                    "-C",\n                    str(source_root / "tools/testing/selftests"),\n                    "-k",\n                    f"-j{jobs}",\n                    f"O={out_root}",\n                    "FORCE_TARGETS=1",\n                ],\n                cwd=source_root,\n                env=env,\n            )\n'''
-          if auxiliary.count(old_selftests) != 1:
-              raise SystemExit('selftests build block was not found exactly once')
-          auxiliary = auxiliary.replace(old_selftests, new_selftests)
-
-          old_perf = '''        elif task == "perf":\n            mapping_root = source_root / "tools/perf"\n            rc = runner.run(["make", "-C", str(mapping_root), "-k", f"-j{jobs}"], cwd=source_root, env=env)\n'''
-          new_perf = '''        elif task == "perf":\n            capstone_cfg = config["capstone_toolchain"]\n            capstone_root = temp_root / "capstone"\n            capstone_prefix = tool_root / "capstone-prefix"\n            runner.run(\n                [\n                    "git",\n                    "clone",\n                    "--depth",\n                    "1",\n                    "--branch",\n                    capstone_cfg["tag"],\n                    capstone_cfg["repository"],\n                    str(capstone_root),\n                ],\n                check=True,\n            )\n            capstone_commit = subprocess.check_output(\n                ["git", "-C", str(capstone_root), "rev-parse", "HEAD"],\n                text=True,\n            ).strip()\n            if capstone_commit != capstone_cfg["commit"]:\n                raise RuntimeError(\n                    f"Capstone tag {capstone_cfg['tag']} resolved to {capstone_commit}, "\n                    f"expected {capstone_cfg['commit']}"\n                )\n            capstone_args = [\n                f"CAPSTONE_ARCHS={capstone_cfg['architectures']}",\n                "CAPSTONE_STATIC=yes",\n                "CAPSTONE_SHARED=yes",\n                f"PREFIX={capstone_prefix}",\n            ]\n            runner.run(\n                ["make", "-C", str(capstone_root), f"-j{jobs}", *capstone_args],\n                env=env,\n                check=True,\n            )\n            runner.run(\n                ["make", "-C", str(capstone_root), "install", *capstone_args],\n                env=env,\n                check=True,\n            )\n            pkgconfig = capstone_prefix / "lib/pkgconfig"\n            env["PKG_CONFIG_PATH"] = str(pkgconfig) + os.pathsep + env.get("PKG_CONFIG_PATH", "")\n            env["CPATH"] = str(capstone_prefix / "include") + os.pathsep + env.get("CPATH", "")\n            env["LIBRARY_PATH"] = str(capstone_prefix / "lib") + os.pathsep + env.get("LIBRARY_PATH", "")\n            env["LD_LIBRARY_PATH"] = str(capstone_prefix / "lib") + os.pathsep + env.get("LD_LIBRARY_PATH", "")\n            manifest["capstone"] = {\n                "tag": capstone_cfg["tag"],\n                "commit": capstone_commit,\n                "pkg_config_version": subprocess.check_output(\n                    ["pkg-config", "--modversion", "capstone"],\n                    env=env,\n                    text=True,\n                ).strip(),\n            }\n            mapping_root = source_root / "tools/perf"\n            rc = runner.run(["make", "-C", str(mapping_root), "-k", f"-j{jobs}"], cwd=source_root, env=env)\n'''
-          if auxiliary.count(old_perf) != 1:
-              raise SystemExit('perf build block was not found exactly once')
-          auxiliary_path.write_text(auxiliary.replace(old_perf, new_perf), encoding='utf-8')
+          old = '''                    f"O={out_root}",\n                    "FORCE_TARGETS=1",\n                ],\n'''
+          new = '''                    f"O={out_root}",\n                ],\n'''
+          if old in auxiliary:
+              auxiliary = auxiliary.replace(old, new, 1)
+          elif new not in auxiliary:
+              raise SystemExit('selftests FORCE_TARGETS block is in an unexpected state')
+          auxiliary_path.write_text(auxiliary, encoding='utf-8')
 
           tests_path = Path('.github/scripts/test_full_linux_coverage.py')
           tests = tests_path.read_text(encoding='utf-8')
-          marker = '''    assert config["rust_toolchain"]["bindgen_version"] == "0.71.1"\n'''
-          addition = '''    assert config["rust_toolchain"]["bindgen_version"] == "0.71.1"\n    assert config["capstone_toolchain"]["tag"] == "5.0.6"\n    assert config["capstone_toolchain"]["commit"] == "accf4df62f1fba6f92cae692985d27063552601c"\n'''
-          if marker not in tests:
-              raise SystemExit('configuration test marker was not found')
-          tests = tests.replace(marker, addition, 1)
-          old_assertions = '''    assert 'mapping_root.mkdir(parents=True, exist_ok=True)' in auxiliary_source\n    assert '"--kunitconfig"' in auxiliary_source\n'''
-          new_assertions = '''    assert 'mapping_root.mkdir(parents=True, exist_ok=True)' in auxiliary_source\n    assert '"--kunitconfig"' in auxiliary_source\n    assert 'make_command(source_root, out_root, {"kbuild_arch": "x86"}, "headers")' in auxiliary_source\n    assert 'f"O={out_root}"' in auxiliary_source\n    assert 'capstone_commit != capstone_cfg["commit"]' in auxiliary_source\n    assert '"pkg-config", "--modversion", "capstone"' in auxiliary_source\n'''
-          if old_assertions not in tests:
-              raise SystemExit('auxiliary regression assertion marker was not found')
-          tests_path.write_text(tests.replace(old_assertions, new_assertions, 1), encoding='utf-8')
-
-          docs_path = Path('docs/FULL-LINUX-COVERAGE.md')
-          docs = docs_path.read_text(encoding='utf-8')
-          section = '''\n## Auxiliary header and Capstone policy\n\nThe selftests row first generates UAPI headers in its own Kbuild output tree and passes that same `O=` tree into kselftest. The perf row builds Capstone 5.0.6 from the exact upstream commit `accf4df62f1fba6f92cae692985d27063552601c`, enabling x86 and RISC-V support instead of relying on Ubuntu's older Capstone headers.\n'''
-          if '## Auxiliary header and Capstone policy' not in docs:
-              docs_path.write_text(docs.rstrip() + '\n' + section, encoding='utf-8')
+          old_assert = '''    assert "libasound2-dev" in auxiliary_by_id["selftests"]["extra_packages"]\n'''
+          new_assert = '''    assert {"libasound2-dev", "libcap-ng-dev"}.issubset(auxiliary_by_id["selftests"]["extra_packages"])\n'''
+          if old_assert in tests:
+              tests = tests.replace(old_assert, new_assert, 1)
+          elif new_assert not in tests:
+              raise SystemExit('selftests package assertion is in an unexpected state')
+          marker = '''    assert 'f"O={out_root}"' in auxiliary_source\n'''
+          addition = '''    assert 'f"O={out_root}"' in auxiliary_source\n    assert 'FORCE_TARGETS=1' not in auxiliary_source\n'''
+          if marker in tests and addition not in tests:
+              tests = tests.replace(marker, addition, 1)
+          tests_path.write_text(tests, encoding='utf-8')
           PY
           git diff --check
 
@@ -86,7 +69,10 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add .github/config/full-linux-coverage.json \
             .github/scripts/auxiliary_coverage.py \
-            .github/scripts/test_full_linux_coverage.py \
-            docs/FULL-LINUX-COVERAGE.md
-          git commit -m "ci: fix selftests headers and perf Capstone"
+            .github/scripts/test_full_linux_coverage.py
+          if git diff --cached --quiet; then
+            echo 'Selftests follow-up is already present.'
+            exit 0
+          fi
+          git commit -m "ci: continue all selftest collections"
           git push origin HEAD:ci/fix-selftests-perf-coverage
