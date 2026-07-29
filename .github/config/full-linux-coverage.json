@@ -489,7 +489,6 @@
         "libzstd-dev",
         "python3-dev",
         "libbabeltrace2-dev",
-        "libcapstone-dev",
         "libpfm4-dev",
         "libtraceevent-dev",
         "libtracefs-dev"
@@ -566,5 +565,11 @@
     ".S",
     ".s",
     ".rs"
-  ]
+  ],
+  "capstone_toolchain": {
+    "repository": "https://github.com/capstone-engine/capstone.git",
+    "tag": "5.0.6",
+    "commit": "accf4df62f1fba6f92cae692985d27063552601c",
+    "architectures": "x86 riscv"
+  }
 }

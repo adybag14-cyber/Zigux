@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import shutil
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -96,8 +97,25 @@ def main() -> int:
             runner.run(make_command(source_root, out_root, {"kbuild_arch": "x86"}, "olddefconfig"), env=env, check=True)
             rc = runner.run(make_command(source_root, out_root, {"kbuild_arch": "x86"}, "-k", f"-j{jobs}", "samples"), env=env)
         elif task == "selftests":
-            mapping_root = source_root
-            rc = runner.run(["make", "-C", str(source_root / "tools/testing/selftests"), "-k", f"-j{jobs}", "FORCE_TARGETS=1"], cwd=source_root, env=env)
+            mapping_root = out_root / "kselftest"
+            runner.run(
+                make_command(source_root, out_root, {"kbuild_arch": "x86"}, "headers"),
+                env=env,
+                check=True,
+            )
+            rc = runner.run(
+                [
+                    "make",
+                    "-C",
+                    str(source_root / "tools/testing/selftests"),
+                    "-k",
+                    f"-j{jobs}",
+                    f"O={out_root}",
+                    "FORCE_TARGETS=1",
+                ],
+                cwd=source_root,
+                env=env,
+            )
         elif task == "kunit":
             mapping_root = out_root / "kunit"
             mapping_root.mkdir(parents=True, exist_ok=True)
@@ -120,6 +138,61 @@ def main() -> int:
                 env=env,
             )
         elif task == "perf":
+            capstone_cfg = config["capstone_toolchain"]
+            capstone_root = temp_root / "capstone"
+            capstone_prefix = tool_root / "capstone-prefix"
+            runner.run(
+                [
+                    "git",
+                    "clone",
+                    "--depth",
+                    "1",
+                    "--branch",
+                    capstone_cfg["tag"],
+                    capstone_cfg["repository"],
+                    str(capstone_root),
+                ],
+                check=True,
+            )
+            capstone_commit = subprocess.check_output(
+                ["git", "-C", str(capstone_root), "rev-parse", "HEAD"],
+                text=True,
+            ).strip()
+            if capstone_commit != capstone_cfg["commit"]:
+                raise RuntimeError(
+                    f"Capstone tag {capstone_cfg['tag']} resolved to {capstone_commit}, "
+                    f"expected {capstone_cfg['commit']}"
+                )
+            capstone_args = [
+                f"CAPSTONE_ARCHS={capstone_cfg['architectures']}",
+                "CAPSTONE_STATIC=yes",
+                "CAPSTONE_SHARED=yes",
+                f"PREFIX={capstone_prefix}",
+            ]
+            runner.run(
+                ["make", "-C", str(capstone_root), f"-j{jobs}", *capstone_args],
+                env=env,
+                check=True,
+            )
+            runner.run(
+                ["make", "-C", str(capstone_root), "install", *capstone_args],
+                env=env,
+                check=True,
+            )
+            pkgconfig = capstone_prefix / "lib/pkgconfig"
+            env["PKG_CONFIG_PATH"] = str(pkgconfig) + os.pathsep + env.get("PKG_CONFIG_PATH", "")
+            env["CPATH"] = str(capstone_prefix / "include") + os.pathsep + env.get("CPATH", "")
+            env["LIBRARY_PATH"] = str(capstone_prefix / "lib") + os.pathsep + env.get("LIBRARY_PATH", "")
+            env["LD_LIBRARY_PATH"] = str(capstone_prefix / "lib") + os.pathsep + env.get("LD_LIBRARY_PATH", "")
+            manifest["capstone"] = {
+                "tag": capstone_cfg["tag"],
+                "commit": capstone_commit,
+                "pkg_config_version": subprocess.check_output(
+                    ["pkg-config", "--modversion", "capstone"],
+                    env=env,
+                    text=True,
+                ).strip(),
+            }
             mapping_root = source_root / "tools/perf"
             rc = runner.run(["make", "-C", str(mapping_root), "-k", f"-j{jobs}"], cwd=source_root, env=env)
         elif task == "bpftool":

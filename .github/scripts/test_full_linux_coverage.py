@@ -64,6 +64,8 @@ def test_config_and_matrices(temp: Path) -> None:
     assert config["rust_toolchain"]["rust_version"] == "1.96.1"
     assert config["rust_toolchain"]["bindgen_crate"] == "bindgen-cli"
     assert config["rust_toolchain"]["bindgen_version"] == "0.71.1"
+    assert config["capstone_toolchain"]["tag"] == "5.0.6"
+    assert config["capstone_toolchain"]["commit"] == "accf4df62f1fba6f92cae692985d27063552601c"
 
     full = generate_plan("full", temp / "full.json")
     assert full["counts"] == EXPECTED_FULL_COUNTS
@@ -92,6 +94,10 @@ def test_config_and_matrices(temp: Path) -> None:
     auxiliary_source = (ROOT / ".github/scripts/auxiliary_coverage.py").read_text(encoding="utf-8")
     assert 'mapping_root.mkdir(parents=True, exist_ok=True)' in auxiliary_source
     assert '"--kunitconfig"' in auxiliary_source
+    assert 'make_command(source_root, out_root, {"kbuild_arch": "x86"}, "headers")' in auxiliary_source
+    assert 'f"O={out_root}"' in auxiliary_source
+    assert 'capstone_commit != capstone_cfg["commit"]' in auxiliary_source
+    assert '"pkg-config", "--modversion", "capstone"' in auxiliary_source
     kernel_source = (ROOT / ".github/scripts/kernel_coverage.py").read_text(encoding="utf-8")
     assert '"install",\n                bindgen_crate' in kernel_source
     assert 'f"={bindgen_version}"' in kernel_source
