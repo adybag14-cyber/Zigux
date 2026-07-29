@@ -1,16 +1,16 @@
 # Full Linux campaign 30451881719 diagnostic snapshot
 
 Snapshot sequence: 2
-Generated: 2026-07-29T13:01:08Z
+Generated: 2026-07-29T13:06:33Z
 
 ## Job-state totals
 
 | State | Count |
 |---|---:|
 | failure | 11 |
-| in_progress | 18 |
-| queued | 23 |
-| success | 32 |
+| in_progress | 19 |
+| queued | 16 |
+| success | 39 |
 
 ## Failed jobs
 
@@ -337,28 +337,21 @@ Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/905756
 - LLVM/Clang coverage (arm, allmodconfig, arm-linux-gnueabi, llvm-arm-allmodconfig, arm, llvm, ARMv... / build: in_progress
 - LLVM/Clang coverage (loongarch, allmodconfig, loongarch64-linux, llvm-loongarch-allmodconfig, loo... / build: in_progress
 - LLVM/Clang coverage (mips, allmodconfig, mips-linux, llvm-mips-allmodconfig, mips, llvm, MIPS, tr... / build: in_progress
-- Architecture/Kconfig coverage (arm, multi_v7_defconfig, arm-linux-gnueabi, arch-arm-defconfig, ar... / build: in_progress
 - Architecture/Kconfig coverage (arc, allyesconfig, arc-linux, arch-arc-allyesconfig, arc, architec... / build: in_progress
 - Architecture/Kconfig coverage (alpha, allyesconfig, alpha-linux, arch-alpha-allyesconfig, alpha, ... / build: in_progress
 - Architecture/Kconfig coverage (arc, allmodconfig, arc-linux, arch-arc-allmodconfig, arc, architec... / build: in_progress
 - LLVM/Clang coverage (arm64, defconfig, aarch64-linux, llvm-arm64-defconfig, arm64, llvm, ARM64, t... / build: in_progress
-- GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build: in_progress
 - LLVM/Clang coverage (arm64, allmodconfig, aarch64-linux, llvm-arm64-allmodconfig, arm64, llvm, AR... / build: in_progress
 - LLVM/Clang coverage (hexagon, allmodconfig, llvm-hexagon-allmodconfig, hexagon, llvm, Hexagon, tr... / build: in_progress
 - Architecture/Kconfig coverage (alpha, allmodconfig, alpha-linux, arch-alpha-allmodconfig, alpha, ... / build: in_progress
 - Architecture/Kconfig coverage (arm, allmodconfig, arm-linux-gnueabi, arch-arm-allmodconfig, arm, ... / build: in_progress
 - LLVM/Clang coverage (loongarch, defconfig, loongarch64-linux, llvm-loongarch-defconfig, loongarch... / build: in_progress
-- Tools, samples, tests and documentation (graphviz, python3-sphinx, python3-sphinx-rtd-theme, docs... / build: in_progress
-- Device-tree coverage (true, powerpc, ppc64_defconfig, u-boot-tools, powerpc64-linux, dtbs-powerpc... / build: in_progress
 - Tools, samples, tests and documentation (libclang-dev, rusttest, auxiliary, Rust tests, rusttest,... / build: in_progress
-- Device-tree coverage (true, riscv, defconfig, u-boot-tools, riscv64-linux, dtbs-riscv, riscv, dtb... / build: queued
-- Device-tree coverage (true, s390, defconfig, u-boot-tools, s390-linux, dtbs-s390, s390, dtbs, s39... / build: queued
-- Device-tree coverage (true, sh, shx3_defconfig, u-boot-tools, sh4-linux, dtbs-sh, sh, dtbs, Super... / build: queued
-- Device-tree coverage (true, sparc, sparc64_defconfig, u-boot-tools, sparc64-linux, dtbs-sparc, sp... / build: queued
-- Device-tree coverage (true, um, defconfig, u-boot-tools, dtbs-um, um, dtbs, User Mode Linux devic... / build: queued
-- Architecture/Kconfig coverage (arm, allyesconfig, arm-linux-gnueabi, arch-arm-allyesconfig, arm, ... / build: queued
-- Architecture/Kconfig coverage (arm, randconfig, arm-linux-gnueabi, arch-arm-randconfig-0xC0FFEE, ... / build: queued
-- Architecture/Kconfig coverage (arm, randconfig, arm-linux-gnueabi, arch-arm-randconfig-0x5EED, ar... / build: queued
+- Device-tree coverage (true, sh, shx3_defconfig, u-boot-tools, sh4-linux, dtbs-sh, sh, dtbs, Super... / build: in_progress
+- Device-tree coverage (true, um, defconfig, u-boot-tools, dtbs-um, um, dtbs, User Mode Linux devic... / build: in_progress
+- Architecture/Kconfig coverage (arm, allyesconfig, arm-linux-gnueabi, arch-arm-allyesconfig, arm, ... / build: in_progress
+- Architecture/Kconfig coverage (arm, randconfig, arm-linux-gnueabi, arch-arm-randconfig-0xC0FFEE, ... / build: in_progress
+- Architecture/Kconfig coverage (arm, randconfig, arm-linux-gnueabi, arch-arm-randconfig-0x5EED, ar... / build: in_progress
 - GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build: queued
 - Device-tree coverage (true, x86, x86_64_defconfig, u-boot-tools, x86_64-linux, dtbs-x86, x86, dtb... / build: queued
 - Tools, samples, tests and documentation (libclang-dev, rustdoc, auxiliary, Rust documentation, ru... / build: queued
@@ -374,3 +367,4 @@ Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/905756
 - Architecture/Kconfig coverage (arm64, allmodconfig, aarch64-linux, arch-arm64-allmodconfig, arm64... / build: queued
 - Architecture/Kconfig coverage (arm64, allyesconfig, aarch64-linux, arch-arm64-allyesconfig, arm64... / build: queued
 - LLVM/Clang coverage (riscv, defconfig, riscv64-linux, llvm-riscv-defconfig, riscv, llvm, RISC-V 6... / build: queued
+- Architecture/Kconfig coverage (arm64, randconfig, aarch64-linux, arch-arm64-randconfig-0xC0FFEE, ... / build: queued
