@@ -25,6 +25,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: "30451881719"
+          SNAPSHOT_SEQUENCE: "2"
         shell: bash
         run: |
           set -euo pipefail
@@ -53,6 +54,7 @@ jobs:
           {
             echo '# Full Linux campaign 30451881719 diagnostic snapshot'
             echo
+            echo "Snapshot sequence: ${SNAPSHOT_SEQUENCE}"
             echo "Generated: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             echo
             echo '## Job-state totals'
@@ -116,5 +118,5 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add .github/diagnostics/full-linux-run-30451881719.md \
             .github/diagnostics/full-linux-run-30451881719-jobs.json
-          git commit -m "ci: record full campaign failure diagnostics"
+          git commit -m "ci: refresh full campaign failure diagnostics"
           git push origin HEAD:ci/fix-full-linux-campaign-30451881719
