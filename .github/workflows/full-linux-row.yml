@@ -113,6 +113,8 @@ jobs:
             script=.github/scripts/auxiliary_coverage.py
           fi
 
+          # GitHub invokes Bash with -e; disable it only around the row runner so
+          # the exit code is recorded before the step deliberately returns zero.
           set +e
           python3 "${script}" \
             --row-json "${ROW_JSON}" \
