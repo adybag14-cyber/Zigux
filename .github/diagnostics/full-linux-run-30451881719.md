@@ -1,17 +1,52 @@
 # Full Linux campaign 30451881719 diagnostic snapshot
 
-Generated: 2026-07-29T12:47:27Z
+Generated: 2026-07-29T13:00:41Z
 
 ## Job-state totals
 
 | State | Count |
 |---|---:|
-| failure | 8 |
-| in_progress | 19 |
-| queued | 28 |
-| success | 22 |
+| failure | 11 |
+| in_progress | 18 |
+| queued | 23 |
+| success | 31 |
 
 ## Failed jobs
+
+### Rust-enabled architecture coverage (arm, multi_v7_defconfig, RUST, MODULES, libclang-dev, arm-lin... / build
+
+Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/90575692768
+
+```text
+    "modules"
+  ],
+  "toolchain": "rust"
+}
+2026-07-29T12:30:47.5281587Z   source_sha: 62cc90241548d5570ee68e01aaba6506964e9811
+2026-07-29T12:30:47.5282193Z   runner_type: kernel
+2026-07-29T12:30:47.5282637Z   scope: full
+--
+    "modules"
+  ],
+  "toolchain": "rust"
+}
+2026-07-29T12:30:50.5072983Z   RUNNER_TYPE: kernel
+2026-07-29T12:30:50.5073242Z ##[endgroup]
+2026-07-29T12:30:50.5447060Z ##[group]Run set -euo pipefail
+--
+    "modules"
+  ],
+  "toolchain": "rust"
+}
+2026-07-29T12:46:09.1606977Z   SOURCE_SHA: 62cc90241548d5570ee68e01aaba6506964e9811
+2026-07-29T12:46:09.1607272Z   RUNNER_TYPE: kernel
+2026-07-29T12:46:09.1607498Z ##[endgroup]
+2026-07-29T12:50:23.0828611Z ##[error]rust-arm: FileNotFoundError: bindgen was not found below /home/runner/work/_temp/full-linux-rust-arm/toolchains/rust-llvm
+2026-07-29T12:50:23.0836899Z {"build_id": "rust-arm", "mapped_source_count": null, "object_count": null, "status": "infrastructure_error"}
+2026-07-29T12:50:23.0932004Z ##[error]Process completed with exit code 1.
+2026-07-29T12:50:23.1023284Z ##[group]Run actions/upload-artifact@v7
+2026-07-29T12:50:23.1023587Z with:
+```
 
 ### Rust-enabled architecture coverage (loongarch, defconfig, RUST, MODULES, libclang-dev, loongarch6... / build
 
@@ -257,10 +292,46 @@ Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/905756
 2026-07-29T12:43:48.1732120Z with:
 ```
 
+### Tools, samples, tests and documentation (libcap-dev, libmount-dev, libnuma-dev, liburing-dev, sel... / build
+
+Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/90575694575
+
+```text
+2026-07-29T12:48:09.0070518Z make[1]: Leaving directory '/home/runner/work/_temp/full-linux-aux-selftests/source/tools/testing/selftests/acct'
+2026-07-29T12:48:09.0071326Z make[1]: Entering directory '/home/runner/work/_temp/full-linux-aux-selftests/source/tools/testing/selftests/alsa'
+2026-07-29T12:48:09.0073981Z Makefile:4: *** Package alsa not found, please install alsa development package or add directory containing `alsa.pc` in PKG_CONFIG_PATH.  Stop.
+2026-07-29T12:48:09.0075338Z make[1]: Leaving directory '/home/runner/work/_temp/full-linux-aux-selftests/source/tools/testing/selftests/alsa'
+2026-07-29T12:48:09.0076283Z make: *** [Makefile:218: all] Error 2
+2026-07-29T12:48:09.0077086Z make: Leaving directory '/home/runner/work/_temp/full-linux-aux-selftests/source/tools/testing/selftests'
+2026-07-29T12:48:09.0078232Z {"build_id": "aux-selftests", "mapped_source_count": 0, "object_count": 0, "status": "build_failed"}
+2026-07-29T12:48:09.0263767Z ##[error]Process completed with exit code 1.
+2026-07-29T12:48:09.0369107Z ##[group]Run actions/upload-artifact@v7
+2026-07-29T12:48:09.0369433Z with:
+2026-07-29T12:48:09.0369703Z   name: coverage-record-aux-selftests-30451881719-1
+```
+
+### Tools, samples, tests and documentation (libcap-dev, binutils-dev, bpftool, auxiliary, bpftool, b... / build
+
+Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/90575694824
+
+```text
+2026-07-29T12:50:43.0974071Z   CLANG   pid_iter.bpf.o
+2026-07-29T12:50:43.0974283Z   CLANG   profiler.bpf.o
+2026-07-29T12:50:43.0974512Z make: llvm-strip: No such file or directory
+2026-07-29T12:50:43.0974807Z make: *** [Makefile:263: profiler.bpf.o] Error 127
+2026-07-29T12:50:43.0975115Z make: llvm-strip: No such file or directory
+2026-07-29T12:50:43.0975413Z make: *** [Makefile:263: pid_iter.bpf.o] Error 127
+2026-07-29T12:50:43.0975716Z make: Target 'all' not remade because of errors.
+2026-07-29T12:50:43.0976181Z make: Leaving directory '/home/runner/work/_temp/full-linux-aux-bpftool/source/tools/bpf/bpftool'
+2026-07-29T12:50:43.0976790Z {"build_id": "aux-bpftool", "mapped_source_count": 1, "object_count": 79, "status": "build_failed"}
+2026-07-29T12:50:43.1085922Z ##[error]Process completed with exit code 1.
+2026-07-29T12:50:43.1184637Z ##[group]Run actions/upload-artifact@v7
+2026-07-29T12:50:43.1184942Z with:
+2026-07-29T12:50:43.1185183Z   name: coverage-record-aux-bpftool-30451881719-1
+```
+
 ## In-progress or queued jobs at snapshot time
 
-- Rust-enabled architecture coverage (arm, multi_v7_defconfig, RUST, MODULES, libclang-dev, arm-lin... / build: in_progress
-- GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build: in_progress
 - GCC plugin and incompatible hardening coverage (arm64, defconfig, WERROR, RUST, GCC_PLUGINS, KASA... / build: in_progress
 - LLVM/Clang coverage (arm, multi_v7_defconfig, arm-linux-gnueabi, llvm-arm-defconfig, arm, llvm, A... / build: in_progress
 - LLVM/Clang coverage (arm, allmodconfig, arm-linux-gnueabi, llvm-arm-allmodconfig, arm, llvm, ARMv... / build: in_progress
@@ -268,27 +339,17 @@ Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/905756
 - LLVM/Clang coverage (mips, allmodconfig, mips-linux, llvm-mips-allmodconfig, mips, llvm, MIPS, tr... / build: in_progress
 - Architecture/Kconfig coverage (arm, multi_v7_defconfig, arm-linux-gnueabi, arch-arm-defconfig, ar... / build: in_progress
 - Architecture/Kconfig coverage (arc, allyesconfig, arc-linux, arch-arc-allyesconfig, arc, architec... / build: in_progress
-- GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build: in_progress
 - Architecture/Kconfig coverage (alpha, allyesconfig, alpha-linux, arch-alpha-allyesconfig, alpha, ... / build: in_progress
 - Architecture/Kconfig coverage (arc, allmodconfig, arc-linux, arch-arc-allmodconfig, arc, architec... / build: in_progress
-- GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build: in_progress
 - LLVM/Clang coverage (arm64, defconfig, aarch64-linux, llvm-arm64-defconfig, arm64, llvm, ARM64, t... / build: in_progress
-- Tools, samples, tests and documentation (libcap-dev, libmount-dev, libnuma-dev, liburing-dev, sel... / build: in_progress
 - GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build: in_progress
-- Architecture/Kconfig coverage (alpha, defconfig, alpha-linux, arch-alpha-defconfig, alpha, archit... / build: in_progress
 - LLVM/Clang coverage (arm64, allmodconfig, aarch64-linux, llvm-arm64-allmodconfig, arm64, llvm, AR... / build: in_progress
-- Device-tree coverage (true, nios2, defconfig, u-boot-tools, nios2-linux, dtbs-nios2, nios2, dtbs,... / build: queued
-- LLVM/Clang coverage (hexagon, allmodconfig, llvm-hexagon-allmodconfig, hexagon, llvm, Hexagon, tr... / build: queued
-- Architecture/Kconfig coverage (alpha, randconfig, alpha-linux, arch-alpha-randconfig-0xC0FFEE, al... / build: in_progress
-- Tools, samples, tests and documentation (libcap-dev, binutils-dev, bpftool, auxiliary, bpftool, b... / build: queued
-- Architecture/Kconfig coverage (alpha, randconfig, alpha-linux, arch-alpha-randconfig-0x5EED, alph... / build: queued
-- Architecture/Kconfig coverage (alpha, allmodconfig, alpha-linux, arch-alpha-allmodconfig, alpha, ... / build: queued
-- Architecture/Kconfig coverage (arm, allmodconfig, arm-linux-gnueabi, arch-arm-allmodconfig, arm, ... / build: queued
-- LLVM/Clang coverage (loongarch, defconfig, loongarch64-linux, llvm-loongarch-defconfig, loongarch... / build: queued
-- Tools, samples, tests and documentation (objtool, auxiliary, objtool, objtool, objtool) / build: queued
-- Tools, samples, tests and documentation (graphviz, python3-sphinx, python3-sphinx-rtd-theme, docs... / build: queued
-- Device-tree coverage (true, parisc, defconfig, u-boot-tools, hppa-linux, dtbs-parisc, parisc, dtb... / build: queued
-- Device-tree coverage (true, powerpc, ppc64_defconfig, u-boot-tools, powerpc64-linux, dtbs-powerpc... / build: queued
+- LLVM/Clang coverage (hexagon, allmodconfig, llvm-hexagon-allmodconfig, hexagon, llvm, Hexagon, tr... / build: in_progress
+- Architecture/Kconfig coverage (alpha, allmodconfig, alpha-linux, arch-alpha-allmodconfig, alpha, ... / build: in_progress
+- Architecture/Kconfig coverage (arm, allmodconfig, arm-linux-gnueabi, arch-arm-allmodconfig, arm, ... / build: in_progress
+- LLVM/Clang coverage (loongarch, defconfig, loongarch64-linux, llvm-loongarch-defconfig, loongarch... / build: in_progress
+- Tools, samples, tests and documentation (graphviz, python3-sphinx, python3-sphinx-rtd-theme, docs... / build: in_progress
+- Device-tree coverage (true, powerpc, ppc64_defconfig, u-boot-tools, powerpc64-linux, dtbs-powerpc... / build: in_progress
 - Tools, samples, tests and documentation (libclang-dev, rusttest, auxiliary, Rust tests, rusttest,... / build: queued
 - Device-tree coverage (true, riscv, defconfig, u-boot-tools, riscv64-linux, dtbs-riscv, riscv, dtb... / build: queued
 - Device-tree coverage (true, s390, defconfig, u-boot-tools, s390-linux, dtbs-s390, s390, dtbs, s39... / build: queued
@@ -306,3 +367,9 @@ Job: https://github.com/adybag14-cyber/Zigux/actions/runs/30451881719/job/905756
 - Device-tree coverage (true, xtensa, defconfig, u-boot-tools, xtensa-linux, dtbs-xtensa, xtensa, d... / build: queued
 - GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build: queued
 - LLVM/Clang coverage (powerpc, allmodconfig, powerpc64-linux, llvm-powerpc-allmodconfig, powerpc, ... / build: queued
+- Tools, samples, tests and documentation (libclang-dev, rust-analyzer, auxiliary, Rust analyzer me... / build: queued
+- GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build: queued
+- Architecture/Kconfig coverage (arm64, defconfig, aarch64-linux, arch-arm64-defconfig, arm64, arch... / build: queued
+- GCC plugin and incompatible hardening coverage (x86, x86_64_defconfig, WERROR, RUST, GCC_PLUGINS,... / build: queued
+- Architecture/Kconfig coverage (arm64, allmodconfig, aarch64-linux, arch-arm64-allmodconfig, arm64... / build: queued
+- Architecture/Kconfig coverage (arm64, allyesconfig, aarch64-linux, arch-arm64-allyesconfig, arm64... / build: queued
