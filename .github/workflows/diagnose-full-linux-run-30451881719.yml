@@ -1,0 +1,120 @@
+name: Diagnose full Linux campaign 30451881719
+
+on:
+  push:
+    branches:
+      - ci/fix-full-linux-campaign-30451881719
+    paths:
+      - .github/workflows/diagnose-full-linux-run-30451881719.yml
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ci/fix-full-linux-campaign-30451881719
+          fetch-depth: 1
+
+      - name: Collect paginated jobs and failed logs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: "30451881719"
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .github/diagnostics /tmp/full-linux-logs
+          api=(
+            --header "Authorization: Bearer ${GH_TOKEN}"
+            --header "Accept: application/vnd.github+json"
+            --header "X-GitHub-Api-Version: 2022-11-28"
+          )
+
+          printf '[]' > /tmp/all-jobs.json
+          page=1
+          while :; do
+            page_json="/tmp/jobs-${page}.json"
+            curl --fail --silent --show-error --location "${api[@]}" \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/jobs?filter=latest&per_page=100&page=${page}" \
+              > "${page_json}"
+            count="$(jq '.jobs | length' "${page_json}")"
+            jq -s '.[0] + .[1].jobs' /tmp/all-jobs.json "${page_json}" > /tmp/all-jobs.next.json
+            mv /tmp/all-jobs.next.json /tmp/all-jobs.json
+            [[ "${count}" -lt 100 ]] && break
+            page=$((page + 1))
+          done
+
+          report=.github/diagnostics/full-linux-run-30451881719.md
+          {
+            echo '# Full Linux campaign 30451881719 diagnostic snapshot'
+            echo
+            echo "Generated: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo
+            echo '## Job-state totals'
+            echo
+            echo '| State | Count |'
+            echo '|---|---:|'
+            jq -r 'group_by((.conclusion // .status))[] | "| \(.[0].conclusion // .[0].status) | \(length) |"' /tmp/all-jobs.json
+            echo
+            echo '## Failed jobs'
+            echo
+          } > "${report}"
+
+          jq -c '.[] | select(.conclusion == "failure") | {id,name,html_url}' /tmp/all-jobs.json |
+          while IFS= read -r job; do
+            job_id="$(jq -r '.id' <<< "${job}")"
+            job_name="$(jq -r '.name' <<< "${job}")"
+            job_url="$(jq -r '.html_url' <<< "${job}")"
+            raw="/tmp/full-linux-logs/${job_id}.raw"
+            text="/tmp/full-linux-logs/${job_id}.log"
+            curl --fail --silent --show-error --location "${api[@]}" \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" \
+              > "${raw}" || true
+            if file "${raw}" | grep -qi 'zip archive'; then
+              unzip -p "${raw}" > "${text}" || true
+            else
+              cp "${raw}" "${text}"
+            fi
+
+            {
+              echo "### ${job_name}"
+              echo
+              echo "Job: ${job_url}"
+              echo
+              echo '```text'
+              if [[ -s "${text}" ]]; then
+                grep -E -i -B 2 -A 4 \
+                  '(^|[^[:alpha:]])(error:|fatal:|failed|failure|not found|no such file|unable to locate|unsupported|unrecognized|no rule to make target|cannot find|undefined reference|kconfig:|rustavailable|toolchain)' \
+                  "${text}" | tail -n 180 || tail -n 120 "${text}"
+              else
+                echo 'No job log was available.'
+              fi
+              echo '```'
+              echo
+            } >> "${report}"
+          done
+
+          {
+            echo '## In-progress or queued jobs at snapshot time'
+            echo
+            jq -r '.[] | select(.status != "completed") | "- \(.name): \(.status)"' /tmp/all-jobs.json
+          } >> "${report}"
+
+          cp /tmp/all-jobs.json .github/diagnostics/full-linux-run-30451881719-jobs.json
+          git diff --check
+
+      - name: Commit diagnostic snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .github/diagnostics/full-linux-run-30451881719.md \
+            .github/diagnostics/full-linux-run-30451881719-jobs.json
+          git commit -m "ci: record full campaign failure diagnostics"
+          git push origin HEAD:ci/fix-full-linux-campaign-30451881719
