@@ -1,0 +1,255 @@
+name: Exhaustive x86_64 kernel system images
+run-name: Exhaustive x86_64 kernel images — ${{ github.run_number }}
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/x86-exhaustive-kernel-images.yml
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Exact Linux source branch, tag, or commit.
+        required: true
+        type: string
+        default: 62cc90241548d5570ee68e01aaba6506964e9811
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zigux-exhaustive-x86-kernel-images
+  cancel-in-progress: false
+
+env:
+  SOURCE_REF: ${{ github.event.inputs.source_ref || '62cc90241548d5570ee68e01aaba6506964e9811' }}
+  KBUILD_BUILD_USER: zigux
+  KBUILD_BUILD_HOST: github-actions
+  KBUILD_BUILD_VERSION: '1'
+  KBUILD_BUILD_TIMESTAMP: Thu Jan 1 00:00:00 UTC 1970
+
+jobs:
+  build:
+    name: Build bootable ${{ matrix.profile }} x86_64 system
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        profile: [allmodconfig, allyesconfig]
+
+    steps:
+      - name: Check out workflow infrastructure
+        uses: actions/checkout@v4
+
+      - name: Check out exact Linux source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_REF }}
+          path: linux
+          fetch-depth: 1
+
+      - name: Reclaim runner disk
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL || true
+          sudo docker image prune --all --force || true
+          df -h
+
+      - name: Install build and boot-test dependencies
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            bc binutils bison build-essential busybox-static cpio dwarves fakeroot flex \
+            kmod libelf-dev libssl-dev pahole python3 qemu-system-x86 rsync xz-utils zstd
+
+      - name: Build embedded minimal userspace
+        id: rootfs
+        shell: bash
+        run: |
+          set -euxo pipefail
+          profile='${{ matrix.profile }}'
+          root="$GITHUB_WORKSPACE/initramfs-${profile}"
+          rm -rf "$root"
+          mkdir -p "$root"/{bin,sbin,etc,proc,sys,dev,tmp,run,usr/bin,usr/sbin}
+          cp /usr/bin/busybox "$root/bin/busybox"
+          for applet in sh mount umount mkdir mknod echo cat uname dmesg ls sleep poweroff reboot sync; do
+            ln -s busybox "$root/bin/$applet"
+          done
+          sudo mknod -m 600 "$root/dev/console" c 5 1
+          sudo mknod -m 666 "$root/dev/null" c 1 3
+          cat > "$root/init" <<'INIT'
+          #!/bin/sh
+          export PATH=/bin:/sbin:/usr/bin:/usr/sbin
+          mount -t proc proc /proc
+          mount -t sysfs sysfs /sys
+          mount -t devtmpfs devtmpfs /dev 2>/dev/null || true
+          echo
+          echo 'ZIGUX_BOOT_OK'
+          echo "profile=$(cat /etc/zigux-profile 2>/dev/null || echo unknown)"
+          uname -a
+          echo "cmdline=$(cat /proc/cmdline)"
+          echo 'This is a minimal embedded BusyBox userspace for kernel validation.'
+          if grep -qw zigux.autohalt=1 /proc/cmdline; then
+            sync
+            poweroff -f
+          fi
+          exec sh
+          INIT
+          chmod 0755 "$root/init"
+          printf '%s\n' "$profile" > "$root/etc/zigux-profile"
+          printf 'Zigux exhaustive x86_64 kernel system (%s)\n' "$profile" > "$root/etc/issue"
+          (
+            cd "$root"
+            find . -print0 | sort -z | cpio --null -o --format=newc --owner=0:0 | gzip -9
+          ) > "$GITHUB_WORKSPACE/initramfs-${profile}.cpio.gz"
+          echo "root=$root" >> "$GITHUB_OUTPUT"
+
+      - name: Configure maximum profile for bootable emission
+        id: configure
+        shell: bash
+        run: |
+          set -euxo pipefail
+          profile='${{ matrix.profile }}'
+          out="$GITHUB_WORKSPACE/out-${profile}"
+          package="$GITHUB_WORKSPACE/package-${profile}"
+          rm -rf "$out" "$package"
+          mkdir -p "$out" "$package"
+
+          make -C linux O="$out" ARCH=x86 mrproper
+          make -C linux O="$out" ARCH=x86 "$profile"
+          cp "$out/.config" "$package/config-${profile}-original"
+
+          cfg="$GITHUB_WORKSPACE/linux/scripts/config"
+          # Match the successful broad-coverage campaign by removing mutually
+          # specialised instrumentation, then add only boot/package essentials.
+          for symbol in WERROR RUST GCC_PLUGINS DEBUG_INFO KASAN KCSAN GCOV_KERNEL; do
+            "$cfg" --file "$out/.config" --disable "$symbol"
+          done
+          "$cfg" --file "$out/.config" --disable MODULE_SIG_ALL
+          "$cfg" --file "$out/.config" --set-str SYSTEM_TRUSTED_KEYS ''
+          "$cfg" --file "$out/.config" --set-str SYSTEM_REVOCATION_KEYS ''
+          "$cfg" --file "$out/.config" --disable LOCALVERSION_AUTO
+          "$cfg" --file "$out/.config" --set-str LOCALVERSION "-zigux-${profile}"
+          "$cfg" --file "$out/.config" --set-str DEFAULT_HOSTNAME "zigux-${profile}"
+          "$cfg" --file "$out/.config" --set-str INITRAMFS_SOURCE "${{ steps.rootfs.outputs.root }}"
+
+          for symbol in \
+            64BIT X86_64 MODULES BLK_DEV_INITRD DEVTMPFS DEVTMPFS_MOUNT TMPFS PROC_FS SYSFS \
+            BINFMT_ELF PRINTK TTY SERIAL_8250 SERIAL_8250_CONSOLE PCI VIRTIO VIRTIO_PCI \
+            VIRTIO_BLK VIRTIO_NET SCSI BLK_DEV_SD ATA SATA_AHCI NVME_CORE BLK_DEV_NVME \
+            EXT4_FS EFI EFI_STUB IKCONFIG IKCONFIG_PROC RD_GZIP; do
+            "$cfg" --file "$out/.config" --enable "$symbol"
+          done
+
+          make -C linux O="$out" ARCH=x86 olddefconfig
+          grep -q '^CONFIG_X86_64=y$' "$out/.config"
+          grep -q '^CONFIG_BLK_DEV_INITRD=y$' "$out/.config"
+          grep -q '^CONFIG_DEVTMPFS=y$' "$out/.config"
+          grep -q '^CONFIG_SERIAL_8250_CONSOLE=y$' "$out/.config"
+          grep -q '^CONFIG_INITRAMFS_SOURCE=' "$out/.config"
+          cp "$out/.config" "$package/config-${profile}-bootable"
+          echo "out=$out" >> "$GITHUB_OUTPUT"
+          echo "package=$package" >> "$GITHUB_OUTPUT"
+
+      - name: Compile actual kernel image and modules
+        shell: bash
+        run: |
+          set -euxo pipefail
+          out='${{ steps.configure.outputs.out }}'
+          make -C linux O="$out" ARCH=x86 -j"$(nproc)" bzImage modules
+
+      - name: Install and package kernel system
+        id: package
+        shell: bash
+        run: |
+          set -euxo pipefail
+          profile='${{ matrix.profile }}'
+          out='${{ steps.configure.outputs.out }}'
+          package='${{ steps.configure.outputs.package }}'
+          stage="$GITHUB_WORKSPACE/modules-${profile}"
+          rm -rf "$stage"
+          mkdir -p "$stage" "$package/boot"
+
+          make -C linux O="$out" ARCH=x86 \
+            INSTALL_MOD_PATH="$stage" INSTALL_MOD_STRIP=1 modules_install
+
+          release="$(make -s -C linux O="$out" ARCH=x86 kernelrelease)"
+          cp "$out/arch/x86/boot/bzImage" "$package/boot/vmlinuz-${release}"
+          cp "$out/System.map" "$package/boot/System.map-${release}"
+          cp "$out/.config" "$package/boot/config-${release}"
+          cp "$GITHUB_WORKSPACE/initramfs-${profile}.cpio.gz" "$package/boot/initramfs-${release}.cpio.gz"
+          if [ -f "$out/Module.symvers" ]; then
+            cp "$out/Module.symvers" "$package/Module.symvers-${release}"
+          fi
+          zstd -T0 -19 --long=27 "$out/vmlinux" -o "$package/boot/vmlinux-${release}.zst"
+          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner \
+            -C "$stage" -I 'zstd -T0 -19 --long=27' \
+            -cf "$package/modules-${release}.tar.zst" .
+
+          cat > "$package/README.txt" <<EOF
+          Zigux exhaustive x86_64 Linux kernel system
+          Profile: ${profile}
+          Kernel release: ${release}
+          Source commit: ${SOURCE_REF}
+
+          vmlinuz contains an embedded static BusyBox initramfs. For a QEMU boot:
+            qemu-system-x86_64 -m 2048 -smp 2 \\
+              -kernel boot/vmlinuz-${release} \\
+              -append 'console=ttyS0 zigux.autohalt=1' -nographic -no-reboot
+
+          The external initramfs copy is also included. The modules archive was
+          generated with INSTALL_MOD_STRIP=1 to reduce distribution size; the
+          complete unstripped vmlinux is retained in compressed form.
+          EOF
+
+          printf '%s\n' "$release" > "$package/KERNEL_RELEASE"
+          printf '%s\n' "$SOURCE_REF" > "$package/SOURCE_COMMIT"
+          (
+            cd "$package"
+            find . -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+          )
+          du -sh "$package"/* || true
+          df -h
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+
+      - name: QEMU smoke-boot embedded userspace
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -uo pipefail
+          profile='${{ matrix.profile }}'
+          package='${{ steps.configure.outputs.package }}'
+          release='${{ steps.package.outputs.release }}'
+          log="$package/qemu-boot-${profile}.log"
+          set +e
+          timeout 120 qemu-system-x86_64 \
+            -machine q35,accel=tcg \
+            -cpu max -m 2048 -smp 2 \
+            -kernel "$package/boot/vmlinuz-${release}" \
+            -append 'console=ttyS0 earlyprintk=ttyS0 panic=-1 zigux.autohalt=1' \
+            -display none -serial stdio -monitor none -no-reboot \
+            >"$log" 2>&1
+          rc=$?
+          set -e
+          if grep -q ZIGUX_BOOT_OK "$log"; then
+            echo "QEMU_BOOT_RESULT=success" | tee "$package/QEMU_BOOT_RESULT"
+            exit 0
+          fi
+          echo "QEMU_BOOT_RESULT=failed rc=${rc}" | tee "$package/QEMU_BOOT_RESULT"
+          tail -n 200 "$log" || true
+          exit 1
+
+      - name: Upload bootable exhaustive kernel system
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: zigux-linux-7.2-rc5-x86_64-${{ matrix.profile }}-${{ env.SOURCE_REF }}
+          path: ${{ steps.configure.outputs.package }}/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
