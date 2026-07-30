@@ -1,0 +1,186 @@
+name: Maximum x86_64 Linux source coverage
+run-name: Maximum x86_64 source coverage — ${{ github.run_number }}
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/x86-max-source-coverage.yml
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Branch, tag, or commit to resolve once for every x86 row.
+        required: true
+        type: string
+        default: rolling-linux-sync
+      rand_seeds:
+        description: Comma-separated deterministic KCONFIG_SEED values.
+        required: true
+        type: string
+        default: 0xC0FFEE,0x5EED
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: zigux-maximum-x86-source-coverage
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: Resolve source and generate every practical x86_64 row
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    outputs:
+      source_sha: ${{ steps.source.outputs.source_sha }}
+      x86_matrix: ${{ steps.matrix.outputs.x86_matrix }}
+      x86_count: ${{ steps.matrix.outputs.x86_count }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve exact rolling source commit
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REF: ${{ github.event.inputs.source_ref || 'rolling-linux-sync' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          encoded_ref="$(python3 -c 'import os,urllib.parse; print(urllib.parse.quote(os.environ["SOURCE_REF"], safe=""))')"
+          source_sha="$(curl --fail --silent --show-error --location \
+            --retry 5 --retry-all-errors --retry-delay 3 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/commits/${encoded_ref}" | jq -r '.sha // empty')"
+          [[ "${source_sha}" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "::error::Could not resolve ${SOURCE_REF} to an exact commit."
+            exit 1
+          }
+          echo "source_sha=${source_sha}" >> "${GITHUB_OUTPUT}"
+          echo "Resolved ${SOURCE_REF} to ${source_sha}."
+
+      - name: Generate and filter maximum x86 matrix
+        id: matrix
+        env:
+          RAND_SEEDS: ${{ github.event.inputs.rand_seeds || '0xC0FFEE,0x5EED' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/full_linux_matrix.py \
+            --config .github/config/full-linux-coverage.json \
+            --scope full \
+            --rand-seeds "${RAND_SEEDS}" \
+            --plan-output full-plan.json
+
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          plan = json.loads(Path('full-plan.json').read_text(encoding='utf-8'))
+          selected = []
+          for group in ('architecture', 'llvm', 'rust', 'hardening'):
+              selected.extend(
+                  row for row in plan['groups'][group]
+                  if row.get('architecture') == 'x86'
+              )
+
+          ids = [row['id'] for row in selected]
+          if len(ids) != len(set(ids)):
+              raise SystemExit('duplicate x86 matrix IDs')
+          required = {
+              'arch-x86-defconfig',
+              'arch-x86-allmodconfig',
+              'arch-x86-allyesconfig',
+              'llvm-x86-defconfig',
+              'llvm-x86-allmodconfig',
+              'rust-x86',
+          }
+          missing = sorted(required - set(ids))
+          if missing:
+              raise SystemExit(f'missing required x86 rows: {missing}')
+
+          output = {
+              'schema': 1,
+              'source_scope': 'x86-maximum',
+              'rand_seeds': plan['rand_seeds'],
+              'row_count': len(selected),
+              'rows': selected,
+          }
+          Path('x86-plan.json').write_text(
+              json.dumps(output, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          with Path(os.environ['GITHUB_OUTPUT']).open('a', encoding='utf-8') as handle:
+              handle.write('x86_matrix=' + json.dumps({'include': selected}, separators=(',', ':'), sort_keys=True) + '\n')
+              handle.write(f'x86_count={len(selected)}\n')
+          print(json.dumps({'x86_count': len(selected), 'ids': ids}, indent=2))
+          PY
+
+      - name: Upload immutable x86 campaign plan
+        uses: actions/upload-artifact@v7
+        with:
+          name: x86-maximum-campaign-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: x86-plan.json
+          retention-days: 30
+
+  x86-coverage:
+    name: x86_64 maximum configuration coverage
+    needs: plan
+    if: needs.plan.outputs.x86_count != '0'
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix: ${{ fromJSON(needs.plan.outputs.x86_matrix) }}
+    uses: ./.github/workflows/full-linux-row.yml
+    with:
+      row_json: ${{ toJSON(matrix) }}
+      source_sha: ${{ needs.plan.outputs.source_sha }}
+      runner_type: kernel
+
+  aggregate:
+    name: Aggregate x86_64 source-to-object coverage
+    needs: [plan, x86-coverage]
+    if: always() && needs.plan.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install report dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends zstd
+
+      - name: Download every compact x86 row record
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-record-*
+          path: campaign-records
+          merge-multiple: true
+
+      - name: Build x86 source-to-object and uncompiled-source reports
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/aggregate_linux_coverage.py \
+            --records-root campaign-records \
+            --repository "${GITHUB_REPOSITORY}" \
+            --source-sha "${{ needs.plan.outputs.source_sha }}" \
+            --output x86-maximum-coverage-report
+          cat x86-maximum-coverage-report/SUMMARY.md >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Upload consolidated x86 coverage report
+        uses: actions/upload-artifact@v7
+        with:
+          name: x86-maximum-source-coverage-${{ needs.plan.outputs.source_sha }}-${{ github.run_id }}
+          path: x86-maximum-coverage-report/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 9
