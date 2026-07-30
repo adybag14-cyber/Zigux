@@ -72,6 +72,32 @@ def test_config_and_matrices(temp: Path) -> None:
     full = generate_plan("full", temp / "full.json")
     assert full["counts"] == EXPECTED_FULL_COUNTS
     assert full["total_jobs"] == 179
+
+    mips_architecture_rows = [
+        row for row in full["groups"]["architecture"]
+        if row["architecture"] == "mips"
+    ]
+    assert next(
+        row for row in mips_architecture_rows
+        if row["profile"] == "defconfig"
+    )["targets"] == ["all", "modules"]
+    mips_broad_rows = [
+        row for row in mips_architecture_rows
+        if row["profile"] != "defconfig"
+    ]
+    assert mips_broad_rows
+    assert all(
+        row["targets"] == ["vmlinux", "modules"]
+        for row in mips_broad_rows
+    )
+
+    llvm_mips_rows = {
+        row["profile"]: row for row in full["groups"]["llvm"]
+        if row["architecture"] == "mips"
+    }
+    assert llvm_mips_rows["defconfig"]["targets"] == ["all", "modules"]
+    assert llvm_mips_rows["allmodconfig"]["targets"] == ["vmlinux", "modules"]
+
     for row in full["groups"]["rust"]:
         assert "rustup" in row["extra_packages"]
         assert "bindgen-0.71" not in row["extra_packages"]

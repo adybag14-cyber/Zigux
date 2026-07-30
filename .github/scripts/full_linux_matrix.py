@@ -10,6 +10,26 @@ from pathlib import Path
 from typing import Any
 
 
+BROAD_PROFILE_TARGET_OVERRIDES = {
+    # MIPS allmodconfig combines multiple generic FIT board fragments. The
+    # resulting packaging target can reference board-only images that are not
+    # present in the synthetic combined configuration. vmlinux + modules still
+    # compiles the complete kernel/module source set without testing an invalid
+    # multi-board boot image.
+    "mips": ["vmlinux", "modules"],
+}
+
+
+def coverage_targets(architecture: str, profile: str) -> list[str]:
+    broad = (
+        profile in {"allmodconfig", "allyesconfig"}
+        or profile.startswith("randconfig-")
+    )
+    if broad and architecture in BROAD_PROFILE_TARGET_OVERRIDES:
+        return list(BROAD_PROFILE_TARGET_OVERRIDES[architecture])
+    return ["all", "modules"]
+
+
 def slug(value: str) -> str:
     return "".join(ch if ch.isalnum() or ch in "._-" else "-" for ch in value).strip("-")
 
@@ -78,7 +98,7 @@ def main() -> int:
                     "gcc_triple": arch.get("gcc_triple", ""),
                     "llvm_ias": arch.get("llvm_ias", True),
                     "seed": seed,
-                    "targets": ["all", "modules"],
+                    "targets": coverage_targets(arch["id"], profile),
                     "extra_packages": [],
                 }
             )
@@ -101,7 +121,7 @@ def main() -> int:
                     "gcc_triple": arch.get("gcc_triple", ""),
                     "llvm_ias": arch.get("llvm_ias", True),
                     "seed": "",
-                    "targets": ["all", "modules"],
+                    "targets": coverage_targets(arch["id"], profile),
                     "extra_packages": [],
                 }
             )
