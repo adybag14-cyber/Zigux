@@ -1,0 +1,195 @@
+name: Zigux CachyOS exhaustive x86_64 media
+run-name: Zigux CachyOS exhaustive media — ${{ github.run_number }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Linux source branch, tag, or exact commit in this repository
+        required: true
+        default: master
+        type: string
+      disk_size_gib:
+        description: Persistent raw disk size before sparse compression
+        required: true
+        default: '24'
+        type: string
+  schedule:
+    - cron: '17 2 * * *'
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/cachyos-exhaustive-media.yml
+      - ci/cachyos/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zigux-cachyos-exhaustive-media
+  cancel-in-progress: false
+
+env:
+  SOURCE_REF: ${{ inputs.source_ref || github.sha }}
+  DISK_SIZE_GIB: ${{ inputs.disk_size_gib || '24' }}
+  CACHYOS_ISO_REF: 5de0e4c3fad800c0f351379989c31b86b65e02fe
+
+jobs:
+  kernel-packages:
+    name: Build Arch package — ${{ matrix.profile }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        profile: [allmodconfig, allyesconfig]
+
+    steps:
+      - name: Check out Zigux build infrastructure
+        uses: actions/checkout@v4
+
+      - name: Check out exact Linux source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_REF }}
+          path: linux
+          fetch-depth: 1
+
+      - name: Reclaim runner disk
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+            /opt/hostedtoolcache/CodeQL /usr/local/share/boost || true
+          sudo docker image prune --all --force || true
+          df -h
+
+      - name: Install kernel build and smoke-test dependencies
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            bc binutils bison build-essential busybox-static cpio dwarves fakeroot flex \
+            kmod libelf-dev libssl-dev pahole python3 qemu-system-x86 rsync xz-utils zstd
+
+      - name: Build exhaustive kernel and canonical Arch package
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p "kernel-dist/${{ matrix.profile }}"
+          chmod +x ci/cachyos/build-kernel-package.sh
+          ci/cachyos/build-kernel-package.sh \
+            "$GITHUB_WORKSPACE/linux" \
+            '${{ matrix.profile }}' \
+            "$GITHUB_WORKSPACE/kernel-dist/${{ matrix.profile }}"
+
+      - name: Record package inventory
+        if: always()
+        shell: bash
+        run: |
+          set -uo pipefail
+          find "kernel-dist/${{ matrix.profile }}" -maxdepth 2 -type f \
+            -printf '%P\t%s bytes\n' 2>/dev/null | sort | \
+            tee "kernel-dist/${{ matrix.profile }}/ARTIFACT-INVENTORY.txt" || true
+          df -h
+
+      - name: Upload kernel package and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zigux-kernel-${{ matrix.profile }}-${{ github.run_id }}
+          path: kernel-dist/${{ matrix.profile }}/
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0
+
+  cachyos-media:
+    name: Assemble and boot-test CachyOS ISO and GPT image
+    needs: kernel-packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+
+    steps:
+      - name: Check out Zigux media infrastructure
+        uses: actions/checkout@v4
+
+      - name: Check out pinned CachyOS Live ISO source
+        uses: actions/checkout@v4
+        with:
+          repository: CachyOS/CachyOS-Live-ISO
+          ref: ${{ env.CACHYOS_ISO_REF }}
+          path: cachyos-live-iso
+          fetch-depth: 1
+
+      - name: Reclaim runner disk
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+            /opt/hostedtoolcache/CodeQL /usr/local/share/boost || true
+          sudo docker image prune --all --force || true
+          df -h
+
+      - name: Download both kernel packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: zigux-kernel-*-${{ github.run_id }}
+          path: kernel-packages
+          merge-multiple: true
+
+      - name: Verify package inputs
+        shell: bash
+        run: |
+          set -euxo pipefail
+          find kernel-packages -type f -maxdepth 2 -printf '%p\t%s bytes\n' | sort
+          test "$(find kernel-packages -type f -name 'linux-zigux-*.pkg.tar.zst' | wc -l)" -eq 2
+
+      - name: Install host boot-test tools
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            ovmf qemu-system-x86 zstd
+
+      - name: Assemble CachyOS KDE ISO and persistent disk image
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p media-dist
+          chmod +x ci/cachyos/assemble-cachyos-media.sh ci/cachyos/assemble-in-arch.sh
+          SOURCE_REF="$SOURCE_REF" CACHYOS_ISO_REF="$CACHYOS_ISO_REF" \
+            ci/cachyos/assemble-cachyos-media.sh \
+              "$GITHUB_WORKSPACE/kernel-packages" \
+              "$GITHUB_WORKSPACE/cachyos-live-iso" \
+              "$GITHUB_WORKSPACE/media-dist" \
+              "$DISK_SIZE_GIB"
+
+      - name: Boot-test live ISO and persistent disk
+        shell: bash
+        run: |
+          set -euxo pipefail
+          chmod +x ci/cachyos/qemu-test-media.sh
+          ci/cachyos/qemu-test-media.sh "$GITHUB_WORKSPACE/media-dist"
+
+      - name: Record final media inventory
+        if: always()
+        shell: bash
+        run: |
+          set -uo pipefail
+          find media-dist -maxdepth 2 -type f -printf '%P\t%s bytes\n' 2>/dev/null | sort | \
+            tee media-dist/ARTIFACT-INVENTORY.txt || true
+          sha256sum media-dist/* 2>/dev/null > media-dist/ALL-FILES-SHA256SUMS || true
+          df -h
+
+      - name: Upload CachyOS media and boot logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zigux-cachyos-exhaustive-media-${{ github.run_id }}
+          path: media-dist/
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0
