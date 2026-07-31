@@ -9,7 +9,7 @@ imgz="$dist/zigux-cachyos-exhaustive-x86_64.img.zst"
 [[ -s "$iso" && -s "$imgz" ]] || { echo 'media files are missing' >&2; exit 1; }
 
 img="$RUNNER_TEMP/zigux-cachyos-test.img"
-zstd -T0 -d -f "$imgz" -o "$img"
+zstd -T0 --sparse -d -f "$imgz" -o "$img"
 
 run_test() {
   local name=$1; shift
