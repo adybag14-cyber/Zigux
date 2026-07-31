@@ -21,9 +21,11 @@ workspace="$(realpath "$(dirname "$0")/../..")"
 # A privileged Arch container keeps those mutable tools out of the Ubuntu host.
 docker run --rm --privileged --network host \
   -e DISK_GIB="$disk_gib" \
+  -e SOURCE_REF="${SOURCE_REF:-unknown}" \
+  -e CACHYOS_ISO_REF="${CACHYOS_ISO_REF:-unknown}" \
   -v /dev:/dev \
   -v "$workspace:/workspace" \
   -v "$packages:/packages:ro" \
-  -v "$iso_src:/cachyos-live-iso" \
+  -v "$iso_src:/cachyos-live-iso:ro" \
   -v "$dist:/dist" \
   archlinux:base-devel bash /workspace/ci/cachyos/assemble-in-arch.sh
