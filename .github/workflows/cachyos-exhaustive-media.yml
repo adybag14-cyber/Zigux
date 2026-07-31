@@ -7,7 +7,7 @@ on:
       source_ref:
         description: Linux source branch, tag, or exact commit in this repository
         required: true
-        default: master
+        default: 62cc90241548d5570ee68e01aaba6506964e9811
         type: string
       disk_size_gib:
         description: Persistent raw disk size before sparse compression
@@ -30,7 +30,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  SOURCE_REF: ${{ inputs.source_ref || github.sha }}
+  SOURCE_REF: ${{ inputs.source_ref || '62cc90241548d5570ee68e01aaba6506964e9811' }}
   DISK_SIZE_GIB: ${{ inputs.disk_size_gib || '24' }}
   CACHYOS_ISO_REF: 5de0e4c3fad800c0f351379989c31b86b65e02fe
 
