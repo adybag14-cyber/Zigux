@@ -143,7 +143,7 @@ PKGBUILD
 # .MTREE) rather than merely renaming a tar archive.
 docker run --rm \
   -v "$pkgbuild:/work" -w /work archlinux:base-devel bash -Eeuo pipefail -c '
-    pacman -Syu --noconfirm --needed base-devel zstd >/dev/null
+    pacman -Syu --noconfirm --needed base-devel zstd mkinitcpio >/dev/null
     useradd -m builder
     chown -R builder:builder /work
     su builder -c "makepkg --noconfirm --clean --cleanbuild --force"
