@@ -33,9 +33,14 @@ export KBUILD_BUILD_TIMESTAMP='Thu Jan 1 00:00:00 UTC 1970'
 make -C "$src" O="$out" "$profile"
 cp "$out/.config" "$dist/config-${profile}-original"
 
-# Keep the broad profile while removing mutually specialised instrumentation
-# that made the source-coverage campaign deliberately non-production-like.
-for symbol in WERROR RUST GCC_PLUGINS DEBUG_INFO KASAN KCSAN GCOV_KERNEL MODULE_SIG_ALL; do
+# Keep the broad compile profile while removing mutually specialised
+# instrumentation plus two boot-time options proven hostile to this media lane:
+# FTRACE_STARTUP_TEST wedges allmodconfig in the postponed tracer self-tests
+# under QEMU TCG, while the MA35D1 console emits through console index -1 in
+# allyesconfig and floods the serial log before PID 1 can be reached.
+for symbol in \
+  WERROR RUST GCC_PLUGINS DEBUG_INFO KASAN KCSAN GCOV_KERNEL MODULE_SIG_ALL \
+  FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE; do
   "$cfg" --file "$out/.config" --disable "$symbol"
 done
 "$cfg" --file "$out/.config" --set-str SYSTEM_TRUSTED_KEYS ''
@@ -66,6 +71,12 @@ for required in X86_64 BLK_DEV_INITRD DEVTMPFS SERIAL_8250_CONSOLE EXT4_FS SQUAS
     echo "required CONFIG_${required} was not enabled" >&2
     exit 1
   }
+done
+for forbidden in FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE; do
+  if grep -q "^CONFIG_${forbidden}=y$" "$out/.config"; then
+    echo "boot-hostile CONFIG_${forbidden} was unexpectedly re-enabled" >&2
+    exit 1
+  fi
 done
 cp "$out/.config" "$dist/config-${profile}-bootable"
 
@@ -158,7 +169,9 @@ printf '%s\n' "$pkgbase" > "$dist/package-name-${profile}.txt"
 sha256sum "$dist"/* > "$dist/SHA256SUMS-${profile}"
 
 # A direct kernel smoke test catches a kernel that compiled but cannot reach
-# PID 1. The workflow preserves the package even if this diagnostic fails.
+# PID 1. Keep this as a hard gate because the downstream CachyOS media boots
+# allmodconfig by default; assembling media from a non-booting kernel only
+# moves the same failure into the much more expensive image job.
 root="$smoke/root"
 mkdir -p "$root"/{bin,dev,proc,sys}
 cp /usr/bin/busybox "$root/bin/busybox"
