@@ -45,8 +45,12 @@ cp "$out/.config" "$dist/config-${profile}-original"
 # bootable kernel that must carry the CachyOS media. COMPILE_TEST also admits
 # foreign-hardware drivers on x86; their built-in BMan/QMan tests require DPAA
 # portals and fault during init when no such hardware exists under QEMU.
+# DEBUG_KOBJECT_RELEASE defers failed-device teardown and races block-mq SRCU
+# cleanup during the same allyesconfig boot, so debug instrumentation remains
+# represented by the original artifact rather than the media kernel.
 for symbol in \
-  WERROR RUST GCC_PLUGINS DEBUG_INFO KASAN KCSAN GCOV_KERNEL MODULE_SIG_ALL COMPILE_TEST \
+  WERROR RUST GCC_PLUGINS DEBUG_INFO DEBUG_KERNEL DEBUG_KOBJECT_RELEASE DEBUG_PAGEALLOC \
+  KASAN KCSAN GCOV_KERNEL MODULE_SIG_ALL COMPILE_TEST \
   FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE KCOV \
   RUNTIME_TESTING_MENU BACKTRACE_SELF_TEST TEST_CLOCKSOURCE_WATCHDOG \
   DEBUG_OBJECTS_SELFTEST DEBUG_LOCKING_API_SELFTESTS \
@@ -93,7 +97,8 @@ for required_builtin in BINFMT_SCRIPT; do
   }
 done
 for forbidden in \
-  COMPILE_TEST FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE KCOV \
+  COMPILE_TEST DEBUG_KERNEL DEBUG_KOBJECT_RELEASE DEBUG_PAGEALLOC \
+  FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE KCOV \
   RUNTIME_TESTING_MENU BACKTRACE_SELF_TEST TEST_CLOCKSOURCE_WATCHDOG \
   DEBUG_OBJECTS_SELFTEST DEBUG_LOCKING_API_SELFTESTS \
   LOCK_TORTURE_TEST SCF_TORTURE_TEST RCU_SCALE_TEST RCU_TORTURE_TEST RCU_REF_SCALE_TEST \
