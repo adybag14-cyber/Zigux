@@ -34,13 +34,15 @@ make -C "$src" O="$out" "$profile"
 cp "$out/.config" "$dist/config-${profile}-original"
 
 # Keep the broad compile profile while removing mutually specialised
-# instrumentation plus two boot-time options proven hostile to this media lane:
+# instrumentation plus boot-time options proven hostile to this media lane:
 # FTRACE_STARTUP_TEST wedges allmodconfig in the postponed tracer self-tests
 # under QEMU TCG, while the MA35D1 console emits through console index -1 in
-# allyesconfig and floods the serial log before PID 1 can be reached.
+# allyesconfig and floods the serial log before PID 1 can be reached. KCOV's
+# instrument-all path recursively faults in __sanitizer_cov_trace_pc while
+# kcov_init is allocating its per-CPU IRQ areas in both exhaustive profiles.
 for symbol in \
   WERROR RUST GCC_PLUGINS DEBUG_INFO KASAN KCSAN GCOV_KERNEL MODULE_SIG_ALL \
-  FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE; do
+  FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE KCOV; do
   "$cfg" --file "$out/.config" --disable "$symbol"
 done
 "$cfg" --file "$out/.config" --set-str SYSTEM_TRUSTED_KEYS ''
@@ -72,7 +74,7 @@ for required in X86_64 BLK_DEV_INITRD DEVTMPFS SERIAL_8250_CONSOLE EXT4_FS SQUAS
     exit 1
   }
 done
-for forbidden in FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE; do
+for forbidden in FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE KCOV; do
   if grep -q "^CONFIG_${forbidden}=y$" "$out/.config"; then
     echo "boot-hostile CONFIG_${forbidden} was unexpectedly re-enabled" >&2
     exit 1

@@ -49,6 +49,10 @@ jobs:
       - name: Check out Zigux build infrastructure
         uses: actions/checkout@v4
 
+      - name: Validate bootability override contract
+        shell: bash
+        run: python3 ci/cachyos/test_boot_config_contract.py
+
       - name: Check out exact Linux source
         uses: actions/checkout@v4
         with:
