@@ -195,14 +195,11 @@ sha256sum "$dist"/* > "$dist/SHA256SUMS-${profile}"
 # allmodconfig by default; assembling media from a non-booting kernel only
 # moves the same failure into the much more expensive image job.
 root="$smoke/root"
-mkdir -p "$root"/{bin,dev,proc,sys}
+mkdir -p "$root/bin"
 cp /usr/bin/busybox "$root/bin/busybox"
-for applet in sh mount mkdir echo uname poweroff sync; do ln -s busybox "$root/bin/$applet"; done
+for applet in sh echo uname poweroff sync; do ln -s busybox "$root/bin/$applet"; done
 cat > "$root/init" <<'INIT'
 #!/bin/sh
-mount -t proc proc /proc
-mount -t sysfs sysfs /sys
-mount -t devtmpfs devtmpfs /dev 2>/dev/null || true
 echo ZIGUX_KERNEL_BOOT_OK
 uname -a
 sync

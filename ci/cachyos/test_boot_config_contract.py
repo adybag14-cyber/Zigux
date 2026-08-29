@@ -91,6 +91,26 @@ def main() -> None:
         "config provenance/order must be original -> disable -> olddefconfig -> assert -> bootable",
     )
 
+    smoke_init = re.search(
+        r"cat > \"\$root/init\" <<'INIT'\n(?P<body>.*?)\nINIT",
+        text,
+        re.DOTALL,
+    )
+    require(smoke_init is not None, "direct-smoke /init heredoc was not found")
+    init_commands = [
+        line
+        for line in smoke_init.group("body").splitlines()
+        if line and not line.startswith("#!")
+    ]
+    require(
+        init_commands[0] == "echo ZIGUX_KERNEL_BOOT_OK",
+        "the PID 1 marker must be the first smoke-init command",
+    )
+    require(
+        not any(command.startswith("mount ") for command in init_commands),
+        "direct PID 1 smoke must not block on filesystem/module setup",
+    )
+
     print("CachyOS boot config contract: OK")
 
 
