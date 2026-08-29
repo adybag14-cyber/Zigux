@@ -32,11 +32,17 @@ def main() -> None:
 
     required_boot_disables = {
         "BACKTRACE_SELF_TEST",
+        "COMPILE_TEST",
         "CPA_DEBUG",
         "DEBUG_LOCKING_API_SELFTESTS",
         "DEBUG_OBJECTS_SELFTEST",
         "DMAPOOL_TEST",
         "FTRACE_STARTUP_TEST",
+        "FSL_BMAN_TEST",
+        "FSL_BMAN_TEST_API",
+        "FSL_QMAN_TEST",
+        "FSL_QMAN_TEST_API",
+        "FSL_QMAN_TEST_STASH",
         "KALLSYMS_SELFTEST",
         "SERIAL_NUVOTON_MA35D1_CONSOLE",
         "KCOV",

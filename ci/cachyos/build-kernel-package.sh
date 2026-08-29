@@ -42,14 +42,17 @@ cp "$out/.config" "$dist/config-${profile}-original"
 # kcov_init is allocating its per-CPU IRQ areas in both exhaustive profiles.
 # Built-in runtime and torture tests can consume the full QEMU smoke window
 # before PID 1; retain them in the original config artifact, but not in the
-# bootable kernel that must carry the CachyOS media.
+# bootable kernel that must carry the CachyOS media. COMPILE_TEST also admits
+# foreign-hardware drivers on x86; their built-in BMan/QMan tests require DPAA
+# portals and fault during init when no such hardware exists under QEMU.
 for symbol in \
-  WERROR RUST GCC_PLUGINS DEBUG_INFO KASAN KCSAN GCOV_KERNEL MODULE_SIG_ALL \
+  WERROR RUST GCC_PLUGINS DEBUG_INFO KASAN KCSAN GCOV_KERNEL MODULE_SIG_ALL COMPILE_TEST \
   FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE KCOV \
   RUNTIME_TESTING_MENU BACKTRACE_SELF_TEST TEST_CLOCKSOURCE_WATCHDOG \
   DEBUG_OBJECTS_SELFTEST DEBUG_LOCKING_API_SELFTESTS \
   LOCK_TORTURE_TEST SCF_TORTURE_TEST RCU_SCALE_TEST RCU_TORTURE_TEST RCU_REF_SCALE_TEST \
-  DMAPOOL_TEST KALLSYMS_SELFTEST CPA_DEBUG OF_UNITTEST; do
+  DMAPOOL_TEST KALLSYMS_SELFTEST CPA_DEBUG OF_UNITTEST \
+  FSL_BMAN_TEST FSL_BMAN_TEST_API FSL_QMAN_TEST FSL_QMAN_TEST_API FSL_QMAN_TEST_STASH; do
   "$cfg" --file "$out/.config" --disable "$symbol"
 done
 "$cfg" --file "$out/.config" --set-str SYSTEM_TRUSTED_KEYS ''
@@ -90,11 +93,12 @@ for required_builtin in BINFMT_SCRIPT; do
   }
 done
 for forbidden in \
-  FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE KCOV \
+  COMPILE_TEST FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE KCOV \
   RUNTIME_TESTING_MENU BACKTRACE_SELF_TEST TEST_CLOCKSOURCE_WATCHDOG \
   DEBUG_OBJECTS_SELFTEST DEBUG_LOCKING_API_SELFTESTS \
   LOCK_TORTURE_TEST SCF_TORTURE_TEST RCU_SCALE_TEST RCU_TORTURE_TEST RCU_REF_SCALE_TEST \
-  DMAPOOL_TEST KALLSYMS_SELFTEST CPA_DEBUG OF_UNITTEST; do
+  DMAPOOL_TEST KALLSYMS_SELFTEST CPA_DEBUG OF_UNITTEST \
+  FSL_BMAN_TEST FSL_BMAN_TEST_API FSL_QMAN_TEST FSL_QMAN_TEST_API FSL_QMAN_TEST_STASH; do
   if grep -Eq "^CONFIG_${forbidden}=(y|m)$" "$out/.config"; then
     echo "boot-hostile CONFIG_${forbidden} was unexpectedly re-enabled" >&2
     exit 1
