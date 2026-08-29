@@ -40,9 +40,16 @@ cp "$out/.config" "$dist/config-${profile}-original"
 # allyesconfig and floods the serial log before PID 1 can be reached. KCOV's
 # instrument-all path recursively faults in __sanitizer_cov_trace_pc while
 # kcov_init is allocating its per-CPU IRQ areas in both exhaustive profiles.
+# Built-in runtime and torture tests can consume the full QEMU smoke window
+# before PID 1; retain them in the original config artifact, but not in the
+# bootable kernel that must carry the CachyOS media.
 for symbol in \
   WERROR RUST GCC_PLUGINS DEBUG_INFO KASAN KCSAN GCOV_KERNEL MODULE_SIG_ALL \
-  FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE KCOV; do
+  FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE KCOV \
+  RUNTIME_TESTING_MENU BACKTRACE_SELF_TEST TEST_CLOCKSOURCE_WATCHDOG \
+  DEBUG_OBJECTS_SELFTEST DEBUG_LOCKING_API_SELFTESTS \
+  LOCK_TORTURE_TEST SCF_TORTURE_TEST RCU_SCALE_TEST RCU_TORTURE_TEST RCU_REF_SCALE_TEST \
+  DMAPOOL_TEST KALLSYMS_SELFTEST CPA_DEBUG OF_UNITTEST; do
   "$cfg" --file "$out/.config" --disable "$symbol"
 done
 "$cfg" --file "$out/.config" --set-str SYSTEM_TRUSTED_KEYS ''
@@ -52,11 +59,13 @@ done
 "$cfg" --file "$out/.config" --set-str DEFAULT_HOSTNAME "zigux-${profile}"
 
 # Force only the facilities required to boot the ArchISO and disk image on
-# physical x86_64 hardware and under QEMU. allmodconfig remains module-heavy;
+# physical x86_64 hardware and under QEMU. BINFMT_SCRIPT must be built in
+# because the smoke initramfs reaches PID 1 through its /init shell script,
+# before any module can be loaded. allmodconfig remains module-heavy;
 # allyesconfig remains built-in-heavy.
 for symbol in \
   64BIT X86_64 MODULES BLK_DEV_INITRD RD_GZIP DEVTMPFS DEVTMPFS_MOUNT TMPFS \
-  PROC_FS SYSFS BINFMT_ELF PRINTK TTY SERIAL_8250 SERIAL_8250_CONSOLE \
+  PROC_FS SYSFS BINFMT_ELF BINFMT_SCRIPT PRINTK TTY SERIAL_8250 SERIAL_8250_CONSOLE \
   PCI PCI_MSI ACPI EFI EFI_STUB EFI_PARTITION PARTITION_ADVANCED \
   BLOCK SCSI BLK_DEV_SD ATA SATA_AHCI NVME_CORE BLK_DEV_NVME \
   VIRTIO VIRTIO_PCI VIRTIO_BLK VIRTIO_NET VIRTIO_CONSOLE \
@@ -74,8 +83,19 @@ for required in X86_64 BLK_DEV_INITRD DEVTMPFS SERIAL_8250_CONSOLE EXT4_FS SQUAS
     exit 1
   }
 done
-for forbidden in FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE KCOV; do
-  if grep -q "^CONFIG_${forbidden}=y$" "$out/.config"; then
+for required_builtin in BINFMT_SCRIPT; do
+  grep -q "^CONFIG_${required_builtin}=y$" "$out/.config" || {
+    echo "required built-in CONFIG_${required_builtin} was not enabled" >&2
+    exit 1
+  }
+done
+for forbidden in \
+  FTRACE_STARTUP_TEST SERIAL_NUVOTON_MA35D1_CONSOLE KCOV \
+  RUNTIME_TESTING_MENU BACKTRACE_SELF_TEST TEST_CLOCKSOURCE_WATCHDOG \
+  DEBUG_OBJECTS_SELFTEST DEBUG_LOCKING_API_SELFTESTS \
+  LOCK_TORTURE_TEST SCF_TORTURE_TEST RCU_SCALE_TEST RCU_TORTURE_TEST RCU_REF_SCALE_TEST \
+  DMAPOOL_TEST KALLSYMS_SELFTEST CPA_DEBUG OF_UNITTEST; do
+  if grep -Eq "^CONFIG_${forbidden}=(y|m)$" "$out/.config"; then
     echo "boot-hostile CONFIG_${forbidden} was unexpectedly re-enabled" >&2
     exit 1
   fi

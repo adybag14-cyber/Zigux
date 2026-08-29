@@ -18,7 +18,8 @@ def main() -> None:
     text = SCRIPT.read_text(encoding="utf-8")
 
     disable = re.search(
-        r"for symbol in \\\n(?P<body>.*?)\n\s*\"\$cfg\" .*? --disable \"\$symbol\"",
+        r"for symbol in \\\n(?P<body>(?:(?!\ndone).)*?)\n"
+        r'\s*"\$cfg" [^\n]* --disable "\$symbol"\ndone',
         text,
         re.DOTALL,
     )
@@ -29,18 +30,55 @@ def main() -> None:
     require(forbidden is not None, "post-olddefconfig forbidden loop was not found")
     forbidden_symbols = set(re.findall(r"[A-Z][A-Z0-9_]+", forbidden.group("body")))
 
-    required_boot_guards = {
+    required_boot_disables = {
+        "BACKTRACE_SELF_TEST",
+        "CPA_DEBUG",
+        "DEBUG_LOCKING_API_SELFTESTS",
+        "DEBUG_OBJECTS_SELFTEST",
+        "DMAPOOL_TEST",
         "FTRACE_STARTUP_TEST",
+        "KALLSYMS_SELFTEST",
         "SERIAL_NUVOTON_MA35D1_CONSOLE",
         "KCOV",
+        "LOCK_TORTURE_TEST",
+        "OF_UNITTEST",
+        "RCU_REF_SCALE_TEST",
+        "RCU_SCALE_TEST",
+        "RCU_TORTURE_TEST",
+        "RUNTIME_TESTING_MENU",
+        "SCF_TORTURE_TEST",
+        "TEST_CLOCKSOURCE_WATCHDOG",
     }
     require(
-        required_boot_guards <= disable_symbols,
-        f"missing disable guards: {sorted(required_boot_guards - disable_symbols)}",
+        required_boot_disables <= disable_symbols,
+        f"missing disable guards: {sorted(required_boot_disables - disable_symbols)}",
     )
     require(
-        required_boot_guards <= forbidden_symbols,
-        f"missing fail-closed guards: {sorted(required_boot_guards - forbidden_symbols)}",
+        required_boot_disables <= forbidden_symbols,
+        f"missing fail-closed guards: {sorted(required_boot_disables - forbidden_symbols)}",
+    )
+
+    enable = re.search(
+        r"for symbol in \\\n(?P<body>(?:(?!\ndone).)*?)\n"
+        r'\s*"\$cfg" [^\n]* --enable "\$symbol"\ndone',
+        text,
+        re.DOTALL,
+    )
+    require(enable is not None, "bootability enable loop was not found")
+    enable_symbols = set(re.findall(r"[A-Z][A-Z0-9_]+", enable.group("body")))
+
+    required_builtin = re.search(r"for required_builtin in (?P<body>[^;]+); do", text)
+    require(
+        required_builtin is not None,
+        "post-olddefconfig required-built-in loop was not found",
+    )
+    required_builtin_symbols = set(
+        re.findall(r"[A-Z][A-Z0-9_]+", required_builtin.group("body"))
+    )
+    require("BINFMT_SCRIPT" in enable_symbols, "BINFMT_SCRIPT must be built in for /init")
+    require(
+        "BINFMT_SCRIPT" in required_builtin_symbols,
+        "BINFMT_SCRIPT=y must be checked after olddefconfig",
     )
 
     original = text.index('cp "$out/.config" "$dist/config-${profile}-original"')
