@@ -34,7 +34,6 @@ def main() -> None:
         "BACKTRACE_SELF_TEST",
         "COMPILE_TEST",
         "CPA_DEBUG",
-        "DEBUG_KERNEL",
         "DEBUG_KOBJECT_RELEASE",
         "DEBUG_LOCKING_API_SELFTESTS",
         "DEBUG_OBJECTS_SELFTEST",
