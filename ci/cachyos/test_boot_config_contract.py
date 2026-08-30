@@ -35,6 +35,8 @@ def main() -> None:
         "BTRFS_FS_RUN_SANITY_TESTS",
         "COMPILE_TEST",
         "CPA_DEBUG",
+        "CRYPTO_SELFTESTS",
+        "CRYPTO_SELFTESTS_FULL",
         "DEBUG_KOBJECT_RELEASE",
         "DEBUG_LOCKING_API_SELFTESTS",
         "DEBUG_OBJECTS_SELFTEST",
@@ -119,6 +121,13 @@ def main() -> None:
     require(
         not any(command.startswith("mount ") for command in init_commands),
         "direct PID 1 smoke must not block on filesystem/module setup",
+    )
+
+    smoke_timeout = re.search(r"timeout (?P<seconds>\d+) qemu-system-x86_64", text)
+    require(smoke_timeout is not None, "direct kernel QEMU timeout was not found")
+    require(
+        int(smoke_timeout.group("seconds")) >= 420,
+        "exhaustive TCG boot needs the same hard window as media boot",
     )
 
     print("CachyOS boot config contract: OK")
