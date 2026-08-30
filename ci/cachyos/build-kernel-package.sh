@@ -46,8 +46,10 @@ cp "$out/.config" "$dist/config-${profile}-original"
 # foreign-hardware drivers on x86; their built-in BMan/QMan tests require DPAA
 # portals and fault during init when no such hardware exists under QEMU.
 # DEBUG_KOBJECT_RELEASE defers failed-device teardown and races block-mq SRCU
-# cleanup during the same allyesconfig boot, so those hazardous debug paths
-# remain represented by the original artifact rather than the media kernel.
+# cleanup during the same allyesconfig boot. KUnit's aggregate suite also
+# autoruns intentional fault-injection tests (including a null dereference)
+# before PID 1. Keep those debug/test paths in the original config artifact,
+# not in the kernel that must boot the installation media.
 for symbol in \
   WERROR RUST GCC_PLUGINS DEBUG_INFO DEBUG_KERNEL DEBUG_KOBJECT_RELEASE DEBUG_PAGEALLOC \
   KASAN KCSAN GCOV_KERNEL MODULE_SIG_ALL COMPILE_TEST \
@@ -55,6 +57,8 @@ for symbol in \
   RUNTIME_TESTING_MENU BACKTRACE_SELF_TEST TEST_CLOCKSOURCE_WATCHDOG \
   RING_BUFFER_STARTUP_TEST BTRFS_FS_RUN_SANITY_TESTS \
   CRYPTO_SELFTESTS CRYPTO_SELFTESTS_FULL \
+  KUNIT KUNIT_ALL_TESTS KUNIT_TEST KUNIT_FAULT_TEST \
+  KUNIT_DEFAULT_ENABLED KUNIT_AUTORUN_ENABLED \
   DEBUG_OBJECTS_SELFTEST DEBUG_LOCKING_API_SELFTESTS \
   LOCK_TORTURE_TEST SCF_TORTURE_TEST RCU_SCALE_TEST RCU_TORTURE_TEST RCU_REF_SCALE_TEST \
   DMAPOOL_TEST KALLSYMS_SELFTEST CPA_DEBUG OF_UNITTEST \
@@ -104,6 +108,8 @@ for forbidden in \
   RUNTIME_TESTING_MENU BACKTRACE_SELF_TEST TEST_CLOCKSOURCE_WATCHDOG \
   RING_BUFFER_STARTUP_TEST BTRFS_FS_RUN_SANITY_TESTS \
   CRYPTO_SELFTESTS CRYPTO_SELFTESTS_FULL \
+  KUNIT KUNIT_ALL_TESTS KUNIT_TEST KUNIT_FAULT_TEST \
+  KUNIT_DEFAULT_ENABLED KUNIT_AUTORUN_ENABLED \
   DEBUG_OBJECTS_SELFTEST DEBUG_LOCKING_API_SELFTESTS \
   LOCK_TORTURE_TEST SCF_TORTURE_TEST RCU_SCALE_TEST RCU_TORTURE_TEST RCU_REF_SCALE_TEST \
   DMAPOOL_TEST KALLSYMS_SELFTEST CPA_DEBUG OF_UNITTEST \
