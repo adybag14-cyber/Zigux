@@ -270,6 +270,7 @@ cat > "$profile/packages.x86_64" <<'ISOPKGS'
 archiso
 base
 cachyos-keyring
+cachyos-mirrorlist
 linux-cachyos-lts
 linux-firmware
 amd-ucode

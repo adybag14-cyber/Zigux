@@ -60,11 +60,17 @@ def main() -> None:
         .split("\nISOPKGS", maxsplit=1)[0]
         .split()
     )
-    required_pxe_packages = {"mkinitcpio-nfs-utils", "nbd", "nfs-utils", "pv"}
+    required_live_packages = {
+        "cachyos-mirrorlist",
+        "mkinitcpio-nfs-utils",
+        "nbd",
+        "nfs-utils",
+        "pv",
+    }
     require(
-        required_pxe_packages <= iso_packages,
-        "live package list is missing PXE initramfs dependencies: "
-        f"{sorted(required_pxe_packages - iso_packages)}",
+        required_live_packages <= iso_packages,
+        "live package list is missing pinned profile dependencies: "
+        f"{sorted(required_live_packages - iso_packages)}",
     )
 
     require(
