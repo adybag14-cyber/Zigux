@@ -321,20 +321,22 @@ sed -i \
   -e 's/^iso_application=.*/iso_application="Zigux CachyOS Exhaustive Live System"/' \
   "$profile/profiledef.sh"
 
-mkdir -p "$profile/airootfs/etc/mkinitcpio.d" \
+mkdir -p "$profile/airootfs/root" \
   "$profile/airootfs/etc/systemd/system/multi-user.target.wants"
-cat > "$profile/airootfs/etc/mkinitcpio.d/linux-zigux-allmodconfig.preset" <<'PRESET'
-PRESETS=('archiso')
-ALL_kver='/boot/vmlinuz-linux-zigux-allmodconfig'
-archiso_config='/etc/mkinitcpio.conf.d/archiso.conf'
-archiso_image='/boot/initramfs-linux-zigux-allmodconfig.img'
-PRESET
-cat > "$profile/airootfs/etc/mkinitcpio.d/linux-zigux-allyesconfig.preset" <<'PRESET'
-PRESETS=('archiso')
-ALL_kver='/boot/vmlinuz-linux-zigux-allyesconfig'
-archiso_config='/etc/mkinitcpio.conf.d/archiso.conf'
-archiso_image='/boot/initramfs-linux-zigux-allyesconfig.img'
-PRESET
+# mkarchiso copies profile overlays before pacstrap, so pre-creating a package-owned
+# preset makes pacman reject the kernel package. Its pinned post-package customization
+# hook instead regenerates only the two live initramfs images with the archiso hooks.
+cat > "$profile/airootfs/root/customize_airootfs.sh" <<'CUSTOMIZE'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+for kernel in linux-zigux-allmodconfig linux-zigux-allyesconfig; do
+  mkinitcpio \
+    -c /etc/mkinitcpio.conf.d/archiso.conf \
+    -k "/boot/vmlinuz-${kernel}" \
+    -g "/boot/initramfs-${kernel}.img"
+done
+CUSTOMIZE
+chmod 0755 "$profile/airootfs/root/customize_airootfs.sh"
 install_marker "$profile/airootfs"
 
 mkdir -p "$profile/airootfs/etc/systemd/system"

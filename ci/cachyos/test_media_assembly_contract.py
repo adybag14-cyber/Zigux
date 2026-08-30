@@ -42,6 +42,19 @@ def main() -> None:
         'rm -f "$img"' in assembler,
         "failed assembly must remove the non-final raw image",
     )
+    require(
+        '$profile/airootfs/root/customize_airootfs.sh' in assembler,
+        "live initramfs customization must run after package installation",
+    )
+    require(
+        '$profile/airootfs/etc/mkinitcpio.d' not in assembler,
+        "profile overlay must not collide with package-owned mkinitcpio presets",
+    )
+    require(
+        "-c /etc/mkinitcpio.conf.d/archiso.conf" in assembler
+        and '-g "/boot/initramfs-${kernel}.img"' in assembler,
+        "custom kernels must receive archiso-hook initramfs images",
+    )
 
     require(
         "kernel_artifact_run_id:" in workflow,
