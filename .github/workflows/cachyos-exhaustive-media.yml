@@ -14,6 +14,11 @@ on:
         required: true
         default: '24'
         type: string
+      kernel_artifact_run_id:
+        description: Reuse successful kernel artifacts from this workflow run ID
+        required: false
+        default: ''
+        type: string
   schedule:
     - cron: '17 2 * * *'
   push:
@@ -23,10 +28,11 @@ on:
       - ci/cachyos/**
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
-  group: zigux-cachyos-exhaustive-media
+  group: zigux-cachyos-exhaustive-media-${{ inputs.kernel_artifact_run_id || 'full' }}
   cancel-in-progress: false
 
 env:
@@ -36,6 +42,7 @@ env:
 
 jobs:
   kernel-packages:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.kernel_artifact_run_id == '' }}
     name: Build Arch package — ${{ matrix.profile }}
     runs-on: ubuntu-24.04
     timeout-minutes: 360
@@ -51,7 +58,9 @@ jobs:
 
       - name: Validate bootability override contract
         shell: bash
-        run: python3 ci/cachyos/test_boot_config_contract.py
+        run: |
+          python3 ci/cachyos/test_boot_config_contract.py
+          python3 ci/cachyos/test_media_assembly_contract.py
 
       - name: Check out exact Linux source
         uses: actions/checkout@v4
@@ -112,12 +121,19 @@ jobs:
   cachyos-media:
     name: Assemble and boot-test CachyOS ISO and GPT image
     needs: kernel-packages
+    if: >-
+      ${{ always() && (needs.kernel-packages.result == 'success' ||
+          (github.event_name == 'workflow_dispatch' && inputs.kernel_artifact_run_id != '')) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 360
 
     steps:
       - name: Check out Zigux media infrastructure
         uses: actions/checkout@v4
+
+      - name: Validate media assembly contract
+        shell: bash
+        run: python3 ci/cachyos/test_media_assembly_contract.py
 
       - name: Check out pinned CachyOS Live ISO source
         uses: actions/checkout@v4
@@ -139,9 +155,11 @@ jobs:
       - name: Download both kernel packages
         uses: actions/download-artifact@v4
         with:
-          pattern: zigux-kernel-*-${{ github.run_id }}
+          pattern: zigux-kernel-*-${{ inputs.kernel_artifact_run_id || github.run_id }}
           path: kernel-packages
           merge-multiple: true
+          run-id: ${{ inputs.kernel_artifact_run_id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify package inputs
         shell: bash
@@ -193,7 +211,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zigux-cachyos-exhaustive-media-${{ github.run_id }}
-          path: media-dist/
+          path: |
+            media-dist/
+            !media-dist/*.img
           if-no-files-found: warn
           retention-days: 7
           compression-level: 0

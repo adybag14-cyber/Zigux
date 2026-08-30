@@ -21,11 +21,49 @@ iso=/dist/zigux-cachyos-exhaustive-x86_64.iso
 disk_gib=${DISK_GIB:-32}
 loopdev=
 
+stop_target_keyring() {
+  [[ -x "$root/usr/bin/gpgconf" ]] || return 0
+  arch-chroot "$root" gpgconf --homedir /etc/pacman.d/gnupg --kill all \
+    >/dev/null 2>&1 || true
+}
+
+report_target_holders() {
+  local proc_path pid proc_root proc_cwd
+  for proc_path in /proc/[0-9]*; do
+    pid=${proc_path##*/}
+    proc_root=$(readlink -f "$proc_path/root" 2>/dev/null || true)
+    proc_cwd=$(readlink -f "$proc_path/cwd" 2>/dev/null || true)
+    if [[ "$proc_root" == "$root" || "$proc_root" == "$root/"* ||
+          "$proc_cwd" == "$root" || "$proc_cwd" == "$root/"* ]]; then
+      printf 'target holder pid=%s root=%q cwd=%q cmd=' "$pid" "$proc_root" "$proc_cwd" >&2
+      tr '\0' ' ' < "$proc_path/cmdline" >&2 2>/dev/null || true
+      printf '\n' >&2
+    fi
+  done
+}
+
+unmount_target() {
+  local attempt
+  stop_target_keyring
+  for attempt in 1 2 3 4 5; do
+    sync
+    mountpoint -q "$root" || return 0
+    if umount -R "$root"; then
+      return 0
+    fi
+    sleep "$attempt"
+  done
+  findmnt -R "$root" >&2 || true
+  report_target_holders
+  die "target root remained busy after bounded keyring teardown and unmount retries"
+}
+
 cleanup() {
   set +e
-  if mountpoint -q "$root/boot/efi"; then umount -R "$root/boot/efi"; fi
+  stop_target_keyring
   if mountpoint -q "$root"; then umount -R "$root"; fi
   if [[ -n "$loopdev" ]]; then losetup -d "$loopdev" 2>/dev/null || true; fi
+  rm -f "$img"
 }
 trap cleanup EXIT INT TERM
 
@@ -163,6 +201,7 @@ configure_root "$root"
 log "Generate initramfs images"
 arch-chroot "$root" pacman-key --init
 arch-chroot "$root" pacman-key --populate archlinux cachyos
+stop_target_keyring
 arch-chroot "$root" mkinitcpio -P
 
 root_uuid=$(blkid -s UUID -o value "${loopdev}p3")
@@ -216,8 +255,7 @@ Boot choices:
 README
 
 sync
-umount -R "$root/boot/efi"
-umount -R "$root"
+unmount_target
 losetup -d "$loopdev"
 loopdev=
 
