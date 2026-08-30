@@ -277,6 +277,10 @@ intel-ucode
 linux-zigux-allmodconfig
 linux-zigux-allyesconfig
 mkinitcpio-archiso
+mkinitcpio-nfs-utils
+nbd
+nfs-utils
+pv
 grub
 syslinux
 networkmanager

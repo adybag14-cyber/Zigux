@@ -55,6 +55,17 @@ def main() -> None:
         and '-g "/boot/initramfs-${kernel}.img"' in assembler,
         "custom kernels must receive archiso-hook initramfs images",
     )
+    iso_packages = set(
+        assembler.split("<<'ISOPKGS'\n", maxsplit=1)[1]
+        .split("\nISOPKGS", maxsplit=1)[0]
+        .split()
+    )
+    required_pxe_packages = {"mkinitcpio-nfs-utils", "nbd", "nfs-utils", "pv"}
+    require(
+        required_pxe_packages <= iso_packages,
+        "live package list is missing PXE initramfs dependencies: "
+        f"{sorted(required_pxe_packages - iso_packages)}",
+    )
 
     require(
         "kernel_artifact_run_id:" in workflow,
