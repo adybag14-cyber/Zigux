@@ -32,6 +32,7 @@ def main() -> None:
 
     required_boot_disables = {
         "BACKTRACE_SELF_TEST",
+        "BTRFS_FS_RUN_SANITY_TESTS",
         "COMPILE_TEST",
         "CPA_DEBUG",
         "DEBUG_KOBJECT_RELEASE",
@@ -53,6 +54,7 @@ def main() -> None:
         "RCU_REF_SCALE_TEST",
         "RCU_SCALE_TEST",
         "RCU_TORTURE_TEST",
+        "RING_BUFFER_STARTUP_TEST",
         "RUNTIME_TESTING_MENU",
         "SCF_TORTURE_TEST",
         "TEST_CLOCKSOURCE_WATCHDOG",
