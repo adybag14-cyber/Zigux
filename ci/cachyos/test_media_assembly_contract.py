@@ -87,6 +87,24 @@ def main() -> None:
         int(qemu_timeout.group("seconds")) >= 1200,
         "exhaustive TCG media boots require at least a 1200-second wall-clock budget",
     )
+    persistent_menu = assembler.split("<<EOFGRUB\n", maxsplit=1)[1].split(
+        "\nEOFGRUB", maxsplit=1
+    )[0]
+    iso_grub = assembler.split("<<'ISO_GRUB'\n", maxsplit=1)[1].split(
+        "\nISO_GRUB", maxsplit=1
+    )[0]
+    iso_syslinux = assembler.split("<<'ISO_SYSLINUX'\n", maxsplit=1)[1].split(
+        "\nISO_SYSLINUX", maxsplit=1
+    )[0]
+    for menu_name, menu in {
+        "persistent GRUB": persistent_menu,
+        "ISO GRUB": iso_grub,
+        "ISO Syslinux": iso_syslinux,
+    }.items():
+        require(
+            menu.index("linux-cachyos-lts") < menu.index("linux-zigux-allmodconfig"),
+            f"{menu_name} must default to stable LTS before exhaustive kernels",
+        )
 
     require(
         "kernel_artifact_run_id:" in workflow,

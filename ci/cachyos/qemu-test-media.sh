@@ -31,6 +31,8 @@ run_test() {
 }
 
 # The ISO's BIOS path uses Syslinux; the persistent image's BIOS path uses GRUB.
+# Both default to CachyOS LTS. The exhaustive kernels have separate direct PID 1
+# smoke gates and remain explicit experimental choices on the finished media.
 run_test iso -boot d -cdrom "$iso"
 run_test disk -drive "file=$img,format=raw,if=virtio,cache=unsafe"
 rm -f "$img"
