@@ -133,14 +133,6 @@ common_packages=(
 
 install_marker() {
   local target=$1
-  install -Dm755 /dev/stdin "$target/usr/local/bin/zigux-media-boot-marker" <<'MARKER'
-#!/usr/bin/env bash
-set -u
-msg="ZIGUX_CACHYOS_MEDIA_BOOT_OK kernel=$(uname -r)"
-printf '%s\n' "$msg" | tee /dev/console >/dev/null || true
-printf '%s\n' "$msg" > /dev/ttyS0 2>/dev/null || true
-logger -t zigux-media "$msg" 2>/dev/null || true
-MARKER
   install -Dm644 /dev/stdin "$target/etc/systemd/system/zigux-media-boot.service" <<'SERVICE'
 [Unit]
 Description=Emit Zigux CachyOS boot-test marker
@@ -149,7 +141,9 @@ Before=systemd-user-sessions.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/zigux-media-boot-marker
+ExecStart=/usr/bin/echo ZIGUX_CACHYOS_MEDIA_BOOT_OK
+StandardOutput=journal+console
+StandardError=journal+console
 RemainAfterExit=yes
 
 [Install]
@@ -402,6 +396,7 @@ APPEND archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% copytoram=a
 
 ISO_SYSLINUX
 cp "$profile/syslinux/archiso_sys-linux.cfg" "$profile/syslinux/archiso_pxe-linux.cfg"
+sed -i 's/^DEFAULT .*/DEFAULT zigux-lts/' "$profile/syslinux/archiso_sys.cfg"
 
 rm -rf "$iso_work" /dist/iso-out
 mkdir -p /dist/iso-out

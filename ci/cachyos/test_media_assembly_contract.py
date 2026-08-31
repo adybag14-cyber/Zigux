@@ -51,6 +51,11 @@ def main() -> None:
         "boot marker must run after the real root is mounted, not after late user setup",
     )
     require(
+        "ExecStart=/usr/bin/echo ZIGUX_CACHYOS_MEDIA_BOOT_OK" in assembler
+        and "StandardOutput=journal+console" in assembler,
+        "boot marker must use direct systemd echo routed to the console",
+    )
+    require(
         '$profile/airootfs/root/customize_airootfs.sh' in assembler,
         "live initramfs customization must run after package installation",
     )
@@ -84,8 +89,8 @@ def main() -> None:
     qemu_timeout = re.search(r"timeout (?P<seconds>\d+) qemu-system-x86_64", qemu_test)
     require(qemu_timeout is not None, "media QEMU timeout was not found")
     require(
-        int(qemu_timeout.group("seconds")) >= 1200,
-        "exhaustive TCG media boots require at least a 1200-second wall-clock budget",
+        int(qemu_timeout.group("seconds")) >= 1800,
+        "TCG media boots require at least an 1800-second wall-clock budget",
     )
     persistent_menu = assembler.split("<<EOFGRUB\n", maxsplit=1)[1].split(
         "\nEOFGRUB", maxsplit=1
@@ -105,6 +110,10 @@ def main() -> None:
             menu.index("linux-cachyos-lts") < menu.index("linux-zigux-allmodconfig"),
             f"{menu_name} must default to stable LTS before exhaustive kernels",
         )
+    require(
+        "DEFAULT zigux-lts" in assembler,
+        "Syslinux wrapper must explicitly select the stable LTS label",
+    )
 
     require(
         "kernel_artifact_run_id:" in workflow,
