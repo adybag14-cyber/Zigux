@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Static regression checks for safe CachyOS media assembly and retries."""
 
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSEMBLER = ROOT / "ci" / "cachyos" / "assemble-in-arch.sh"
+QEMU_TEST = ROOT / "ci" / "cachyos" / "qemu-test-media.sh"
 WORKFLOW = ROOT / ".github" / "workflows" / "cachyos-exhaustive-media.yml"
 
 
@@ -15,6 +17,7 @@ def require(condition: bool, message: str) -> None:
 
 def main() -> None:
     assembler = ASSEMBLER.read_text(encoding="utf-8")
+    qemu_test = QEMU_TEST.read_text(encoding="utf-8")
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
     keyring_kill = (
@@ -41,6 +44,11 @@ def main() -> None:
     require(
         'rm -f "$img"' in assembler,
         "failed assembly must remove the non-final raw image",
+    )
+    require(
+        "After=local-fs.target" in assembler
+        and "After=systemd-user-sessions.service" not in assembler,
+        "boot marker must run after the real root is mounted, not after late user setup",
     )
     require(
         '$profile/airootfs/root/customize_airootfs.sh' in assembler,
@@ -71,6 +79,13 @@ def main() -> None:
         required_live_packages <= iso_packages,
         "live package list is missing pinned profile dependencies: "
         f"{sorted(required_live_packages - iso_packages)}",
+    )
+
+    qemu_timeout = re.search(r"timeout (?P<seconds>\d+) qemu-system-x86_64", qemu_test)
+    require(qemu_timeout is not None, "media QEMU timeout was not found")
+    require(
+        int(qemu_timeout.group("seconds")) >= 1200,
+        "exhaustive TCG media boots require at least a 1200-second wall-clock budget",
     )
 
     require(

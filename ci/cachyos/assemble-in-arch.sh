@@ -144,7 +144,8 @@ MARKER
   install -Dm644 /dev/stdin "$target/etc/systemd/system/zigux-media-boot.service" <<'SERVICE'
 [Unit]
 Description=Emit Zigux CachyOS boot-test marker
-After=systemd-user-sessions.service
+After=local-fs.target
+Before=systemd-user-sessions.service
 
 [Service]
 Type=oneshot

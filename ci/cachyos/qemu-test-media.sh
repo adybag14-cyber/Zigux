@@ -15,7 +15,7 @@ run_test() {
   local name=$1; shift
   local log="$dist/qemu-${name}.log"
   set +e
-  timeout 420 qemu-system-x86_64 \
+  timeout 1200 qemu-system-x86_64 \
     -machine q35,accel=tcg -cpu max -m 4096 -smp 2 \
     -display none -serial stdio -monitor none -no-reboot \
     "$@" >"$log" 2>&1
