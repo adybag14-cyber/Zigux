@@ -190,7 +190,19 @@ mount "${loopdev}p2" "$root/boot/efi"
 
 log "Install CachyOS userspace, Plasma desktop, firmware and three kernels"
 pacstrap -K -C "$pacman_conf" "$root" "${common_packages[@]}"
-genfstab -U "$root" > "$root/etc/fstab"
+root_uuid=$(blkid -s UUID -o value "${loopdev}p3")
+efi_uuid=$(blkid -s UUID -o value "${loopdev}p2")
+[[ -n "$root_uuid" && -n "$efi_uuid" ]] \
+  || die "persistent filesystem UUID discovery failed"
+cat > "$root/etc/fstab" <<FSTAB
+UUID=${root_uuid} / ext4 defaults 0 1
+UUID=${efi_uuid} /boot/efi vfat defaults 0 2
+FSTAB
+if grep -Eq '(^|[[:space:]])/dev/loop[0-9]+' "$root/etc/fstab"; then
+  die "transient loop device leaked into persistent fstab"
+fi
+log "Persistent filesystem table uses stable UUIDs"
+cat "$root/etc/fstab"
 configure_root "$root"
 
 log "Generate initramfs images"
@@ -199,7 +211,6 @@ arch-chroot "$root" pacman-key --populate archlinux cachyos
 stop_target_keyring
 arch-chroot "$root" mkinitcpio -P
 
-root_uuid=$(blkid -s UUID -o value "${loopdev}p3")
 cat > "$root/etc/default/grub" <<GRUBDEFAULT
 GRUB_DEFAULT=0
 GRUB_TIMEOUT=8

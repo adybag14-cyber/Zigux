@@ -46,6 +46,25 @@ def main() -> None:
         "failed assembly must remove the non-final raw image",
     )
     require(
+        'root_uuid=$(blkid -s UUID -o value "${loopdev}p3")' in assembler
+        and 'efi_uuid=$(blkid -s UUID -o value "${loopdev}p2")' in assembler,
+        "persistent root and EFI filesystems must have stable identities",
+    )
+    require(
+        "UUID=${root_uuid} / ext4 defaults 0 1" in assembler
+        and "UUID=${efi_uuid} /boot/efi vfat defaults 0 2" in assembler,
+        "persistent fstab must use filesystem UUIDs",
+    )
+    require(
+        "transient loop device leaked into persistent fstab" in assembler
+        and 'grep -Eq \'(^|[[:space:]])/dev/loop[0-9]+\'' in assembler,
+        "media assembly must reject transient loop devices in fstab",
+    )
+    require(
+        'genfstab -U "$root"' not in assembler,
+        "persistent fstab must not depend on loop-device translation",
+    )
+    require(
         "After=local-fs.target" in assembler
         and "After=systemd-user-sessions.service" not in assembler,
         "boot marker must run after the real root is mounted, not after late user setup",
