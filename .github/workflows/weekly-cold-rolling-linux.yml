@@ -246,6 +246,18 @@ jobs:
           command -v "${compiler}"
           command -v "${linker}"
 
+          kernel_cc="${compiler}"
+          if [ "${ARCHITECTURE}" = "i686" ]; then
+            # Linux's Kconfig -mfentry probe must see the non-PIC mode used by
+            # the kernel itself. Ubuntu's 32-bit GCC defaults to PIE; otherwise
+            # the probe rejects supported fentry and allmodconfig fails to build.
+            "${compiler}" -fno-pic -mfentry -x c -c /dev/null \
+              -o "${log_dir}/fentry-probe.o"
+            kernel_cc="${compiler} -fno-pic"
+          fi
+          echo "KERNEL_CC=${kernel_cc}" >> "${GITHUB_ENV}"
+          printf '%s\n' "${kernel_cc}" > "${log_dir}/kernel-compiler-command.txt"
+
           {
             "${compiler}" --version | head -n 1
             "${linker}" --version | head -n 1
@@ -292,12 +304,14 @@ jobs:
             O="${OUT_DIR}" \
             ARCH="${KBUILD_ARCH}" \
             CROSS_COMPILE="${CROSS_COMPILE}" \
+            CC="${KERNEL_CC}" \
             mrproper
 
           make -C "${SOURCE_ROOT}" \
             O="${OUT_DIR}" \
             ARCH="${KBUILD_ARCH}" \
             CROSS_COMPILE="${CROSS_COMPILE}" \
+            CC="${KERNEL_CC}" \
             "${CONFIG_TARGET}"
 
           adjustments="none"
@@ -314,6 +328,7 @@ jobs:
             O="${OUT_DIR}" \
             ARCH="${KBUILD_ARCH}" \
             CROSS_COMPILE="${CROSS_COMPILE}" \
+            CC="${KERNEL_CC}" \
             olddefconfig
 
           config_enabled() {
@@ -362,6 +377,7 @@ jobs:
             O="${OUT_DIR}" \
             ARCH="${KBUILD_ARCH}" \
             CROSS_COMPILE="${CROSS_COMPILE}" \
+            CC="${KERNEL_CC}" \
             kernelrelease \
             | tee "${log_dir}/configured-kernel-release.txt"
 
@@ -383,6 +399,7 @@ jobs:
             O="${OUT_DIR}" \
             ARCH="${KBUILD_ARCH}" \
             CROSS_COMPILE="${CROSS_COMPILE}" \
+            CC="${KERNEL_CC}" \
             -j"$(nproc)" \
             "${IMAGE_TARGET}" modules 2>&1 \
             | tee "${log_dir}/kernel-build.log"
@@ -413,6 +430,7 @@ jobs:
             O="${OUT_DIR}" \
             ARCH="${KBUILD_ARCH}" \
             CROSS_COMPILE="${CROSS_COMPILE}" \
+            CC="${KERNEL_CC}" \
             kernelrelease)"
           safe_release="$(printf '%s' "${kernel_release}" | tr -c 'A-Za-z0-9._-' '-')"
 
@@ -477,6 +495,7 @@ jobs:
               O="${OUT_DIR}" \
               ARCH="${KBUILD_ARCH}" \
               CROSS_COMPILE="${CROSS_COMPILE}" \
+              CC="${KERNEL_CC}" \
               INSTALL_MOD_PATH="${stage_dir}/rootfs" \
               INSTALL_MOD_STRIP=1 \
               modules_install
@@ -509,6 +528,7 @@ jobs:
               "profile": os.environ["PROFILE"],
               "kbuild_arch": os.environ["KBUILD_ARCH"],
               "cross_compile": os.environ["CROSS_COMPILE"],
+              "compiler_command": os.environ["KERNEL_CC"],
               "configuration_target": os.environ["CONFIG_TARGET"],
               "ci_config_adjustments": [] if adjustments == "none" else adjustments.split(","),
               "configured_module_symbols": int(os.environ["CONFIGURED_MODULE_SYMBOLS"]),
