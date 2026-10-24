@@ -11,6 +11,8 @@ on:
       - master
     paths:
       - .github/workflows/weekly-cold-rolling-linux.yml
+      - .github/workflows/resolve-linux-source.yml
+      - ci/linux/**
 
 permissions:
   contents: read
@@ -25,37 +27,10 @@ env:
 
 jobs:
   resolve-source:
-    name: Resolve rolling-linux-sync source
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    outputs:
-      source_sha: ${{ steps.source.outputs.source_sha }}
-      source_short_sha: ${{ steps.source.outputs.source_short_sha }}
-
-    steps:
-      - name: Resolve exact rolling source commit
-        id: source
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          ref_json="$(curl --fail --silent --show-error --location \
-            --retry 5 --retry-all-errors --retry-delay 3 \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/git/ref/heads/${SOURCE_BRANCH}")"
-
-          source_sha="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["object"]["sha"])' <<<"${ref_json}")"
-          [[ "${source_sha}" =~ ^[0-9a-f]{40}$ ]] || {
-            echo "::error::Could not resolve a 40-character commit SHA for ${SOURCE_BRANCH}."
-            exit 1
-          }
-
-          echo "source_sha=${source_sha}" >> "${GITHUB_OUTPUT}"
-          echo "source_short_sha=${source_sha:0:12}" >> "${GITHUB_OUTPUT}"
-          echo "Resolved ${SOURCE_BRANCH} to ${source_sha}."
+    name: Update rolling-linux-sync from upstream Linux
+    permissions:
+      contents: write
+    uses: ./.github/workflows/resolve-linux-source.yml
 
   cold-build:
     name: Cold-build ${{ matrix.architecture }} / ${{ matrix.profile }}

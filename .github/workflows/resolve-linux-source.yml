@@ -1,0 +1,50 @@
+name: Sync and resolve upstream Linux
+
+on:
+  workflow_call:
+    inputs:
+      source_ref:
+        description: rolling-linux-sync fast-forwards from torvalds/linux; other refs are only resolved
+        type: string
+        default: rolling-linux-sync
+    outputs:
+      source_sha:
+        description: Immutable Linux commit for every downstream job
+        value: ${{ jobs.resolve.outputs.source_sha }}
+      source_short_sha:
+        description: Abbreviated Linux commit
+        value: ${{ jobs.resolve.outputs.source_short_sha }}
+
+permissions:
+  contents: write
+
+jobs:
+  resolve:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    concurrency:
+      group: zigux-linux-upstream-sync
+      cancel-in-progress: false
+    outputs:
+      source_sha: ${{ steps.source.outputs.source_sha }}
+      source_short_sha: ${{ steps.source.outputs.source_short_sha }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          sparse-checkout: ci/linux
+          persist-credentials: false
+      - name: Test source synchronization safety
+        run: python3 ci/linux/test_resolve_source.py
+      - name: Fast-forward rolling mirror and resolve exact source
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+        run: python3 ci/linux/resolve_source.py
+      - name: Record source provenance
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: linux-source-${{ github.run_id }}
+          path: linux-source.json
+          if-no-files-found: error
+          retention-days: 8

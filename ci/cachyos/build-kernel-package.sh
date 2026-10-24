@@ -11,6 +11,12 @@ src="$(realpath "$1")"
 profile="$2"
 dist="$(realpath -m "$3")"
 case "$profile" in allmodconfig|allyesconfig) ;; *) usage ;; esac
+[[ "${ZIGUX_CACHYOS_BUILD:-}" == 1 ]] || {
+  echo 'invoke build-in-cachyos.sh so compilation and packaging use the CachyOS build environment' >&2
+  exit 2
+}
+source_sha=$(git -C "$src" rev-parse HEAD)
+[[ "$source_sha" =~ ^[0-9a-f]{40}$ && "$source_sha" == "${SOURCE_SHA:?}" ]] || exit 2
 
 work="${RUNNER_TEMP:-/tmp}/zigux-${profile}"
 out="$work/out"
@@ -22,9 +28,10 @@ mkdir -p "$out" "$pkgroot" "$pkgbuild" "$smoke" "$dist"
 
 cfg="$src/scripts/config"
 pkgbase="linux-zigux-${profile}"
-localversion="-zigux-${profile}"
+localversion="-zigux-${profile}-g${source_sha:0:12}"
 
 export ARCH=x86
+export CC=gcc HOSTCC=gcc
 export KBUILD_BUILD_USER=zigux
 export KBUILD_BUILD_HOST=github-actions
 export KBUILD_BUILD_VERSION=1
@@ -96,6 +103,8 @@ for required in X86_64 BLK_DEV_INITRD DEVTMPFS SERIAL_8250_CONSOLE EXT4_FS SQUAS
     exit 1
   }
 done
+# Keep this as a list so boot-critical built-ins share the same fail-closed check.
+# shellcheck disable=SC2043
 for required_builtin in BINFMT_SCRIPT; do
   grep -q "^CONFIG_${required_builtin}=y$" "$out/.config" || {
     echo "required built-in CONFIG_${required_builtin} was not enabled" >&2
@@ -191,15 +200,12 @@ package() {
 }
 PKGBUILD
 
-# makepkg supplies canonical Arch package metadata (.PKGINFO, .BUILDINFO,
-# .MTREE) rather than merely renaming a tar archive.
-docker run --rm \
-  -v "$pkgbuild:/work" -w /work archlinux:base-devel bash -Eeuo pipefail -c '
-    pacman -Syu --noconfirm --needed base-devel zstd mkinitcpio >/dev/null
-    useradd -m builder
-    chown -R builder:builder /work
-    su builder -c "makepkg --noconfirm --clean --cleanbuild --force"
-  '
+# Compilation and canonical Arch packaging share the CachyOS-enabled container.
+# makepkg runs unprivileged and supplies .PKGINFO, .BUILDINFO and .MTREE.
+id builder >/dev/null 2>&1 || useradd -m builder
+chown -R builder:builder "$pkgbuild"
+# shellcheck disable=SC2016 # $1 belongs to the unprivileged inner shell.
+runuser -u builder -- bash -c 'cd "$1"; makepkg --noconfirm --clean --cleanbuild --force' _ "$pkgbuild"
 
 pkgfile="$(find "$pkgbuild" -maxdepth 1 -type f -name "${pkgbase}-*.pkg.tar.zst" -print -quit)"
 [[ -n "$pkgfile" ]] || { echo "makepkg did not produce a package" >&2; exit 1; }
@@ -215,7 +221,12 @@ sha256sum "$dist"/* > "$dist/SHA256SUMS-${profile}"
 # moves the same failure into the much more expensive image job.
 root="$smoke/root"
 mkdir -p "$root/bin"
-cp /usr/bin/busybox "$root/bin/busybox"
+busybox=${BUSYBOX_STATIC:?}
+if readelf -l "$busybox" | grep -q INTERP; then
+  echo 'kernel smoke init requires a statically linked busybox' >&2
+  exit 2
+fi
+cp "$busybox" "$root/bin/busybox"
 for applet in sh echo uname poweroff sync; do ln -s busybox "$root/bin/$applet"; done
 cat > "$root/init" <<'INIT'
 #!/bin/sh
@@ -246,3 +257,21 @@ else
   tail -n 120 "$dist/qemu-kernel-${profile}.log" >&2 || true
   exit 20
 fi
+
+# Downstream artifact reuse must match both the source and the actual package.
+python3 - "$dist" "$profile" "$source_sha" "$release" "$(basename "$pkgfile")" <<'PY'
+import hashlib, json, pathlib, subprocess, sys
+dist = pathlib.Path(sys.argv[1])
+profile, source_sha, release, package = sys.argv[2:]
+manifest = {
+    "profile": profile,
+    "source_sha": source_sha,
+    "kernel_release": release,
+    "package": package,
+    "package_sha256": hashlib.file_digest((dist/package).open("rb"), "sha256").hexdigest(),
+    "compiler": subprocess.check_output(["gcc", "--version"], text=True).splitlines()[0],
+    "build_environment": "Arch Linux with the CachyOS x86_64 repository",
+    "direct_boot_passed": True,
+}
+(dist/f"kernel-source-{profile}.json").write_text(json.dumps(manifest, indent=2) + "\n")
+PY

@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
     inputs:
       source_ref:
-        description: Linux source branch, tag, or exact commit in this repository
+        description: rolling-linux-sync updates from upstream; an explicit ref pins a rebuild
         required: true
-        default: 62cc90241548d5570ee68e01aaba6506964e9811
+        default: rolling-linux-sync
         type: string
       disk_size_gib:
         description: Persistent raw disk size before sparse compression
@@ -15,16 +15,19 @@ on:
         default: '24'
         type: string
       kernel_artifact_run_id:
-        description: Reuse successful kernel artifacts from this workflow run ID
+        description: Reuse kernel artifacts with provenance matching source_ref
         required: false
         default: ''
         type: string
   schedule:
-    - cron: '17 2 * * *'
+    # Weekly, Sunday at 02:17 UTC. Resolve upstream once before both kernels.
+    - cron: '17 2 * * 0'
   push:
     branches: [master]
     paths:
       - .github/workflows/cachyos-exhaustive-media.yml
+      - .github/workflows/resolve-linux-source.yml
+      - ci/linux/**
       - ci/cachyos/**
 
 permissions:
@@ -36,16 +39,26 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  SOURCE_REF: ${{ inputs.source_ref || '62cc90241548d5570ee68e01aaba6506964e9811' }}
   DISK_SIZE_GIB: ${{ inputs.disk_size_gib || '24' }}
   CACHYOS_ISO_REF: 5de0e4c3fad800c0f351379989c31b86b65e02fe
 
 jobs:
+  resolve-source:
+    name: Update rolling mirror and pin Linux source
+    permissions:
+      contents: write
+    uses: ./.github/workflows/resolve-linux-source.yml
+    with:
+      source_ref: ${{ inputs.source_ref || 'rolling-linux-sync' }}
+
   kernel-packages:
+    needs: resolve-source
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.kernel_artifact_run_id == '' }}
     name: Build Arch package — ${{ matrix.profile }}
     runs-on: ubuntu-24.04
     timeout-minutes: 360
+    env:
+      SOURCE_SHA: ${{ needs.resolve-source.outputs.source_sha }}
     strategy:
       fail-fast: false
       max-parallel: 2
@@ -61,11 +74,12 @@ jobs:
         run: |
           python3 ci/cachyos/test_boot_config_contract.py
           python3 ci/cachyos/test_media_assembly_contract.py
+          python3 ci/cachyos/test_kernel_provenance.py
 
       - name: Check out exact Linux source
         uses: actions/checkout@v7.0.1
         with:
-          ref: ${{ env.SOURCE_REF }}
+          ref: ${{ env.SOURCE_SHA }}
           path: linux
           fetch-depth: 1
 
@@ -78,22 +92,20 @@ jobs:
           sudo docker image prune --all --force || true
           df -h
 
-      - name: Install kernel build and smoke-test dependencies
+      - name: Install static kernel smoke-test init
         shell: bash
         run: |
           set -euxo pipefail
           sudo apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-            bc binutils bison build-essential busybox-static cpio dwarves fakeroot flex \
-            kmod libelf-dev libssl-dev pahole python3 qemu-system-x86 rsync xz-utils zstd
+            busybox-static
 
-      - name: Build exhaustive kernel and canonical Arch package
+      - name: Compile upstream Linux in a CachyOS package environment
         shell: bash
         run: |
           set -euxo pipefail
           mkdir -p "kernel-dist/${{ matrix.profile }}"
-          chmod +x ci/cachyos/build-kernel-package.sh
-          ci/cachyos/build-kernel-package.sh \
+          bash ci/cachyos/build-in-cachyos.sh \
             "$GITHUB_WORKSPACE/linux" \
             '${{ matrix.profile }}' \
             "$GITHUB_WORKSPACE/kernel-dist/${{ matrix.profile }}"
@@ -115,17 +127,20 @@ jobs:
           name: zigux-kernel-${{ matrix.profile }}-${{ github.run_id }}
           path: kernel-dist/${{ matrix.profile }}/
           if-no-files-found: warn
-          retention-days: 7
+          retention-days: 8
           compression-level: 0
 
   cachyos-media:
     name: Assemble and boot-test CachyOS ISO and GPT image
-    needs: kernel-packages
+    needs: [resolve-source, kernel-packages]
     if: >-
-      ${{ always() && (needs.kernel-packages.result == 'success' ||
+      ${{ always() && needs.resolve-source.result == 'success' &&
+          (needs.kernel-packages.result == 'success' ||
           (github.event_name == 'workflow_dispatch' && inputs.kernel_artifact_run_id != '')) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 360
+    env:
+      SOURCE_REF: ${{ needs.resolve-source.outputs.source_sha }}
 
     steps:
       - name: Check out Zigux media infrastructure
@@ -167,6 +182,7 @@ jobs:
           set -euxo pipefail
           find kernel-packages -type f -maxdepth 2 -printf '%p\t%s bytes\n' | sort
           test "$(find kernel-packages -type f -name 'linux-zigux-*.pkg.tar.zst' | wc -l)" -eq 2
+          python3 ci/cachyos/verify-kernel-packages.py kernel-packages "$SOURCE_REF"
 
       - name: Install host boot-test tools
         shell: bash

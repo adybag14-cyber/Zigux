@@ -7,6 +7,8 @@ dist="$(realpath "$1")"
 iso="$dist/zigux-cachyos-exhaustive-x86_64.iso"
 imgz="$dist/zigux-cachyos-exhaustive-x86_64.img.zst"
 [[ -s "$iso" && -s "$imgz" ]] || { echo 'media files are missing' >&2; exit 1; }
+expected_release=$(cat "$dist/kernel-release-allmodconfig.txt")
+checker="$(dirname "$0")/check-media-boot.py"
 
 img="$RUNNER_TEMP/zigux-cachyos-test.img"
 zstd -T0 --sparse -d -f "$imgz" -o "$img"
@@ -21,7 +23,7 @@ run_test() {
     "$@" >"$log" 2>&1
   local rc=$?
   set -e
-  if grep -q ZIGUX_CACHYOS_MEDIA_BOOT_OK "$log"; then
+  if python3 "$checker" "$log" "$expected_release"; then
     echo success | tee "$dist/QEMU_${name^^}_RESULT"
     return 0
   fi
@@ -31,8 +33,8 @@ run_test() {
 }
 
 # The ISO's BIOS path uses Syslinux; the persistent image's BIOS path uses GRUB.
-# Both default to CachyOS LTS. The exhaustive kernels have separate direct PID 1
-# smoke gates and remain explicit experimental choices on the finished media.
+# Both must boot the compiled upstream allmodconfig kernel. The release identity
+# gate prevents the prebuilt LTS fallback from accidentally satisfying this test.
 run_test iso -boot d -cdrom "$iso"
 run_test disk -drive "file=$img,format=raw,if=virtio,cache=unsafe"
 rm -f "$img"

@@ -75,8 +75,11 @@ def main() -> None:
         "boot marker must use direct systemd echo routed to the console",
     )
     require(
-        '$profile/airootfs/root/customize_airootfs.sh' in assembler,
-        "live initramfs customization must run after package installation",
+        'zz-zigux-live-initramfs.hook' in assembler
+        and 'When = PostTransaction' in assembler
+        and 'Exec = /usr/bin/bash /usr/local/lib/zigux/live-initramfs' in assembler
+        and '$profile/airootfs/root/customize_airootfs.sh' not in assembler,
+        "live initramfs customization must use a post-transaction ALPM hook",
     )
     require(
         '$profile/airootfs/etc/mkinitcpio.d' not in assembler,
@@ -126,12 +129,17 @@ def main() -> None:
         "ISO Syslinux": iso_syslinux,
     }.items():
         require(
-            menu.index("linux-cachyos-lts") < menu.index("linux-zigux-allmodconfig"),
-            f"{menu_name} must default to stable LTS before exhaustive kernels",
+            menu.index("linux-zigux-allmodconfig") < menu.index("linux-cachyos-lts"),
+            f"{menu_name} must default to the compiled upstream kernel with LTS fallback",
         )
     require(
-        "DEFAULT zigux-lts" in assembler,
-        "Syslinux wrapper must explicitly select the stable LTS label",
+        "DEFAULT zigux/" in assembler,
+        "Syslinux wrapper must explicitly select the compiled upstream label",
+    )
+    require(
+        "ZIGUX_CACHYOS_KERNEL=%v" in assembler
+        and 'python3 "$checker" "$log" "$expected_release"' in qemu_test,
+        "media boot must verify the running kernel identity, not just userspace",
     )
 
     require(

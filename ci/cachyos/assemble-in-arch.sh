@@ -9,6 +9,7 @@ packages=(/packages/linux-zigux-*.pkg.tar.zst)
 (( ${#packages[@]} == 2 )) || die "expected exactly two Zigux kernel packages in /packages"
 [[ -d /cachyos-live-iso/archiso ]] || die "missing CachyOS ArchISO source"
 mkdir -p /dist
+[[ "${SOURCE_REF:?}" =~ ^[0-9a-f]{40}$ ]] || die "media requires an immutable Linux source SHA"
 
 work=/work/zigux-cachyos-media
 root=$work/rootfs
@@ -70,21 +71,12 @@ trap cleanup EXIT INT TERM
 log "Install image-construction tools"
 pacman -Syu --noconfirm --needed \
   arch-install-scripts archiso base-devel curl dosfstools e2fsprogs git gnupg grub \
-  mtools pacman-contrib parted qemu-img rsync squashfs-tools syslinux xorriso zstd
+  mtools pacman-contrib parted python qemu-img rsync squashfs-tools syslinux xorriso zstd
+python3 /workspace/ci/cachyos/verify-kernel-packages.py /packages "$SOURCE_REF"
+cp /packages/kernel-source-*.json /packages/kernel-release-*.txt /dist/
 
 log "Initialize Arch and CachyOS package trust"
-pacman-key --init
-pacman-key --populate archlinux
-if ! pacman-key --list-keys F3B607488DB35A47 >/dev/null 2>&1; then
-  pacman-key --recv-keys F3B607488DB35A47 --keyserver hkps://keyserver.ubuntu.com || \
-  pacman-key --recv-keys F3B607488DB35A47 --keyserver hkps://keys.openpgp.org
-fi
-pacman-key --lsign-key F3B607488DB35A47
-curl -fL --retry 4 \
-  -o /tmp/cachyos-keyring.pkg.tar.zst \
-  https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-keyring-20240331-1-any.pkg.tar.zst
-pacman -U --noconfirm /tmp/cachyos-keyring.pkg.tar.zst
-pacman-key --populate cachyos
+bash /workspace/ci/cachyos/setup-cachyos-repo.sh
 
 rm -rf "$work" "$repo"
 mkdir -p "$work" "$repo"
@@ -142,6 +134,7 @@ Before=systemd-user-sessions.service
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/echo ZIGUX_CACHYOS_MEDIA_BOOT_OK
+ExecStart=/usr/bin/echo ZIGUX_CACHYOS_KERNEL=%v
 StandardOutput=journal+console
 StandardError=journal+console
 RemainAfterExit=yes
@@ -226,15 +219,15 @@ GRUBDEFAULT
 cat > "$root/etc/grub.d/09_zigux_exhaustive" <<EOFGRUB
 #!/bin/sh
 cat <<'EOF'
-menuentry 'Zigux CachyOS — stable LTS (default)' --class cachyos --class gnu-linux {
-    search --no-floppy --fs-uuid --set=root ${root_uuid}
-    linux /boot/vmlinuz-linux-cachyos-lts root=UUID=${root_uuid} rw console=tty0 console=ttyS0,115200n8
-    initrd /boot/initramfs-linux-cachyos-lts.img
-}
-menuentry 'Zigux CachyOS — allmodconfig (experimental)' --class cachyos --class gnu-linux {
+menuentry 'Zigux CachyOS — compiled upstream allmodconfig (default)' --class cachyos --class gnu-linux {
     search --no-floppy --fs-uuid --set=root ${root_uuid}
     linux /boot/vmlinuz-linux-zigux-allmodconfig root=UUID=${root_uuid} rw console=tty0 console=ttyS0,115200n8
     initrd /boot/initramfs-linux-zigux-allmodconfig.img
+}
+menuentry 'Zigux CachyOS — stable LTS (fallback)' --class cachyos --class gnu-linux {
+    search --no-floppy --fs-uuid --set=root ${root_uuid}
+    linux /boot/vmlinuz-linux-cachyos-lts root=UUID=${root_uuid} rw console=tty0 console=ttyS0,115200n8
+    initrd /boot/initramfs-linux-cachyos-lts.img
 }
 menuentry 'Zigux CachyOS — allyesconfig (experimental)' --class cachyos --class gnu-linux {
     search --no-floppy --fs-uuid --set=root ${root_uuid}
@@ -260,8 +253,8 @@ Root password: zigux
 Change both passwords immediately after first boot.
 
 Boot choices:
-  1. linux-cachyos-lts (stable default)
-  2. linux-zigux-allmodconfig (experimental)
+  1. linux-zigux-allmodconfig (compiled upstream default)
+  2. linux-cachyos-lts (stable fallback)
   3. linux-zigux-allyesconfig (experimental)
 README
 
@@ -337,12 +330,13 @@ sed -i \
   -e 's/^iso_application=.*/iso_application="Zigux CachyOS Exhaustive Live System"/' \
   "$profile/profiledef.sh"
 
-mkdir -p "$profile/airootfs/root" \
+mkdir -p "$profile/airootfs/etc/pacman.d/hooks" \
+  "$profile/airootfs/usr/local/lib/zigux" \
   "$profile/airootfs/etc/systemd/system/multi-user.target.wants"
 # mkarchiso copies profile overlays before pacstrap, so pre-creating a package-owned
-# preset makes pacman reject the kernel package. Its pinned post-package customization
-# hook instead regenerates only the two live initramfs images with the archiso hooks.
-cat > "$profile/airootfs/root/customize_airootfs.sh" <<'CUSTOMIZE'
+# preset makes pacman reject the kernel package. Run after the package transaction,
+# using the supported ALPM hook interface rather than customize_airootfs.sh.
+cat > "$profile/airootfs/usr/local/lib/zigux/live-initramfs" <<'CUSTOMIZE'
 #!/usr/bin/env bash
 set -Eeuo pipefail
 for kernel in linux-zigux-allmodconfig linux-zigux-allyesconfig; do
@@ -352,7 +346,19 @@ for kernel in linux-zigux-allmodconfig linux-zigux-allyesconfig; do
     -g "/boot/initramfs-${kernel}.img"
 done
 CUSTOMIZE
-chmod 0755 "$profile/airootfs/root/customize_airootfs.sh"
+cat > "$profile/airootfs/etc/pacman.d/hooks/zz-zigux-live-initramfs.hook" <<'HOOK'
+# remove from airootfs!
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = linux-zigux-*
+
+[Action]
+Description = Generating live initramfs for compiled upstream kernels
+When = PostTransaction
+Exec = /usr/bin/bash /usr/local/lib/zigux/live-initramfs
+HOOK
 install_marker "$profile/airootfs"
 
 mkdir -p "$profile/airootfs/etc/systemd/system"
@@ -372,13 +378,13 @@ terminal_output console serial
 set default=0
 set timeout=8
 
-menuentry 'Zigux CachyOS stable LTS (default)' {
-  linux /%INSTALL_DIR%/boot/%ARCH%/vmlinuz-linux-cachyos-lts archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% copytoram=auto console=tty0 console=ttyS0,115200n8
-  initrd /%INSTALL_DIR%/boot/%ARCH%/initramfs-linux-cachyos-lts.img
-}
-menuentry 'Zigux CachyOS allmodconfig (experimental)' {
+menuentry 'Zigux CachyOS compiled upstream allmodconfig (default)' {
   linux /%INSTALL_DIR%/boot/%ARCH%/vmlinuz-linux-zigux-allmodconfig archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% copytoram=auto console=tty0 console=ttyS0,115200n8
   initrd /%INSTALL_DIR%/boot/%ARCH%/initramfs-linux-zigux-allmodconfig.img
+}
+menuentry 'Zigux CachyOS stable LTS (fallback)' {
+  linux /%INSTALL_DIR%/boot/%ARCH%/vmlinuz-linux-cachyos-lts archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% copytoram=auto console=tty0 console=ttyS0,115200n8
+  initrd /%INSTALL_DIR%/boot/%ARCH%/initramfs-linux-cachyos-lts.img
 }
 menuentry 'Zigux CachyOS allyesconfig (experimental)' {
   linux /%INSTALL_DIR%/boot/%ARCH%/vmlinuz-linux-zigux-allyesconfig archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% copytoram=auto console=tty0 console=ttyS0,115200n8
@@ -387,16 +393,16 @@ menuentry 'Zigux CachyOS allyesconfig (experimental)' {
 ISO_GRUB
 
 cat > "$profile/syslinux/archiso_sys-linux.cfg" <<'ISO_SYSLINUX'
-LABEL zigux-lts
-MENU LABEL Zigux CachyOS stable LTS (default)
-LINUX /%INSTALL_DIR%/boot/%ARCH%/vmlinuz-linux-cachyos-lts
-INITRD /%INSTALL_DIR%/boot/%ARCH%/initramfs-linux-cachyos-lts.img
-APPEND archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% copytoram=auto console=tty0 console=ttyS0,115200n8
-
 LABEL zigux
-MENU LABEL Zigux CachyOS allmodconfig (experimental)
+MENU LABEL Zigux CachyOS compiled upstream allmodconfig (default)
 LINUX /%INSTALL_DIR%/boot/%ARCH%/vmlinuz-linux-zigux-allmodconfig
 INITRD /%INSTALL_DIR%/boot/%ARCH%/initramfs-linux-zigux-allmodconfig.img
+APPEND archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% copytoram=auto console=tty0 console=ttyS0,115200n8
+
+LABEL zigux-lts
+MENU LABEL Zigux CachyOS stable LTS (fallback)
+LINUX /%INSTALL_DIR%/boot/%ARCH%/vmlinuz-linux-cachyos-lts
+INITRD /%INSTALL_DIR%/boot/%ARCH%/initramfs-linux-cachyos-lts.img
 APPEND archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% copytoram=auto console=tty0 console=ttyS0,115200n8
 
 LABEL zigux-allyes
@@ -407,7 +413,7 @@ APPEND archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% copytoram=a
 
 ISO_SYSLINUX
 cp "$profile/syslinux/archiso_sys-linux.cfg" "$profile/syslinux/archiso_pxe-linux.cfg"
-sed -i 's/^DEFAULT .*/DEFAULT zigux-lts/' "$profile/syslinux/archiso_sys.cfg"
+sed -i 's/^DEFAULT .*/DEFAULT zigux/' "$profile/syslinux/archiso_sys.cfg"
 
 rm -rf "$iso_work" /dist/iso-out
 mkdir -p /dist/iso-out
@@ -431,8 +437,8 @@ Artifacts:
 Default disk credentials: zigux / zigux (root password: zigux)
 Change these passwords immediately.
 
-linux-cachyos-lts is the stable default. The allmodconfig and allyesconfig
-kernels remain available as explicit experimental boot choices.
+The allmodconfig kernel compiled from the Linux source commit above is the default.
+linux-cachyos-lts is retained as a fallback; allyesconfig is an experimental choice.
 EOF
 
 sha256sum /dist/*.iso /dist/*.img.zst /dist/README.txt > /dist/SHA256SUMS
